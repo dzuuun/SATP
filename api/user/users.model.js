@@ -1,6 +1,6 @@
 const pool = require("../../db/db");
 
-modules.export = {
+module.exports = {
   createUser: (data, callBack) => {
     pool.query(
       "SELECT username FROM users WHERE username=?",
@@ -31,7 +31,7 @@ modules.export = {
                 pool.query(
                   "INSERT INTO user_info (user_id, surname, givenname, middlename, course_id, year_level, gender) VALUES (?,?,?,?,?,?,?)",
                   [
-                    data.user_id,
+                    results[0].user_id,
                     data.surname,
                     data.givenname,
                     data.middlename,
@@ -70,7 +70,7 @@ modules.export = {
 
   getUserByUserId: (Id, callBack) => {
     pool.query(
-      "SELECT * FROM users WHERE id = ?",
+      "SELECT id, username, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active FROM users WHERE id = ?",
       [Id],
       (error, results) => {
         if (error) {

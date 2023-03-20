@@ -4,7 +4,7 @@ const {
     getUsers,
     getUserByUserName,
   } = require("./users.model");
-  const { genSaltSync, hashSync, compareSync } = require("bcrypt");
+ // const { genSaltSync, hashSync, compareSync } = require("bcrypt");
   
   module.exports = {
     createUser: (req, res) => {
@@ -48,7 +48,7 @@ const {
       });
     },
   
-    getUsers: (res) => {
+    getUsers: (req, res) => {
       getUsers((err, results) => {
         if (err) {
           console.log(err);
