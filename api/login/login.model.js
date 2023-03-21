@@ -70,7 +70,7 @@ module.exports = {
 
   getUsers: (callBack) => {
     pool.query(
-      "SELECT * FROM users INNER JOIN user_info ON users.id=user_info.user_id",
+      "SELECT * FROM users LEFT JOIN user_info ON users.id=user_info.user_id",
       [],
       (error, results) => {
         if (error) {

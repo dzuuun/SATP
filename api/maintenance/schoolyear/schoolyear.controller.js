@@ -83,5 +83,5 @@ module.exports = {
         message: "School year information updated successfully.",
       });
     });
-  }
+  },
 };

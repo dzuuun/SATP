@@ -78,5 +78,5 @@ module.exports = {
         message: "Subject information updated successfully.",
       });
     });
-  }
+  },
 };
