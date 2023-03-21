@@ -3,7 +3,7 @@ const {
     getUserByUserId,
     getUsers,
     getUserByUserName,
-  } = require("./users.model");
+  } = require("./login.model");
  // const { genSaltSync, hashSync, compareSync } = require("bcrypt");
   
   module.exports = {

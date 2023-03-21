@@ -1,5 +1,18 @@
 const pool = require("../../db/db");
 
+const updateUserPassword = async (data, callBack) => {
+  await pool.query(
+    "UPDATE users SET password=? WHERE id = ?",
+    [data.password, data.user_id],
+    (error, results) => {
+      if (error) {
+        callBack(error);
+      }
+      return callBack(null, results);
+    }
+  );
+};
+
 module.exports = {
   createUser: (data, callBack) => {
     pool.query(
@@ -7,8 +20,8 @@ module.exports = {
       [data.username],
       (error, results) => {
         if (error) {
-            callBack(error);
-          }
+          callBack(error);
+        }
 
         if (results.length === 0) {
           pool.query(
@@ -23,9 +36,9 @@ module.exports = {
               data.is_active,
             ],
             (error, results) => {
-                if (error) {
-                    callBack(error);
-                  }
+              if (error) {
+                callBack(error);
+              }
 
               if (results.length === 1) {
                 pool.query(
@@ -94,6 +107,24 @@ module.exports = {
     );
   },
 
+  updateUserPassword,
 
-
+  updateUser: (data, callBack) => {
+    pool.query(
+      "UPDATE users SET username=?, full_name=?, position=?, auth_level=? WHERE user_id = ?",
+      [
+        data.username,
+        data.full_name,
+        data.position,
+        data.auth_level,
+        data.user_id,
+      ],
+      (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
 };
