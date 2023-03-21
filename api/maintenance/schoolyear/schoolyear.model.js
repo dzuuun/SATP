@@ -1,4 +1,4 @@
-const pool = require("../../db/db");
+const pool = require("../../../db/db");
 
 module.exports = {
   getSchoolYears: (callBack) => {
@@ -18,7 +18,7 @@ module.exports = {
         if (error) {
           callBack(error);
         }
-        return callBack(results);
+        return callBack(results[0]);
       }
     );
   },
@@ -47,5 +47,5 @@ module.exports = {
         return callBack(null, results);
       }
     );
-  },
+  }
 };

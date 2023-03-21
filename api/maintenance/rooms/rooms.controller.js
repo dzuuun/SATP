@@ -1,13 +1,8 @@
-const {
-  getSubjects,
-  getSubjectById,
-  addSubject,
-  updateSubject,
-} = require("./subjects.model");
+const { getRooms, getRoomById, addRoom, updateRoom } = require("./rooms.model");
 
 module.exports = {
-  getSubjects: (req, res) => {
-    getSubjects((err, results) => {
+  getRooms: (req, res) => {
+    getRooms((err, results) => {
       if (!results) {
         return res.status(500).json({
           success: 0,
@@ -16,16 +11,16 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Subjects information retrieved successfully.",
+        message: "Rooms information retrieved successfully.",
         count: results.length,
         data: results,
       });
     });
   },
 
-  getSubjectById: (req, res) => {
+  getRoomById: (req, res) => {
     const id = req.params.id;
-    getSubjectById(id, (err, results) => {
+    getRoomById(id, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -38,31 +33,31 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Subject information retrieved successfully.",
+        message: "Room information retrieved successfully.",
         data: results,
       });
     });
   },
-  addSubject: (req, res) => {
+  addRoom: (req, res) => {
     const body = req.body;
-    addSubject(body, (err, results) => {
+    addRoom(body, (err, results) => {
       if (err) {
         return res.status(500).json({
           success: 0,
-          message: "Subject already exists. Try again.",
+          message: "Room already exists. Try again.",
         });
       }
       return res.json({
         success: 1,
-        message: "Subject added successfully.",
+        message: "Room added successfully.",
         data: results,
       });
     });
   },
 
-  updateSubject: (req, res) => {
+  updateRoom: (req, res) => {
     const body = req.body;
-    updateSubject(body, (err, results) => {
+    updateRoom(body, (err, results) => {
       if (err) {
         console.log(err);
         return false;
@@ -75,8 +70,8 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Subject information updated successfully.",
+        message: "Room information updated successfully.",
       });
     });
-  }
+  },
 };
