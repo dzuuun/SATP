@@ -1,4 +1,3 @@
-const Connection = require("mysql/lib/Connection");
 const pool = require("../../../db/db");
 
 module.exports = {
@@ -16,7 +15,7 @@ module.exports = {
       if (error) {
         callBack(error);
       }
-      return callBack(results[0]);
+      return callBack(null, results[0]);
     });
   },
 
@@ -74,23 +73,40 @@ module.exports = {
     );
   },
 
-  // deleteRoom: (data, callBack) => {
-  //   pool.query("DELETE FROM rooms WHERE id=?", [data.id], (error, results) => {
-  //     if (results.length === 1) {
-  //       pool.query(
-  //         "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-  //         [data.user_id, "Deleted Room: " + data.name],
-  //         (error, results) => {
-  //           if (error) {
-  //             console.log(error);
-  //           }
-  //         }
-  //       );
-  //     }
-  //     if (error) {
-  //       callBack(error);
-  //     }
-  //     return callBack(null, results);
-  //   });
-  // },
-};
+  searchRooms: (data, callBack) => {
+    console.log(data);
+    pool.query(
+      "SELECT name, is_active FROM rooms WHERE name LIKE '%" +
+        data.search +
+        "%' OR is_active LIKE '%" +
+        data.search +
+        "%'",
+        (error, results) => {
+          if (error) {
+            callBack(error);
+          }
+          return callBack(null, results);
+        }
+      );
+    },
+  };
+
+// deleteRoom: (data, callBack) => {
+//   pool.query("DELETE FROM rooms WHERE id=?", [data.id], (error, results) => {
+//     if (results.length === 1) {
+//       pool.query(
+//         "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+//         [data.user_id, "Deleted Room: " + data.name],
+//         (error, results) => {
+//           if (error) {
+//             console.log(error);
+//           }
+//         }
+//       );
+//     }
+//     if (error) {
+//       callBack(error);
+//     }
+//     return callBack(null, results);
+//   });
+// },

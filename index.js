@@ -26,7 +26,7 @@ app.use(morgan("combined"));
 app.use("/api/user", loginRouter);
 app.use("/api/schoolyear", schoolYearRouter);
 app.use("/api/subjects", subjectRouter);
-app.use("/api/room", roomRouter);
+app.use("/api/rooms", roomRouter);
 app.use("/api/activity_log", logRouter);
 
 app.listen(process.env.PORT || "3000", () => {

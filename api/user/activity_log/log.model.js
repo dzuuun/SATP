@@ -27,7 +27,7 @@ module.exports = {
         "%' OR activity_log.action LIKE '%" +
         data.search +
         "%'",
-      (error, results, fields) => {
+      (error, results) => {
         if (error) {
           callBack(error);
         }
