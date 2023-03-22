@@ -3,6 +3,7 @@ const {
   getSubjectById,
   addSubject,
   updateSubject,
+  // deleteSubject
 } = require("./subjects.model");
 
 module.exports = {
@@ -43,6 +44,7 @@ module.exports = {
       });
     });
   },
+  
   addSubject: (req, res) => {
     const body = req.body;
     addSubject(body, (err, results) => {
@@ -79,4 +81,24 @@ module.exports = {
       });
     });
   },
+
+  // deleteSubject: (req, res) => {
+  //   const data = req.body;
+  //   deleteSubject(data, (err, results) => {
+  //     if (err) {
+  //       console.log(err);
+  //       return;
+  //     }
+  //     if (results.affectedRows == 0) {
+  //       return res.status(500).json({
+  //         success: 0,
+  //         message: "Record not found.",
+  //       });
+  //     }
+  //     return res.json({
+  //       success: 1,
+  //       message: "Subject deleted successfully.",
+  //     });
+  //   });
+  // },
 };

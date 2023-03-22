@@ -3,6 +3,7 @@ const {
   getSchoolYearById,
   addSchoolYear,
   updateSchoolYear,
+  // deleteSchoolYear,
 } = require("./schoolyear.model");
 
 module.exports = {
@@ -20,7 +21,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "School years information retrieved successfully.",
+        message: "School Years information retrieved successfully.",
         count: results.length,
         data: results,
       });
@@ -42,7 +43,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "School year information retrieved successfully.",
+        message: "School Year information retrieved successfully.",
         data: results,
       });
     });
@@ -54,12 +55,12 @@ module.exports = {
       if (err) {
         return res.status(500).json({
           success: 0,
-          message: "School year already exists. Try again.",
+          message: "School Year already exists. Try again.",
         });
       }
       return res.json({
         success: 1,
-        message: "School year added successfully.",
+        message: "School Year added successfully.",
         data: results,
       });
     });
@@ -80,8 +81,27 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "School year information updated successfully.",
+        message: "School Year information updated successfully.",
       });
     });
   },
+  // deleteSchoolYear: (req, res) => {
+  //   const data = req.body;
+  //   deleteSchoolYear(data, (err, results) => {
+  //     if (err) {
+  //       console.log(err);
+  //       return;
+  //     }
+  //     if (results.affectedRows == 0) {
+  //       return res.status(500).json({
+  //         success: 0,
+  //         message: "Record not found.",
+  //       });
+  //     }
+  //     return res.json({
+  //       success: 1,
+  //       message: "School Year deleted successfully.",
+  //     });
+  //   });
+  // },
 };

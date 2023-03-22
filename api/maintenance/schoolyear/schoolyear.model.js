@@ -25,13 +25,23 @@ module.exports = {
 
   addSchoolYear: (data, callBack) => {
     pool.query(
-      "INSERT INTO school_years (name, in_use, is_active) VALUES (?,?,?)",
-      [data.name, data.in_use, data.is_active],
+      "SELECT name FROM school_years WHERE name=?",
+      [data.name],
       (error, results) => {
-        if (error) {
-          callBack(error);
+        if (results.length === 0) {
+          pool.query(
+            "INSERT INTO school_years (name, in_use, is_active) VALUES (?,?,?)",
+            [data.name, data.in_use, data.is_active],
+            (error, results) => {
+              if (error) {
+                callBack(error);
+              }
+              return callBack(null, results);
+            }
+          );
+        } else {
+          return callBack(results);
         }
-        return callBack(null, results);
       }
     );
   },
@@ -48,4 +58,17 @@ module.exports = {
       }
     );
   },
+
+  // deleteSchoolYear: (data, callBack) => {
+  //   pool.query(
+  //     "DELETE FROM school_years WHERE id=?",
+  //     [data.id],
+  //     (error, results) => {
+  //       if (error) {
+  //         return callBack(error);
+  //       }
+  //       return callBack(null, results);
+  //     }
+  //   );
+  // },
 };

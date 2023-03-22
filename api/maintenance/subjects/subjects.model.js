@@ -25,13 +25,23 @@ module.exports = {
 
   addSubject: (data, callBack) => {
     pool.query(
-      "INSERT INTO subjects (code, name, is_active) VALUES (?,?,?)",
-      [data.code, data.name, data.is_active],
+      "SELECT code FROM subjects WHERE code=?",
+      [data.code],
       (error, results) => {
-        if (error) {
-          callBack(error);
+        if (results.length === 0) {
+          pool.query(
+            "INSERT INTO subjects (code, name, is_active) VALUES (?,?,?)",
+            [data.code, data.name, data.is_active],
+            (error, results) => {
+              if (error) {
+                callBack(error);
+              }
+              return callBack(null, results);
+            }
+          );
+        } else {
+          return callBack(results);
         }
-        return callBack(results);
       }
     );
   },
@@ -48,4 +58,17 @@ module.exports = {
       }
     );
   },
+
+  // deleteSubject: (data, callBack) => {
+  //   pool.query(
+  //     "DELETE FROM subjects WHERE id=?",
+  //     [data.id],
+  //     (error, results) => {
+  //       if (error) {
+  //         return callBack(error);
+  //       }
+  //       return callBack(null, results);
+  //     }
+  //   );
+  // },
 };

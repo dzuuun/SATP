@@ -1,31 +1,34 @@
-const express = require('express');
+require("dotenv").config();
+
+// express
+const express = require("express");
 const app = express();
-const loginRouter = require('./api/login/login.router');
-const schoolYearRouter = require('./api/maintenance/schoolyear/schoolyear.router');
-const subjectRouter = require('./api/maintenance/subjects/subjects.router');
-const roomRouter = require('./api/maintenance/rooms/rooms.router');
-
-
 app.use(express.json());
-var bodyParser = require('body-parser')
+app.use(express.static("client"));
+
+// import routes
+const loginRouter = require("./api/login/login.router");
+const schoolYearRouter = require("./api/maintenance/schoolyear/schoolyear.router");
+const subjectRouter = require("./api/maintenance/subjects/subjects.router");
+const roomRouter = require("./api/maintenance/rooms/rooms.router");
+const logRouter = require("./api/user/activity_log/log.router");
+
+var bodyParser = require("body-parser");
 app.use(bodyParser.json());
 
-var cors = require('cors');
-require('dotenv').config()
-var morgan = require('morgan');
-
-app.use(morgan('combined'))
-app.use(express.static('client'));
-
+var cors = require("cors");
 app.use(cors());
 
+var morgan = require("morgan");
+app.use(morgan("combined"));
 
-app.use('/api/user', loginRouter);
-app.use('/api/schoolyear', schoolYearRouter);
-app.use('/api/subjects', subjectRouter);
-app.use('api/room', roomRouter);
+// routes implementation
+app.use("/api/user", loginRouter);
+app.use("/api/schoolyear", schoolYearRouter);
+app.use("/api/subjects", subjectRouter);
+app.use("/api/room", roomRouter);
+app.use("/api/activity_log", logRouter);
 
-
-app.listen(process.env.PORT || '3000', () => {
-    console.log(`Server is running on port: ${process.env.PORT || '3000'}`);
+app.listen(process.env.PORT || "3000", () => {
+  console.log(`Server is running on port: ${process.env.PORT || "3000"}`);
 });
