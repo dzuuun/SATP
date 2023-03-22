@@ -65,10 +65,19 @@ module.exports = {
       "UPDATE departments SET code = ?, name = ?, college_id = ?, is_active = ? WHERE id = ?",
       [data.code, data.name, data.college_id, data.is_active, data.id],
       (error, results) => {
+        pool.query(
+          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+          [data.user_id, "Updated Department: " + data.name],
+          (error, results) => {
+            if (error) {
+              console.log(error);
+            }
+          }
+        );
         if (error) {
           callBack(error);
         }
-        return callBack(error);
+        return callBack(null, results);
       }
     );
   },

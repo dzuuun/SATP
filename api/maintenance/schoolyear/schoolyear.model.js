@@ -33,6 +33,15 @@ module.exports = {
             "INSERT INTO school_years (name, in_use, is_active) VALUES (?,?,?)",
             [data.name, data.in_use, data.is_active],
             (error, results) => {
+              pool.query(
+                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                [data.user_id, "Added School Year: " + data.name],
+                (error, results) => {
+                  if (error) {
+                    console.log(error);
+                  }
+                }
+              );
               if (error) {
                 callBack(error);
               }
@@ -51,6 +60,15 @@ module.exports = {
       "UPDATE school_years SET name = ?, in_use = ?, is_active = ? WHERE id = ?",
       [data.name, data.in_use, data.is_active, data.id],
       (error, results) => {
+        pool.query(
+          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+          [data.user_id, "Updated School Year: " + data.name],
+          (error, results) => {
+            if (error) {
+              console.log(error);
+            }
+          }
+        );
         if (error) {
           callBack(error);
         }

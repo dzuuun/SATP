@@ -33,6 +33,15 @@ module.exports = {
             "INSERT INTO subjects (code, name, is_active) VALUES (?,?,?)",
             [data.code, data.name, data.is_active],
             (error, results) => {
+              pool.query(
+                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                [data.user_id, "Added Subject: " + data.name],
+                (error, results) => {
+                  if (error) {
+                    console.log(error);
+                  }
+                }
+              );
               if (error) {
                 callBack(error);
               }
@@ -51,6 +60,15 @@ module.exports = {
       "UPDATE subjects SET code=?, name=?, is_active=? WHERE id=?",
       [data.name, data.in_use, data.is_active, data.id],
       (error, results) => {
+        pool.query(
+          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+          [data.user_id, "Updated Room: " + data.name],
+          (error, results) => {
+            if (error) {
+              console.log(error);
+            }
+          }
+        );
         if (error) {
           callBack(error);
         }
