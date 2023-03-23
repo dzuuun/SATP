@@ -60,15 +60,17 @@ module.exports = {
       "UPDATE school_years SET name = ?, in_use = ?, is_active = ? WHERE id = ?",
       [data.name, data.in_use, data.is_active, data.id],
       (error, results) => {
-        pool.query(
-          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-          [data.user_id, "Updated School Year: " + data.name],
-          (error, results) => {
-            if (error) {
-              console.log(error);
+        if (results.changedRows == 1) {
+          pool.query(
+            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+            [data.user_id, "Updated School Year: " + data.name],
+            (error, results) => {
+              if (error) {
+                console.log(error);
+              }
             }
-          }
-        );
+          );
+        }
         if (error) {
           callBack(error);
         }
@@ -77,16 +79,42 @@ module.exports = {
     );
   },
 
-  // deleteSchoolYear: (data, callBack) => {
-  //   pool.query(
-  //     "DELETE FROM school_years WHERE id=?",
-  //     [data.id],
-  //     (error, results) => {
-  //       if (error) {
-  //         return callBack(error);
-  //       }
-  //       return callBack(null, results);
-  //     }
-  //   );
-  // },
+  deleteSchoolYear: (data, callBack) => {
+    pool.query("DELETE FROM school_years WHERE id=?", [data.id], (error, results) => {
+      if (results.affectedRows == 1) {
+        pool.query(
+          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+          [data.user_id, "Deleted School Year: " + data.name],
+          (error, results) => {
+            if (error) {
+              console.log(error);
+            }
+          }
+        );
+      }
+      if (error) {
+        callBack(error);
+      }
+      return callBack(null, results);
+    });
+  },
+
+  
+  searchSchoolYears: (data, callBack) => {
+    pool.query(
+      "SELECT name, in_use, is_active FROM school_years WHERE name LIKE '%" +
+        data.search +
+        "%' OR in_use LIKE '%" +
+        data.search +
+        "%' OR is_active LIKE '%" +
+        data.search +
+        "%'",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
 };

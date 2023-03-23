@@ -60,15 +60,17 @@ module.exports = {
       "UPDATE subjects SET code=?, name=?, is_active=? WHERE id=?",
       [data.name, data.in_use, data.is_active, data.id],
       (error, results) => {
-        pool.query(
-          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-          [data.user_id, "Updated Room: " + data.name],
-          (error, results) => {
-            if (error) {
-              console.log(error);
+        if (results.changedRows == 1) {
+          pool.query(
+            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+            [data.user_id, "Updated Subject: " + data.name],
+            (error, results) => {
+              if (error) {
+                console.log(error);
+              }
             }
-          }
-        );
+          );
+        }
         if (error) {
           callBack(error);
         }
@@ -77,16 +79,46 @@ module.exports = {
     );
   },
 
-  // deleteSubject: (data, callBack) => {
-  //   pool.query(
-  //     "DELETE FROM subjects WHERE id=?",
-  //     [data.id],
-  //     (error, results) => {
-  //       if (error) {
-  //         return callBack(error);
-  //       }
-  //       return callBack(null, results);
-  //     }
-  //   );
-  // },
+  deleteSubject: (data, callBack) => {
+    pool.query(
+      "DELETE FROM subjects WHERE id=?",
+      [data.id],
+      (error, results) => {
+        if (results.affectedRows == 1) {
+          pool.query(
+            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+            [data.user_id, "Deleted Subject: " + data.name],
+            (error, results) => {
+              if (error) {
+                console.log(error);
+              }
+            }
+          );
+        }
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+  searchSubjects: (data, callBack) => {
+    console.log(data);
+    pool.query(
+      "SELECT code, name, is_active FROM subjects WHERE code LIKE '%" +
+        data.search +
+        "%'  OR name LIKE '%" +
+        data.search +
+        "%' OR is_active LIKE '%" +
+        data.search +
+        "%'",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
 };

@@ -3,7 +3,8 @@ const {
   getSchoolYearById,
   addSchoolYear,
   updateSchoolYear,
-  // deleteSchoolYear,
+  deleteSchoolYear,
+  searchSchoolYears
 } = require("./schoolyear.model");
 
 module.exports = {
@@ -85,23 +86,45 @@ module.exports = {
       });
     });
   },
-  // deleteSchoolYear: (req, res) => {
-  //   const data = req.body;
-  //   deleteSchoolYear(data, (err, results) => {
-  //     if (err) {
-  //       console.log(err);
-  //       return;
-  //     }
-  //     if (results.affectedRows == 0) {
-  //       return res.status(500).json({
-  //         success: 0,
-  //         message: "Record not found.",
-  //       });
-  //     }
-  //     return res.json({
-  //       success: 1,
-  //       message: "School Year deleted successfully.",
-  //     });
-  //   });
-  // },
+  deleteSchoolYear: (req, res) => {
+    const data = req.body;
+    deleteSchoolYear(data, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (results.affectedRows == 0) {
+        return res.status(500).json({
+          success: 0,
+          message: "Record not found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "School Year deleted successfully.",
+      });
+    });
+  },
+
+  searchSchoolYears: (req, res) => {
+    const body = req.body;
+    searchSchoolYears(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (results.length === 0) {
+        return res.status(500).json({
+          success: 0,
+          message: "No entry found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "School Years searched successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
 };

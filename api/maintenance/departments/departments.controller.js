@@ -4,6 +4,7 @@ const {
   addDepartment,
   updateDepartment,
   deleteDepartment,
+  searchDepartments
 } = require("./departments.model");
 
 module.exports = {
@@ -82,24 +83,46 @@ module.exports = {
       });
     },
   
-    // deleteDepartment: (req, res) => {
-    //   const data = req.body;
-    //   deleteDepartment(data, (err, results) => {
-    //     if (err) {
-    //       console.log(err);
-    //       return;
-    //     }
-    //     if (results.affectedRows == 0) {
-    //       return res.status(500).json({
-    //         success: 0,
-    //         message: "Record not found.",
-    //       });
-    //     }
-    //     return res.json({
-    //       success: 1,
-    //       message: "Department deleted successfully.",
-    //     });
-    //   });
-    // },
+    deleteDepartment: (req, res) => {
+      const data = req.body;
+      deleteDepartment(data, (err, results) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        if (results.affectedRows == 0) {
+          return res.status(500).json({
+            success: 0,
+            message: "Record not found.",
+          });
+        }
+        return res.json({
+          success: 1,
+          message: "Department deleted successfully.",
+        });
+      });
+    },
+
+    searchDepartments: (req, res) => {
+      const body = req.body;
+      searchDepartments(body, (err, results) => {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        if (results.length === 0) {
+          return res.status(500).json({
+            success: 0,
+            message: "No entry found.",
+          });
+        }
+        return res.json({
+          success: 1,
+          message: "Departments searched successfully.",
+          count: results.length,
+          data: results,
+        });
+      });
+    },
   };
   

@@ -4,7 +4,7 @@ const {
   addRoom,
   updateRoom,
   searchRooms,
-  // deleteRoom,
+  deleteRoom,
 } = require("./rooms.model");
 
 module.exports = {
@@ -83,25 +83,25 @@ module.exports = {
     });
   },
 
-  // deleteRoom: (req, res) => {
-  //   const data = req.body;
-  //   deleteRoom(data, (err, results) => {
-  //     if (err) {
-  //       console.log(err);
-  //       return;
-  //     }
-  //     if (results.affectedRows == 0) {
-  //       return res.status(500).json({
-  //         success: 0,
-  //         message: "Record not found.",
-  //       });
-  //     }
-  //     return res.json({
-  //       success: 1,
-  //       message: "Room deleted successfully.",
-  //     });
-  //   });
-  // },
+  deleteRoom: (req, res) => {
+    const data = req.body;
+    deleteRoom(data, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (results.affectedRows == 0) {
+        return res.status(500).json({
+          success: 0,
+          message: "Record not found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Room deleted successfully.",
+      });
+    });
+  },
 
   searchRooms: (req, res) => {
     const body = req.body;

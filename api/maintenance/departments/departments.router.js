@@ -3,7 +3,8 @@ const {
     getDepartmentById,
     getDepartments,
     updateDepartment,
-    // deleteDepartment
+    deleteDepartment,
+    searchDepartments
   } = require("./Departments.controller");
   const router = require("express").Router();
   
@@ -11,7 +12,8 @@ const {
   router.get("/:id", getDepartmentById);
   router.get("/", getDepartments);
   router.put("/update", updateDepartment);
-  // router.delete("/delete", deleteDepartment)
+  router.delete("/delete", deleteDepartment);
+  router.get("/search/any", searchDepartments);
   
   module.exports = router;
   
