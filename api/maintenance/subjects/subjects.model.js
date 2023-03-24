@@ -104,7 +104,6 @@ module.exports = {
   },
 
   searchSubjects: (data, callBack) => {
-    console.log(data);
     pool.query(
       "SELECT code, name, is_active FROM subjects WHERE code LIKE '%" +
         data.search +
