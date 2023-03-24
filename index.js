@@ -12,7 +12,8 @@ const schoolYearRouter = require("./api/maintenance/schoolyear/schoolyear.router
 const subjectRouter = require("./api/maintenance/subjects/subjects.router");
 const roomRouter = require("./api/maintenance/rooms/rooms.router");
 const logRouter = require("./api/user/activity_log/log.router");
-const departmentRouter = require("./api/maintenance/departments/departments.router");
+const departmentRouter = require("./api/maintenance/department/department.router");
+const collegeRouter = require("./api/maintenance/college/college.router");
 
 var bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -30,6 +31,7 @@ app.use("/api/subjects", subjectRouter);
 app.use("/api/rooms", roomRouter);
 app.use("/api/activity_log", logRouter);
 app.use("/api/departments", departmentRouter);
+app.use("/api/college", collegeRouter);
 
 app.listen(process.env.PORT || "3000", () => {
   console.log(`Server is running on port: ${process.env.PORT || "3000"}`);

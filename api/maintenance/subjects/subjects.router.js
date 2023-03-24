@@ -4,7 +4,7 @@ const {
   getSubjects,
   updateSubject,
   searchSubjects,
-  deleteSubject
+  deleteSubject,
 } = require("./subjects.controller");
 const router = require("express").Router();
 

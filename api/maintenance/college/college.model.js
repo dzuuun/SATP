@@ -1,8 +1,8 @@
 const pool = require("../../../db/db");
 
 module.exports = {
-  getSubjects: (callBack) => {
-    pool.query("SELECT * FROM subjects", [], (error, results) => {
+  getColleges: (callBack) => {
+    pool.query("SELECT * FROM colleges", [], (error, results) => {
       if (error) {
         callBack(error);
       }
@@ -10,9 +10,9 @@ module.exports = {
     });
   },
 
-  getSubjectById: (Id, callBack) => {
+  getCollegeById: (Id, callBack) => {
     pool.query(
-      "SELECT * FROM subjects WHERE id = ?",
+      "SELECT * FROM colleges WHERE id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -23,19 +23,19 @@ module.exports = {
     );
   },
 
-  addSubject: (data, callBack) => {
+  addCollege: (data, callBack) => {
     pool.query(
-      "SELECT code FROM subjects WHERE code=?",
+      "SELECT code FROM colleges WHERE code=?",
       [data.code],
       (error, results) => {
         if (results.length === 0) {
           pool.query(
-            "INSERT INTO subjects (code, name, is_active) VALUES (?,?,?)",
+            "INSERT INTO colleges (code, name, is_active) VALUES (?,?,?)",
             [data.code, data.name, data.is_active],
             (error, results) => {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Added Subject: " + data.name],
+                [data.user_id, "Added College: " + data.code],
                 (error, results) => {
                   if (error) {
                     console.log(error);
@@ -54,16 +54,15 @@ module.exports = {
       }
     );
   },
-
-  updateSubject: (data, callBack) => {
+  updateCollege: (data, callBack) => {
     pool.query(
-      "UPDATE subjects SET code=?, name=?, is_active=? WHERE id=?",
+      "UPDATE colleges SET code=?, name=?, is_active=? WHERE id=?",
       [data.code, data.name, data.is_active, data.id],
       (error, results) => {
         if (results.changedRows == 1) {
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated Subject: " + data.name],
+            [data.user_id, "Updated College: " + data.code],
             (error, results) => {
               if (error) {
                 console.log(error);
@@ -78,16 +77,15 @@ module.exports = {
       }
     );
   },
-
-  deleteSubject: (data, callBack) => {
+  deleteCollege: (data, callBack) => {
     pool.query(
-      "DELETE FROM subjects WHERE id=?",
+      "DELETE FROM colleges WHERE id=?",
       [data.id],
       (error, results) => {
         if (results.affectedRows == 1) {
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Deleted Subject: " + data.name],
+            [data.user_id, "Deleted College: " + data.name],
             (error, results) => {
               if (error) {
                 console.log(error);
@@ -103,10 +101,10 @@ module.exports = {
     );
   },
 
-  searchSubjects: (data, callBack) => {
+  searchColleges: (data, callBack) => {
     console.log(data);
     pool.query(
-      "SELECT code, name, is_active FROM subjects WHERE code LIKE '%" +
+      "SELECT code, name, is_active FROM colleges WHERE code LIKE '%" +
         data.search +
         "%'  OR name LIKE '%" +
         data.search +

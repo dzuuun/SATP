@@ -18,7 +18,7 @@ module.exports = {
         if (error) {
           callBack(error);
         }
-        return callBack(results[0]);
+        return callBack(null, results[0]);
       }
     );
   },
@@ -80,26 +80,29 @@ module.exports = {
   },
 
   deleteSchoolYear: (data, callBack) => {
-    pool.query("DELETE FROM school_years WHERE id=?", [data.id], (error, results) => {
-      if (results.affectedRows == 1) {
-        pool.query(
-          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-          [data.user_id, "Deleted School Year: " + data.name],
-          (error, results) => {
-            if (error) {
-              console.log(error);
+    pool.query(
+      "DELETE FROM school_years WHERE id=?",
+      [data.id],
+      (error, results) => {
+        if (results.affectedRows == 1) {
+          pool.query(
+            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+            [data.user_id, "Deleted School Year: " + data.name],
+            (error, results) => {
+              if (error) {
+                console.log(error);
+              }
             }
-          }
-        );
+          );
+        }
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
       }
-      if (error) {
-        callBack(error);
-      }
-      return callBack(null, results);
-    });
+    );
   },
 
-  
   searchSchoolYears: (data, callBack) => {
     pool.query(
       "SELECT name, in_use, is_active FROM school_years WHERE name LIKE '%" +

@@ -2,27 +2,23 @@ const pool = require("../../../db/db");
 
 module.exports = {
   getDepartments: (callBack) => {
-    pool.query(
-      "SELECT departments.code, departments.name AS department_name, colleges.name AS college_name, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id",
-      [],
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(results);
+    pool.query("SELECT * FROM departments", [], (error, results) => {
+      if (error) {
+        callBack(error);
       }
-    );
+      return callBack(null, results);
+    });
   },
 
   getDepartmentById: (Id, callBack) => {
     pool.query(
-      "SELECT departments.code, departments.name AS department_name, colleges.name AS college_name, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id WHERE departments.id = ?",
+      "SELECT * FROM departments WHERE id = ?",
       [Id],
       (error, results) => {
         if (error) {
           callBack(error);
         }
-        return callBack(results);
+        return callBack(null, results[0]);
       }
     );
   },
@@ -34,12 +30,12 @@ module.exports = {
       (error, results) => {
         if (results.length === 0) {
           pool.query(
-            "INSERT INTO departments(code, name, college_id, is_active) VALUES (?, ?, ?, ?)",
+            "INSERT INTO departments (code, name, college_id, is_active) VALUES (?,?,?,?)",
             [data.code, data.name, data.college_id, data.is_active],
             (error, results) => {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Added Department: " + data.name],
+                [data.user_id, "Added Department: " + data.code],
                 (error, results) => {
                   if (error) {
                     console.log(error);
@@ -67,7 +63,7 @@ module.exports = {
         if (results.changedRows == 1) {
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated Department: " + data.name],
+            [data.user_id, "Updated Department: " + data.code],
             (error, results) => {
               if (error) {
                 console.log(error);
@@ -91,7 +87,7 @@ module.exports = {
         if (results.affectedRows == 1) {
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Deleted Department: " + data.name],
+            [data.user_id, "Deleted Department: " + data.code],
             (error, results) => {
               if (error) {
                 console.log(error);
