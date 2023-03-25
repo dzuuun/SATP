@@ -92,22 +92,36 @@ module.exports = {
   },
 
   deleteRoom: (data, callBack) => {
-    pool.query("DELETE FROM rooms WHERE id=?", [data.id], (error, results) => {
-      if (results.affectedRows == 1) {
+    pool.query(
+      "SELECT name FROM rooms WHERE id=?",
+      [data.id],
+      (error, result) => {
         pool.query(
-          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-          [data.user_id, "Deleted Room: " + data.name],
+          "DELETE FROM rooms WHERE id=?",
+          [data.id],
           (error, results) => {
-            if (error) {
-              console.log(error);
+            if (results.affectedRows == 1) {
+              pool.query(
+                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                [data.user_id, "Deleted Room: " + result[0].name],
+                (error, results) => {
+                  if (error) {
+                    console.log(error);
+                  }
+                  console.log("Action added to Activity Log.");
+                }
+              );
             }
+            if (error) {
+              callBack(error);
+            }
+            return callBack(null, results);
           }
         );
+        if (error) {
+          return callBack(error);
+        }
       }
-      if (error) {
-        callBack(error);
-      }
-      return callBack(null, results);
-    });
+    );
   },
 };

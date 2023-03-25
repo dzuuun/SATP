@@ -42,7 +42,6 @@ module.exports = {
   addCourse: (req, res) => {
     const body = req.body;
     addCourse(body, (err, results) => {
-        console.log(body)
       if (err) {
         return res.json({
           success: 0,

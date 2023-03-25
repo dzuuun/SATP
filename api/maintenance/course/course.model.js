@@ -11,16 +11,12 @@ module.exports = {
   },
 
   getCourseById: (Id, callBack) => {
-    pool.query(
-      "SELECT * FROM courses WHERE id = ?",
-      [Id],
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results[0]);
+    pool.query("SELECT * FROM courses WHERE id = ?", [Id], (error, results) => {
+      if (error) {
+        callBack(error);
       }
-    );
+      return callBack(null, results[0]);
+    });
   },
 
   addCourse: (data, callBack) => {
@@ -58,7 +54,7 @@ module.exports = {
   updateCourse: (data, callBack) => {
     pool.query(
       "UPDATE courses SET code=?, name=?, department_id=?, is_active=? WHERE id=?",
-      [data.code, data.name, data.department_id, data.is_active,  data.id],
+      [data.code, data.name, data.department_id, data.is_active, data.id],
       (error, results) => {
         if (results.changedRows == 1) {
           pool.query(
@@ -78,29 +74,35 @@ module.exports = {
       }
     );
   },
-  
+
   deleteCourse: (data, callBack) => {
-    pool.query(
-      "DELETE FROM courses WHERE id=?",
-      [data.id],
-      (error, results) => {
-        if (results.affectedRows == 1) {
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Deleted Course: " + data.name],
-            (error, results) => {
-              if (error) {
-                console.log(error);
+    pool.query("SELECT code FROM courses WHERE id=?", [data.id], (error, result) => {
+      pool.query(
+        "DELETE FROM courses WHERE id=?",
+        [data.id],
+        (error, results) => {
+          if (results.affectedRows == 1) {
+            pool.query(
+              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+              [data.user_id, "Deleted Course: " + result[0].code],
+              (error, results) => {
+                if (error) {
+                  console.log(error);
+                }
+                console.log("Action added to Activity Log.");
               }
-            }
-          );
+            );
+          }
+          if (error) {
+            callBack(error);
+          }
+          return callBack(null, results);
         }
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
+      );
+      if (error) {
+        return callBack(error);
       }
-    );
+    });
   },
 
   searchCourses: (data, callBack) => {

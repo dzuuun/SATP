@@ -81,24 +81,34 @@ module.exports = {
 
   deleteSchoolYear: (data, callBack) => {
     pool.query(
-      "DELETE FROM school_years WHERE id=?",
+      "SELECT name FROM school_years WHERE id=?",
       [data.id],
-      (error, results) => {
-        if (results.affectedRows == 1) {
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Deleted School Year: " + data.name],
-            (error, results) => {
-              if (error) {
-                console.log(error);
-              }
+      (error, result) => {
+        pool.query(
+          "DELETE FROM school_years WHERE id=?",
+          [data.id],
+          (error, results) => {
+            if (results.affectedRows == 1) {
+              pool.query(
+                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                [data.user_id, "Deleted School Year: " + result[0].name],
+                (error, results) => {
+                  if (error) {
+                    console.log(error);
+                  }
+                  console.log("Action added to Activity Log.");
+                }
+              );
             }
-          );
-        }
+            if (error) {
+              callBack(error);
+            }
+            return callBack(null, results);
+          }
+        );
         if (error) {
-          callBack(error);
+          return callBack(error);
         }
-        return callBack(null, results);
       }
     );
   },

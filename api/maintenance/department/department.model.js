@@ -80,27 +80,33 @@ module.exports = {
   },
 
   deleteDepartment: (data, callBack) => {
-    pool.query(
-      "DELETE FROM departments WHERE id=?",
-      [data.id],
-      (error, results) => {
-        if (results.affectedRows == 1) {
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Deleted Department: " + data.code],
-            (error, results) => {
-              if (error) {
-                console.log(error);
+    pool.query("SELECT code FROM departments WHERE id=?", [data.id], (error, result) => {
+      pool.query(
+        "DELETE FROM departments WHERE id=?",
+        [data.id],
+        (error, results) => {
+          if (results.affectedRows == 1) {
+            pool.query(
+              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+              [data.user_id, "Deleted Department: " + result[0].code],
+              (error, results) => {
+                if (error) {
+                  console.log(error);
+                }
+                console.log("Action added to Activity Log.");
               }
-            }
-          );
+            );
+          }
+          if (error) {
+            callBack(error);
+          }
+          return callBack(null, results);
         }
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
+      );
+      if (error) {
+        return callBack(error);
       }
-    );
+    });
   },
 
   searchDepartments: (data, callBack) => {

@@ -35,7 +35,7 @@ module.exports = {
             (error, results) => {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Added Subject: " + data.name],
+                [data.user_id, "Added Subject: " + data.code],
                 (error, results) => {
                   if (error) {
                     console.log(error);
@@ -80,27 +80,33 @@ module.exports = {
   },
 
   deleteSubject: (data, callBack) => {
-    pool.query(
-      "DELETE FROM subjects WHERE id=?",
-      [data.id],
-      (error, results) => {
-        if (results.affectedRows == 1) {
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Deleted Subject: " + data.name],
-            (error, results) => {
-              if (error) {
-                console.log(error);
+    pool.query("SELECT code FROM subjects WHERE id=?", [data.id], (error, result) => {
+      pool.query(
+        "DELETE FROM subjects WHERE id=?",
+        [data.id],
+        (error, results) => {
+          if (results.affectedRows == 1) {
+            pool.query(
+              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+              [data.user_id, "Deleted Subject: " + result[0].code],
+              (error, results) => {
+                if (error) {
+                  console.log(error);
+                }
+                console.log("Action added to Activity Log.");
               }
-            }
-          );
+            );
+          }
+          if (error) {
+            callBack(error);
+          }
+          return callBack(null, results);
         }
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
+      );
+      if (error) {
+        return callBack(error);
       }
-    );
+    });
   },
 
   searchSubjects: (data, callBack) => {
