@@ -11,7 +11,7 @@ module.exports = {
   getRooms: (req, res) => {
     getRooms((err, results) => {
       if (!results) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Record not found.",
         });
@@ -33,7 +33,7 @@ module.exports = {
         return;
       }
       if (!results) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Record not found.",
         });
@@ -50,7 +50,7 @@ module.exports = {
     const body = req.body;
     addRoom(body, (err, results) => {
       if (err) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Room already exists. Try again.",
         });
@@ -71,7 +71,7 @@ module.exports = {
         return false;
       }
       if (results.changedRows == 0) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Contents are still the same.",
         });
@@ -91,7 +91,7 @@ module.exports = {
         return;
       }
       if (results.affectedRows == 0) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Record not found.",
         });
@@ -111,7 +111,7 @@ module.exports = {
         return;
       }
       if (results.length === 0) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "No entry found.",
         });

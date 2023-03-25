@@ -13,7 +13,7 @@ module.exports = {
     body.password = hashSync(body.password, salt);
     createUser(body, (err, results) => {
       if (err) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message:
             "Username already exists. Try again using a different username.",
@@ -35,7 +35,7 @@ module.exports = {
         return;
       }
       if (!results) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Record not found.",
         });
@@ -55,7 +55,7 @@ module.exports = {
         return;
       }
       if (!results) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Record not found.",
         });
@@ -76,7 +76,7 @@ module.exports = {
         console.log(err);
       }
       if (!results) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Invalid username or password.",
         });
@@ -92,7 +92,7 @@ module.exports = {
           message: "User logged in successfully.",
         });
       } else {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Invalid username or password.",
         });

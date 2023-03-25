@@ -4,7 +4,7 @@ module.exports = {
   getLog: (req, res) => {
     getLog((err, results) => {
       if (!results) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Record not found.",
         });
@@ -27,7 +27,7 @@ module.exports = {
             return;
         }
         if (results.length === 0) {
-            return res.status(500).json({
+            return res.json({
                 success: 0,
                 message: "No entry found."
             });
