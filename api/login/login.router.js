@@ -1,15 +1,17 @@
-const {
-  createUser,
-  getUserByUserId,
-  getUsers,
-  login,
-} = require("./login.controller");
+// const {
+//   createUser,
+//   getUserByUserId,
+//   getUsers,
+//   login,
+// } = require("./login.controller");
 const router = require("express").Router();
 
-router.post("/register", createUser);
-router.get("/:id", getUserByUserId);
-router.get("/", getUsers);
-router.post("/login", login);
+const login = require("./login.controller")
+
+router.post("/register", login.createUser);
+router.get("/:id", login.getUserByUserId);
+router.get("/", login.getUsers);
+router.post("/login", login.login);
 
 // router.put('/update/password', updateUserPassword);
 // router.put('/update', updateUser);

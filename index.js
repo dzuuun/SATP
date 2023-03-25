@@ -26,7 +26,7 @@ var morgan = require("morgan");
 app.use(morgan("combined"));
 
 // routes implementation
-app.use("/api/user", loginRouter);
+app.use("/api/login", loginRouter);
 app.use("/api/schoolyear", schoolYearRouter);
 app.use("/api/subject", subjectRouter);
 app.use("/api/room", roomRouter);
