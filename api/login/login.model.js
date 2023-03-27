@@ -1,18 +1,5 @@
 const pool = require("../../db/db");
 
-const updateUserPassword = async (data, callBack) => {
-  await pool.query(
-    "UPDATE users SET password=? WHERE id = ?",
-    [data.password, data.user_id],
-    (error, results) => {
-      if (error) {
-        callBack(error);
-      }
-      return callBack(null, results);
-    }
-  );
-};
-
 module.exports = {
   createUser: (data, callBack) => {
     pool.query(
@@ -106,8 +93,6 @@ module.exports = {
       }
     );
   },
-
-  updateUserPassword,
 
   updateUser: (data, callBack) => {
     pool.query(

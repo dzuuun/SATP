@@ -77,7 +77,7 @@ module.exports = {
 
   searchRooms: (data, callBack) => {
     pool.query(
-      "SELECT name, is_active FROM rooms WHERE name LIKE '%" +
+      "SELECT * FROM rooms WHERE name LIKE '%" +
         data.search +
         "%' OR is_active LIKE '%" +
         data.search +

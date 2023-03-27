@@ -115,7 +115,7 @@ module.exports = {
   
     searchSemesters: (data, callBack) => {
       pool.query(
-        "SELECT name, in_use, is_active FROM semesters WHERE name LIKE '%" +
+        "SELECT * FROM semesters WHERE name LIKE '%" +
           data.search +
           "%' OR in_use LIKE '%" +
           data.search +

@@ -107,7 +107,7 @@ module.exports = {
 
   searchCourses: (data, callBack) => {
     pool.query(
-      "SELECT courses.code, courses.name AS course_name, departments.name AS department_name, courses.is_active FROM courses INNER JOIN departments ON courses.department_id=departments.id WHERE courses.code LIKE '%" +
+      "SELECT courses.id, courses.code, courses.name AS course_name, departments.name AS department_name, courses.is_active FROM courses INNER JOIN departments ON courses.department_id=departments.id WHERE courses.code LIKE '%" +
         data.search +
         "%'  OR courses.name LIKE '%" +
         data.search +
