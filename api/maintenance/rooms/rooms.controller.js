@@ -10,6 +10,10 @@ const {
 module.exports = {
   getRooms: (req, res) => {
     getRooms((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
       if (!results) {
         return res.json({
           success: 0,
@@ -53,6 +57,12 @@ module.exports = {
         return res.json({
           success: 0,
           message: "Room already exists. Try again.",
+        });
+      }
+      if (results === undefined) {
+        return res.status(500).json({
+          success: 0,
+          message: "Some fields are missing or incorrect format.",
         });
       }
       return res.json({

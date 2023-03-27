@@ -4,7 +4,6 @@ module.exports = {
   getTeachers: (callback) => {
     pool.query(
       "SELECT id, CONCAT(givenname, ' ', surname) AS Name, is_part_time, is_active FROM teachers",
-      [],
       (error, results) => {
         if (error) {
           callback(error);

@@ -4,7 +4,7 @@ const {
   addSchoolYear,
   updateSchoolYear,
   deleteSchoolYear,
-  searchSchoolYears
+  searchSchoolYears,
 } = require("./schoolyear.model");
 
 module.exports = {
@@ -59,6 +59,12 @@ module.exports = {
           message: "School Year already exists. Try again.",
         });
       }
+      if (results === undefined) {
+        return res.status(500).json({
+          success: 0,
+          message: "Some fields are missing or incorrect format.",
+        });
+      }
       return res.json({
         success: 1,
         message: "School Year added successfully.",
@@ -86,6 +92,7 @@ module.exports = {
       });
     });
   },
+
   deleteSchoolYear: (req, res) => {
     const data = req.body;
     deleteSchoolYear(data, (err, results) => {

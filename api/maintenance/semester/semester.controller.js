@@ -59,6 +59,12 @@ module.exports = {
           message: "Semester already exists. Try again.",
         });
       }
+      if (results === undefined) {
+        return res.status(500).json({
+          success: 0,
+          message: "Some fields are missing or incorrect format.",
+        });
+      }
       return res.json({
         success: 1,
         message: "Semester added successfully.",
@@ -86,6 +92,7 @@ module.exports = {
       });
     });
   },
+
   deleteSemester: (req, res) => {
     const data = req.body;
     deleteSemester(data, (err, results) => {

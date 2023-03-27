@@ -3,6 +3,10 @@ const { getLog, searchLogs } = require("./log.model");
 module.exports = {
   getLog: (req, res) => {
     getLog((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+    }
       if (!results) {
         return res.json({
           success: 0,

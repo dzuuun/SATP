@@ -10,6 +10,10 @@ const {
 module.exports = {
   getDepartments: (req, res) => {
     getDepartments((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
       if (!results) {
         return res.json({
           success: 0,
@@ -45,6 +49,7 @@ module.exports = {
       });
     });
   },
+
   addDepartment: (req, res) => {
     const body = req.body;
     addDepartment(body, (err, results) => {
@@ -52,6 +57,12 @@ module.exports = {
         return res.json({
           success: 0,
           message: "Department already exists. Try again.",
+        });
+      }
+      if (results === undefined) {
+        return res.status(500).json({
+          success: 0,
+          message: "Some fields are missing or incorrect format.",
         });
       }
       return res.json({

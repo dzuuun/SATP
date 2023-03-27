@@ -2,7 +2,7 @@ const pool = require("../../../db/db");
 
 module.exports = {
   getColleges: (callBack) => {
-    pool.query("SELECT * FROM colleges", [], (error, results) => {
+    pool.query("SELECT * FROM colleges",  (error, results) => {
       if (error) {
         callBack(error);
       }

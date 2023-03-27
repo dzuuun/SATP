@@ -1,8 +1,19 @@
-const { getCourses, getCourseById, addCourse, updateCourse, deleteCourse,searchCourses } = require("./course.model");
+const {
+  getCourses,
+  getCourseById,
+  addCourse,
+  updateCourse,
+  deleteCourse,
+  searchCourses,
+} = require("./course.model");
 
 module.exports = {
   getCourses: (req, res) => {
     getCourses((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
       if (!results) {
         return res.json({
           success: 0,
@@ -48,6 +59,12 @@ module.exports = {
           message: "Course already exists. Try again.",
         });
       }
+      if (results === undefined) {
+        return res.status(500).json({
+          success: 0,
+          message: "Some fields are missing or incorrect format.",
+        });
+      }
       return res.json({
         success: 1,
         message: "Course added successfully.",
@@ -55,6 +72,7 @@ module.exports = {
       });
     });
   },
+
   updateCourse: (req, res) => {
     const body = req.body;
     updateCourse(body, (err, results) => {

@@ -10,6 +10,10 @@ const {
 module.exports = {
   getTeachers: (req, res) => {
     getTeachers((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
       if (!results) {
         return res.json({
           success: 0,
@@ -55,6 +59,12 @@ module.exports = {
           message: "Teacher already exists. Try again.",
         });
       }
+      if (results === undefined) {
+        return res.status(500).json({
+          success: 0,
+          message: "Some fields are missing or incorrect format.",
+        });
+      }
       return res.json({
         success: 1,
         message: "Teacher added successfully.",
@@ -62,6 +72,7 @@ module.exports = {
       });
     });
   },
+
   updateTeacher: (req, res) => {
     const body = req.body;
     updateTeacher(body, (err, results) => {

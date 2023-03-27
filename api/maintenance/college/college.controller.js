@@ -1,8 +1,19 @@
-const { getColleges, getCollegeById, addCollege, updateCollege, deleteCollege,searchColleges } = require("./college.model");
+const {
+  getColleges,
+  getCollegeById,
+  addCollege,
+  updateCollege,
+  deleteCollege,
+  searchColleges,
+} = require("./college.model");
 
 module.exports = {
   getColleges: (req, res) => {
     getColleges((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+    }
       if (!results) {
         return res.json({
           success: 0,
@@ -48,6 +59,12 @@ module.exports = {
           message: "College already exists. Try again.",
         });
       }
+      if (results === undefined) {
+        return res.status(500).json({
+            success: 0,
+            message: "Some fields are missing or incorrect format."
+        });
+    }
       return res.json({
         success: 1,
         message: "College added successfully.",
@@ -55,6 +72,7 @@ module.exports = {
       });
     });
   },
+  
   updateCollege: (req, res) => {
     const body = req.body;
     updateCollege(body, (err, results) => {
