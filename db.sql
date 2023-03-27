@@ -14,15 +14,14 @@ CREATE TABLE `user_info`(
     `user_id` INT(11) UNSIGNED NOT NULL,
     `surname` VARCHAR(45) NOT NULL,
     `givenname` VARCHAR(45) NOT NULL,
-    `middlename` VARCHAR(45) NOT NULL,
+    `middlename` VARCHAR(45) NULL,
     `course_id` INT(10) UNSIGNED NOT NULL,
     `year_level` VARCHAR(45) NOT NULL,
     `gender` ENUM('MALE', 'FEMALE') NOT NULL,
     PRIMARY KEY(
         `user_id`,
         `surname`,
-        `givenname`,
-        `middlename`
+        `givenname`
     )
 );
 
@@ -30,15 +29,14 @@ CREATE TABLE `teachers`(
     `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
     `surname` VARCHAR(45) NOT NULL,
     `givenname` VARCHAR(45) NOT NULL,
-    `middlename` VARCHAR(45) NOT NULL,
+    `middlename` VARCHAR(45) NULL,
     `department_id` INT(11) UNSIGNED NOT NULL,
     `is_part_time` TINYINT(1) UNSIGNED NOT NULL,
     `is_active` TINYINT(1) UNSIGNED NOT NULL,
     PRIMARY KEY(
         `id`,
         `surname`,
-        `givenname`,
-        `middlename`
+        `givenname`
     )
 );
 

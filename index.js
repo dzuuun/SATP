@@ -8,6 +8,7 @@ app.use(express.static("client"));
 
 // import routes
 const loginRouter = require("./api/login/login.router");
+// maintenance
 const schoolYearRouter = require("./api/maintenance/schoolyear/schoolyear.router");
 const subjectRouter = require("./api/maintenance/subjects/subjects.router");
 const roomRouter = require("./api/maintenance/rooms/rooms.router");
@@ -15,6 +16,8 @@ const logRouter = require("./api/user/activity_log/log.router");
 const departmentRouter = require("./api/maintenance/department/department.router");
 const collegeRouter = require("./api/maintenance/college/college.router");
 const courseRouter = require("./api/maintenance/course/course.router");
+const semesterRouter = require("./api/maintenance/semester/semester.router");
+const teacherRouter = require("./api/maintenance/teacher/teacher.router");
 
 var bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -34,6 +37,8 @@ app.use("/api/activitylog", logRouter);
 app.use("/api/department", departmentRouter);
 app.use("/api/college", collegeRouter);
 app.use("/api/course", courseRouter);
+app.use("/api/semester", semesterRouter);
+app.use("/api/teacher", teacherRouter);
 
 app.listen(process.env.PORT || "3000", () => {
   console.log(`Server is running on port: ${process.env.PORT || "3000"}`);
