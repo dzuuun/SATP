@@ -16,7 +16,7 @@ CREATE TABLE `user_info`(
     `givenname` VARCHAR(45) NOT NULL,
     `middlename` VARCHAR(45) NULL,
     `course_id` INT(10) UNSIGNED NOT NULL,
-    `year_level` VARCHAR(45) NOT NULL,
+    `year_level` VARCHAR(45) NULL,
     `gender` ENUM('MALE', 'FEMALE') NOT NULL,
     PRIMARY KEY(
         `user_id`,
