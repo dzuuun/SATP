@@ -9,7 +9,7 @@ const {
   deleteUser,
   searchUsers,
 } = require("./user_management.model");
-// const { genSaltSync, hashSync, compareSync } = require('bcrypt');
+const { genSaltSync, hashSync, compareSync } = require('bcrypt');
 
 module.exports = {
   getUsers: (req, res) => {
@@ -56,6 +56,8 @@ module.exports = {
 
   addUser: (req, res) => {
     const body = req.body;
+    const salt = genSaltSync(10);
+    body.password = hashSync(body.password, salt);
     addUser(body, (err, results) => {
       if (err) {
         return res.json({
@@ -119,9 +121,10 @@ module.exports = {
 
   updateUserPassword: (req, res) => {
     const body = req.body;
-    //     const salt = genSaltSync(10);
-    //     body.password = hashSync(body.password, salt);
+        const salt = genSaltSync(10);
+        body.password = hashSync(body.password, salt);
     updateUserPassword(body, (err, results) => {
+      console.log(results)
       if (err) {
         console.log(err);
         return false;
@@ -158,28 +161,6 @@ module.exports = {
       });
     });
   },
-
-  //   updateUserPassword: (req, res) => {
-  //     const body = req.body;
-  //     const salt = genSaltSync(10);
-  //     body.password = hashSync(body.password, salt);
-  //     updateUserPassword(body, (err, results) => {
-  //         if (err) {
-  //             console.log(err);
-  //             return false;
-  //         }
-  //         if (results.changedRows == 0) {
-  //             return res.status(500).json({
-  //                 success: 0,
-  //                 message: "Password is still the same."
-  //             });
-  //         }
-  //         return res.json({
-  //             success: 1,
-  //             message: "User password updated successfully."
-  //         });
-  //     });
-  // }
 
   deleteUser: (req, res) => {
     const data = req.body;
