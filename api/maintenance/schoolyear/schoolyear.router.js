@@ -4,7 +4,7 @@ const {
   addSchoolYear,
   updateSchoolYear,
   deleteSchoolYear,
-  searchSchoolYears
+  searchSchoolYears,
 } = require("./schoolyear.controller");
 const router = require("express").Router();
 

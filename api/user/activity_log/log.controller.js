@@ -6,11 +6,11 @@ module.exports = {
       if (err) {
         console.log(err);
         return;
-    }
+      }
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -22,26 +22,25 @@ module.exports = {
     });
   },
 
-  
   searchLogs: (req, res) => {
     const body = req.body;
     searchLogs(body, (err, results) => {
-        if (err) {
-            console.log(err);
-            return;
-        }
-        if (results.length === 0) {
-            return res.json({
-                success: 0,
-                message: "No entry found."
-            });
-        }
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (results.length === 0) {
         return res.json({
-            success: 1,
-            message: "Activity logs searched successfully.",
-            count: results.length,
-            data: results
+          success: 0,
+          message: "No record found.",
         });
+      }
+      return res.json({
+        success: 1,
+        message: "Activity logs searched successfully.",
+        count: results.length,
+        data: results,
+      });
     });
-},
+  },
 };

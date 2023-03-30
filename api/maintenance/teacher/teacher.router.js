@@ -1,10 +1,10 @@
 const {
-getTeachers,
-getTeacherById,
-addTeacher,
-updateTeacher,
-deleteTeacher,
-searchTeachers
+  getTeachers,
+  getTeacherById,
+  addTeacher,
+  updateTeacher,
+  deleteTeacher,
+  searchTeachers,
 } = require("./teacher.controller");
 const router = require("express").Router();
 

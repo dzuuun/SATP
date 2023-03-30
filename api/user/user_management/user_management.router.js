@@ -4,7 +4,7 @@ const {
   addUser,
   updateUserInfo,
   updateUserControl,
-  updateUserPassword,
+  // updateUserPassword,
   updateUserUsername,
   deleteUser,
   searchUsers,
@@ -16,7 +16,7 @@ router.get("/:id", getUserById);
 router.get("/", getUsers);
 router.put("/update/info", updateUserInfo);
 router.put("/update/control", updateUserControl);
-router.put("/update/password", updateUserPassword);
+// router.put("/update/password", updateUserPassword);
 router.put("/update/username", updateUserUsername);
 router.get("/search/any", searchUsers);
 router.delete("/delete", deleteUser);

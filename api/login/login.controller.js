@@ -37,7 +37,7 @@ module.exports = {
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -57,7 +57,7 @@ module.exports = {
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({

@@ -4,12 +4,12 @@ const {
   addUser,
   updateUserInfo,
   updateUserControl,
-  updateUserPassword,
+  // updateUserPassword,
   updateUserUsername,
   deleteUser,
   searchUsers,
 } = require("./user_management.model");
-const { genSaltSync, hashSync, compareSync } = require('bcrypt');
+const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
 module.exports = {
   getUsers: (req, res) => {
@@ -21,7 +21,7 @@ module.exports = {
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -43,7 +43,7 @@ module.exports = {
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -119,28 +119,28 @@ module.exports = {
     });
   },
 
-  updateUserPassword: (req, res) => {
-    const body = req.body;
-        const salt = genSaltSync(10);
-        body.password = hashSync(body.password, salt);
-    updateUserPassword(body, (err, results) => {
-      console.log(results)
-      if (err) {
-        console.log(err);
-        return false;
-      }
-      if (results.changedRows == 0) {
-        return res.json({
-          success: 0,
-          message: "Contents are still the same.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "User's password updated successfully.",
-      });
-    });
-  },
+  // updateUserPassword: (req, res) => {
+  //   const body = req.body;
+  //   const salt = genSaltSync(10);
+  //   body.password = hashSync(body.password, salt);
+  //   updateUserPassword(body, (err, results) => {
+  //     console.log(results);
+  //     if (err) {
+  //       console.log(err);
+  //       return false;
+  //     }
+  //     if (results.changedRows == 0) {
+  //       return res.json({
+  //         success: 0,
+  //         message: "Contents are still the same.",
+  //       });
+  //     }
+  //     return res.json({
+  //       success: 1,
+  //       message: "User's password updated successfully.",
+  //     });
+  //   });
+  // },
 
   updateUserUsername: (req, res) => {
     const body = req.body;
@@ -172,7 +172,7 @@ module.exports = {
       if (results.affectedRows == 0) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -192,7 +192,7 @@ module.exports = {
       if (results.length === 0) {
         return res.json({
           success: 0,
-          message: "No entry found.",
+          message: "No record found.",
         });
       }
       return res.json({

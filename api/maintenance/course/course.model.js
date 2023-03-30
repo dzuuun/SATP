@@ -76,33 +76,37 @@ module.exports = {
   },
 
   deleteCourse: (data, callBack) => {
-    pool.query("SELECT code FROM courses WHERE id=?", [data.id], (error, result) => {
-      pool.query(
-        "DELETE FROM courses WHERE id=?",
-        [data.id],
-        (error, results) => {
-          if (results.affectedRows == 1) {
-            pool.query(
-              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-              [data.user_id, "Deleted Course: " + result[0].code],
-              (error, results) => {
-                if (error) {
-                  console.log(error);
+    pool.query(
+      "SELECT code FROM courses WHERE id=?",
+      [data.id],
+      (error, result) => {
+        pool.query(
+          "DELETE FROM courses WHERE id=?",
+          [data.id],
+          (error, results) => {
+            if (results.affectedRows == 1) {
+              pool.query(
+                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                [data.user_id, "Deleted Course: " + result[0].code],
+                (error, results) => {
+                  if (error) {
+                    console.log(error);
+                  }
+                  console.log("Action added to Activity Log.");
                 }
-                console.log("Action added to Activity Log.");
-              }
-            );
+              );
+            }
+            if (error) {
+              callBack(error);
+            }
+            return callBack(null, results);
           }
-          if (error) {
-            callBack(error);
-          }
-          return callBack(null, results);
+        );
+        if (error) {
+          return callBack(error);
         }
-      );
-      if (error) {
-        return callBack(error);
       }
-    });
+    );
   },
 
   searchCourses: (data, callBack) => {

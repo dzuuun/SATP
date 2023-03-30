@@ -1,15 +1,15 @@
 const {
-  getSchoolYears,
-  getSchoolYearById,
-  addSchoolYear,
-  updateSchoolYear,
-  deleteSchoolYear,
-  searchSchoolYears,
-} = require("./schoolyear.model");
+  getAllCategory,
+  getCategoryById,
+  addCategory,
+  updateCategory,
+  deleteCategory,
+  SearchCategory,
+} = require("./category.model");
 
 module.exports = {
-  getSchoolYears: (req, res) => {
-    getSchoolYears((err, results) => {
+  getAllCategory: (req, res) => {
+    getAllCategory((err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -22,16 +22,16 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "School Years information retrieved successfully.",
+        message: "Category Information retrieved successfully.",
         count: results.length,
         data: results,
       });
     });
   },
 
-  getSchoolYearById: (req, res) => {
+  getCategoryById: (req, res) => {
     const id = req.params.id;
-    getSchoolYearById(id, (err, results) => {
+    getCategoryById(id, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -44,38 +44,38 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "School Year information retrieved successfully.",
+        message: "Category information retrieved successfully.",
         data: results,
       });
     });
   },
 
-  addSchoolYear: (req, res) => {
+  addCategory: (req, res) => {
     const body = req.body;
-    addSchoolYear(body, (err, results) => {
+    addCategory(body, (err, results) => {
       if (err) {
         return res.json({
           success: 0,
-          message: "School Year already exists. Try again.",
+          message: "Category already exists. Try again.",
         });
       }
       if (results === undefined) {
         return res.status(500).json({
           success: 0,
-          message: "Some fields are missing or incorrect format.",
+          message: "Some fields are missing or the format is incorrect.",
         });
       }
       return res.json({
         success: 1,
-        message: "School Year added successfully.",
+        message: "Category added successfully.",
         data: results,
       });
     });
   },
 
-  updateSchoolYear: (req, res) => {
+  updateCategory: (req, res) => {
     const body = req.body;
-    updateSchoolYear(body, (err, results) => {
+    updateCategory(body, (err, results) => {
       if (err) {
         console.log(err);
         return false;
@@ -88,14 +88,14 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "School Year information updated successfully.",
+        message: "Category information updated successfully.",
       });
     });
   },
 
-  deleteSchoolYear: (req, res) => {
+  deleteCategory: (req, res) => {
     const data = req.body;
-    deleteSchoolYear(data, (err, results) => {
+    deleteCategory(data, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -108,14 +108,14 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "School Year deleted successfully.",
+        message: "Category deleted successfully.",
       });
     });
   },
 
-  searchSchoolYears: (req, res) => {
+  SearchCategory: (req, res) => {
     const body = req.body;
-    searchSchoolYears(body, (err, results) => {
+    SearchCategory(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -128,7 +128,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "School Years searched successfully.",
+        message: "Categories searched successfully.",
         count: results.length,
         data: results,
       });

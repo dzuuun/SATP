@@ -68,7 +68,7 @@ module.exports = {
       }
     );
   },
-  
+
   updateTeacher: (data, callBack) => {
     pool.query(
       "UPDATE teachers SET surname=?, givenname=?, middlename=?, department_id=?, is_part_time=?, is_active=? WHERE id=?",

@@ -4,7 +4,7 @@ const {
   getRooms,
   updateRoom,
   searchRooms,
-  deleteRoom
+  deleteRoom,
 } = require("./rooms.controller");
 const router = require("express").Router();
 

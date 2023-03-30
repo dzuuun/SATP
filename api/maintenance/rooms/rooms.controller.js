@@ -17,7 +17,7 @@ module.exports = {
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -39,7 +39,7 @@ module.exports = {
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -54,6 +54,7 @@ module.exports = {
     const body = req.body;
     addRoom(body, (err, results) => {
       if (err) {
+        console.log(err);
         return res.json({
           success: 0,
           message: "Room already exists. Try again.",
@@ -103,7 +104,7 @@ module.exports = {
       if (results.affectedRows == 0) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -123,7 +124,7 @@ module.exports = {
       if (results.length === 0) {
         return res.json({
           success: 0,
-          message: "No entry found.",
+          message: "No record found.",
         });
       }
       return res.json({

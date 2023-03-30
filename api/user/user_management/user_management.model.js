@@ -198,43 +198,43 @@ module.exports = {
     );
   },
 
-  updateUserPassword: (data, callBack) => {
-    pool.query(
-      "SELECT username FROM users WHERE id=?",
-      [data.id],
-      (error, result) => {
-        if (result.length == 1) {
-          pool.query(
-            "UPDATE users SET password=? WHERE id=?",
-            [data.password, data.id],
-            (error, results) => {
-              if (results.changedRows == 1) {
-                pool.query(
-                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                  [
-                    data.user_id,
-                    "Updated User's password: " + result[0].username,
-                  ],
-                  (error, results) => {
-                    if (error) {
-                      console.log(error);
-                    }
-                    console.log("Action added to Activity Log.");
-                  }
-                );
-                if (error) {
-                  callBack(error);
-                }
-              }
-              return callBack(null, results);
-            }
-          );
-        } else {
-          return callBack(null, result);
-        }
-      }
-    );
-  },
+  // updateUserPassword: (data, callBack) => {
+  //   pool.query(
+  //     "SELECT username FROM users WHERE id=?",
+  //     [data.id],
+  //     (error, result) => {
+  //       if (result.length == 1) {
+  //         pool.query(
+  //           "UPDATE users SET password=? WHERE id=?",
+  //           [data.password, data.id],
+  //           (error, results) => {
+  //             if (results.changedRows == 1) {
+  //               pool.query(
+  //                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+  //                 [
+  //                   data.user_id,
+  //                   "Updated User's password: " + result[0].username,
+  //                 ],
+  //                 (error, results) => {
+  //                   if (error) {
+  //                     console.log(error);
+  //                   }
+  //                   console.log("Action added to Activity Log.");
+  //                 }
+  //               );
+  //               if (error) {
+  //                 callBack(error);
+  //               }
+  //             }
+  //             return callBack(null, results);
+  //           }
+  //         );
+  //       } else {
+  //         return callBack(null, result);
+  //       }
+  //     }
+  //   );
+  // },
 
   deleteUser: (data, callBack) => {
     pool.query(

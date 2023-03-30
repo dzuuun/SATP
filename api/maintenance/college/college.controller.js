@@ -13,11 +13,11 @@ module.exports = {
       if (err) {
         console.log(err);
         return;
-    }
+      }
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -39,7 +39,7 @@ module.exports = {
       if (!results) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -61,10 +61,10 @@ module.exports = {
       }
       if (results === undefined) {
         return res.status(500).json({
-            success: 0,
-            message: "Some fields are missing or incorrect format."
+          success: 0,
+          message: "Some fields are missing or incorrect format.",
         });
-    }
+      }
       return res.json({
         success: 1,
         message: "College added successfully.",
@@ -72,7 +72,7 @@ module.exports = {
       });
     });
   },
-  
+
   updateCollege: (req, res) => {
     const body = req.body;
     updateCollege(body, (err, results) => {
@@ -103,7 +103,7 @@ module.exports = {
       if (results.affectedRows == 0) {
         return res.json({
           success: 0,
-          message: "Record not found.",
+          message: "No record found.",
         });
       }
       return res.json({
@@ -123,7 +123,7 @@ module.exports = {
       if (results.length === 0) {
         return res.json({
           success: 0,
-          message: "No entry found.",
+          message: "No record found.",
         });
       }
       return res.json({

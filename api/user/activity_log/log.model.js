@@ -22,7 +22,7 @@ module.exports = {
         "%' OR user_info.surname LIKE '%" +
         data.search +
         "%' OR activity_log.date_time LIKE '%" +
-        data.search + 
+        data.search +
         "%' OR activity_log.action LIKE '%" +
         data.search +
         "%'",
