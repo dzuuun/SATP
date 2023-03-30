@@ -17,6 +17,8 @@ const collegeRouter = require("./api/maintenance/college/college.router");
 const courseRouter = require("./api/maintenance/course/course.router");
 const semesterRouter = require("./api/maintenance/semester/semester.router");
 const teacherRouter = require("./api/maintenance/teacher/teacher.router");
+const categoryRouter = require("./api/maintenance/category/category.router");
+const itemRouter = require("./api/maintenance/item/item.router");
 
 // user
 const logRouter = require("./api/user/activity_log/log.router");
@@ -42,6 +44,8 @@ app.use("/api/college", collegeRouter);
 app.use("/api/course", courseRouter);
 app.use("/api/semester", semesterRouter);
 app.use("/api/teacher", teacherRouter);
+app.use("/api/category", categoryRouter);
+app.use("/api/item", itemRouter);
 
 app.use("/api/activitylog", logRouter);
 app.use("/api/permission", permissionRouter);

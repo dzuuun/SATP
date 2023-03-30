@@ -11,7 +11,7 @@ module.exports = {
   },
 
   getCategoryById: (Id, callBack) => {
-    pool.query("SELECT * FROM category WHERE id=?", [Id], (error, results) => {
+    pool.query("SELECT * FROM categories WHERE id=?", [Id], (error, results) => {
       if (error) {
         callBack(error);
       }
@@ -27,10 +27,11 @@ module.exports = {
         if (results.length === 0) {
           pool.query(
             "INSERT INTO categories (name, is_active) VALUES (?,?)",
-            [data.name, data.length],
+            [data.name, data.is_active],
             (error, results) => {
+              console.log(error)
               pool.query(
-                "INSERT INTO activity_log (user_id, data_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
                 [data.user_id, "Added Category: " + data.name],
                 (error, results) => {
                   if (error) {
