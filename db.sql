@@ -170,7 +170,7 @@ CREATE TABLE `student_subject`(
     `time_end` TIME NOT NULL,
     `day` VARCHAR(9) NOT NULL,
     `room` VARCHAR(20) NOT NULL,
-    `is_excluded` TINYINT(1) UNSIGNED NOT NULL,
+    `is_excluded` TINYINT(1) UNSIGNED NULL,
     `reason` VARCHAR(100) NULL,
     PRIMARY KEY(
         `school_year_id`,

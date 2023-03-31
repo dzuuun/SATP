@@ -2,8 +2,8 @@ const { getSubjectsByStudent } = require("./studentsubject.model");
 
 module.exports = {
   getSubjectsByStudent: (req, res) => {
-    const id = req.params.id;
-    getSubjectsByStudent(id, (err, results) => {
+    const body = req.body;
+    getSubjectsByStudent(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

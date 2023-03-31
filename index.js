@@ -20,6 +20,7 @@ const teacherRouter = require("./api/maintenance/teacher/teacher.router");
 const categoryRouter = require("./api/maintenance/category/category.router");
 const itemRouter = require("./api/maintenance/item/item.router");
 const studentSubjectRouter = require("./api/maintenance/studentsubject/studentsubject.router");
+const studentRouter = require("./api/maintenance/student/student.router");
 
 // user
 const logRouter = require("./api/user/activity_log/log.router");
@@ -48,6 +49,7 @@ app.use("/api/teacher", teacherRouter);
 app.use("/api/category", categoryRouter);
 app.use("/api/item", itemRouter);
 app.use("/api/studentsubject", studentSubjectRouter);
+app.use("/api/student", studentRouter);
 
 app.use("/api/activitylog", logRouter);
 app.use("/api/permission", permissionRouter);
