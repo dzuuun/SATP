@@ -3,7 +3,7 @@ const pool = require("../../../db/db");
 module.exports = {
   getUsers: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, users.permission_id, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id",
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -15,7 +15,7 @@ module.exports = {
 
   getUserById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, users.permission_id, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE users.id = ?",
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name,  permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -272,7 +272,7 @@ module.exports = {
 
   searchUsers: (data, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS Name, users.is_active FROM users INNER JOIN user_info ON users.id=user_info.user_id WHERE user_info.givenname LIKE '%" +
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS NAME, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE user_info.givenname LIKE '%" +
         data.search +
         "%'  OR user_info.middlename LIKE '%" +
         data.search +

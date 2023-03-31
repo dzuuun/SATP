@@ -171,7 +171,7 @@ CREATE TABLE `student_subject`(
     `day` VARCHAR(9) NOT NULL,
     `room` VARCHAR(20) NOT NULL,
     `is_excluded` TINYINT(1) UNSIGNED NOT NULL,
-    `reason` VARCHAR(100) NOT NULL,
+    `reason` VARCHAR(100) NULL,
     PRIMARY KEY(
         `school_year_id`,
         `semester_id`,

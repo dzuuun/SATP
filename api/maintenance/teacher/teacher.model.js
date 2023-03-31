@@ -3,7 +3,7 @@ const pool = require("../../../db/db");
 module.exports = {
   getTeachers: (callback) => {
     pool.query(
-      "SELECT id, CONCAT(givenname, ' ', surname) AS Name, is_part_time, is_active FROM teachers",
+      "SELECT teachers.id, CONCAT(teachers.givenname, ' ', teachers.surname) AS name, departments.code AS department_code, teachers.is_part_time, teachers.is_active  FROM teachers INNER JOIN departments on teachers.department_id=departments.id",
       (error, results) => {
         if (error) {
           callback(error);
@@ -15,7 +15,7 @@ module.exports = {
 
   getTeacherById: (Id, callBack) => {
     pool.query(
-      "SELECT id, CONCAT(givenname, ' ', surname) AS Name, is_part_time, is_active FROM teachers WHERE id=?",
+      "SELECT teachers.id, CONCAT(teachers.givenname, ' ', teachers.surname) AS name, departments.code AS department_code, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id WHERE teachers.id=?",
       [Id],
       (error, results) => {
         if (error) {
@@ -145,13 +145,13 @@ module.exports = {
   },
   searchTeachers: (data, callBack) => {
     pool.query(
-      "SELECT id, CONCAT(givenname, ' ', surname) AS Name, is_part_time, is_active FROM teachers WHERE givenname LIKE '%" +
+      "SELECT teachers.id, CONCAT(teachers.givenname, ' ', teachers.surname) AS name, departments.code AS department_code, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id WHERE teachers.givenname LIKE '%" +
         data.search +
-        "%'  OR surname LIKE '%" +
+        "%'  OR teachers.surname LIKE '%" +
         data.search +
-        "%' OR is_part_time LIKE '%" +
+        "%' OR teachers.is_part_time LIKE '%" +
         data.search +
-        "%' OR is_active LIKE '%" +
+        "%' OR teachers.is_active LIKE '%" +
         data.search +
         "%'",
       (error, results) => {

@@ -2,21 +2,28 @@ const pool = require("../../../db/db");
 
 module.exports = {
   getCourses: (callBack) => {
-    pool.query("SELECT * FROM courses", (error, results) => {
-      if (error) {
-        callBack(error);
+    pool.query(
+      "SELECT courses.id, courses.code, courses.name, departments.code AS department_code, courses.is_active FROM courses INNER JOIN departments ON courses.department_id = departments.id",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
       }
-      return callBack(null, results);
-    });
+    );
   },
 
   getCourseById: (Id, callBack) => {
-    pool.query("SELECT * FROM courses WHERE id = ?", [Id], (error, results) => {
-      if (error) {
-        callBack(error);
+    pool.query(
+      "SELECT courses.id, courses.code, courses.name, departments.code AS department_code,  courses.is_active FROM courses INNER JOIN departments ON courses.department_id = departments.id WHERE courses.id = ?",
+      [Id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
       }
-      return callBack(null, results[0]);
-    });
+    );
   },
 
   addCourse: (data, callBack) => {
@@ -111,11 +118,11 @@ module.exports = {
 
   searchCourses: (data, callBack) => {
     pool.query(
-      "SELECT courses.id, courses.code, courses.name AS course_name, departments.name AS department_name, courses.is_active FROM courses INNER JOIN departments ON courses.department_id=departments.id WHERE courses.code LIKE '%" +
+      "SELECT courses.id, courses.code, courses.name, departments.code AS department_code, courses.is_active FROM courses INNER JOIN departments ON courses.department_id=departments.id WHERE courses.code LIKE '%" +
         data.search +
         "%'  OR courses.name LIKE '%" +
         data.search +
-        "%' OR departments.name LIKE '%" +
+        "%'  OR departments.code LIKE '%" +
         data.search +
         "%' OR courses.is_active LIKE '%" +
         data.search +
