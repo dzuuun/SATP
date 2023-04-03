@@ -94,8 +94,8 @@ module.exports = {
   },
 
   deleteCategory: (req, res) => {
-    const data = req.body;
-    deleteCategory(data, (err, results) => {
+    const body = req.body;
+    deleteCategory(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

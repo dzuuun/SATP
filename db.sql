@@ -169,8 +169,8 @@ CREATE TABLE `student_subject`(
     `time_start` TIME NOT NULL,
     `time_end` TIME NOT NULL,
     `day` VARCHAR(9) NOT NULL,
-    `room` VARCHAR(20) NOT NULL,
-    `is_excluded` TINYINT(1) UNSIGNED NULL,
+    `room_id` SMALLINT(10) UNSIGNED NOT NULL,
+    `is_excluded` TINYINT(1) UNSIGNED NOT NULL,
     `reason` VARCHAR(100) NULL,
     PRIMARY KEY(
         `school_year_id`,
@@ -233,4 +233,5 @@ ALTER TABLE
     ADD CONSTRAINT `fk_student_subject_semester_id` FOREIGN KEY(`semester_id`) REFERENCES `semesters`(`id`),
     ADD CONSTRAINT `fk_student_subject_subject_id` FOREIGN KEY(`subject_id`) REFERENCES `subjects`(`id`),
     ADD CONSTRAINT `fk_student_subject_teacher_id` FOREIGN KEY(`teacher_id`) REFERENCES `teachers`(`id`),
-    ADD CONSTRAINT `fk_student_subject_student_id` FOREIGN KEY(`student_id`) REFERENCES `user_info`(`user_id`);
+    ADD CONSTRAINT `fk_student_subject_student_id` FOREIGN KEY(`student_id`) REFERENCES `user_info`(`user_id`),
+	ADD CONSTRAINT `fk_student_subject_room` FOREIGN KEY(`room_id`) REFERENCES `rooms` (`id`);

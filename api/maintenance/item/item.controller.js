@@ -95,9 +95,8 @@ module.exports = {
   },
 
   deleteItem: (req, res) => {
-    const data = req.body;
-    deleteItem(data, (err, results) => {
-       
+    const body = req.body;
+    deleteItem(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

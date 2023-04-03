@@ -163,8 +163,8 @@ module.exports = {
   },
 
   deleteUser: (req, res) => {
-    const data = req.body;
-    deleteUser(data, (err, results) => {
+    const body = req.body;
+    deleteUser(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

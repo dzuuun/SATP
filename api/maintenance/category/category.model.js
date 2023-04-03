@@ -11,12 +11,16 @@ module.exports = {
   },
 
   getCategoryById: (Id, callBack) => {
-    pool.query("SELECT * FROM categories WHERE id=?", [Id], (error, results) => {
-      if (error) {
-        callBack(error);
+    pool.query(
+      "SELECT * FROM categories WHERE id=?",
+      [Id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
       }
-      return callBack(null, results[0]);
-    });
+    );
   },
 
   addCategory: (data, callBack) => {
@@ -29,7 +33,7 @@ module.exports = {
             "INSERT INTO categories (name, is_active) VALUES (?,?)",
             [data.name, data.is_active],
             (error, results) => {
-              console.log(error)
+              console.log(error);
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
                 [data.user_id, "Added Category: " + data.name],
@@ -93,7 +97,6 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                  console.log("Action added to Activity Log.");
                 }
               );
             }

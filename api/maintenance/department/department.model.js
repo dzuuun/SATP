@@ -2,12 +2,15 @@ const pool = require("../../../db/db");
 
 module.exports = {
   getDepartments: (callBack) => {
-    pool.query("SELECT departments.id, departments.code, departments.name, colleges.code AS college_code, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id", (error, results) => {
-      if (error) {
-        callBack(error);
+    pool.query(
+      "SELECT departments.id, departments.code, departments.name, colleges.code AS college_code, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
       }
-      return callBack(null, results);
-    });
+    );
   },
 
   getDepartmentById: (Id, callBack) => {
@@ -96,7 +99,6 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                  console.log("Action added to Activity Log.");
                 }
               );
             }

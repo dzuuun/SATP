@@ -94,8 +94,8 @@ module.exports = {
   },
 
   deleteSubject: (req, res) => {
-    const data = req.body;
-    deleteSubject(data, (err, results) => {
+    const body = req.body;
+    deleteSubject(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

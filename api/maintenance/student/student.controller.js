@@ -117,8 +117,8 @@ module.exports = {
   },
 
   deleteStudent: (req, res) => {
-    const data = req.body;
-    deleteStudent(data, (err, results) => {
+    const body = req.body;
+    deleteStudent(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

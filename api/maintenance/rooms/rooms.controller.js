@@ -95,8 +95,8 @@ module.exports = {
   },
 
   deleteRoom: (req, res) => {
-    const data = req.body;
-    deleteRoom(data, (err, results) => {
+    const body = req.body;
+    deleteRoom(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

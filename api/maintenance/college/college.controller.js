@@ -94,8 +94,8 @@ module.exports = {
   },
 
   deleteCollege: (req, res) => {
-    const data = req.body;
-    deleteCollege(data, (err, results) => {
+    const body = req.body;
+    deleteCollege(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

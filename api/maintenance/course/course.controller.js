@@ -94,8 +94,8 @@ module.exports = {
   },
 
   deleteCourse: (req, res) => {
-    const data = req.body;
-    deleteCourse(data, (err, results) => {
+    const body = req.body;
+    deleteCourse(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

@@ -94,8 +94,8 @@ module.exports = {
   },
 
   deletePermission: (req, res) => {
-    const data = req.body;
-    deletePermission(data, (err, results) => {
+    const body = req.body;
+    deletePermission(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

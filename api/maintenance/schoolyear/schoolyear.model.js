@@ -96,7 +96,6 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                  console.log("Action added to Activity Log.");
                 }
               );
             }

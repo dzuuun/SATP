@@ -94,8 +94,8 @@ module.exports = {
   },
 
   deleteDepartment: (req, res) => {
-    const data = req.body;
-    deleteDepartment(data, (err, results) => {
+    const body = req.body;
+    deleteDepartment(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

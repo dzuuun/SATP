@@ -21,6 +21,7 @@ const categoryRouter = require("./api/maintenance/category/category.router");
 const itemRouter = require("./api/maintenance/item/item.router");
 const studentSubjectRouter = require("./api/maintenance/studentsubject/studentsubject.router");
 const studentRouter = require("./api/maintenance/student/student.router");
+const adminRouter = require("./api/maintenance/admin/admin.router");
 
 // user
 const logRouter = require("./api/user/activity_log/log.router");
@@ -50,6 +51,7 @@ app.use("/api/category", categoryRouter);
 app.use("/api/item", itemRouter);
 app.use("/api/studentsubject", studentSubjectRouter);
 app.use("/api/student", studentRouter);
+app.use("/api/admin", adminRouter);
 
 app.use("/api/activitylog", logRouter);
 app.use("/api/permission", permissionRouter);

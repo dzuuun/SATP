@@ -1,9 +1,9 @@
 const pool = require("../../../db/db");
 
 module.exports = {
-  getAllStudent: (callBack) => {
+  getAllAdmin: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1",
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_admin_rater = 1",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -13,9 +13,9 @@ module.exports = {
     );
   },
 
-  getStudentById: (Id, callBack) => {
+  getAdminById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.id = ?",
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_admin_rater = 1 AND users.id=?",
       [Id],
       (error, results) => {
         if (error) {
@@ -26,7 +26,7 @@ module.exports = {
     );
   },
 
-  addStudent: (data, callBack) => {
+  addAdmin: (data, callBack) => {
     pool.query(
       "SELECT username FROM users WHERE username=?",
       [data.username],
@@ -39,8 +39,8 @@ module.exports = {
               data.password,
               data.permission_id,
               data.is_temp_pass,
-              1,
               0,
+              1,
               data.is_active,
             ],
             (error, results) => {
@@ -61,7 +61,7 @@ module.exports = {
                 (error, results) => {
                   pool.query(
                     "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                    [data.user_id, "Added Student: " + data.username],
+                    [data.user_id, "Added Admin: " + data.username],
                     (error, results) => {
                       if (error) {
                         console.log(error);
@@ -83,7 +83,7 @@ module.exports = {
     );
   },
 
-  updateStudentInfo: (data, callBack) => {
+  updateAdminInfo: (data, callBack) => {
     pool.query(
       "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_id=?",
       [data.id],
@@ -106,7 +106,7 @@ module.exports = {
                   "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
                   [
                     data.user_id,
-                    "Updated Student's information: " + result[0].username,
+                    "Updated Admin's information: " + result[0].username,
                   ],
                   (error, results) => {
                     if (error) {
@@ -128,7 +128,7 @@ module.exports = {
     );
   },
 
-  updateStudentUsername: (data, callBack) => {
+  updateAdminUsername: (data, callBack) => {
     pool.query(
       "UPDATE users SET username=? WHERE id=?",
       [data.username, data.id],
@@ -136,7 +136,7 @@ module.exports = {
         if (results.changedRows == 1) {
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated Student's username: " + data.username],
+            [data.user_id, "Updated Admin's username: " + data.username],
             (error, results) => {
               if (error) {
                 console.log(error);
@@ -154,7 +154,7 @@ module.exports = {
 
   // update password
 
-  deleteStudent: (data, callBack) => {
+  deleteAdmin: (data, callBack) => {
     pool.query(
       "SELECT username FROM users WHERE id=?",
       [data.id],
@@ -166,7 +166,7 @@ module.exports = {
             if (results.affectedRows == 1) {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Deleted Student: " + result[0].username],
+                [data.user_id, "Deleted Admin: " + result[0].username],
                 (error, results) => {
                   if (error) {
                     console.log(error);
@@ -187,7 +187,7 @@ module.exports = {
     );
   },
 
-  searchStudents: (data, callBack) => {
+  searchAdmins: (data, callBack) => {
     pool.query(
       "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS NAME, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE users.is_student_rater = 1 AND (user_info.givenname LIKE '%" +
         data.search +

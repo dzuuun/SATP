@@ -1,15 +1,17 @@
+const { genSaltSync } = require("bcrypt");
 const {
-  getSemesters,
-  getSemesterById,
-  addSemester,
-  updateSemester,
-  deleteSemester,
-  searchSemesters,
-} = require("./semester.model");
+  getAllAdmin,
+  getAdminById,
+  addAdmin,
+  updateAdminInfo,
+  updateAdminUsername,
+  deleteAdmin,
+  searchAdmins,
+} = require("./admin.model");
 
 module.exports = {
-  getSemesters: (req, res) => {
-    getSemesters((err, results) => {
+  getAllAdmin: (req, res) => {
+    getAllAdmin((err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -22,16 +24,16 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Semesters information retrieved successfully.",
+        message: "List of admins retrieved successfully.",
         count: results.length,
         data: results,
       });
     });
   },
 
-  getSemesterById: (req, res) => {
+  getAdminById: (req, res) => {
     const id = req.params.id;
-    getSemesterById(id, (err, results) => {
+    getAdminById(id, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -44,38 +46,39 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Semester information retrieved successfully.",
+        message: "Admin retrieved successfully.",
         data: results,
       });
     });
   },
 
-  addSemester: (req, res) => {
+  addAdmin: (req, res) => {
     const body = req.body;
-    addSemester(body, (err, results) => {
+    // const salt = genSaltSync(10);
+    // body.password = hashSync(body.password, salt);
+    addAdmin(body, (err, results) => {
       if (err) {
         return res.json({
           success: 0,
-          message: "Semester already exists. Try again.",
+          message: "Admin already exists. Try again.",
         });
       }
       if (results === undefined) {
-        return res.status(500).json({
+        return res.json({
           success: 0,
           message: "Some fields are missing or incorrect format.",
         });
       }
       return res.json({
         success: 1,
-        message: "Semester added successfully.",
-        data: results,
+        message: "Admin added successfully.",
       });
     });
   },
 
-  updateSemester: (req, res) => {
+  updateAdminInfo: (req, res) => {
     const body = req.body;
-    updateSemester(body, (err, results) => {
+    updateAdminInfo(body, (err, results) => {
       if (err) {
         console.log(err);
         return false;
@@ -88,14 +91,34 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Semester information updated successfully.",
+        message: "Admin's Information updated successfully.",
       });
     });
   },
 
-  deleteSemester: (req, res) => {
+  updateAdminUsername: (req, res) => {
     const body = req.body;
-    deleteSemester(body, (err, results) => {
+    updateAdminUsername(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return false;
+      }
+      if (results.changedRows == 0) {
+        return res.json({
+          success: 0,
+          message: "Contents are still the same.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Admin's username updated successfully.",
+      });
+    });
+  },
+
+  deleteAdmin: (req, res) => {
+    const body = req.body;
+    deleteAdmin(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -108,14 +131,14 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Semester deleted successfully.",
+        message: "Admin deleted successfully.",
       });
     });
   },
 
-  searchSemesters: (req, res) => {
+  searchAdmins: (req, res) => {
     const body = req.body;
-    searchSemesters(body, (err, results) => {
+    searchAdmins(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -128,7 +151,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Semesters searched successfully.",
+        message: "Admins searched successfully.",
         count: results.length,
         data: results,
       });
