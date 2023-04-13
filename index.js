@@ -33,6 +33,7 @@ const transactionRouter = require("./api/transaction/studentRatingStatus/srs.rou
 
 // report
 const rankingRouter = require("./api/reports/ranking/ranking.router");
+const ratingRouter = require("./api/reports/rating/rating.router");
 
 var bodyParser = require("body-parser");
 app.use(bodyParser.json());
@@ -65,7 +66,8 @@ app.use("/api/user", userRouter);
 
 app.use("/api/transaction", transactionRouter);
 
-app.use("/api/report/ranking", rankingRouter)
+app.use("/api/report/ranking", rankingRouter);
+app.use("/api/report/rating", ratingRouter);
 
 app.listen(process.env.PORT || "3000", () => {
   console.log(`Server is running on port: ${process.env.PORT || "3000"}`);
