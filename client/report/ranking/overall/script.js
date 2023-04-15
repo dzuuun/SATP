@@ -15,11 +15,13 @@ const getdata = async () => {
     tbody.innerHTML += `<tr>
       
         <td>${data.teacher_name}</td>
-        <td>${data.department}</td>
-        <td>${data.college}</td>
-        <td>${data.mean}</td>
+        <td style="text-transform:uppercase">${data.department}</td>
+        <td style="text-transform:uppercase">${data.college}</td>
+        <td class="text-center">${data.mean}</td>
     </tr>`;
   });
-  school_year.innerHTML += `School Year: ${row[0].school_year} <br> Semester: ${row[0].semester} <br> Date Generated: ${today.toDateString()}`;
+  school_year.innerHTML += `School Year: ${row[0].school_year} <br> Semester: ${
+    row[0].semester
+  } <br> Date Generated: ${today.toDateString()}`;
 };
 getdata();

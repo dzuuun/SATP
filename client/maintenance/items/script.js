@@ -12,7 +12,12 @@ const getdata = async () => {
         <td>${row.number}</td>
         <td class="text-wrap">${row.question}</td>
         <td>${row.is_active ? "Yes" : "No"}</td>
-    </tr>`;
+        <td><button class='bi bi-pencil' data-bs-toggle="modal" id="${row.id}" data-bs-target="#exampleModal" )'></button>
+          <button class='bi bi-trash3' onclick="submitForm(${row.id})")'></button></td>    </tr>`;
   });
 };
 getdata();
+
+function submitForm(id) {
+console.log(id)
+}

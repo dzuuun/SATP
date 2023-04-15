@@ -10,7 +10,7 @@ const getdata = async () => {
     tbody.innerHTML += `<tr>
         <td>${data.date_time}</td>
         <td>${data.name}</td>
-        <td>${data.action}</td>
+        <td class="text-wrap">${data.action}</td>
     </tr>`;
  });
 
