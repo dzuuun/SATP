@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SATP | Create Rating</title>
+    <link rel="icon" type="image/x-icon" href="../../images/NDMU-Logo.png" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+        crossorigin="anonymous"></script>
+</head>
+
+<body style=" min-height: 400px; margin-bottom: 100px; clear: both;">
+    <nav class="navbar sticky-top" style="background-color: darkgreen">
+        <div class="container-fluid">
+            <a class="navbar-brand fs-7 text-white">
+                <i onclick="toggleNav()" class="bi bi-list"></i>
+                <img src="../../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
+                    class="d-inline-block align-text-top" />
+                Notre Dame of Marbel University
+            </a>
+            <span class="navbar-text text-white">
+                Student Assessment of Teacher's Performance
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- <div class="col-1">sidebar here</div> -->
+            <div class="col">
+                <div class="container-fluid">
+                    <div class="row mt-2">
+                        <div class="col">
+                            <div class="container-fluid">
+                                <h1 class="display-5">Create Rating</h1>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row border-bottom mt-3 text-nowrap">
+                        <div class="col-sm-3">
+                            <div class="mb-3">
+                                <h4 for="schoolYear" class="form-label fw-bold">School Year</h4>
+                                <div class="">
+                                    <span id="schoolYear"></span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <h4 for="semester" class="form-label fw-bold">Semester</h4>
+                                <div>
+                                    <span id="semester"></span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <h4 for="studentRater" class="form-label fw-bold">Rater</h4>
+                                <div>
+                                    <span id="studentRater"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="mb-3">
+                                <h4 for="teacherRatee" class="form-label fw-bold">Teacher</h4>
+                                <div>
+                                    <span id="teacherRatee"></span>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <h4 for="subjectCode" class="form-label fw-bold">Subject Code</h4>
+                                <div>
+                                    <span id="subjectCode"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm mt-3 mb-3 text-center">
+                            <div>
+                                <img width="200" height="200"
+                                    src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-sm  border-bottom">
+                            <div class="row">
+                                <p class="fs-5">Using the scale described below, please rate your teacher in this
+                                    subject on the basis of your own experience with him/her. Read each item carefully
+                                    and select your star rating provided at the end of each item.</p>
+                            </div>
+
+                            <div class="row text-center text-nowrap">
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">1</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star "></i>
+                                        <i class="bi bi-star "></i>
+                                        <i class="bi bi-star "></i>
+                                        <i class="bi bi-star "></i>
+                                    </div>
+                                </div>
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">2</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star"></i>
+                                        <i class="bi bi-star"></i>
+                                        <i class="bi bi-star"></i>
+                                    </div>
+                                </div>
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">3</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star "></i>
+                                        <i class="bi bi-star "></i>
+                                    </div>
+                                </div>
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">4</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star "></i>
+                                    </div>
+                                </div>
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">5</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <th>#</th>
+                                    <th>Question</th>
+                                    <th>Rate</th>
+                                </thead>
+                                <tbody id="tbData"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col">
+                            <label for="itemNumber" class="form-label fw-bold">Comment</label>
+                            <textarea style="resize: none" class="form-control" id="exampleFormControlTextarea1"
+                                rows="4" required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3 float-end">
+                        <div class="col">
+                            <button type="button" class="btn btn-success ">Submit</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<footer>
+    <div class="container-fluid text-center" style="background-color: darkgreen; position: fixed; left: 0; bottom: 0; right: 0;
+        z-index: 0;">
+        <span class="text-white">
+            NDMU © 2023 | Developed by MIS Department
+        </span>
+    </div>
+</footer>
+
+<script src="script.js"></script>
+
+</html>
