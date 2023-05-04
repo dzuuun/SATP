@@ -1,5 +1,6 @@
 const {
-  getAllItem,
+  getAllItems,
+  getActiveItems,
   getItemById,
   addItem,
   updateItem,
@@ -10,7 +11,8 @@ const router = require("express").Router();
 
 router.post("/add", addItem);
 router.get("/:id", getItemById);
-router.get("/", getAllItem);
+router.get("/", getAllItems);
+router.get("/active/rate", getActiveItems);
 router.put("/update", updateItem);
 router.get("/search/any", searchItem);
 router.delete("/delete", deleteItem);

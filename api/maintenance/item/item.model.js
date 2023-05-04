@@ -1,9 +1,21 @@
 const pool = require("../../../db/db");
 
 module.exports = {
-  getAllItem: (callBack) => {
+  getAllItems: (callBack) => {
     pool.query(
-      "SELECT items.id, items.number, categories.name AS category, items.question, items.is_active FROM items INNER JOIN categories ON items.category_id = categories.id",
+      "SELECT items.id, items.number, categories.name AS category, items.question, items.is_active FROM items INNER JOIN categories ON items.category_id = categories.id ORDER BY categories.id, items.number",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+  getActiveItems: (callBack) => {
+    pool.query(
+      "SELECT items.id, items.number, categories.name AS category, items.question, items.is_active FROM items INNER JOIN categories ON items.category_id = categories.id WHERE items.is_active = 1 ORDER BY categories.id, items.number",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -93,7 +105,6 @@ module.exports = {
       "SELECT items.number, categories.name AS category, items.question FROM items INNER JOIN categories ON items.category_id = categories.id WHERE items.id=?",
       [data.id],
       (error, result) => {
-        console.log(result);
         pool.query(
           "DELETE FROM items WHERE id=?",
           [data.id],

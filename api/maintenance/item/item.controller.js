@@ -1,5 +1,6 @@
 const {
-  getAllItem,
+  getAllItems,
+  getActiveItems,
   getItemById,
   addItem,
   updateItem,
@@ -8,8 +9,8 @@ const {
 } = require("./item.model");
 
 module.exports = {
-  getAllItem: (req, res) => {
-    getAllItem((err, results) => {
+  getAllItems: (req, res) => {
+    getAllItems((err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -17,7 +18,29 @@ module.exports = {
       if (!results) {
         return res.json({
           success: 0,
+          here: "h",
           message: " No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Items retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getActiveItems: (req, res) => {
+    getActiveItems((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
         });
       }
       return res.json({
