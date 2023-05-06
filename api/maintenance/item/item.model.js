@@ -27,7 +27,7 @@ module.exports = {
 
   getItemById: (Id, callBack) => {
     pool.query(
-      "SELECT items.id, items.number, categories.name, items.question, items.is_active FROM items INNER JOIN categories ON items.category_id = categories.id WHERE items.id=?",
+      "SELECT items.id, items.number, categories.id AS category_id, categories.name AS category, items.question, items.is_active FROM items INNER JOIN categories ON items.category_id = categories.id WHERE items.id=?",
       [Id],
       (error, results) => {
         if (error) {

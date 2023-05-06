@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SATP | Create Rating</title>
-    <link rel="icon" type="image/x-icon" href="../../images/NDMU-Logo.png" />
+    <link rel="icon" type="image/x-icon" href="../images/NDMU-Logo.png" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
@@ -22,7 +22,7 @@
         <div class="container-fluid">
             <a class="navbar-brand fs-7 text-white">
                 <i onclick="toggleNav()" class="bi bi-list"></i>
-                <img src="../../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
+                <img src="../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
                     class="d-inline-block align-text-top" />
                 Notre Dame of Marbel University
             </a>
@@ -39,7 +39,7 @@
                 <div class="container-fluid">
                     <div class="row mt-2">
                         <div class="col">
-                            <div class="container-fluid">
+                            <div>
                                 <h1 class="display-5">Create Rating</h1>
                             </div>
                         </div>
@@ -82,11 +82,11 @@
                             </div>
                         </div>
 
-                        <div class="col-sm mt-3 mb-3 text-center">
-                            <div>
-                                <img width="200" height="200"
-                                    src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png">
-                            </div>
+                        <div class="col-sm mb-3 text-center">
+
+                            <img width="200" height="200"
+                                src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png">
+
                         </div>
                     </div>
 
@@ -155,13 +155,37 @@
 
                     <div class="row mt-4">
                         <div class="table-responsive">
-                            <table class="table table-striped">
+                            <table class="table">
                                 <thead>
                                     <th>#</th>
                                     <th>Question</th>
                                     <th>Rate</th>
                                 </thead>
-                                <tbody id="tbData"></tbody>
+                                <tbody id="table1">
+                                    <td colspan="3">
+                                        <strong>TEACHER</strong>
+                                    </td>
+                                </tbody>
+                                <tbody id="table2">
+                                    <td colspan="3">
+                                        <strong>TEACHING PROCEDURES</strong>
+                                    </td>
+                                </tbody>
+                                <tbody id="table3">
+                                    <td colspan="3">
+                                        <strong>STUDENTS</strong>
+                                    </td>
+                                </tbody>
+                                <tbody id="table4">
+                                    <td colspan="3">
+                                        <strong>METHODOLOGY</strong>
+                                    </td>
+                                </tbody>
+                                <tbody id="table5">
+                                    <td colspan="3">
+                                        <strong>GENERAL OBSERVATION</strong>
+                                    </td>
+                                </tbody>
                             </table>
                         </div>
                     </div>

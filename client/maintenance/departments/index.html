@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap 101 Template</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+        integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+		  <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+		  <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+		<![endif]-->
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-8 col-sm-offset-2">
+                <h2>Hello World</h2>
+                <table class="table table-condensed">
+                    <thead>
+                        <tr>
+                            <td>ID</td>
+                            <td>Last Name</td>
+                            <td>First Name</td>
+                            <td>Action</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Gates</td>
+                            <td>Bill</td>
+                            <td>
+                                <button type="button" data-id="1" class="btn btn-default btn-view" data-toggle="modal"
+                                    data-target="#myModal">View</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Jobs</td>
+                            <td>Steve</td>
+                            <td>
+                                <button type="button" data-id="2" class="btn btn-default btn-view" data-toggle="modal"
+                                    data-target="#myModal">View</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!-- Modal -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                        aria-hidden="true">&times;</span></button>
+                                <h4 class="modal-title" id="myModalLabel">View Person</h4>
+                            </div>
+                            <div id="personDetails" class="modal-body">
+
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+        integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+        crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function () {
+            $("#myModal").modal({
+                keyboard: true,
+                backdrop: "static",
+                show: false,
+
+            }).on("show.bs.modal", function (event) {
+                var button = $(event.relatedTarget); // button the triggered modal
+                var personId = button.data("id"); //data-id of button which is equal to id (primary key) of person
+                /* 
+                Although below is working to get and display values for id (personId), 
+                it is recommended that they be fetched via ajax ($.ajax()) that queries data 
+                from database based on personId
+                */
+                var lastName = $(event.relatedTarget).closest("tr").find("td:eq(1)").text();
+                var firstName = $(event.relatedTarget).closest("tr").find("td:eq(2)").text();
+
+                //displays values to modal
+                $(this).find("#personDetails").html($("<b>ID: " + personId + "<br>Last Name: " + lastName + "<br>First Name: " + firstName + "</b>"))
+            }).on("hide.bs.modal", function (event) {
+                $(this).find("#personDetails").html("");
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,13 +1,19 @@
 const tbody = document.querySelector("#tbData");
-const school_year = document.querySelector("#school_year");
-const semester = document.querySelector("#semester");
+// const school_year = document.querySelector("#school_year");
+// const semester = document.querySelector("#semester");
 
 var today = new Date();
 
-
 const getdata = async () => {
-  const endpoint = "http://localhost:3000/api/report/ranking/overall",
-    response = await fetch(endpoint),
+  const endpoint = "http://localhost:3000/api/report/ranking/overall/",
+    response = await fetch(
+      endpoint +
+        new URLSearchParams({
+          school_year_id: 2,
+          semester_id: 1,
+          is_part_time: 0,
+        }).toString()
+    ),
     data = await response.json(),
     row = data.data;
 
@@ -20,8 +26,14 @@ const getdata = async () => {
         <td class="text-center">${data.mean}</td>
     </tr>`;
   });
-  school_year.innerHTML += `School Year: ${row[0].school_year} <br> Semester: ${
-    row[0].semester
-  } <br> Date Generated: ${today.toDateString()}`;
+  const school_year = document.querySelector("#schoolYear");
+  school_year.innerHTML += `${row[0].school_year}`;
+
+  const semester = document.querySelector("#semester");
+  semester.innerHTML += `${row[0].semester}`;
+
+  const dateGenerated = document.querySelector("#dateGenerated");
+  dateGenerated.innerHTML += `${today.toDateString()}`;
 };
+
 getdata();

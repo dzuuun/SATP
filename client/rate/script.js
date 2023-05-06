@@ -1,25 +1,29 @@
-const tbody = document.querySelector("#tbData");
+const table1 = document.querySelector("#table1");
+const table2 = document.querySelector("#table2");
+const table3 = document.querySelector("#table3");
+const table4 = document.querySelector("#table4");
+const table5 = document.querySelector("#table5");
 
 const getdata = async () => {
-  const endpoint = "http://localhost:3000/api/item",
+  const endpoint = "http://localhost:3000/api/item/active/rate",
     response = await fetch(endpoint),
     data = await response.json(),
-    departments = data.data;
+    rows = data.data;
 
-    var result = departments.reduce((x, y) => {
-        (x[y.category] = x[y.category] || []).push(y);
-        return x;
-    }, {});
+  var result = rows.reduce((x, y) => {
+    (x[y.category] = x[y.category] || []).push(y);
+    return x;
+  }, {});
 
-    console.log(departments)
-    console.log(result.TEACHER)
-    console.log(result['TEACHING PROCEDURES']);
-    console.log(result.STUDENTS)
-    console.log(result.METHODOLOGY)
-    console.log(result['GENERAL OBSERVATION']);
-    
-  departments.forEach((row) => {
-    tbody.innerHTML += `
+  // console.log(rows);
+  // console.log(result.TEACHER);
+  // console.log(result["TEACHING PROCEDURES"]);
+  // console.log(result.STUDENTS);
+  // console.log(result.METHODOLOGY);
+  // console.log(result["GENERAL OBSERVATION"]);
+
+  result.TEACHER.forEach((row) => {
+    table1.innerHTML += `
     <tr id="${row.id}">
       <td class="text-center">${row.number}</td>
         <td class="text-wrap fs-6">${row.question}</td>
@@ -34,11 +38,76 @@ const getdata = async () => {
       </td> 
     </tr>`;
   });
-  
-  
+
+  result["TEACHING PROCEDURES"].forEach((row) => {
+    table2.innerHTML += `
+    <tr id="${row.id}">
+      <td class="text-center">${row.number}</td>
+        <td class="text-wrap fs-6">${row.question}</td>
+      <td>
+        <div class="col-md text-nowrap fs-5">
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+        </div>    
+      </td> 
+    </tr>`;
+  });
+
+  result.STUDENTS.forEach((row) => {
+    table3.innerHTML += `
+    <tr id="${row.id}">
+      <td class="text-center">${row.number}</td>
+        <td class="text-wrap fs-6">${row.question}</td>
+      <td>
+        <div class="col-md text-nowrap fs-5">
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+        </div>    
+      </td> 
+    </tr>`;
+  });
+
+  result.METHODOLOGY.forEach((row) => {
+    table4.innerHTML += `
+    <tr id="${row.id}">
+      <td class="text-center">${row.number}</td>
+        <td class="text-wrap fs-6">${row.question}</td>
+      <td>
+        <div class="col-md text-nowrap fs-5">
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+        </div>    
+      </td> 
+    </tr>`;
+  });
+
+  result["GENERAL OBSERVATION"].forEach((row) => {
+    table5.innerHTML += `
+    <tr id="${row.id}">
+      <td class="text-center">${row.number}</td>
+        <td class="text-wrap fs-6">${row.question}</td>
+      <td>
+        <div class="col-md text-nowrap fs-5">
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+          <i class="bi bi-star"></i>
+        </div>    
+      </td> 
+    </tr>`;
+  });
 };
 getdata();
-
 
 const school_year = document.querySelector("#schoolYear");
 school_year.innerHTML += `2019-2020`;
