@@ -28,7 +28,11 @@ const getActiveItems = async () => {
       table1.innerHTML += `<tr id="${row.id}">
     <td class="text-center">${row.number}</td>
         <td >${row.question}</td>
-        <td class="text-center">${row.is_active ? '<span>Yes</span>' : '<span style="color: red">No</span>'}</td>
+        <td class="text-center">${
+          row.is_active
+            ? "<span>Yes</span>"
+            : '<span style="color: red">No</span>'
+        }</td>
         <td>
           <div class="dropdown">
             <button class='btn bi bi-three-dots-vertical' id="${
@@ -38,11 +42,9 @@ const getActiveItems = async () => {
                 <li><a class="dropdown-item" onclick="editFormCall(${
                   row.id
                 })" id="${row.id}" >Edit</a></li>
-                <li><a class="dropdown-item" onclick="deleteData(${
+                <li><a class="delete dropdown-item" onclick=deleteRow(${
                   row.id
-                })" value="${
-                  row.id
-                }" >Delete</a></li>
+                }) id="${row.id}" >Delete</a></li>
               </ul>
           </div>
         </td> 
@@ -53,20 +55,24 @@ const getActiveItems = async () => {
       table2.innerHTML += `<tr id="${row.id}">
     <td class="text-center">${row.number}</td>
         <td >${row.question}</td>
-          <td class="text-center">${row.is_active ? '<span>Yes</span>' : '<span style="color: red">No</span>'}</td>
+          <td class="text-center">${
+            row.is_active
+              ? "<span>Yes</span>"
+              : '<span style="color: red">No</span>'
+          }</td>
         <td>
           <div class="dropdown">
             <button class='btn bi bi-three-dots-vertical' id="${
               row.id
             }" data-bs-toggle="dropdown" )'></button>
-              <ul class="dropdown-menu">
-              <li><a class="dropdown-item" onclick="editFormCall(${
-                row.id
-              })" id="${row.id}" >Edit</a></li>
-              <li><a class="dropdown-item" onclick="deleteData(this)" value="${
-                row.id
-              }" >Delete</a></li>
-              </ul>
+            <ul class="dropdown-menu">
+            <li><a class="dropdown-item" onclick="editFormCall(${
+              row.id
+            })" id="${row.id}" >Edit</a></li>
+            <li><a class="delete dropdown-item" onclick=deleteRow(${
+              row.id
+            }) id="${row.id}" >Delete</a></li>
+          </ul>
           </div>
         </td> 
           </tr>`;
@@ -76,20 +82,24 @@ const getActiveItems = async () => {
       table3.innerHTML += `<tr id="${row.id}">
     <td class="text-center">${row.number}</td>
         <td >${row.question}</td>
-          <td class="text-center">${row.is_active ? '<span>Yes</span>' : '<span style="color: red">No</span>'}</td>
+          <td class="text-center">${
+            row.is_active
+              ? "<span>Yes</span>"
+              : '<span style="color: red">No</span>'
+          }</td>
         <td>
           <div class="dropdown">
             <button class='btn bi bi-three-dots-vertical' id="${
               row.id
             }" data-bs-toggle="dropdown" )'></button>
-              <ul class="dropdown-menu">
-              <li><a class="dropdown-item" onclick="editFormCall(${
-                row.id
-              })" id="${row.id}" >Edit</a></li>
-              <li><a class="dropdown-item" onclick="deleteData(this)" value="${
-                row.id
-              }" >Delete</a></li>
-              </ul>
+            <ul class="dropdown-menu">
+            <li><a class="dropdown-item" onclick="editFormCall(${
+              row.id
+            })" id="${row.id}" >Edit</a></li>
+            <li><a class="delete dropdown-item" onclick=deleteRow(${
+              row.id
+            }) id="${row.id}" >Delete</a></li>
+          </ul>
           </div>
         </td> 
           </tr>`;
@@ -99,20 +109,24 @@ const getActiveItems = async () => {
       table4.innerHTML += `<tr id="${row.id}">
     <td class="text-center">${row.number}</td>
         <td >${row.question}</td>
-          <td class="text-center">${row.is_active ? '<span>Yes</span>' : '<span style="color: red">No</span>'}</td>
+          <td class="text-center">${
+            row.is_active
+              ? "<span>Yes</span>"
+              : '<span style="color: red">No</span>'
+          }</td>
         <td>
           <div class="dropdown">
             <button class='btn bi bi-three-dots-vertical' id="${
               row.id
             }" data-bs-toggle="dropdown" )'></button>
-              <ul class="dropdown-menu">
-              <li><a class="dropdown-item" onclick="editFormCall(${
-                row.id
-              })" id="${row.id}" >Edit</a></li>
-                <li><a class="dropdown-item" onclick="deleteData(this)" value="${
-                  row.id
-                }" >Delete</a></li>
-              </ul>
+            <ul class="dropdown-menu">
+            <li><a class="dropdown-item" onclick="editFormCall(${
+              row.id
+            })" id="${row.id}" >Edit</a></li>
+            <li><a class="delete dropdown-item" onclick=deleteRow(${
+              row.id
+            }) id="${row.id}" >Delete</a></li>
+          </ul>
           </div>
         </td> 
           </tr>`;
@@ -122,20 +136,24 @@ const getActiveItems = async () => {
       table5.innerHTML += `<tr id="${row.id}">
     <td class="text-center">${row.number}</td>
         <td >${row.question}</td>
-          <td class="text-center">${row.is_active ? '<span>Yes</span>' : '<span style="color: red">No</span>'}</td>
+          <td class="text-center">${
+            row.is_active
+              ? "<span>Yes</span>"
+              : '<span style="color: red">No</span>'
+          }</td>
         <td>
           <div class="dropdown">
             <button class='btn bi bi-three-dots-vertical' id="${
               row.id
             }" data-bs-toggle="dropdown" )'></button>
-              <ul class="dropdown-menu">
-              <li><a class="dropdown-item" onclick="editFormCall(${
-                row.id
-              })" id="${row.id}" >Edit</a></li>
-              <li><a class="dropdown-item" onclick="deleteData(this)" value="${
-                row.id
-              }" >Delete</a></li>
-              </ul>
+            <ul class="dropdown-menu">
+            <li><a class="dropdown-item" onclick="editFormCall(${
+              row.id
+            })" id="${row.id}" >Edit</a></li>
+            <li><a class="delete dropdown-item" onclick=deleteRow(${
+              row.id
+            }) id="${row.id}" >Delete</a></li>
+          </ul>
           </div>
         </td> 
           </tr>`;
@@ -218,38 +236,6 @@ formAddItem.addEventListener("submit", (event) => {
     });
 });
 
-// passing twice bug
-// Delete data from API
-// function deleteData(id) {
-//   $("#deleteModal").modal("show");
-
-//   $(document).on("click", "#deleteRow", function () {
-//     const formData = new FormData();
-//     formData.append("id", id);
-//     formData.append("user_id", "1"); // get user id from cookie (mock data)
-//     const data = Object.fromEntries(formData);
-
-//     return fetch("http://localhost:3000/api/item/delete", {
-//       method: "DELETE",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(data),
-//     })
-//       .then((res) => res.json())
-//       .then((response) => {
-//         if (response.success == 0) {
-//           setErrorMessage(response.message);
-//         } else {
-//           setSuccessMessage(response.message);
-//           $("#deleteModal").modal("hide");
-//           initializeTable();
-//           getActiveItems();
-//         }
-//       });
-//   });
-// }
-
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
@@ -307,64 +293,93 @@ function initializeTable() {
     '<td colspan="5"> <strong>GENERAL OBSERVATION</strong> </td>';
 }
 
-// passing twice bug
 // update data on the API
-// function editFormCall(id) {
-//   fetch("http://localhost:3000/api/item/" + id, {
-//     method: "GET",
-//   })
-//     .then((res) => res.json())
-//     .then((response) => {
-//       data = response.data;
-//       document.getElementById("itemNumberEditForm").value = data.number;
-//       document.getElementById("categorySelectEdit").value = data.category_id;
-//       document.getElementById("itemQuestionEdit").value = data.question;
+var rowIdToUpdate;
+async function editFormCall(id) {
+  await fetch("http://localhost:3000/api/item/" + id, {
+    method: "GET",
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      data = response.data;
+      document.getElementById("itemNumberEditForm").value = data.number;
+      document.getElementById("categorySelectEdit").value = data.category_id;
+      document.getElementById("itemQuestionEdit").value = data.question;
+      rowIdToUpdate = data.id;
+      if (data.is_active == 0) {
+        document.getElementById("isQuestionActiveEdit").checked = false;
+      } else {
+        document.getElementById("isQuestionActiveEdit").checked = true;
+      }
+      $("#editModal").modal("show");
+    });
+}
+const formEditItem = document.querySelector("#editItemForm");
+formEditItem.addEventListener("submit", (event) => {
+  event.preventDefault();
 
-//       if (data.is_active == 0) {
-//         document.getElementById("isQuestionActiveEdit").checked = false;
-//       } else {
-//         document.getElementById("isQuestionActiveEdit").checked = true;
-//       }
-//       $("#editModal").modal("show");
-//     });
+  const formData = new FormData(formEditItem);
 
-//   const formEditItem = document.querySelector("#editItemForm");
-//   formEditItem.addEventListener("submit", (event) => {
-//     event.preventDefault();
+  const isActive = document.getElementById("isQuestionActiveEdit").checked;
+  if (isActive == false) {
+    formData.append("is_active", "0");
+  } else {
+    formData.append("is_active", "1");
+  }
 
-//     const formData = new FormData(formEditItem);
+  formData.append("id", rowIdToUpdate);
+  formData.append("user_id", "1"); // get user id from localStorage (mock data)
+  const data = Object.fromEntries(formData);
 
-//     const isActive = document.getElementById("isQuestionActiveEdit").checked;
-//     if (isActive == false) {
-//       formData.append("is_active", "0");
-//     } else {
-//       formData.append("is_active", "1");
-//     }
+  fetch("http://localhost:3000/api/item/update", {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      if (response.success == 0) {
+        setErrorMessage(response.message);
+      } else {
+        setSuccessMessage(response.message);
+        $("#editModal").modal("hide");
+        initializeTable();
+        getActiveItems();
+      }
+    });
+});
 
-//     formData.append("id", id);
-//     formData.append("user_id", "1"); // get user id from localStorage (mock data)
-//     const data = Object.fromEntries(formData);
+// delete function
+var rowIdToDelete;
+function deleteRow(id) {
+  rowIdToDelete = id;
+  $("#deleteModal").modal("show");
+}
 
-//     fetch("http://localhost:3000/api/item/update", {
-//       method: "PUT",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-//       body: JSON.stringify(data),
-//     })
-//       .then((res) => res.json())
-//       .then((response) => {
-//         if (response.success == 0) {
-//           setErrorMessage(response.message);
-//         } else {
-//           setSuccessMessage(response.message);
-//           $("#editModal").modal("hide");
-//           initializeTable();
-//           getActiveItems();
-//         }
-//       });
-//   });
-// }
+async function confirmDelete() {
+  const data = { id: rowIdToDelete, user_id: 1 };
+  await fetch("http://localhost:3000/api/item/delete", {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id: rowIdToDelete, user_id: 1 }),
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      if (response.success == 0) {
+        setErrorMessage(response.message);
+      } else {
+        setSuccessMessage(response.message);
+        $("#deleteModal").modal("hide");
+        initializeTable();
+        getActiveItems();
+      }
+    });
+  console.log(data);
+}
 
 // initialize datas on page load
 getActiveItems();
