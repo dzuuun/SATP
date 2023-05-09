@@ -10,7 +10,7 @@ const router = require("express").Router();
 
 router.get("/", getDepartments);
 router.get("/:id", getDepartmentById);
-router.post("/new", addDepartment);
+router.post("/add", addDepartment);
 router.put("/update", updateDepartment);
 router.delete("/delete", deleteDepartment);
 router.get("/search/any", searchDepartments);

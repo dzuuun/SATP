@@ -3,7 +3,7 @@ const pool = require("../../../db/db");
 module.exports = {
   getDepartments: (callBack) => {
     pool.query(
-      "SELECT departments.id, departments.code, departments.name, colleges.code AS college_code, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id",
+      "SELECT departments.id, departments.code AS department_code, departments.name, colleges.code AS college_code, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id ORDER BY departments.code",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -15,7 +15,7 @@ module.exports = {
 
   getDepartmentById: (Id, callBack) => {
     pool.query(
-      "SELECT departments.id, departments.code, departments.name, colleges.code AS college_code, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id WHERE departments.id = ?",
+      "SELECT departments.id, departments.code, departments.name, colleges.id AS college_id, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id WHERE departments.id = ?",
       [Id],
       (error, results) => {
         if (error) {

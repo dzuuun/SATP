@@ -3,7 +3,7 @@ const pool = require("../../../db/db");
 module.exports = {
   getLog: (callBack) => {
     pool.query(
-      "SELECT DATE_FORMAT(activity_log.date_time, '%M %d, %Y %r') AS date_time, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, activity_log.action FROM activity_log INNER JOIN user_info ON activity_log.user_id = user_info.user_id",
+      "SELECT DATE_FORMAT(activity_log.date_time, '%M %d, %Y %r') AS date_time, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, activity_log.action FROM activity_log INNER JOIN user_info ON activity_log.user_id = user_info.user_id ORDER BY activity_log.date_time DESC",
       (error, results) => {
         if (error) {
           callBack(error);
