@@ -4,9 +4,11 @@ const table3 = document.querySelector("#table3");
 const table4 = document.querySelector("#table4");
 const table5 = document.querySelector("#table5");
 
+const baseURL = 'http://localhost:3000'
+
 // get items from API
 const getActiveItems = async () => {
-  const endpoint = "http://localhost:3000/api/item",
+  const endpoint = `${baseURL}/api/item`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -16,35 +18,33 @@ const getActiveItems = async () => {
     banner.innerHTML = "<p>No record found.</p>";
   } else {
     // divide array by category
-    var result = rows.reduce((x, y) => {
-      (x[y.category] = x[y.category] || []).push(y);
-      return x;
+    const result = rows.reduce((result, item) => {
+      (result[item.category] = result[item.category] || []).push(item);
+      return result;
     }, {});
 
     initializeTable();
 
     // insert to tables by category
     result.TEACHER.forEach((row) => {
-      table1.innerHTML += `<tr id="${row.id}">
-    <td class="text-center">${row.number}</td>
-        <td >${row.question}</td>
-        <td class="text-center">${
+      table1.innerHTML += `<tr>
+      <td class="text-center fw-medium">${row.number}</td>
+      <td class="fw-medium" >${row.question}</td>
+        <td class="text-center fw-medium">${
           row.is_active
-            ? "<span>Yes</span>"
+            ? '<span>Yes</span>'
             : '<span style="color: red">No</span>'
         }</td>
-        <td>
+        <td class="text-center">
           <div class="dropdown">
-            <button class='btn bi bi-three-dots-vertical' id="${
-              row.id
-            }" data-bs-toggle="dropdown" )'></button>
+            <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" onclick="editFormCall(${
                   row.id
-                })" id="${row.id}" >Edit</a></li>
+                })">Edit</a></li>
                 <li><a class="delete dropdown-item" onclick=deleteRow(${
                   row.id
-                }) id="${row.id}" >Delete</a></li>
+                })>Delete</a></li>
               </ul>
           </div>
         </td> 
@@ -52,109 +52,101 @@ const getActiveItems = async () => {
     });
 
     result["TEACHING PROCEDURES"].forEach((row) => {
-      table2.innerHTML += `<tr id="${row.id}">
-    <td class="text-center">${row.number}</td>
-        <td >${row.question}</td>
-          <td class="text-center">${
-            row.is_active
-              ? "<span>Yes</span>"
-              : '<span style="color: red">No</span>'
-          }</td>
-        <td>
-          <div class="dropdown">
-            <button class='btn bi bi-three-dots-vertical' id="${
-              row.id
-            }" data-bs-toggle="dropdown" )'></button>
-            <ul class="dropdown-menu">
+      table2.innerHTML += `<tr>
+      <td class="text-center fw-medium">${row.number}</td>
+      <td class="fw-medium" >${row.question}</td>
+        <td class="text-center fw-medium">${
+          row.is_active
+            ? '<span>Yes</span>'
+            : '<span style="color: red">No</span>'
+        }</td>
+        <td class="text-center">
+        <div class="dropdown">
+        <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+          <ul class="dropdown-menu">
             <li><a class="dropdown-item" onclick="editFormCall(${
               row.id
-            })" id="${row.id}" >Edit</a></li>
+            })">Edit</a></li>
             <li><a class="delete dropdown-item" onclick=deleteRow(${
               row.id
-            }) id="${row.id}" >Delete</a></li>
+            })>Delete</a></li>
           </ul>
-          </div>
+      </div>
         </td> 
           </tr>`;
     });
 
     result.STUDENTS.forEach((row) => {
-      table3.innerHTML += `<tr id="${row.id}">
-    <td class="text-center">${row.number}</td>
-        <td >${row.question}</td>
-          <td class="text-center">${
-            row.is_active
-              ? "<span>Yes</span>"
-              : '<span style="color: red">No</span>'
-          }</td>
-        <td>
-          <div class="dropdown">
-            <button class='btn bi bi-three-dots-vertical' id="${
-              row.id
-            }" data-bs-toggle="dropdown" )'></button>
-            <ul class="dropdown-menu">
+      table3.innerHTML += `<tr>
+      <td class="text-center fw-medium">${row.number}</td>
+      <td class="fw-medium" >${row.question}</td>
+        <td class="text-center fw-medium">${
+          row.is_active
+            ? '<span>Yes</span>'
+            : '<span style="color: red">No</span>'
+        }</td>
+        <td class="text-center">
+        <div class="dropdown">
+        <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+          <ul class="dropdown-menu">
             <li><a class="dropdown-item" onclick="editFormCall(${
               row.id
-            })" id="${row.id}" >Edit</a></li>
+            })">Edit</a></li>
             <li><a class="delete dropdown-item" onclick=deleteRow(${
               row.id
-            }) id="${row.id}" >Delete</a></li>
+            })>Delete</a></li>
           </ul>
-          </div>
+      </div>
         </td> 
           </tr>`;
     });
 
     result.METHODOLOGY.forEach((row) => {
-      table4.innerHTML += `<tr id="${row.id}">
-    <td class="text-center">${row.number}</td>
-        <td >${row.question}</td>
-          <td class="text-center">${
-            row.is_active
-              ? "<span>Yes</span>"
-              : '<span style="color: red">No</span>'
-          }</td>
-        <td>
-          <div class="dropdown">
-            <button class='btn bi bi-three-dots-vertical' id="${
-              row.id
-            }" data-bs-toggle="dropdown" )'></button>
-            <ul class="dropdown-menu">
+      table4.innerHTML += `<tr>
+      <td class="text-center fw-medium">${row.number}</td>
+      <td class="fw-medium" >${row.question}</td>
+        <td class="text-center fw-medium">${
+          row.is_active
+            ? '<span>Yes</span>'
+            : '<span style="color: red">No</span>'
+        }</td>
+        <td class="text-center">
+        <div class="dropdown">
+        <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+          <ul class="dropdown-menu">
             <li><a class="dropdown-item" onclick="editFormCall(${
               row.id
-            })" id="${row.id}" >Edit</a></li>
+            })">Edit</a></li>
             <li><a class="delete dropdown-item" onclick=deleteRow(${
               row.id
-            }) id="${row.id}" >Delete</a></li>
+            })>Delete</a></li>
           </ul>
-          </div>
+      </div>
         </td> 
           </tr>`;
     });
 
     result["GENERAL OBSERVATION"].forEach((row) => {
-      table5.innerHTML += `<tr id="${row.id}">
-    <td class="text-center">${row.number}</td>
-        <td >${row.question}</td>
-          <td class="text-center">${
-            row.is_active
-              ? "<span>Yes</span>"
-              : '<span style="color: red">No</span>'
-          }</td>
-        <td>
-          <div class="dropdown">
-            <button class='btn bi bi-three-dots-vertical' id="${
-              row.id
-            }" data-bs-toggle="dropdown" )'></button>
-            <ul class="dropdown-menu">
+      table5.innerHTML += `<tr>
+      <td class="text-center fw-medium">${row.number}</td>
+      <td class="fw-medium" >${row.question}</td>
+        <td class="text-center fw-medium">${
+          row.is_active
+            ? '<span>Yes</span>'
+            : '<span style="color: red">No</span>'
+        }</td>
+        <td class="text-center">
+        <div class="dropdown">
+        <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+          <ul class="dropdown-menu">
             <li><a class="dropdown-item" onclick="editFormCall(${
               row.id
-            })" id="${row.id}" >Edit</a></li>
+            })">Edit</a></li>
             <li><a class="delete dropdown-item" onclick=deleteRow(${
               row.id
-            }) id="${row.id}" >Delete</a></li>
+            })>Delete</a></li>
           </ul>
-          </div>
+      </div>
         </td> 
           </tr>`;
     });
@@ -165,7 +157,7 @@ const getActiveItems = async () => {
 const getCategory = async () => {
   const categoryList = document.querySelector("#categorySelect");
   const categoryList2 = document.querySelector("#categorySelectEdit");
-  const endpoint = "http://localhost:3000/api/category",
+  const endpoint = `${baseURL}/api/category`,
     response = await fetch(endpoint),
     data = await response.json(),
     category = data.data;
@@ -216,7 +208,7 @@ formAddItem.addEventListener("submit", (event) => {
   formData.append("user_id", "1"); // get user id from cookie (mock data)
   const data = Object.fromEntries(formData);
 
-  fetch("http://localhost:3000/api/item/add", {
+  fetch(`${baseURL}/api/item/add`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -296,7 +288,7 @@ function initializeTable() {
 // update data on the API
 var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch("http://localhost:3000/api/item/" + id, {
+  await fetch(`${baseURL}/api/item/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -331,7 +323,7 @@ formEditItem.addEventListener("submit", (event) => {
   formData.append("user_id", "1"); // get user id from localStorage (mock data)
   const data = Object.fromEntries(formData);
 
-  fetch("http://localhost:3000/api/item/update", {
+  fetch(`${baseURL}/api/item/update`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -360,12 +352,12 @@ function deleteRow(id) {
 
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: 1 };
-  await fetch("http://localhost:3000/api/item/delete", {
+  await fetch(`${baseURL}/api/item/delete`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ id: rowIdToDelete, user_id: 1 }),
+    body: JSON.stringify(data),
   })
     .then((res) => res.json())
     .then((response) => {
