@@ -19,7 +19,7 @@
     crossorigin="anonymous"></script>
 </head>
 
-<body style="min-height: 400px; margin-bottom: 100px; clear: both;">
+<body style="min-height: 400px; margin-bottom: 100px; clear: both">
   <!-- Header -->
   <nav class="navbar sticky-top" style="background-color: darkgreen">
     <div class="container-fluid">
@@ -39,13 +39,32 @@
       <!-- <div class="col-1">sidebar here</div> -->
       <div class="col-md">
         <div class="container-fluid mt-3">
-          <div class="row">
-            <div class="container-fluid mb-3">
-              <h1 class="display-5">Items</h1>
+          <div class="row align-items-center">
+            <div class="col-md">
+              <div class="container-fluid mb-3">
+                <h1 class="display-5">Items</h1>
+              </div>
             </div>
+            <!-- <div class="col-md">
+                    <nav aria-label="breadcrumb" class="float-end">
+                        <ol class="breadcrumb">
+                          <li class="breadcrumb-item"><a href="#">Home</a></li>
+                          <li class="breadcrumb-item active" aria-current="page">Library</li>
+                        </ol>
+                      </nav>
+                </div> -->
+          </div>
+
+          <div class="row border-bottom align-items-center">
             <div class="col-md mb-3">
-              <div class="input-group float-start flex-nowrap">
-                <span class="input-group-text" id="addon-wrapping">
+              <button type="button" class="btn text-white text-nowrap" data-bs-toggle="modal"
+                data-bs-target="#addNewModal" style="background-color: darkgreen" title="Add New">
+                <i class="bi bi-plus"></i> Add New
+              </button>
+            </div>
+            <div class="col-md-5 mb-3">
+              <div class="input-group flex-nowrap" title="Search">
+                <span class="input-group-text">
                   <i class="bi bi-search"></i>
                 </span>
                 <input type="text" id="search" onkeyup="searchTable()" class="form-control" placeholder="Search"
@@ -53,14 +72,8 @@
               </div>
             </div>
 
-            <div class="col-md">
-              <div class="mb-3 float-end">
-                <button type="button" class="btn text-white text-nowrap" data-bs-toggle="modal"
-                  data-bs-target="#addNewModal" style="background-color: darkgreen">
-                  <i class="bi bi-plus"></i> Add New
-                </button>
-              </div>
-            </div>
+            <div class="col-md mb-3"></div>
+
           </div>
 
           <div class="table-responsive mt-2">
