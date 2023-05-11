@@ -64,27 +64,30 @@
                         </div>
                         <div class="col-md-5 mb-3">
                             <div class="input-group flex-nowrap" title="Search">
+                                <input type="text" id="search" onkeyup="searchTable()" class="form-control"
+                                    placeholder="Search" aria-label="Search" aria-describedby="addon-wrapping" />
                                 <span class="input-group-text">
                                     <i class="bi bi-search"></i>
                                 </span>
-                                <input type="text" id="search" onkeyup="searchTable()" class="form-control"
-                                    placeholder="Search" aria-label="Search" aria-describedby="addon-wrapping" />
+                                
                             </div>
                         </div>
 
                         <div class="col-md mb-3">
                             <div class="row flex-nowrap justify-content-end align-items-center">
                                 <div class="col">
-                                    <button class="btn" id="prevButton" onclick="previousPage()" title="Previous">
-                                        <i class="bi fs-4 bi-arrow-left"></i>
+                                    <button class="btn border-0" id="prevButton" onclick="previousPage()"
+                                        title="Previous">
+                                        <i class="bi fs-2 bi-arrow-left-square"></i>
                                     </button>
                                 </div>
                                 <div class="col text-center text-nowrap">
-                                    <span id="pageNumber"></span>
+                                    <span class="fw-semibold" id="pageNumber"></span>
                                 </div>
                                 <div class="col">
-                                    <button class="btn float-end" id="nextButton" onclick="nextPage()" title="Next">
-                                        <i class="bi fs-4 bi-arrow-right"></i>
+                                    <button class="btn border-0 float-end" id="nextButton" onclick="nextPage()"
+                                        title="Next">
+                                        <i class="bi fs-2 bi-arrow-right-square"></i>
                                     </button>
                                 </div>
                             </div>
@@ -296,27 +299,9 @@
 
     <!-- Toast container -->
     <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
+
 </body>
-<!-- <div class="fixed-bottom mb-3 me-3 ms-3">
-    <nav aria-label="Page navigation example">
-      <ul class="pagination justify-content-between">
-        <li class="page-item" >
-          <button class="page-link" id="prevButton">Prev</button>
-        </li>
-        <li class="page-item" >
-          <p  id="pageNumber"></p>
-        </li>
-        <li class="page-item">
-          <button class="page-link" id="nextButton">Next</button>
-        </li>
-      </ul>
-    </nav>
-  </div> -->
-<!-- <div class="">
 
-    <p id="pageNumber"></p>
-
-</div> -->
 <footer>
     <div class="container-fluid text-center" style="
         background-color: darkgreen;
@@ -354,6 +339,10 @@
         border-color: darkgreen;
         border: none;
         background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(255,255,255,1.0)'/></svg>");
+    }
+
+    .btn:active {
+        transform: translateY(2px);
     }
 </style>
 

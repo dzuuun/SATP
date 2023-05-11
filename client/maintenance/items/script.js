@@ -4,7 +4,7 @@ const table3 = document.querySelector("#table3");
 const table4 = document.querySelector("#table4");
 const table5 = document.querySelector("#table5");
 
-const baseURL = 'http://localhost:3000'
+const baseURL = "http://localhost:3000";
 
 // get items from API
 const getActiveItems = async () => {
@@ -32,12 +32,12 @@ const getActiveItems = async () => {
       <td class="fw-medium" >${row.question}</td>
         <td class="text-center fw-medium">${
           row.is_active
-            ? '<span>Yes</span>'
+            ? "<span>Yes</span>"
             : '<span style="color: red">No</span>'
         }</td>
         <td class="text-center">
           <div class="dropdown">
-            <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+            <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
               <ul class="dropdown-menu">
                 <li><a class="dropdown-item" onclick="editFormCall(${
                   row.id
@@ -57,12 +57,12 @@ const getActiveItems = async () => {
       <td class="fw-medium" >${row.question}</td>
         <td class="text-center fw-medium">${
           row.is_active
-            ? '<span>Yes</span>'
+            ? "<span>Yes</span>"
             : '<span style="color: red">No</span>'
         }</td>
         <td class="text-center">
         <div class="dropdown">
-        <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+        <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" onclick="editFormCall(${
               row.id
@@ -82,12 +82,12 @@ const getActiveItems = async () => {
       <td class="fw-medium" >${row.question}</td>
         <td class="text-center fw-medium">${
           row.is_active
-            ? '<span>Yes</span>'
+            ? "<span>Yes</span>"
             : '<span style="color: red">No</span>'
         }</td>
         <td class="text-center">
         <div class="dropdown">
-        <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+        <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" onclick="editFormCall(${
               row.id
@@ -107,12 +107,12 @@ const getActiveItems = async () => {
       <td class="fw-medium" >${row.question}</td>
         <td class="text-center fw-medium">${
           row.is_active
-            ? '<span>Yes</span>'
+            ? "<span>Yes</span>"
             : '<span style="color: red">No</span>'
         }</td>
         <td class="text-center">
         <div class="dropdown">
-        <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+        <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" onclick="editFormCall(${
               row.id
@@ -132,12 +132,12 @@ const getActiveItems = async () => {
       <td class="fw-medium" >${row.question}</td>
         <td class="text-center fw-medium">${
           row.is_active
-            ? '<span>Yes</span>'
+            ? "<span>Yes</span>"
             : '<span style="color: red">No</span>'
         }</td>
         <td class="text-center">
         <div class="dropdown">
-        <button class='btn bi bi-three-dots-vertical' data-bs-toggle="dropdown" )'></button>
+        <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
           <ul class="dropdown-menu">
             <li><a class="dropdown-item" onclick="editFormCall(${
               row.id
@@ -179,14 +179,32 @@ function searchTable() {
   tr = table.getElementsByTagName("tr");
 
   // Loop through all table rows, and hide those who don't match the search query
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName("td")[1];
-    if (td) {
-      txtValue = td.textContent || td.innerText;
-      if (txtValue.toUpperCase().indexOf(filter) > -1) {
-        tr[i].style.display = "";
-      } else {
-        tr[i].style.display = "none";
+  //   for (i = 0; i < tr.length; i++) {
+  //     td = tr[i].getElementsByTagName("td")[1];
+  //     if (td) {
+  //       txtValue = td.textContent || td.innerText;
+  //       if (txtValue.toUpperCase().indexOf(filter) > -1) {
+  //         tr[i].style.display = "";
+  //       } else {
+  //         tr[i].style.display = "none";
+  //       }
+  //     }
+  //   }
+  // }
+
+  for (var i = 0; i < tr.length; i++) {
+    var all_columns = tr[i].getElementsByTagName("td");
+    for (j = 0; j < all_columns.length; j++) {
+      if (all_columns[j]) {
+        var column_value =
+          all_columns[j].textContent || all_columns[j].innerText;
+        column_value = column_value.toUpperCase();
+        if (column_value.toUpperCase().indexOf(filter) > -1) {
+          tr[i].style.display = ""; // show
+          break;
+        } else {
+          tr[i].style.display = "none"; // hide
+        }
       }
     }
   }
