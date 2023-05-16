@@ -1,21 +1,16 @@
-const tbody = document.querySelector('#tbData');
+const baseURL = "http://localhost:3000";
 
-const getdata = async () => {
-  const endpoint = "http://localhost:3000/api/activitylog",
-        response = await fetch(endpoint),
-        data = await response.json(),
-        departments = data.data;
-
- departments.forEach(data => {
-    tbody.innerHTML += `<tr>
-        <td>${data.date_time}</td>
-        <td>${data.name}</td>
-        <td class="text-wrap">${data.action}</td>
-    </tr>`;
- });
-
-}
-getdata();
+let data = $("#table").DataTable({
+  ajax: {
+    type: "GET",
+    url: `${baseURL}/api/activitylog`,
+  },
+  pagingType: "full_numbers",
+  responsive: true,
+  ordering: false,
+  order: [[0, "desc"]],
+  columns: [{ data: "date_time" }, { data: "name" }, { data: "action" }],
+});
 
 // /* Set the width of the side navigation to 250px */
 // function openNav() {
@@ -31,7 +26,7 @@ getdata();
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
   document.getElementById("main").style.marginLeft = "250px";
-   nav = true;
+  nav = true;
 }
 
 var nav = false;
@@ -39,7 +34,7 @@ var nav = false;
 function closeNav() {
   document.getElementById("mySidenav").style.width = "0";
   document.getElementById("main").style.marginLeft = "0";
-   nav = false;
+  nav = false;
 }
 function toggleNav() {
   nav ? closeNav() : openNav();

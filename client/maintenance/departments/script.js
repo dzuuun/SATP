@@ -1,107 +1,41 @@
 const baseURL = "http://localhost:3000";
-const table = document.querySelector("#table");
 
-var array = [];
-var data = [];
-const pageSize = 10;
-let curPage = 1;
-
-async function renderTable(page = 1) {
-  await getData();
-  if (page == 1) {
-    prevButton.style.visibility = "hidden";
-  } else {
-    prevButton.style.visibility = "visible";
-  }
-
-  if (page == numPages()) {
-    nextButton.style.visibility = "hidden";
-  } else {
-    nextButton.style.visibility = "visible";
-  }
-
-  if (data.success == 0) {
-    const banner = document.querySelector("#banner");
-    banner.innerHTML = "<p>No record found.</p>";
-  } else {
-    // create html
-    table.innerHTML = "";
-    array
-      .filter((row, index) => {
-        let start = (curPage - 1) * pageSize;
-        let end = curPage * pageSize;
-
-        if (index >= start && index < end) return true;
-      })
-      .forEach((row) => {
-        table.innerHTML += `<tr>
-      <td class="fw-medium">${row.department_code}</td>
-      <td class="fw-medium">${row.name}</td>
-      <td class="text-center fw-medium">${row.college_code}</td>
-      <td class="text-center fw-medium">${
-        row.is_active
-          ? "<span>Yes</span>"
-          : '<span style="color: red">No</span>'
-      }
-      </td>
-        <td  class="text-center">
-          <div class="dropdown">
-            <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" onclick="editFormCall(${
-                  row.id
-                })">Edit</a></li>
-                <li><a class="dropdown-item" onclick=deleteRow(${
-                  row.id
-                })>Delete</a></li>
-              </ul>
-          </div>
-        </td> 
-          </tr>`;
-      });
-    document.getElementById(
-      "pageNumber"
-    ).innerHTML = `Page ${curPage} of ${numPages()}`;
-    if (array.length == 0) {
-      document.getElementById(
-        "numberOfEntries"
-      ).innerHTML = `${array.length} total entries`;
-    } else if (array.length == 1) {
-      document.getElementById(
-        "numberOfEntries"
-      ).innerHTML = `${array.length} total entry`;
-    } else {
-      document.getElementById(
-        "numberOfEntries"
-      ).innerHTML = `${array.length} total entries`;
-    }
-  }
-}
-
-//Fetch Data from API
-async function getData() {
-  const response = await fetch(`${baseURL}/api/department`);
-  data = await response.json();
-  array = data.data;
-}
-
-function previousPage() {
-  if (curPage > 1) {
-    curPage--;
-    renderTable(curPage);
-  }
-}
-
-function nextPage() {
-  if (curPage * pageSize < array.length) {
-    curPage++;
-    renderTable(curPage);
-  }
-}
-
-function numPages() {
-  return Math.ceil(array.length / pageSize);
-}
+let data = $("#table").DataTable({
+  ajax: {
+    type: "GET",
+    url: `${baseURL}/api/department`,
+  },
+  columnDefs: [{ className: "dt-center", targets: "" }],
+  columns: [
+    { width: "5%", data: "department_code" },
+    { data: "name" },
+    { width: "5%", data: "college_code" },
+    {
+      width: "5%",
+      data: "null",
+      render: function (data, type, row) {
+        return `<td class="text-center fw-medium">${
+          row.is_active
+            ? "<span>Yes</span>"
+            : '<span style="color: red">No</span>'
+        }
+                </td>`;
+      },
+    },
+    {
+      width: "5%",
+      data: null,
+      render: function (data, type, row) {
+        return `<td  class="text-center">
+              <div class="text-nowrap">
+                <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
+                <button class='btn bi fs-5 bi-trash' onclick="deleteRow(${row.id})")' title="Delete"></button>
+              </div>
+            </td> `;
+      },
+    },
+  ],
+});
 
 // Get college from API
 const getCollege = async () => {
@@ -118,33 +52,7 @@ const getCollege = async () => {
   });
 };
 
-// NEED UPDATE
-// search table
-function searchTable() {
-  // Declare variables
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("search");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("dataTable");
-  tr = table.getElementsByTagName("tr");
-
-  for (var i = 0; i < tr.length; i++) {
-    var all_columns = tr[i].getElementsByTagName("td");
-    for (j = 0; j < all_columns.length; j++) {
-      if (all_columns[j]) {
-        var column_value =
-          all_columns[j].textContent || all_columns[j].innerText;
-        column_value = column_value.toUpperCase();
-        if (column_value.toUpperCase().indexOf(filter) > -1) {
-          tr[i].style.display = ""; // show
-          break;
-        } else {
-          tr[i].style.display = "none"; // hide
-        }
-      }
-    }
-  }
-}
+getCollege(); // Initialize college dropdown
 
 // post department to API
 const formAddDepartment = document.querySelector("#newDepartmentForm");
@@ -175,8 +83,7 @@ formAddDepartment.addEventListener("submit", (event) => {
       } else {
         setSuccessMessage(response.message);
         $("#addNewModal").modal("hide");
-
-        renderTable(curPage);
+        data.ajax.reload();
       }
     });
 });
@@ -252,9 +159,7 @@ async function editFormCall(id) {
 const formEditDepartment = document.querySelector("#editDepartmentForm");
 formEditDepartment.addEventListener("submit", (event) => {
   event.preventDefault();
-
   const formData = new FormData(formEditDepartment);
-
   const isActive = document.getElementById("isDepartmentActiveEdit").checked;
   if (isActive == false) {
     formData.append("is_active", "0");
@@ -280,8 +185,7 @@ formEditDepartment.addEventListener("submit", (event) => {
       } else {
         setSuccessMessage(response.message);
         $("#editModal").modal("hide");
-
-        renderTable(curPage);
+        data.ajax.reload();
       }
     });
 });
@@ -309,12 +213,7 @@ async function confirmDelete() {
       } else {
         setSuccessMessage(response.message);
         $("#deleteModal").modal("hide");
-
-        renderTable(curPage);
+        data.ajax.reload();
       }
     });
 }
-
-// initialize datas on page load
-renderTable();
-getCollege();
