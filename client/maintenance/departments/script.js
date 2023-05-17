@@ -83,7 +83,7 @@ formAddDepartment.addEventListener("submit", (event) => {
       } else {
         setSuccessMessage(response.message);
         $("#addNewModal").modal("hide");
-        data.ajax.reload();
+        $("#table").DataTable().ajax.reload();
       }
     });
 });
@@ -185,7 +185,7 @@ formEditDepartment.addEventListener("submit", (event) => {
       } else {
         setSuccessMessage(response.message);
         $("#editModal").modal("hide");
-        data.ajax.reload();
+        $("#table").DataTable().ajax.reload();
       }
     });
 });
@@ -213,7 +213,7 @@ async function confirmDelete() {
       } else {
         setSuccessMessage(response.message);
         $("#deleteModal").modal("hide");
-        data.ajax.reload();
+        $("#table").DataTable().ajax.reload();
       }
     });
 }

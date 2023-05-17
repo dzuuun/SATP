@@ -5,7 +5,6 @@ let data = $("#table").DataTable({
     type: "GET",
     url: `${baseURL}/api/activitylog`,
   },
-  pagingType: "full_numbers",
   responsive: true,
   ordering: false,
   order: [[0, "desc"]],
