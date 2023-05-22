@@ -69,23 +69,25 @@ formAddDepartment.addEventListener("submit", (event) => {
 
   formData.append("user_id", "1"); // get user id from cookie (mock data)
   const data = Object.fromEntries(formData);
-  fetch(`${baseURL}/api/department/add`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#addNewModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-      }
-    });
+  if (confirm("This action cannot be undone.") == true) {
+    fetch(`${baseURL}/api/department/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success == 0) {
+          setErrorMessage(response.message);
+        } else {
+          setSuccessMessage(response.message);
+          $("#addNewModal").modal("hide");
+          $("#table").DataTable().ajax.reload();
+        }
+      });
+  }
 });
 
 // clear modal form upon closing
@@ -170,24 +172,25 @@ formEditDepartment.addEventListener("submit", (event) => {
   formData.append("id", rowIdToUpdate);
   formData.append("user_id", "1"); // get user id from localStorage (mock data)
   const data = Object.fromEntries(formData);
-
-  fetch(`${baseURL}/api/department/update`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#editModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-      }
-    });
+  if (confirm("This action cannot be undone.") == true) {
+    fetch(`${baseURL}/api/department/update`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success == 0) {
+          setErrorMessage(response.message);
+        } else {
+          setSuccessMessage(response.message);
+          $("#editModal").modal("hide");
+          $("#table").DataTable().ajax.reload();
+        }
+      });
+  }
 });
 
 // delete function
