@@ -15,7 +15,7 @@ module.exports = {
 
   getCourseById: (Id, callBack) => {
     pool.query(
-      "SELECT courses.id, courses.code, courses.name, departments.code AS department_code,  courses.is_active FROM courses INNER JOIN departments ON courses.department_id = departments.id WHERE courses.id = ?",
+      "SELECT courses.id, courses.code, courses.name, departments.id AS department_id,  courses.is_active FROM courses INNER JOIN departments ON courses.department_id = departments.id WHERE courses.id = ?",
       [Id],
       (error, results) => {
         if (error) {
