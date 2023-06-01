@@ -114,24 +114,4 @@ module.exports = {
       }
     );
   },
-
-  searchDepartments: (data, callBack) => {
-    pool.query(
-      "SELECT * FROM departments WHERE code LIKE '%" +
-        data.search +
-        "%'  OR name LIKE '%" +
-        data.search +
-        "%'  OR college_id LIKE '%" +
-        data.search +
-        "%' OR is_active LIKE '%" +
-        data.search +
-        "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
 };

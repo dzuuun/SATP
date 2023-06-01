@@ -3,9 +3,8 @@ const {
   getStudentById,
   addStudent,
   updateStudentInfo,
-  updateStudentUsername,
+  updateStudentActiveStatus,
   deleteStudent,
-  searchStudents,
 } = require("./student.model");
 
 module.exports = {
@@ -96,9 +95,9 @@ module.exports = {
     });
   },
 
-  updateStudentUsername: (req, res) => {
+  updateStudentActiveStatus: (req, res) => {
     const body = req.body;
-    updateStudentUsername(body, (err, results) => {
+    updateStudentActiveStatus(body, (err, results) => {
       if (err) {
         console.log(err);
         return false;
@@ -111,7 +110,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Student's username updated successfully.",
+        message: "Student's status updated successfully.",
       });
     });
   },
@@ -132,28 +131,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Student deleted successfully.",
-      });
-    });
-  },
-
-  searchStudents: (req, res) => {
-    const body = req.body;
-    searchStudents(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Students searched successfully.",
-        count: results.length,
-        data: results,
       });
     });
   },

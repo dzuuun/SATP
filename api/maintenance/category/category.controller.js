@@ -4,7 +4,6 @@ const {
   addCategory,
   updateCategory,
   deleteCategory,
-  SearchCategory,
 } = require("./category.model");
 
 module.exports = {
@@ -109,28 +108,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Category deleted successfully.",
-      });
-    });
-  },
-
-  SearchCategory: (req, res) => {
-    const body = req.body;
-    SearchCategory(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Categories searched successfully.",
-        count: results.length,
-        data: results,
       });
     });
   },

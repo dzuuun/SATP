@@ -4,7 +4,6 @@ const {
   addCourse,
   updateCourse,
   deleteCourse,
-  searchCourses,
 } = require("./course.model");
 
 module.exports = {
@@ -109,28 +108,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Course deleted successfully.",
-      });
-    });
-  },
-
-  searchCourses: (req, res) => {
-    const body = req.body;
-    searchCourses(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Courses searched successfully.",
-        count: results.length,
-        data: results,
       });
     });
   },

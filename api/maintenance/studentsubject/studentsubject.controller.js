@@ -1,16 +1,15 @@
 const {
   getIncludedSubjectsByStudent,
-  getExcludedSubjectsByStudent,
-  getExcludedSubjects,
+  showReason,
+  // getExcludedSubjects,
   addStudentSubject,
-  updateStudentSubject,
-  // deleteStudentSubject,
-  searchStudentSubject,
+  // updateStudentSubject,
+  deactivateStudentSubject,
 } = require("./studentsubject.model");
 
 module.exports = {
   getIncludedSubjectsByStudent: (req, res) => {
-    const body = req.body;
+    const body = req.params;
     getIncludedSubjectsByStudent(body, (err, results) => {
       if (err) {
         console.log(err);
@@ -31,9 +30,9 @@ module.exports = {
     });
   },
 
-  getExcludedSubjectsByStudent: (req, res) => {
-    const body = req.body;
-    getExcludedSubjectsByStudent(body, (err, results) => {
+  showReason: (req, res) => {
+    const body = req.params;
+    showReason(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -53,26 +52,26 @@ module.exports = {
     });
   },
 
-  getExcludedSubjects: (req, res) => {
-    getExcludedSubjects((err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (!results) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Deleted student's subjects retrieved successfully.",
-        count: results.length,
-        data: results,
-      });
-    });
-  },
+  // getExcludedSubjects: (req, res) => {
+  //   getExcludedSubjects((err, results) => {
+  //     if (err) {
+  //       console.log(err);
+  //       return;
+  //     }
+  //     if (!results) {
+  //       return res.json({
+  //         success: 0,
+  //         message: "No record found.",
+  //       });
+  //     }
+  //     return res.json({
+  //       success: 1,
+  //       message: "Deleted student's subjects retrieved successfully.",
+  //       count: results.length,
+  //       data: results,
+  //     });
+  //   });
+  // },
 
   addStudentSubject: (req, res) => {
     const body = req.body;
@@ -98,30 +97,9 @@ module.exports = {
     });
   },
 
-  updateStudentSubject: (req, res) => {
-    const body = req.body;
-    updateStudentSubject(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return false;
-      }
-      if (results.changedRows == 0) {
-        return res.json({
-          success: 0,
-          message: "Contents are still the same.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Student's subject information updated successfully.",
-      });
-    });
-  },
-
-  // deleteStudentSubject: (req, res) => {
+  // updateStudentSubject: (req, res) => {
   //   const body = req.body;
-  //   deleteStudentSubject(body, (err, results) => {
-  //     console.log(results)
+  //   updateStudentSubject(body, (err, results) => {
   //     if (err) {
   //       console.log(err);
   //       return false;
@@ -129,34 +107,33 @@ module.exports = {
   //     if (results.changedRows == 0) {
   //       return res.json({
   //         success: 0,
-  //         message: "No action done.",
+  //         message: "Contents are still the same.",
   //       });
   //     }
   //     return res.json({
   //       success: 1,
-  //       message: "Student's subject information deleted successfully.",
+  //       message: "Student's subject information updated successfully.",
   //     });
   //   });
   // },
 
-  searchStudentSubject: (req, res) => {
+  deactivateStudentSubject: (req, res) => {
     const body = req.body;
-    searchStudentSubject(body, (err, results) => {
+    deactivateStudentSubject(body, (err, results) => {
+      console.log(results)
       if (err) {
         console.log(err);
-        return;
+        return false;
       }
-      if (results.length === 0) {
+      if (results.changedRows == 0) {
         return res.json({
           success: 0,
-          message: "No record found.",
+          message: "No action done.",
         });
       }
       return res.json({
         success: 1,
-        message: "Rooms searched successfully.",
-        count: results.length,
-        data: results,
+        message: "Student's subject information deleted successfully.",
       });
     });
   },

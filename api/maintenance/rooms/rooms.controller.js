@@ -3,7 +3,6 @@ const {
   getRoomById,
   addRoom,
   updateRoom,
-  searchRooms,
   deleteRoom,
 } = require("./rooms.model");
 
@@ -110,28 +109,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Room deleted successfully.",
-      });
-    });
-  },
-
-  searchRooms: (req, res) => {
-    const body = req.body;
-    searchRooms(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Rooms searched successfully.",
-        count: results.length,
-        data: results,
       });
     });
   },

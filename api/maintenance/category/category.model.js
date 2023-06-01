@@ -112,20 +112,4 @@ module.exports = {
       }
     );
   },
-
-  SearchCategory: (data, callBack) => {
-    pool.query(
-      "SELECT * FROM categories WHERE name LIKE '%" +
-        data.search +
-        "%' OR is_active LIKE '%" +
-        data.search +
-        "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
 };

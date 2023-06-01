@@ -114,24 +114,4 @@ module.exports = {
       }
     );
   },
-
-  searchCourses: (data, callBack) => {
-    pool.query(
-      "SELECT courses.id, courses.code, courses.name, departments.code AS department_code, courses.is_active FROM courses INNER JOIN departments ON courses.department_id=departments.id WHERE courses.code LIKE '%" +
-        data.search +
-        "%'  OR courses.name LIKE '%" +
-        data.search +
-        "%'  OR departments.code LIKE '%" +
-        data.search +
-        "%' OR courses.is_active LIKE '%" +
-        data.search +
-        "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
 };

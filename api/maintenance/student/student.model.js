@@ -3,7 +3,7 @@ const pool = require("../../../db/db");
 module.exports = {
   getAllStudent: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1",
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code AS course, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -15,7 +15,7 @@ module.exports = {
 
   getStudentById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.id = ?",
+      "SELECT users.id, users.username, user_info.givenname, user_info.surname, user_info.middlename, courses.id AS course_id, user_info.gender, user_info.year_level, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -128,31 +128,43 @@ module.exports = {
     );
   },
 
-  updateStudentUsername: (data, callBack) => {
+  updateStudentActiveStatus: (data, callBack) => {
     pool.query(
-      "UPDATE users SET username=? WHERE id=?",
-      [data.username, data.id],
-      (error, results) => {
-        if (results.changedRows == 1) {
+      "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_id=?",
+      [data.id],
+      (error, result) => {
+        if (result.length == 1) {
           pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated Student's username: " + data.username],
+            "UPDATE users SET is_active=? WHERE id=?",
+              [data.is_active, data.id],
             (error, results) => {
-              if (error) {
-                console.log(error);
+              if (results.changedRows == 1) {
+                pool.query(
+                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                  [
+                    data.user_id,
+                    "Updated Student's active status: " + result[0].username,
+                  ],
+                  (error, results) => {
+                    if (error) {
+                      console.log(error);
+                    }
+                  }
+                );
+                if (error) {
+                  callBack(error);
+                }
               }
+              return callBack(null, results);
             }
           );
+        } else {
+          return callBack(null, result);
         }
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
       }
     );
-  },
 
-  // update password
+  },
 
   deleteStudent: (data, callBack) => {
     pool.query(
@@ -187,23 +199,4 @@ module.exports = {
     );
   },
 
-  searchStudents: (data, callBack) => {
-    pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS NAME, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE users.is_student_rater = 1 AND (user_info.givenname LIKE '%" +
-        data.search +
-        "%'  OR user_info.middlename LIKE '%" +
-        data.search +
-        "%' OR user_info.surname LIKE '%" +
-        data.search +
-        "%' OR users.username LIKE '%" +
-        data.search +
-        "%')",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
 };

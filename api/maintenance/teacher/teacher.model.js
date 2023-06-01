@@ -15,7 +15,7 @@ module.exports = {
 
   getTeacherById: (Id, callBack) => {
     pool.query(
-      "SELECT teachers.id, CONCAT(teachers.givenname, ' ', teachers.surname) AS name, departments.code AS department_code, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id WHERE teachers.id=?",
+      "SELECT teachers.id, teachers.givenname, teachers.surname, teachers.middlename, departments.id AS department_id, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id WHERE teachers.id=?",
       [Id],
       (error, results) => {
         if (error) {
@@ -138,25 +138,6 @@ module.exports = {
         if (error) {
           return callBack(error);
         }
-      }
-    );
-  },
-  searchTeachers: (data, callBack) => {
-    pool.query(
-      "SELECT teachers.id, CONCAT(teachers.givenname, ' ', teachers.surname) AS name, departments.code AS department_code, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id WHERE teachers.givenname LIKE '%" +
-        data.search +
-        "%'  OR teachers.surname LIKE '%" +
-        data.search +
-        "%' OR teachers.is_part_time LIKE '%" +
-        data.search +
-        "%' OR teachers.is_active LIKE '%" +
-        data.search +
-        "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
       }
     );
   },

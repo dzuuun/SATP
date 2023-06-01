@@ -111,22 +111,4 @@ module.exports = {
       }
     );
   },
-
-  searchSchoolYears: (data, callBack) => {
-    pool.query(
-      "SELECT * FROM school_years WHERE name LIKE '%" +
-        data.search +
-        "%' OR in_use LIKE '%" +
-        data.search +
-        "%' OR is_active LIKE '%" +
-        data.search +
-        "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
 };

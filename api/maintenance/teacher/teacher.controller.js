@@ -4,7 +4,6 @@ const {
   addTeacher,
   updateTeacher,
   deleteTeacher,
-  searchTeachers,
 } = require("./teacher.model");
 
 module.exports = {
@@ -109,28 +108,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Teacher deleted successfully.",
-      });
-    });
-  },
-
-  searchTeachers: (req, res) => {
-    const body = req.body;
-    searchTeachers(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Teachers searched successfully.",
-        count: results.length,
-        data: results,
       });
     });
   },

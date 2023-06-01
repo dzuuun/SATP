@@ -75,22 +75,6 @@ module.exports = {
     );
   },
 
-  searchRooms: (data, callBack) => {
-    pool.query(
-      "SELECT * FROM rooms WHERE name LIKE '%" +
-        data.search +
-        "%' OR is_active LIKE '%" +
-        data.search +
-        "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
-
   deleteRoom: (data, callBack) => {
     pool.query(
       "SELECT name FROM rooms WHERE id=?",

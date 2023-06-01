@@ -3,7 +3,6 @@ const {
   getDepartmentById,
   addDepartment,
   updateDepartment,
-  searchDepartments,
   deleteDepartment,
 } = require("./department.model");
 
@@ -109,28 +108,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Department deleted successfully.",
-      });
-    });
-  },
-
-  searchDepartments: (req, res) => {
-    const body = req.body;
-    searchDepartments(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Departments searched successfully.",
-        count: results.length,
-        data: results,
       });
     });
   },

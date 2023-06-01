@@ -140,16 +140,4 @@ module.exports = {
       }
     );
   },
-
-  searchItem: (data, callBack) => {
-    pool.query(
-      "SELECT * FROM items WHERE question LIKE '%" + data.search + "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
 };

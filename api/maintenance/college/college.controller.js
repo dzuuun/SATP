@@ -4,7 +4,6 @@ const {
   addCollege,
   updateCollege,
   deleteCollege,
-  searchColleges,
 } = require("./college.model");
 
 module.exports = {
@@ -109,28 +108,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "College deleted successfully.",
-      });
-    });
-  },
-
-  searchColleges: (req, res) => {
-    const body = req.body;
-    searchColleges(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Colleges searched successfully.",
-        count: results.length,
-        data: results,
       });
     });
   },
