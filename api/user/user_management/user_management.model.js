@@ -15,7 +15,7 @@ module.exports = {
 
   getUserById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name,  permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
+      "SELECT users.id, users.username, user_info.givenname, user_info.middlename, user_info.surname,user_info.gender, user_info.course_id, user_info.year_level,  permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -129,9 +129,10 @@ module.exports = {
 
   updateUserInfo: (data, callBack) => {
     pool.query(
-      "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_id=?",
+      "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_info.user_id=?",
       [data.id],
       (error, result) => {
+        console.log(result)
         if (result.length == 1) {
           pool.query(
             "UPDATE user_info SET surname=?, givenname=?, middlename=?, course_id=?, year_level=?, gender=? WHERE user_id=?",
@@ -145,6 +146,7 @@ module.exports = {
               data.id,
             ],
             (error, results) => {
+              console.log(results)
               if (results.changedRows == 1) {
                 pool.query(
                   "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",

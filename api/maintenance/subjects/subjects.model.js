@@ -10,6 +10,15 @@ module.exports = {
     });
   },
 
+  getActiveSubjects: (callBack) => {
+    pool.query("SELECT * FROM subjects WHERE is_active = 1", (error, results) => {
+      if (error) {
+        callBack(error);
+      }
+      return callBack(null, results);
+    });
+  },
+
   getSubjectById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM subjects WHERE id = ?",

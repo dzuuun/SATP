@@ -13,6 +13,19 @@ module.exports = {
     );
   },
 
+  getAllActiveStudent: (callBack) => {
+    pool.query(
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code AS course, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.is_active = 0",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+
   getStudentById: (Id, callBack) => {
     pool.query(
       "SELECT users.id, users.username, user_info.givenname, user_info.surname, user_info.middlename, courses.id AS course_id, user_info.gender, user_info.year_level, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.id = ?",

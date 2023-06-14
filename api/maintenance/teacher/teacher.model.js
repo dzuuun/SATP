@@ -13,6 +13,18 @@ module.exports = {
     );
   },
 
+  getActiveTeachers: (callback) => {
+    pool.query(
+      "SELECT teachers.id, CONCAT(teachers.givenname, ' ', teachers.surname) AS name, departments.code AS department_code, teachers.is_part_time, teachers.is_active  FROM teachers INNER JOIN departments on teachers.department_id=departments.id WHERE teachers.is_active = 1",
+      (error, results) => {
+        if (error) {
+          callback(error);
+        }
+        return callback(null, results);
+      }
+    );
+  },
+
   getTeacherById: (Id, callBack) => {
     pool.query(
       "SELECT teachers.id, teachers.givenname, teachers.surname, teachers.middlename, departments.id AS department_id, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id WHERE teachers.id=?",

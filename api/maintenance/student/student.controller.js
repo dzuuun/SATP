@@ -1,5 +1,6 @@
 const {
   getAllStudent,
+  getAllActiveStudent,
   getStudentById,
   addStudent,
   updateStudentInfo,
@@ -10,6 +11,27 @@ const {
 module.exports = {
   getAllStudent: (req, res) => {
     getAllStudent((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "List of students retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getAllActiveStudent: (req, res) => {
+    getAllActiveStudent((err, results) => {
       if (err) {
         console.log(err);
         return;

@@ -1,5 +1,6 @@
 const {
   getTeachers,
+  getActiveTeachers,
   getTeacherById,
   addTeacher,
   updateTeacher,
@@ -9,6 +10,27 @@ const {
 module.exports = {
   getTeachers: (req, res) => {
     getTeachers((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Teachers information retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getActiveTeachers: (req, res) => {
+    getActiveTeachers((err, results) => {
       if (err) {
         console.log(err);
         return;

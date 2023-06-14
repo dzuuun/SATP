@@ -1,5 +1,6 @@
 const {
   getSubjects,
+  getActiveSubjects,
   getSubjectById,
   addSubject,
   updateSubject,
@@ -9,6 +10,27 @@ const {
 module.exports = {
   getSubjects: (req, res) => {
     getSubjects((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Subjects information retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getActiveSubjects: (req, res) => {
+    getActiveSubjects((err, results) => {
       if (err) {
         console.log(err);
         return;
