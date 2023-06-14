@@ -13,6 +13,18 @@ module.exports = {
     );
   },
 
+  getActiveDepartments: (callBack) => {
+    pool.query(
+      "SELECT departments.id, departments.code AS department_code, departments.name, colleges.code AS college_code, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id WHERE departments.is_active = 1 ORDER BY departments.code",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+  
   getDepartmentById: (Id, callBack) => {
     pool.query(
       "SELECT departments.id, departments.code, departments.name, colleges.id AS college_id, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id WHERE departments.id = ?",

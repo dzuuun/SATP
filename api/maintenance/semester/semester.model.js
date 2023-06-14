@@ -10,6 +10,15 @@ module.exports = {
     });
   },
 
+  getActiveSemesters: (callBack) => {
+    pool.query("SELECT * FROM semesters WHERE is_active = 1", (error, results) => {
+      if (error) {
+        callBack(error);
+      }
+      return callBack(null, results);
+    });
+  },
+
   getSemesterById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM semesters WHERE id = ?",

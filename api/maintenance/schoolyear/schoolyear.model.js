@@ -10,6 +10,15 @@ module.exports = {
     });
   },
 
+  getActiveSchoolYears: (callBack) => {
+    pool.query("SELECT * FROM school_years WHERE is_active=1", (error, results) => {
+      if (error) {
+        callBack(error);
+      }
+      return callBack(null, results);
+    });
+  },
+
   getSchoolYearById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM school_years WHERE id = ?",

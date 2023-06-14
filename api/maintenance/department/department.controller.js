@@ -1,5 +1,6 @@
 const {
   getDepartments,
+  getActiveDepartments,
   getDepartmentById,
   addDepartment,
   updateDepartment,
@@ -9,6 +10,27 @@ const {
 module.exports = {
   getDepartments: (req, res) => {
     getDepartments((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Departments information retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getActiveDepartments: (req, res) => {
+    getActiveDepartments((err, results) => {
       if (err) {
         console.log(err);
         return;

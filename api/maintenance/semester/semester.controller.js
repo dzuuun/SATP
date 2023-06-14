@@ -1,5 +1,6 @@
 const {
   getSemesters,
+  getActiveSemesters,
   getSemesterById,
   addSemester,
   updateSemester,
@@ -27,6 +28,28 @@ module.exports = {
       });
     });
   },
+
+  getActiveSemesters: (req, res) => {
+    getActiveSemesters((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Semesters information retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
 
   getSemesterById: (req, res) => {
     const id = req.params.id;

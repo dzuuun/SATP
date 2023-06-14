@@ -1,5 +1,6 @@
 const {
   getCourses,
+  getActiveCourses,
   getCourseById,
   addCourse,
   updateCourse,
@@ -9,6 +10,27 @@ const {
 module.exports = {
   getCourses: (req, res) => {
     getCourses((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Courses information retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getActiveCourses: (req, res) => {
+    getActiveCourses((err, results) => {
       if (err) {
         console.log(err);
         return;
