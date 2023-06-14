@@ -10,6 +10,16 @@ module.exports = {
     });
   },
 
+  getActiveRooms: (callBack) => {
+    pool.query("SELECT * FROM rooms WHERE is_active = 1", (error, results) => {
+      if (error) {
+        callBack(error);
+      }
+      return callBack(null, results);
+    });
+  },
+
+
   getRoomById: (Id, callBack) => {
     pool.query("SELECT * FROM rooms WHERE id = ?", [Id], (error, results) => {
       if (error) {
@@ -75,36 +85,36 @@ module.exports = {
     );
   },
 
-  deleteRoom: (data, callBack) => {
-    pool.query(
-      "SELECT name FROM rooms WHERE id=?",
-      [data.id],
-      (error, result) => {
-        pool.query(
-          "DELETE FROM rooms WHERE id=?",
-          [data.id],
-          (error, results) => {
-            if (results.affectedRows == 1) {
-              pool.query(
-                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Deleted Room: " + result[0].name],
-                (error, results) => {
-                  if (error) {
-                    console.log(error);
-                  }
-                }
-              );
-            }
-            if (error) {
-              callBack(error);
-            }
-            return callBack(null, results);
-          }
-        );
-        if (error) {
-          return callBack(error);
-        }
-      }
-    );
-  },
+  // deleteRoom: (data, callBack) => {
+  //   pool.query(
+  //     "SELECT name FROM rooms WHERE id=?",
+  //     [data.id],
+  //     (error, result) => {
+  //       pool.query(
+  //         "DELETE FROM rooms WHERE id=?",
+  //         [data.id],
+  //         (error, results) => {
+  //           if (results.affectedRows == 1) {
+  //             pool.query(
+  //               "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+  //               [data.user_id, "Deleted Room: " + result[0].name],
+  //               (error, results) => {
+  //                 if (error) {
+  //                   console.log(error);
+  //                 }
+  //               }
+  //             );
+  //           }
+  //           if (error) {
+  //             callBack(error);
+  //           }
+  //           return callBack(null, results);
+  //         }
+  //       );
+  //       if (error) {
+  //         return callBack(error);
+  //       }
+  //     }
+  //   );
+  // },
 };

@@ -1,5 +1,6 @@
 const {
   getAllCategory,
+  getAllActiveCategory,
   getCategoryById,
   addCategory,
   updateCategory,
@@ -9,6 +10,27 @@ const {
 module.exports = {
   getAllCategory: (req, res) => {
     getAllCategory((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Category Information retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getAllActiveCategory: (req, res) => {
+    getAllActiveCategory((err, results) => {
       if (err) {
         console.log(err);
         return;

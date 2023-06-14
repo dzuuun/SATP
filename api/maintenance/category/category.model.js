@@ -10,6 +10,18 @@ module.exports = {
     });
   },
 
+  getAllActiveCategory: (callBack) => {
+    pool.query(
+      "SELECT * FROM categories WHERE is_active = 1",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
   getCategoryById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM categories WHERE id=?",
