@@ -4,6 +4,7 @@ let data = $("#table").DataTable({
   ajax: {
     type: "GET",
     url: `${baseURL}/api/course`,
+    cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [
@@ -29,7 +30,6 @@ let data = $("#table").DataTable({
         return `<td  class="text-center">
               <div class="text-nowrap">
                 <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
-                <button class='btn bi fs-5 bi-trash' onclick="deleteRow(${row.id})")' title="Delete"></button>
               </div>
             </td> `;
       },
@@ -41,7 +41,7 @@ let data = $("#table").DataTable({
 const getDepartment = async () => {
   const departmentList = document.querySelector("#selectDepartment");
   const departmentList2 = document.querySelector("#selectDepartmentEdit");
-  const endpoint = `${baseURL}/api/department`,
+  const endpoint = `${baseURL}/api/department/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;

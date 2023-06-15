@@ -46,26 +46,11 @@ function showPassword() {
   }
 }
 
-function activeSwitch() {
-  var add = document.getElementById("isStudentActive").checked;
-  if (add == true) {
-    document.getElementById("activeLabel").innerHTML = "Yes";
-  } else {
-    document.getElementById("activeLabel").innerHTML = "No";
-  }
-  var edit = document.getElementById("editIsStudentActive").checked;
-  if (edit == true) {
-    document.getElementById("editActiveLabel").innerHTML = "Yes";
-  } else {
-    document.getElementById("editActiveLabel").innerHTML = "No";
-  }
-}
-
 // Get course from API
 const getCourse = async () => {
   const courseList = document.querySelector("#courseSelect");
   const courseList2 = document.querySelector("#editCourseSelect");
-  const endpoint = `${baseURL}/api/course`,
+  const endpoint = `${baseURL}/api/course/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     course = data.data;

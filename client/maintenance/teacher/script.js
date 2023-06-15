@@ -50,7 +50,7 @@ let data = $("#table").DataTable({
 const getDepartment = async () => {
   const departmentList = document.querySelector("#departmentSelect");
   const departmentList2 = document.querySelector("#editDepartmentSelect");
-  const endpoint = `${baseURL}/api/department`,
+  const endpoint = `${baseURL}/api/department/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     department = data.data;

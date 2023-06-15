@@ -4,6 +4,7 @@ let data = $("#table").DataTable({
   ajax: {
     type: "GET",
     url: `${baseURL}/api/semester`,
+    cache: true, 
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [
@@ -37,7 +38,6 @@ let data = $("#table").DataTable({
         return `<td  class="text-center">
               <div class="text-nowrap">
                 <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
-                <button class='btn bi fs-5 bi-trash' onclick="deleteRow(${row.id})")' title="Delete"></button>
               </div>
             </td> `;
       },
