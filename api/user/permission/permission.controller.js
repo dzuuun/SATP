@@ -1,5 +1,6 @@
 const {
   getPermissions,
+  getActivePermissions,
   getPermissionById,
   addPermission,
   updatePermission,
@@ -10,6 +11,27 @@ const {
 module.exports = {
   getPermissions: (req, res) => {
     getPermissions((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Permissions information retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getActivePermissions: (req, res) => {
+    getActivePermissions((err, results) => {
       if (err) {
         console.log(err);
         return;

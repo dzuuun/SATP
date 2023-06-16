@@ -3,7 +3,19 @@ const pool = require("../../../db/db");
 module.exports = {
   getAllAdmin: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_admin_rater = 1",
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, permissions.name AS permission, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE users.is_admin_rater = 1",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+  getAllActiveAdmin: (callBack) => {
+    pool.query(
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, permissions.name AS permission, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE users.is_admin_rater = 1 AND users.is_active = 1",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -15,7 +27,7 @@ module.exports = {
 
   getAdminById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_admin_rater = 1 AND users.id=?",
+      "SELECT users.id, users.username, user_info.givenname, user_info.surname, user_info.middlename, user_info.gender, users.permission_id, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE users.is_admin_rater = 1 AND users.id=?",
       [Id],
       (error, results) => {
         if (error) {
@@ -48,14 +60,12 @@ module.exports = {
                 callBack(error);
               }
               pool.query(
-                "INSERT INTO user_info (user_id, surname, givenname, middlename, course_id, year_level, gender) VALUES (?,?,?,?,?,?,?)",
+                "INSERT INTO user_info (user_id, surname, givenname, middlename, gender) VALUES (?,?,?,?,?)",
                 [
                   results.insertId,
                   data.surname,
                   data.givenname,
                   data.middlename,
-                  data.course_id,
-                  data.year_level,
                   data.gender,
                 ],
                 (error, results) => {
@@ -69,7 +79,8 @@ module.exports = {
                     }
                   );
                   if (error) {
-                    callBack(error);
+                    // callBack(error);
+                    console.log(error);
                   }
                 }
               );
@@ -128,31 +139,42 @@ module.exports = {
     );
   },
 
-  updateAdminUsername: (data, callBack) => {
+  updateAdminActiveStatus: (data, callBack) => {
     pool.query(
-      "UPDATE users SET username=? WHERE id=?",
-      [data.username, data.id],
-      (error, results) => {
-        if (results.changedRows == 1) {
+      "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_id=?",
+      [data.id],
+      (error, result) => {
+        if (result.length == 1) {
           pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated Admin's username: " + data.username],
+            "UPDATE users SET is_active=? WHERE id=?",
+            [data.is_active, data.id],
             (error, results) => {
-              if (error) {
-                console.log(error);
+              if (results.changedRows == 1) {
+                pool.query(
+                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                  [
+                    data.user_id,
+                    "Updated Admin's active status: " + result[0].username,
+                  ],
+                  (error, results) => {
+                    if (error) {
+                      console.log(error);
+                    }
+                  }
+                );
+                if (error) {
+                  callBack(error);
+                }
               }
+              return callBack(null, results);
             }
           );
+        } else {
+          return callBack(null, result);
         }
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
       }
     );
   },
-
-  // update password
 
   deleteAdmin: (data, callBack) => {
     pool.query(

@@ -1,16 +1,38 @@
 const { genSaltSync } = require("bcrypt");
 const {
   getAllAdmin,
+  getAllActiveAdmin,
   getAdminById,
   addAdmin,
   updateAdminInfo,
-  updateAdminUsername,
+  updateAdminActiveStatus,
   deleteAdmin,
 } = require("./admin.model");
 
 module.exports = {
   getAllAdmin: (req, res) => {
     getAllAdmin((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "List of admins retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getAllActiveAdmin: (req, res) => {
+    getAllActiveAdmin((err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -95,9 +117,9 @@ module.exports = {
     });
   },
 
-  updateAdminUsername: (req, res) => {
+  updateAdminActiveStatus: (req, res) => {
     const body = req.body;
-    updateAdminUsername(body, (err, results) => {
+    updateAdminActiveStatus(body, (err, results) => {
       if (err) {
         console.log(err);
         return false;
@@ -110,7 +132,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Admin's username updated successfully.",
+        message: "Student's status updated successfully.",
       });
     });
   },

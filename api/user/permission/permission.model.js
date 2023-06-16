@@ -10,6 +10,16 @@ module.exports = {
     });
   },
 
+  getActivePermissions: (callBack) => {
+    pool.query("SELECT * FROM permissions WHERE is_active = 1", (error, results) => {
+      if (error) {
+        callBack(error);
+      }
+      return callBack(null, results);
+    });
+  },
+
+
   getPermissionById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM permissions WHERE id = ?",
