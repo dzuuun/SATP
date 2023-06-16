@@ -1,163 +1,49 @@
-const table1 = document.querySelector("#table1");
-const table2 = document.querySelector("#table2");
-const table3 = document.querySelector("#table3");
-const table4 = document.querySelector("#table4");
-const table5 = document.querySelector("#table5");
-
 const baseURL = "http://localhost:3000";
 
-// get items from API
-const getActiveItems = async () => {
-  const endpoint = `${baseURL}/api/item`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  if (data.success == 0) {
-    const banner = document.querySelector("#banner");
-    banner.innerHTML = "<p>No record found.</p>";
-  } else {
-    // divide array by category
-    const result = rows.reduce((result, item) => {
-      (result[item.category] = result[item.category] || []).push(item);
-      return result;
-    }, {});
-
-    initializeTable();
-
-    // insert to tables by category
-    result.TEACHER.forEach((row) => {
-      table1.innerHTML += `<tr>
-      <td class="text-center fw-medium">${row.number}</td>
-      <td class="fw-medium" >${row.question}</td>
-        <td class="text-center fw-medium">${
+let data = $("#table").DataTable({
+  ajax: {
+    type: "GET",
+    url: `${baseURL}/api/item`,
+    cache: true,
+  },
+  ordering: false,
+  paging: false,
+  columnDefs: [{ className: "dt-center", targets: "" }],
+  columns: [
+    { width: "5%", data: "number" },
+    { data: "category" },
+    { data: "question" },
+    {
+      width: "5%",
+      data: "null",
+      render: function (data, type, row) {
+        return `<td class="text-center fw-medium">${
           row.is_active
             ? "<span>Yes</span>"
             : '<span style="color: red">No</span>'
-        }</td>
-        <td class="text-center">
-          <div class="dropdown">
-            <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
-              <ul class="dropdown-menu">
-                <li><a class="dropdown-item" onclick="editFormCall(${
-                  row.id
-                })">Edit</a></li>
-                <li><a class="delete dropdown-item" onclick=deleteRow(${
-                  row.id
-                })>Delete</a></li>
-              </ul>
-          </div>
-        </td> 
-          </tr>`;
-    });
-
-    result["TEACHING PROCEDURES"].forEach((row) => {
-      table2.innerHTML += `<tr>
-      <td class="text-center fw-medium">${row.number}</td>
-      <td class="fw-medium" >${row.question}</td>
-        <td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }</td>
-        <td class="text-center">
-        <div class="dropdown">
-        <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" onclick="editFormCall(${
-              row.id
-            })">Edit</a></li>
-            <li><a class="delete dropdown-item" onclick=deleteRow(${
-              row.id
-            })>Delete</a></li>
-          </ul>
-      </div>
-        </td> 
-          </tr>`;
-    });
-
-    result.STUDENTS.forEach((row) => {
-      table3.innerHTML += `<tr>
-      <td class="text-center fw-medium">${row.number}</td>
-      <td class="fw-medium" >${row.question}</td>
-        <td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }</td>
-        <td class="text-center">
-        <div class="dropdown">
-        <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" onclick="editFormCall(${
-              row.id
-            })">Edit</a></li>
-            <li><a class="delete dropdown-item" onclick=deleteRow(${
-              row.id
-            })>Delete</a></li>
-          </ul>
-      </div>
-        </td> 
-          </tr>`;
-    });
-
-    result.METHODOLOGY.forEach((row) => {
-      table4.innerHTML += `<tr>
-      <td class="text-center fw-medium">${row.number}</td>
-      <td class="fw-medium" >${row.question}</td>
-        <td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }</td>
-        <td class="text-center">
-        <div class="dropdown">
-        <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" onclick="editFormCall(${
-              row.id
-            })">Edit</a></li>
-            <li><a class="delete dropdown-item" onclick=deleteRow(${
-              row.id
-            })>Delete</a></li>
-          </ul>
-      </div>
-        </td> 
-          </tr>`;
-    });
-
-    result["GENERAL OBSERVATION"].forEach((row) => {
-      table5.innerHTML += `<tr>
-      <td class="text-center fw-medium">${row.number}</td>
-      <td class="fw-medium" >${row.question}</td>
-        <td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }</td>
-        <td class="text-center">
-        <div class="dropdown">
-        <button class='btn bi bi-three-dots-vertical border-0' data-bs-toggle="dropdown" )'></button>
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" onclick="editFormCall(${
-              row.id
-            })">Edit</a></li>
-            <li><a class="delete dropdown-item" onclick=deleteRow(${
-              row.id
-            })>Delete</a></li>
-          </ul>
-      </div>
-        </td> 
-          </tr>`;
-    });
-  }
-};
+        }
+                </td>`;
+      },
+    },
+    {
+      width: "5%",
+      data: null,
+      render: function (data, type, row) {
+        return `<td  class="text-center">
+              <div class="text-nowrap">
+                <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
+              </div>
+            </td> `;
+      },
+    },
+  ],
+});
 
 // Get category from API
 const getCategory = async () => {
   const categoryList = document.querySelector("#categorySelect");
   const categoryList2 = document.querySelector("#categorySelectEdit");
-  const endpoint = `${baseURL}/api/category`,
+  const endpoint = `${baseURL}/api/category/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     category = data.data;
@@ -168,47 +54,7 @@ const getCategory = async () => {
   });
 };
 
-// NEED UPDATE
-// search table
-function searchTable() {
-  // Declare variables
-  var input, filter, table, tr, td, i, txtValue;
-  input = document.getElementById("search");
-  filter = input.value.toUpperCase();
-  table = document.getElementById("dataTable");
-  tr = table.getElementsByTagName("tr");
-
-  // Loop through all table rows, and hide those who don't match the search query
-  //   for (i = 0; i < tr.length; i++) {
-  //     td = tr[i].getElementsByTagName("td")[1];
-  //     if (td) {
-  //       txtValue = td.textContent || td.innerText;
-  //       if (txtValue.toUpperCase().indexOf(filter) > -1) {
-  //         tr[i].style.display = "";
-  //       } else {
-  //         tr[i].style.display = "none";
-  //       }
-  //     }
-  //   }
-  // }
-
-  for (var i = 0; i < tr.length; i++) {
-    var all_columns = tr[i].getElementsByTagName("td");
-    for (j = 0; j < all_columns.length; j++) {
-      if (all_columns[j]) {
-        var column_value =
-          all_columns[j].textContent || all_columns[j].innerText;
-        column_value = column_value.toUpperCase();
-        if (column_value.toUpperCase().indexOf(filter) > -1) {
-          tr[i].style.display = ""; // show
-          break;
-        } else {
-          tr[i].style.display = "none"; // hide
-        }
-      }
-    }
-  }
-}
+getCategory();
 
 // post item to API
 const formAddItem = document.querySelector("#newItemForm");
@@ -225,25 +71,25 @@ formAddItem.addEventListener("submit", (event) => {
 
   formData.append("user_id", "1"); // get user id from cookie (mock data)
   const data = Object.fromEntries(formData);
-
-  fetch(`${baseURL}/api/item/add`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#addNewModal").modal("hide");
-        initializeTable();
-        getActiveItems();
-      }
-    });
+  if (confirm("This action cannot be undone.") == true) {
+    fetch(`${baseURL}/api/item/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success == 0) {
+          setErrorMessage(response.message);
+        } else {
+          setSuccessMessage(response.message);
+          $("#addNewModal").modal("hide");
+          $("#table").DataTable().ajax.reload();
+        }
+      });
+  }
 });
 
 // clear modal form upon closing
@@ -340,25 +186,25 @@ formEditItem.addEventListener("submit", (event) => {
   formData.append("id", rowIdToUpdate);
   formData.append("user_id", "1"); // get user id from localStorage (mock data)
   const data = Object.fromEntries(formData);
-
-  fetch(`${baseURL}/api/item/update`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#editModal").modal("hide");
-        initializeTable();
-        getActiveItems();
-      }
-    });
+  if (confirm("This action cannot be undone.") == true) {
+    fetch(`${baseURL}/api/item/update`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success == 0) {
+          setErrorMessage(response.message);
+        } else {
+          setSuccessMessage(response.message);
+          $("#editModal").modal("hide");
+          $("#table").DataTable().ajax.reload();
+        }
+      });
+  }
 });
 
 // delete function
@@ -370,6 +216,7 @@ function deleteRow(id) {
 
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: 1 };
+  if (confirm("This action cannot be undone.") == true) {
   await fetch(`${baseURL}/api/item/delete`, {
     method: "DELETE",
     headers: {
@@ -384,13 +231,11 @@ async function confirmDelete() {
       } else {
         setSuccessMessage(response.message);
         $("#deleteModal").modal("hide");
-        initializeTable();
-        getActiveItems();
+        $("#table").DataTable().ajax.reload();
       }
     });
-  console.log(data);
+  }
 }
 
 // initialize datas on page load
-getActiveItems();
-getCategory();
+
