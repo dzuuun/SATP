@@ -4,6 +4,7 @@ const table3 = document.querySelector("#table3");
 const table4 = document.querySelector("#table4");
 const table5 = document.querySelector("#table5");
 
+
 const getdata = async () => {
   const endpoint = "http://localhost:3000/api/item/active/rate",
     response = await fetch(endpoint),
@@ -28,13 +29,13 @@ const getdata = async () => {
       <td class="text-center">${row.number}</td>
         <td class="text-wrap fs-6">${row.question}</td>
       <td>
-        <div class="col-md text-nowrap fs-5">
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-        </div>    
+      <div class="col-md text-nowrap fs-4">
+      <i value="1" class="bi bi-star"></i>
+      <i value="2" class="bi bi-star"></i>
+      <i value="3" class="bi bi-star"></i>
+      <i value="4" class="bi bi-star"></i>
+      <i value="5" class="bi bi-star"></i>
+    </div>     
       </td> 
     </tr>`;
   });
@@ -45,13 +46,13 @@ const getdata = async () => {
       <td class="text-center">${row.number}</td>
         <td class="text-wrap fs-6">${row.question}</td>
       <td>
-        <div class="col-md text-nowrap fs-5">
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-        </div>    
+      <div class="col-md text-nowrap fs-4">
+      <i value="1" class="bi bi-star"></i>
+      <i value="2" class="bi bi-star"></i>
+      <i value="3" class="bi bi-star"></i>
+      <i value="4" class="bi bi-star"></i>
+      <i value="5" class="bi bi-star"></i>
+    </div>   
       </td> 
     </tr>`;
   });
@@ -62,13 +63,13 @@ const getdata = async () => {
       <td class="text-center">${row.number}</td>
         <td class="text-wrap fs-6">${row.question}</td>
       <td>
-        <div class="col-md text-nowrap fs-5">
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-        </div>    
+      <div class="col-md text-nowrap fs-4">
+      <i value="1" class="bi bi-star"></i>
+      <i value="2" class="bi bi-star"></i>
+      <i value="3" class="bi bi-star"></i>
+      <i value="4" class="bi bi-star"></i>
+      <i value="5" class="bi bi-star"></i>
+    </div>     
       </td> 
     </tr>`;
   });
@@ -79,13 +80,13 @@ const getdata = async () => {
       <td class="text-center">${row.number}</td>
         <td class="text-wrap fs-6">${row.question}</td>
       <td>
-        <div class="col-md text-nowrap fs-5">
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-        </div>    
+      <div class="col-md text-nowrap fs-4">
+      <i value="1" class="bi bi-star"></i>
+      <i value="2" class="bi bi-star"></i>
+      <i value="3" class="bi bi-star"></i>
+      <i value="4" class="bi bi-star"></i>
+      <i value="5" class="bi bi-star"></i>
+    </div>   
       </td> 
     </tr>`;
   });
@@ -96,13 +97,13 @@ const getdata = async () => {
       <td class="text-center">${row.number}</td>
         <td class="text-wrap fs-6">${row.question}</td>
       <td>
-        <div class="col-md text-nowrap fs-5">
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-          <i class="bi bi-star"></i>
-        </div>    
+      <div class="col-md text-nowrap fs-4">
+      <i value="1" class="bi bi-star"></i>
+      <i value="2" class="bi bi-star"></i>
+      <i value="3" class="bi bi-star"></i>
+      <i value="4" class="bi bi-star"></i>
+      <i value="5" class="bi bi-star"></i>
+    </div>     
       </td> 
     </tr>`;
   });
