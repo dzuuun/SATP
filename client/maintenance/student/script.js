@@ -28,8 +28,14 @@ let data = $("#table").DataTable({
       data: null,
       render: function (data, type, row) {
         return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editStudentInfo(${row.id})")' title="Edit"></button>
+              <div class="text-nowrap">              
+                <button class='btn bi fs-5 bi-pencil' dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Edit"></button>
+                <div class="dropdown">
+                  <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" onclick="editStudentInfo(${row.id})")'>Information</a></li>
+                    <li><a class="dropdown-item" onclick="editStudentStatus(${row.id})")'>Status</a></li>
+                  </ul>
+                </div>
               </div>
             </td> `;
       },
@@ -59,6 +65,7 @@ const getCourse = async () => {
     courseList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     courseList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
+  $('.form-control').selectpicker('refresh');
 };
 
 getCourse();
@@ -116,6 +123,7 @@ formAddStudent.addEventListener("submit", (event) => {
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
+  $('.form-control').selectpicker('refresh');
 });
 
 function setSuccessMessage(message) {
@@ -177,26 +185,14 @@ async function editStudentInfo(id) {
       document.getElementById("editYearLevel").value = data.year_level;
 
       rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("editIsStudentActive").checked = false;
-      } else {
-        document.getElementById("editIsStudentActive").checked = true;
-      }
       $("#editStudentInfoModal").modal("show");
+      $('.form-control').selectpicker('refresh');
     });
 }
 const formEditStudent = document.querySelector("#editStudentInfoForm");
 formEditStudent.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(formEditStudent);
-
-  const isActive = document.getElementById("editIsStudentActive").checked;
-  let status;
-  if (isActive == false) {
-    status = { is_active: 0, id: rowIdToUpdate, user_id: 1 };
-  } else {
-    status = { is_active: 1, id: rowIdToUpdate, user_id: 1 };
-  }
 
   formData.append("id", rowIdToUpdate);
   formData.append("user_id", "1"); // get user id from localStorage (mock data)
@@ -219,6 +215,40 @@ formEditStudent.addEventListener("submit", (event) => {
           $("#table").DataTable().ajax.reload();
         }
       });
+  }
+});
+
+// update student status on the API
+var rowIdToUpdate;
+async function editStudentStatus(id) {
+  await fetch(`${baseURL}/api/student/` + id, {
+    method: "GET",
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      data = response.data;
+      rowIdToUpdate = data.id;
+      if (data.is_active == 0) {
+        document.getElementById("editIsStudentStatusActive").checked = false;
+      } else {
+        document.getElementById("editIsStudentStatusActive").checked = true;
+      }
+      $("#editStudentStatusModal").modal("show");
+    });
+}
+const formEditStudentStatus = document.querySelector("#editStudentStatusForm");
+formEditStudentStatus.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const isActive = document.getElementById("editIsStudentStatusActive").checked;
+  let status;
+  if (isActive == false) {
+    status = { is_active: 0, id: rowIdToUpdate, user_id: 1 };
+  } else {
+    status = { is_active: 1, id: rowIdToUpdate, user_id: 1 };
+  }
+
+  if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/student/update/status`, {
       method: "PUT",
       headers: {
@@ -232,7 +262,7 @@ formEditStudent.addEventListener("submit", (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#editStudentInfoModal").modal("hide");
+          $("#editStudentStatusModal").modal("hide");
           $("#table").DataTable().ajax.reload();
         }
       });

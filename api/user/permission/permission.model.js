@@ -11,7 +11,7 @@ module.exports = {
   },
 
   getActivePermissions: (callBack) => {
-    pool.query("SELECT * FROM permissions WHERE is_active = 1", (error, results) => {
+    pool.query("SELECT * FROM permissions WHERE is_active = 1 ORDER BY permissions.name", (error, results) => {
       if (error) {
         callBack(error);
       }

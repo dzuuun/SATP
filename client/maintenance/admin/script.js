@@ -28,10 +28,16 @@ let data = $("#table").DataTable({
       data: null,
       render: function (data, type, row) {
         return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editAdminInfo(${row.id})")' title="Edit"></button>
-              </div>
-            </td> `;
+        <div class="text-nowrap">              
+          <button class='btn bi fs-5 bi-pencil' dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Edit"></button>
+          <div class="dropdown">
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" onclick="editAdminInfo(${row.id})")'>Information</a></li>
+              <li><a class="dropdown-item"  onclick="editAdminStatus(${row.id})")'>Status</a></li>
+            </ul>
+          </div>
+        </div>
+      </td> `;
       },
     },
   ],
@@ -49,16 +55,16 @@ function showPassword() {
 // Get permission from API
 const getPermission = async () => {
   const permissionList = document.querySelector("#permissionSelect");
-  const permissionList2 = document.querySelector("#editPermissionSelect");
+
   const endpoint = `${baseURL}/api/permission/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
-    permission = data.data;
+    result = data.data;
 
-  permission.forEach((row) => {
+  result.forEach((row) => {
     permissionList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-    permissionList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
+  $(".form-control").selectpicker("refresh");
 };
 
 getPermission();
@@ -115,6 +121,7 @@ formAddAdmin.addEventListener("submit", (event) => {
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
+  $(".form-control").selectpicker("refresh");
 });
 
 function setSuccessMessage(message) {
@@ -159,7 +166,7 @@ function setErrorMessage(message) {
   }, 2000);
 }
 
-// update data on the API
+// update information on the API
 var rowIdToUpdate;
 async function editAdminInfo(id) {
   await fetch(`${baseURL}/api/admin/` + id, {
@@ -168,19 +175,12 @@ async function editAdminInfo(id) {
     .then((res) => res.json())
     .then((response) => {
       data = response.data;
-      console.log(data)
       document.getElementById("editGivenName").value = data.givenname;
       document.getElementById("editMiddleName").value = data.middlename;
       document.getElementById("editLastName").value = data.surname;
       document.getElementById("editGenderSelect").value = data.gender;
-      document.getElementById("editPermissionSelect").value = data.permission_id;
 
       rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("editIsAdminActive").checked = false;
-      } else {
-        document.getElementById("editIsAdminActive").checked = true;
-      }
       $("#editAdminInfoModal").modal("show");
     });
 }
@@ -189,17 +189,10 @@ formEditAdmin.addEventListener("submit", (event) => {
   event.preventDefault();
   const formData = new FormData(formEditAdmin);
 
-  const isActive = document.getElementById("editIsAdminActive").checked;
-  let status;
-  if (isActive == false) {
-    status = { is_active: 0, id: rowIdToUpdate, user_id: 1 };
-  } else {
-    status = { is_active: 1, id: rowIdToUpdate, user_id: 1 };
-  }
-
   formData.append("id", rowIdToUpdate);
   formData.append("user_id", "1"); // get user id from localStorage (mock data)
   const data = Object.fromEntries(formData);
+  console.log(data);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/admin/update/info`, {
       method: "PUT",
@@ -214,26 +207,61 @@ formEditAdmin.addEventListener("submit", (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          fetch(`${baseURL}/api/admin/update/status`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(status),
-          })
-            .then((res) => res.json())
-            .then((response) => {
-              if (response.success == 0) {
-                setErrorMessage(response.message);
-              } else {
-                setSuccessMessage(response.message);
-                $("#editAdminInfoModal").modal("hide");
-                $("#table").DataTable().ajax.reload();
-              }
-            });
+          $("#editAdminInfoModal").modal("hide");
+          $("#table").DataTable().ajax.reload();
         }
       });
-   
+  }
+});
+
+// update status on the API
+var rowIdToUpdate;
+async function editAdminStatus(id) {
+  await fetch(`${baseURL}/api/admin/` + id, {
+    method: "GET",
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      data = response.data;
+      rowIdToUpdate = data.id;
+      if (data.is_active == 0) {
+        document.getElementById("editIsAdminStatusActive").checked = false;
+      } else {
+        document.getElementById("editIsAdminStatusActive").checked = true;
+      }
+      $("#editAdminStatusModal").modal("show");
+    });
+}
+const formEditAdminStatus = document.querySelector("#editAdminStatusForm");
+formEditAdminStatus.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const isActive = document.getElementById("editIsAdminStatusActive").checked;
+  let status;
+  if (isActive == false) {
+    status = { is_active: 0, id: rowIdToUpdate, user_id: 1 };
+  } else {
+    status = { is_active: 1, id: rowIdToUpdate, user_id: 1 };
+  }
+
+  if (confirm("This action cannot be undone.") == true) {
+    fetch(`${baseURL}/api/admin/update/status`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(status),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success == 0) {
+          setErrorMessage(response.message);
+        } else {
+          setSuccessMessage(response.message);
+          $("#editAdminStatusModal").modal("hide");
+          $("#table").DataTable().ajax.reload();
+        }
+      });
   }
 });
 

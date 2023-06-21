@@ -101,13 +101,11 @@ module.exports = {
       (error, result) => {
         if (result.length == 1) {
           pool.query(
-            "UPDATE user_info SET surname=?, givenname=?, middlename=?, course_id=?, year_level=?, gender=? WHERE user_id=?",
+            "UPDATE user_info SET surname=?, givenname=?, middlename=?, gender=? WHERE user_id=?",
             [
               data.surname,
               data.givenname,
               data.middlename,
-              data.course_id,
-              data.year_level,
               data.gender,
               data.id,
             ],
