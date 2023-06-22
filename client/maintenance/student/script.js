@@ -65,7 +65,7 @@ const getCourse = async () => {
     courseList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     courseList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
-  $('.form-control').selectpicker('refresh');
+  $(".form-control").selectpicker("refresh");
 };
 
 getCourse();
@@ -123,7 +123,7 @@ formAddStudent.addEventListener("submit", (event) => {
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
-  $('.form-control').selectpicker('refresh');
+  $(".form-control").selectpicker("refresh");
 });
 
 function setSuccessMessage(message) {
@@ -186,7 +186,7 @@ async function editStudentInfo(id) {
 
       rowIdToUpdate = data.id;
       $("#editStudentInfoModal").modal("show");
-      $('.form-control').selectpicker('refresh');
+      $(".form-control").selectpicker("refresh");
     });
 }
 const formEditStudent = document.querySelector("#editStudentInfoForm");

@@ -15,7 +15,7 @@ module.exports = {
 
   getActiveItems: (callBack) => {
     pool.query(
-      "SELECT items.id, items.number, categories.name AS category, items.question, items.is_active FROM items INNER JOIN categories ON items.category_id = categories.id WHERE items.is_active = 1 ORDER BY categories.id, items.number",
+      "SELECT items.id, items.number, categories.name AS category, items.question, items.is_active FROM items INNER JOIN categories ON items.category_id = categories.id WHERE items.is_active = 1 AND categories.is_active = 1 ORDER BY categories.id, items.number",
       (error, results) => {
         if (error) {
           callBack(error);

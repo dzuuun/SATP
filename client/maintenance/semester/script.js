@@ -4,7 +4,7 @@ let data = $("#table").DataTable({
   ajax: {
     type: "GET",
     url: `${baseURL}/api/semester`,
-    cache: true, 
+    cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [

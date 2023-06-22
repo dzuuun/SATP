@@ -50,6 +50,7 @@ const getDepartment = async () => {
     departmentList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     departmentList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
+  $('.form-control').selectpicker('refresh');
 };
 
 getDepartment(); // Initialize department dropdown
@@ -93,6 +94,7 @@ formAddCourse.addEventListener("submit", (event) => {
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
+  $('.form-control').selectpicker('refresh');
 });
 
 function setSuccessMessage(message) {
@@ -156,6 +158,7 @@ async function editFormCall(id) {
         document.getElementById("isCourseActiveEdit").checked = true;
       }
       $("#editModal").modal("show");
+      $('.form-control').selectpicker('refresh');
     });
 }
 const formEditCourse = document.querySelector("#editCourseForm");

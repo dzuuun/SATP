@@ -10,8 +10,8 @@ let data = $("#table").DataTable({
   paging: false,
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [
-    { width: "5%", data: "number" },
     { data: "category" },
+    { width: "5%", data: "number" },
     { data: "question" },
     {
       width: "5%",
@@ -52,6 +52,7 @@ const getCategory = async () => {
     categoryList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     categoryList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
+  $('.form-control').selectpicker('refresh');
 };
 
 getCategory();
@@ -95,6 +96,7 @@ formAddItem.addEventListener("submit", (event) => {
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
+  $('.form-control').selectpicker('refresh');
 });
 
 function setSuccessMessage(message) {
@@ -168,6 +170,7 @@ async function editFormCall(id) {
         document.getElementById("isQuestionActiveEdit").checked = true;
       }
       $("#editModal").modal("show");
+      $('.form-control').selectpicker('refresh');
     });
 }
 const formEditItem = document.querySelector("#editItemForm");
