@@ -62,8 +62,8 @@ const getCourse = async () => {
     course = data.data;
 
   course.forEach((row) => {
-    courseList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-    courseList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
+    courseList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
+    courseList2.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
   });
   $(".form-control").selectpicker("refresh");
 };

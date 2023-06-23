@@ -56,8 +56,8 @@ const getDepartment = async () => {
     department = data.data;
 
   department.forEach((row) => {
-    departmentList.innerHTML += `<option value="${row.id}">${row.department_code}</option>`;
-    departmentList2.innerHTML += `<option value="${row.id}">${row.department_code}</option>`;
+    departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.department_code}</option>`;
+    departmentList2.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.department_code}</option>`;
   });
   $(".form-control").selectpicker("refresh");
 };
