@@ -2,15 +2,40 @@ const pool = require("../../../db/db");
 
 module.exports = {
   getTransactions: (callBack) => {
-    pool.query("SELECT * FROM transactions", (error, results) => {
-      if (error) {
-        callBack(error);
+    pool.query(
+      "   SELECT transactions.id, transactions.user_id, transactions.status, users.username,  CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teachers_name  FROM transactions INNER JOIN users ON transactions.user_id = users.id INNER JOIN user_info ON users.id=user_info.user_id INNER JOIN subjects ON transactions.subject_id=subjects.id INNER JOIN teachers ON transactions.teacher_id=teachers.id",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
       }
-      for (var i = 0; i < results.length; i++) {
-        console.log(results[i].id);
+    );
+  },
+  getRatingsByTransactionId: (Id, callBack) => {
+    pool.query(
+      "SELECT transactions.id, items.number, categories.name, items.question, trans_item.rate FROM trans_item INNER JOIN transactions ON trans_item.transaction_id=transactions.id INNER JOIN items ON trans_item.item_id=items.id INNER JOIN categories ON items.category_id=categories.id WHERE trans_item.transaction_id=?",
+      [Id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
       }
-      return callBack(null, results);
-    });
+    );
+  },
+
+  getCommentByTransactionId: (Id, callBack) => {
+    pool.query(
+      "SELECT comment FROM transactions WHERE id=?",
+      [Id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
   },
 
   addTransaction: (data, callBack) => {
@@ -21,7 +46,7 @@ module.exports = {
         data.semester_id,
         data.subject_id,
         data.teacher_id,
-        data.user_id,
+        data.id,
       ],
       (error, results) => {
         if (results.length === 0) {
@@ -32,18 +57,18 @@ module.exports = {
               data.semester_id,
               data.subject_id,
               data.teacher_id,
-              data.user_id,
+              data.id,
             ],
             (error, result) => {
-                pool.query(
-                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                  [data.user_id, "Added Transaction: "],
-                  (error, results) => {
-                    if (error) {
-                      console.log(error);
-                    }
+              pool.query(
+                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                [data.user_id, "Added Transaction: "],
+                (error, results) => {
+                  if (error) {
+                    console.log(error);
                   }
-                );
+                }
+              );
               if (error) {
                 callBack(error);
               }
@@ -57,5 +82,3 @@ module.exports = {
     );
   },
 };
-
-

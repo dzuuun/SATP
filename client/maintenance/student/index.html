@@ -111,7 +111,7 @@
 
     <!-- Add Modal -->
     <div class="modal fade" data-bs-backdrop="static" id="addNewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header border-0">
                     <h1 class="modal-title fs-5">Add New Student</h1>
@@ -120,12 +120,15 @@
                 <form class="form" id="newStudentForm">
                     <div class="modal-body">
                         <div class="container-fluid">
-                            <div class="row">
+                            <div class="row mb-3">
+                                <h4 class="mb-3">User Credentials</h4>
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Username</label>
                                     <input class="form-control" id="addUsername" name="username" placeholder="ID Number"
                                         required />
                                 </div>
+                            </div>
+                            <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Password</label>
                                     <input class="form-control" id="addPassword" name="password" type="text" required />
@@ -133,20 +136,27 @@
                                     <label class="form-label mt-1">Show Password</label>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-md mb-3">
+                            <div class="row mb-3">
+                                <h4 class="mb-3">Personal Information</h4>
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Given Name</label>
                                     <input class="form-control" id="addGivenName" name="givenname" required />
                                 </div>
-                                <div class="col-md mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Middle Name</label>
                                     <input class="form-control" id="addMiddleName" name="middlename" />
                                 </div>
-                                <div class="col-md mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Last Name</label>
                                     <input class="form-control" id="addLastName" name="surname" required />
                                 </div>
-                                <div class="col-md-2 mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Gender</label>
                                     <select id="genderSelect" name="gender" class="form-control "
                                         aria-label="Default select example" required>
@@ -164,6 +174,8 @@
                                         <option disabled selected value="">Select</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Year Level</label>
                                     <select id="yearLevel" name="year_level" class="form-control "
@@ -214,7 +226,7 @@
 
     <!-- Edit Student Info Modal -->
     <div class="modal fade" data-bs-backdrop="static" id="editStudentInfoModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header border-0">
                     <h1 class="modal-title fs-5">Edit Student Information</h1>
@@ -223,20 +235,27 @@
                 <form class="form" id="editStudentInfoForm">
                     <div class="modal-body">
                         <div class="container-fluid">
-                            <div class="row">
-                                <div class="col-md mb-3">
+                            <div class="row mb-3">
+                                <h4 class="mb-3">Personal Information</h4>
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Given Name</label>
                                     <input class="form-control" id="editGivenName" name="givenname" required />
                                 </div>
-                                <div class="col-md mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Middle Name</label>
                                     <input class="form-control" id="editMiddleName" name="middlename" />
                                 </div>
-                                <div class="col-md mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Last Name</label>
                                     <input class="form-control" id="editLastName" name="surname" required />
                                 </div>
-                                <div class="col-md-2 mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Gender</label>
                                     <select id="editGenderSelect" name="gender" class="form-control "
                                         aria-label="Default select example" required>
@@ -254,6 +273,8 @@
                                         <option disabled selected value="">Select</option>
                                     </select>
                                 </div>
+                            </div>
+                            <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Year Level</label>
                                     <select id="editYearLevel" name="year_level" class="form-control "

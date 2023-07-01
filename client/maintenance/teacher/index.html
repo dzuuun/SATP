@@ -110,7 +110,7 @@
 
     <!-- Add Modal -->
     <div class="modal fade" data-bs-backdrop="static" id="addNewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header border-0">
                     <h1 class="modal-title fs-5">
@@ -121,20 +121,24 @@
                 <form class="form" id="newTeacherForm">
                     <div class="modal-body">
                         <div class="container-fluid">
-                            <div class="row">
-                                <div class="col-md mb-3">
+                            <div class="row mb-3">
+                                <h4 class="mb-3">Personal Information</h4>
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Given Name</label>
                                     <input class="form-control" id="addGivenName" name="givenname" required />
                                 </div>
-                                <div class="col-md mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Middle Name</label>
                                     <input class="form-control" id="addMiddleName" name="middlename" />
                                 </div>
-                                <div class="col-md mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Last Name</label>
                                     <input class="form-control" id="addLastName" name="surname" required />
                                 </div>
-
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md">
@@ -146,6 +150,7 @@
                                 </div>
                             </div>
                             <div class="row mb-3">
+                                <h4 class="mb-3">Image</h4>
                                 <div class="col-md">
                                     <button onclick="deleteImage()"> delete</button>
                                     <input class="input" type="file" accept="image/jpeg, image/png, image/jpg">
@@ -198,7 +203,7 @@
 
     <!-- Edit Teacher Info Modal -->
     <div class="modal fade" data-bs-backdrop="static" id="editTeacherInfoModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header border-0">
                     <h1 class="modal-title fs-5">Edit Teacher</h1>
@@ -207,20 +212,24 @@
                 <form class="form" id="editTeacherInfoForm">
                     <div class="modal-body">
                         <div class="container-fluid">
-                            <div class="row">
-                                <div class="col-md mb-3">
+                            <div class="row mb-3">
+                                <h4 class="mb-3">Personal Information</h4>
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Given Name</label>
                                     <input class="form-control" id="editGivenName" name="givenname" required />
                                 </div>
-                                <div class="col-md mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Middle Name</label>
                                     <input class="form-control" id="editMiddleName" name="middlename" />
                                 </div>
-                                <div class="col-md mb-3">
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
                                     <label class="form-label fw-bold">Last Name</label>
                                     <input class="form-control" id="editLastName" name="surname" required />
                                 </div>
-
                             </div>
                             <div class="row mb-3">
                                 <div class="col-md">

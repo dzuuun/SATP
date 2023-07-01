@@ -1,4 +1,9 @@
-const { getTransactions, addTransaction } = require("./srs.model");
+const {
+  getTransactions,
+  getRatingsByTransactionId,
+  getCommentByTransactionId,
+  addTransaction,
+} = require("./srs.model");
 
 module.exports = {
   getTransactions: (req, res) => {
@@ -21,7 +26,49 @@ module.exports = {
       });
     });
   },
-  
+
+  getRatingsByTransactionId: (req, res) => {
+    const id = req.params.id;
+    getRatingsByTransactionId(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Item retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
+  getCommentByTransactionId: (req, res) => {
+    const id = req.params.id;
+    getCommentByTransactionId(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Item retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
   addTransaction: (req, res) => {
     const body = req.body;
     addTransaction(body, (err, results) => {
@@ -45,5 +92,4 @@ module.exports = {
       });
     });
   },
-
 };

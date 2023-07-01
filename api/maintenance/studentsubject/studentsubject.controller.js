@@ -1,5 +1,7 @@
 const {
   getIncludedSubjectsByStudent,
+  getAllSubjectsByStudent,
+  getIncludedSubjectsByStudentById,
   showReason,
   // getExcludedSubjects,
   addStudentSubject,
@@ -11,6 +13,49 @@ module.exports = {
   getIncludedSubjectsByStudent: (req, res) => {
     const body = req.params;
     getIncludedSubjectsByStudent(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Student's subjects retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getIncludedSubjectsByStudentById: (req, res) => {
+    const id = req.params.id;
+    getIncludedSubjectsByStudentById(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Student's subjects information retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
+  getAllSubjectsByStudent: (req, res) => {
+    const body = req.params;
+    getAllSubjectsByStudent(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
