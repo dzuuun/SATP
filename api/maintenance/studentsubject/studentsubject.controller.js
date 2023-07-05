@@ -138,6 +138,7 @@ module.exports = {
         success: 1,
         message: "Student's subject added successfully.",
         data: results,
+        id: results.insertId,
       });
     });
   },
@@ -165,7 +166,7 @@ module.exports = {
   deactivateStudentSubject: (req, res) => {
     const body = req.body;
     deactivateStudentSubject(body, (err, results) => {
-      console.log(results)
+      console.log(results);
       if (err) {
         console.log(err);
         return false;

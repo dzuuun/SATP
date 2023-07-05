@@ -1,9 +1,10 @@
 const pool = require("../../../db/db");
 
 module.exports = {
-  getTransactions: (callBack) => {
+  getTransactions: (data, callBack) => {
     pool.query(
-      "   SELECT transactions.id, transactions.user_id, transactions.status, users.username,  CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teachers_name  FROM transactions INNER JOIN users ON transactions.user_id = users.id INNER JOIN user_info ON users.id=user_info.user_id INNER JOIN subjects ON transactions.subject_id=subjects.id INNER JOIN teachers ON transactions.teacher_id=teachers.id",
+      "SELECT transactions.id, transactions.user_id, school_years.name AS school_year, semesters.name AS semester, transactions.status, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teachers_name FROM transactions INNER JOIN users ON transactions.user_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON transactions.subject_id = subjects.id INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN school_years ON transactions.school_year_id=school_years.id INNER JOIN semesters ON transactions.semester_id=semesters.id WHERE transactions.school_year_id=? AND transactions.semester_id=?",
+      [data.school_year_id, data.semester_id],
       (error, results) => {
         if (error) {
           callBack(error);
@@ -62,7 +63,7 @@ module.exports = {
             (error, result) => {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Added Transaction: "],
+                [data.user_id, "Added Transaction No. " + result.insertId],
                 (error, results) => {
                   if (error) {
                     console.log(error);

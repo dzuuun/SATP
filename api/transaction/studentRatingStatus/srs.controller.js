@@ -7,7 +7,8 @@ const {
 
 module.exports = {
   getTransactions: (req, res) => {
-    getTransactions((err, results) => {
+    const body = req.params;
+    getTransactions(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
