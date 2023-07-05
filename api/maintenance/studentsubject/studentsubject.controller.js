@@ -179,7 +179,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Student's subject information deleted successfully.",
+        message: "Student's subject information deactivated successfully.",
       });
     });
   },

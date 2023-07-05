@@ -33,8 +33,13 @@ let table = $("#table").DataTable({
       render: function (data, type, row) {
         return `<td class="text-center">
                   <div class="text-nowrap">
+                    <div class="dropdown">
+                      <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" onclick="deactivateSubject(${row.id})">Deactivate</a></li>
+                      </ul>
+                    </div>
                       <button class='btn bi fs-5 bi-pencil' data-bs-toggle="dropdown" title="Manage"></button>
-                      <button class='btn bi fs-5 bi-plus-circle' onclick="generateTransaction(${row.id})" title="Create Transaction"></button> 
+                     <!-- <button class='btn bi fs-5 bi-plus-circle' onclick="generateTransaction(${row.id})" title="Create Transaction"></button> -->
                   </div>
                 </td> `;
       },
@@ -248,25 +253,65 @@ async function confirmGenerateTransaction() {
   }
 }
 
-function showReason(id) {
-  fetch(`${baseURL}/api/studentsubject/excluded/` + id, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        $("#reasonModal").modal("show");
-        console.log(response);
-        document.getElementById("reason").innerHTML = response.data[0].reason;
-      }
-    });
+// update status on the API
+var rowIdToDeact;
+function deactivateSubject(id) {
+  rowIdToDeact = id;
+  $("#deactivateModal").modal("show");
 }
+const formDeactivateSubject = document.querySelector(
+  "#deactivateStudentSubjectForm"
+);
+formDeactivateSubject.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const formData = new FormData(formDeactivateSubject);
+
+  formData.append("id", rowIdToDeact);
+  formData.append("user_id", "1"); // get user id from cookie (mock data)
+  const data = Object.fromEntries(formData);
+
+  if (confirm("This action cannot be undone.") == true) {
+    fetch(`${baseURL}/api/studentsubject/deactivate`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success == 0) {
+          setErrorMessage(response.message);
+        } else {
+          setSuccessMessage(response.message);
+          $("#deactivateModal").modal("hide");
+          loadIncludedData();
+          loadExcludedData();
+        }
+      });
+  }
+});
+
+// function showReason(id) {
+//   fetch(`${baseURL}/api/studentsubject/excluded/` + id, {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify(body),
+//   })
+//     .then((res) => res.json())
+//     .then((response) => {
+//       if (response.success == 0) {
+//         setErrorMessage(response.message);
+//       } else {
+//         $("#reasonModal").modal("show");
+//         console.log(response);
+//         document.getElementById("reason").innerHTML = response.data[0].reason;
+//       }
+//     });
+// }
 
 // Get schoolYear from API
 const getSchoolYear = async () => {

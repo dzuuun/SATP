@@ -111,14 +111,14 @@
 
     <!-- Add Modal -->
     <div class="modal fade" data-bs-backdrop="static" id="addNewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header border-0">
                     <h1 class="modal-title fs-5">Add New Student</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" id="newStudentForm">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form class="form" id="newStudentForm">
                         <div class="container-fluid">
                             <div class="row mb-3">
                                 <h4 class="mb-3">User Credentials</h4>
@@ -158,7 +158,7 @@
                             <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Gender</label>
-                                    <select id="genderSelect" name="gender" class="form-control "
+                                    <select id="genderSelect" name="gender" class="form-control"
                                         aria-label="Default select example" required>
                                         <option disabled selected value="">Select</option>
                                         <option value="Male">Male</option>
@@ -169,7 +169,7 @@
                             <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Course</label>
-                                    <select id="courseSelect" name="course_id" class="form-control "
+                                    <select id="courseSelect" name="course_id" class="form-control"
                                         data-live-search="true" aria-label="Default select example" required>
                                         <option disabled selected value="">Select</option>
                                     </select>
@@ -178,7 +178,7 @@
                             <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Year Level</label>
-                                    <select id="yearLevel" name="year_level" class="form-control "
+                                    <select id="yearLevel" name="year_level" class="form-control"
                                         aria-label="Default select example" required>
                                         <option disabled selected value="">Select</option>
                                         <option value="1">1st Year</option>
@@ -203,23 +203,23 @@
                             </div>
                             <sub class="float-end">Reminder: Generated password is marked as temporary.</sub>
                         </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <div class="col">
-                            <button type="button" class="btn btn-default border text-nowrap" data-bs-toggle="modal"
-                                data-bs-target="#importFileModal">
-                                Import Multiple
-                            </button>
-                        </div>
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Submit
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <div class="col">
+                        <button type="button" class="btn btn-default border text-nowrap" data-bs-toggle="modal"
+                            data-bs-target="#importFileModal">
+                            Import Multiple
                         </button>
                     </div>
-                </form>
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="newStudentForm">
+                        Submit
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -232,8 +232,8 @@
                     <h1 class="modal-title fs-5">Edit Student Information</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" id="editStudentInfoForm">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form class="form" id="editStudentInfoForm">
                         <div class="container-fluid">
                             <div class="row mb-3">
                                 <h4 class="mb-3">Personal Information</h4>
@@ -257,7 +257,7 @@
                             <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Gender</label>
-                                    <select id="editGenderSelect" name="gender" class="form-control "
+                                    <select id="editGenderSelect" name="gender" class="form-control"
                                         aria-label="Default select example" required>
                                         <option disabled selected value="">Select</option>
                                         <option value="MALE">Male</option>
@@ -268,7 +268,7 @@
                             <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Course</label>
-                                    <select id="editCourseSelect" name="course_id" class="form-control "
+                                    <select id="editCourseSelect" name="course_id" class="form-control"
                                         data-live-search="true" aria-label="Default select example" required>
                                         <option disabled selected value="">Select</option>
                                     </select>
@@ -277,7 +277,7 @@
                             <div class="row mb-3">
                                 <div class="col-md">
                                     <label class="form-label fw-bold">Year Level</label>
-                                    <select id="editYearLevel" name="year_level" class="form-control "
+                                    <select id="editYearLevel" name="year_level" class="form-control"
                                         aria-label="Default select example" required>
                                         <option disabled selected value="">Select</option>
                                         <option value="1">1st Year</option>
@@ -290,17 +290,17 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="editStudentInfoForm">
+                        Save Changes
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -313,8 +313,8 @@
                     <h1 class="modal-title fs-5">Edit Student's Status</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" id="editStudentStatusForm">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form class="form" id="editStudentStatusForm">
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-check-label fw-bold text-nowrap">Active Student</label>
@@ -326,17 +326,17 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="editStudentStatusForm">
+                        Save Changes
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -349,8 +349,8 @@
                     <h1 class="modal-title fs-5">Import Multiple Entries</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" id="uploadFileForm">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form class="form" id="uploadFileForm">
                         <div class="container-fluid">
                             <label for="formFile" class="form-label">This feature allows user to import multiple entries
                                 into the
@@ -363,17 +363,17 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Upload
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="uploadFileForm">
+                        Upload
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -383,14 +383,7 @@
 </body>
 
 <footer>
-    <div class="container-fluid text-center" style="
-        background-color: darkgreen;
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        z-index: 0;
-      ">
+    <div class="container-fluid text-center">
         <span class="text-white">
             NDMU © 2023 | Developed by MIS Department
         </span>

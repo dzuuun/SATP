@@ -110,14 +110,14 @@
 
     <!-- Add Modal -->
     <div class="modal fade" data-bs-backdrop="static" id="addNewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header border-0">
                     <h1 class="modal-title fs-5">Add New Admin</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" id="newAdminForm">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form class="form" id="newAdminForm">
                         <div class="container-fluid">
                             <div class="row mb-3">
                                 <h4 class="mb-3">User Credentials</h4>
@@ -187,23 +187,23 @@
                             </div>
                             <sub class="float-end">Reminder: Generated password is marked as temporary.</sub>
                         </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <div class="col">
-                            <button type="button" class="btn btn-default border text-nowrap" data-bs-toggle="modal"
-                                data-bs-target="#importFileModal">
-                                Import Multiple
-                            </button>
-                        </div>
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Submit
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <div class="col">
+                        <button type="button" class="btn btn-default border text-nowrap" data-bs-toggle="modal"
+                            data-bs-target="#importFileModal">
+                            Import Multiple
                         </button>
                     </div>
-                </form>
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="newAdminForm">
+                        Submit
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -216,8 +216,8 @@
                     <h1 class="modal-title fs-5">Edit Admin's Information</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" id="editAdminInfoForm">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form class="form" id="editAdminInfoForm">
                         <div class="container-fluid">
                             <div class="row mb-3">
                                 <h4 class="mb-3">Personal Information</h4>
@@ -250,17 +250,17 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="editAdminInfoForm">
+                        Save Changes
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -273,8 +273,8 @@
                     <h1 class="modal-title fs-5">Edit Admin's Status</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" id="editAdminStatusForm">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form class="form" id="editAdminStatusForm">
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-check-label fw-bold text-nowrap">Active Admin</label>
@@ -286,17 +286,17 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="editAdminStatusForm">
+                        Save Changes
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -309,8 +309,8 @@
                     <h1 class="modal-title fs-5">Import Multiple Entries</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form class="form" id="uploadFileForm">
-                    <div class="modal-body">
+                <div class="modal-body">
+                    <form class="form" id="uploadFileForm">
                         <div class="container-fluid">
                             <label for="formFile" class="form-label">This feature allows user to import multiple entries
                                 into the
@@ -323,17 +323,17 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Upload
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="uploadFileForm">
+                        Upload
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -343,14 +343,7 @@
 </body>
 
 <footer>
-    <div class="container-fluid text-center" style="
-        background-color: darkgreen;
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        z-index: 0;
-      ">
+    <div class="container-fluid text-center">
         <span class="text-white">
             NDMU © 2023 | Developed by MIS Department
         </span>

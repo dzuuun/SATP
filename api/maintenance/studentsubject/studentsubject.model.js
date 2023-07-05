@@ -203,8 +203,8 @@ module.exports = {
       [data.id],
       (error, result) => {
         pool.query(
-          "UPDATE student_subject SET student_subject.is_excluded=?, student_subject.reason=? WHERE student_subject.id =?",
-          [data.is_excluded, data.reason, data.id],
+          "UPDATE student_subject SET student_subject.is_excluded=1, student_subject.reason=? WHERE student_subject.id =?",
+          [data.reason, data.id],
           (error, results) => {
             if (results.changedRows == 1) {
               pool.query(
