@@ -208,98 +208,103 @@
         </div>
     </div>
 
-    <!-- Edit Admin Info Modal -->
-    <div class="modal fade" data-bs-backdrop="static" id="editAdminInfoModal" tabindex="-1" aria-hidden="true">
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h1 class="modal-title fs-5">Edit Admin's Information</h1>
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Update</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form class="form" id="editAdminInfoForm">
-                        <div class="container-fluid">
-                            <div class="row mb-3">
-                                <h4 class="mb-3">Personal Information</h4>
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Given Name</label>
-                                    <input class="form-control" id="editGivenName" name="givenname" required />
+                    <ul class="nav nav-tabs mb-3">
+                        <li class="nav-item">
+                            <a href="#personalInformation" class="nav-link active" data-bs-toggle="tab">Personal
+                                Information</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="#editStatus" class="nav-link" data-bs-toggle="tab">Status</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="personalInformation">
+                            <form class="form" id="editAdminInfoForm">
+                                <div class="container-fluid">
+                                    <div class="row mb-3">
+                                        <h4 class="mb-3">Personal Information</h4>
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Given Name</label>
+                                            <input class="form-control" id="editGivenName" name="givenname" required />
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Middle Name</label>
+                                            <input class="form-control" id="editMiddleName" name="middlename" />
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Last Name</label>
+                                            <input class="form-control" id="editLastName" name="surname" required />
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Gender</label>
+                                            <select id="editGenderSelect" name="gender" class="form-select"
+                                                aria-label="Default select example" required>
+                                                <option disabled selected value="">Select</option>
+                                                <option value="MALE">Male</option>
+                                                <option value="FEMALE">Female</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Middle Name</label>
-                                    <input class="form-control" id="editMiddleName" name="middlename" />
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Last Name</label>
-                                    <input class="form-control" id="editLastName" name="surname" required />
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Gender</label>
-                                    <select id="editGenderSelect" name="gender" class="form-select"
-                                        aria-label="Default select example" required>
-                                        <option disabled selected value="">Select</option>
-                                        <option value="MALE">Male</option>
-                                        <option value="FEMALE">Female</option>
-                                    </select>
-                                </div>
+                            </form>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                                <button type="submit" style="background-color: darkgreen"
+                                    class="btn btn-default border text-white text-nowrap" form="editAdminInfoForm">
+                                    Save Changes
+                                </button>
                             </div>
                         </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-                    <button type="submit" style="background-color: darkgreen"
-                        class="btn btn-default border text-white text-nowrap" form="editAdminInfoForm">
-                        Save Changes
-                    </button>
+
+                        <div class="tab-pane fade" id="editStatus">
+                            <form class="form" id="editAdminStatusForm">
+                                <h4 class="mb-3">Status</h4>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-check-label fw-bold text-nowrap">Active Admin</label>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check float-end form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="editIsAdminStatusActive" checked />
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                                <button type="submit" style="background-color: darkgreen"
+                                    class="btn btn-default border text-white text-nowrap" form="editAdminStatusForm">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Edit Admin Status Modal -->
-    <div class="modal fade" data-bs-backdrop="static" id="editAdminStatusModal" tabindex="1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h1 class="modal-title fs-5">Edit Admin's Status</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form class="form" id="editAdminStatusForm">
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-check-label fw-bold text-nowrap">Active Admin</label>
-                            </div>
-                            <div class="col">
-                                <div class="form-check float-end form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch"
-                                        id="editIsAdminStatusActive" checked />
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-                    <button type="submit" style="background-color: darkgreen"
-                        class="btn btn-default border text-white text-nowrap" form="editAdminStatusForm">
-                        Save Changes
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- import CSV Modal -->
     <div class="modal fade" data-bs-backdrop="static" id="importFileModal" tabindex="-1" aria-hidden="true">

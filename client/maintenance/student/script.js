@@ -29,13 +29,7 @@ let data = $("#table").DataTable({
       render: function (data, type, row) {
         return `<td  class="text-center">
               <div class="text-nowrap">              
-                <button class='btn bi fs-5 bi-pencil' dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Edit"></button>
-                <div class="dropdown">
-                  <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" onclick="editStudentInfo(${row.id})")'>Information</a></li>
-                    <li><a class="dropdown-item" onclick="editStudentStatus(${row.id})")'>Status</a></li>
-                  </ul>
-                </div>
+                <button class='btn bi fs-5 bi-pencil'" type="button" onclick="edit(${row.id})" title="Edit"></button>
               </div>
             </td> `;
       },
@@ -130,17 +124,19 @@ function setSuccessMessage(message) {
   document.getElementById(
     "toast-container"
   ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-    <i class="bi bi-check-circle me-2"></i>
-    <strong id="toastLabel" class="me-auto">Success</strong>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-  </div>
-  <div class="d-flex">
-    <div class="toast-body">
-      ${message}
-    </div>
-  </div>
-</div>`;
+                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong id="toastLabel" class="me-auto">Success</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                
+                  <div class="d-flex">
+                    <div class="toast-body">
+                      ${message}
+                    </div>
+                  </div>
+
+                </div>`;
   $("#toastContainer").toast("show");
   setTimeout(() => {
     $(".alert").alert("close");
@@ -151,17 +147,19 @@ function setErrorMessage(message) {
   document.getElementById(
     "toast-container"
   ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-    <i class="bi bi-check-circle me-2"></i>
-    <strong id="toastLabel" class="me-auto">Error</strong>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-  </div>
-  <div class="d-flex">
-    <div class="toast-body">
-      ${message}
-    </div>
-  </div>
-</div>`;
+                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong id="toastLabel" class="me-auto">Error</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                
+                  <div class="d-flex">
+                    <div class="toast-body">
+                      ${message}
+                    </div>
+                  </div>
+                  
+                </div>`;
   $("#toastContainer").toast("show");
   setTimeout(() => {
     $(".alert").alert("close");
@@ -170,7 +168,7 @@ function setErrorMessage(message) {
 
 // update data on the API
 var rowIdToUpdate;
-async function editStudentInfo(id) {
+async function edit(id) {
   await fetch(`${baseURL}/api/student/` + id, {
     method: "GET",
   })
@@ -183,9 +181,13 @@ async function editStudentInfo(id) {
       document.getElementById("editGenderSelect").value = data.gender;
       document.getElementById("editCourseSelect").value = data.course_id;
       document.getElementById("editYearLevel").value = data.year_level;
-
+      if (data.is_active == 0) {
+        document.getElementById("editIsStudentStatusActive").checked = false;
+      } else {
+        document.getElementById("editIsStudentStatusActive").checked = true;
+      }
       rowIdToUpdate = data.id;
-      $("#editStudentInfoModal").modal("show");
+      $("#editModal").modal("show");
       $(".form-control").selectpicker("refresh");
     });
 }
@@ -211,31 +213,13 @@ formEditStudent.addEventListener("submit", (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#editStudentInfoModal").modal("hide");
+          $("#editModal").modal("hide");
           $("#table").DataTable().ajax.reload();
         }
       });
   }
 });
 
-// update student status on the API
-var rowIdToUpdate;
-async function editStudentStatus(id) {
-  await fetch(`${baseURL}/api/student/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("editIsStudentStatusActive").checked = false;
-      } else {
-        document.getElementById("editIsStudentStatusActive").checked = true;
-      }
-      $("#editStudentStatusModal").modal("show");
-    });
-}
 const formEditStudentStatus = document.querySelector("#editStudentStatusForm");
 formEditStudentStatus.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -262,7 +246,7 @@ formEditStudentStatus.addEventListener("submit", (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#editStudentStatusModal").modal("hide");
+          $("#editModal").modal("hide");
           $("#table").DataTable().ajax.reload();
         }
       });

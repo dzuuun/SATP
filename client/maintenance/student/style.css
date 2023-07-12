@@ -56,3 +56,12 @@ footer {
   right: 0;
   z-index: 0;
 }
+
+.nav-tabs .nav-item .nav-link {
+  color: black;
+}
+
+.nav-tabs .nav-item .nav-link.active {
+  color: white;
+  background-color: darkgreen;
+}

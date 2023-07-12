@@ -29,13 +29,7 @@ let data = $("#table").DataTable({
       render: function (data, type, row) {
         return `<td  class="text-center">
         <div class="text-nowrap">              
-          <button class='btn bi fs-5 bi-pencil' dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Edit"></button>
-          <div class="dropdown">
-            <ul class="dropdown-menu">
-              <li><a class="dropdown-item" onclick="editAdminInfo(${row.id})")'>Information</a></li>
-              <li><a class="dropdown-item"  onclick="editAdminStatus(${row.id})")'>Status</a></li>
-            </ul>
-          </div>
+          <button class='btn bi fs-5 bi-pencil' type="button"onclick="edit(${row.id})" title="Edit"></button>
         </div>
       </td> `;
       },
@@ -128,17 +122,19 @@ function setSuccessMessage(message) {
   document.getElementById(
     "toast-container"
   ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-    <i class="bi bi-check-circle me-2"></i>
-    <strong id="toastLabel" class="me-auto">Success</strong>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-  </div>
-  <div class="d-flex">
-    <div class="toast-body">
-      ${message}
-    </div>
-  </div>
-</div>`;
+                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong id="toastLabel" class="me-auto">Success</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                
+                  <div class="d-flex">
+                    <div class="toast-body">
+                      ${message}
+                    </div>
+                  </div>
+
+                </div>`;
   $("#toastContainer").toast("show");
   setTimeout(() => {
     $(".alert").alert("close");
@@ -149,17 +145,19 @@ function setErrorMessage(message) {
   document.getElementById(
     "toast-container"
   ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-    <i class="bi bi-check-circle me-2"></i>
-    <strong id="toastLabel" class="me-auto">Error</strong>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-  </div>
-  <div class="d-flex">
-    <div class="toast-body">
-      ${message}
-    </div>
-  </div>
-</div>`;
+                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong id="toastLabel" class="me-auto">Error</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                
+                  <div class="d-flex">
+                    <div class="toast-body">
+                      ${message}
+                    </div>
+                  </div>
+                  
+                </div>`;
   $("#toastContainer").toast("show");
   setTimeout(() => {
     $(".alert").alert("close");
@@ -168,7 +166,7 @@ function setErrorMessage(message) {
 
 // update information on the API
 var rowIdToUpdate;
-async function editAdminInfo(id) {
+async function edit(id) {
   await fetch(`${baseURL}/api/admin/` + id, {
     method: "GET",
   })
@@ -179,9 +177,13 @@ async function editAdminInfo(id) {
       document.getElementById("editMiddleName").value = data.middlename;
       document.getElementById("editLastName").value = data.surname;
       document.getElementById("editGenderSelect").value = data.gender;
-
+      if (data.is_active == 0) {
+        document.getElementById("editIsAdminStatusActive").checked = false;
+      } else {
+        document.getElementById("editIsAdminStatusActive").checked = true;
+      }
       rowIdToUpdate = data.id;
-      $("#editAdminInfoModal").modal("show");
+      $("#editModal").modal("show");
     });
 }
 const formEditAdmin = document.querySelector("#editAdminInfoForm");
@@ -207,31 +209,13 @@ formEditAdmin.addEventListener("submit", (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#editAdminInfoModal").modal("hide");
+          $("#editModal").modal("hide");
           $("#table").DataTable().ajax.reload();
         }
       });
   }
 });
 
-// update status on the API
-var rowIdToUpdate;
-async function editAdminStatus(id) {
-  await fetch(`${baseURL}/api/admin/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("editIsAdminStatusActive").checked = false;
-      } else {
-        document.getElementById("editIsAdminStatusActive").checked = true;
-      }
-      $("#editAdminStatusModal").modal("show");
-    });
-}
 const formEditAdminStatus = document.querySelector("#editAdminStatusForm");
 formEditAdminStatus.addEventListener("submit", (event) => {
   event.preventDefault();
@@ -258,7 +242,7 @@ formEditAdminStatus.addEventListener("submit", (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#editAdminStatusModal").modal("hide");
+          $("#editModal").modal("hide");
           $("#table").DataTable().ajax.reload();
         }
       });
