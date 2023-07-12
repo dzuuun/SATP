@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SATP | Manage Users</title>
+    <link rel="icon" type="image/x-icon" href="../../images/NDMU-Logo.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
+    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.css" rel="stylesheet" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css">
+</head>
+
+<body style="min-height: 400px; margin-bottom: 100px; clear: both">
+    <!-- Header -->
+    <nav class="navbar sticky-top" style="background-color: darkgreen">
+        <div class="container-fluid">
+            <a class="navbar-brand fs-7 text-white">
+                <!-- <i onclick="toggleNav()" class="bi bi-list"></i> -->
+                <img src="../../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
+                    class="d-inline-block align-text-top" />
+                Notre Dame of Marbel University
+            </a>
+            <span class="navbar-text text-white">
+                Student Assessment of Teacher's Performance
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- <div class="col-1">sidebar here</div> -->
+            <div class="col-md">
+                <div class="container-fluid mt-3">
+                    <div class="row align-items-center border-bottom mb-3">
+                        <div class="col-md">
+                            <div class="container-fluid">
+                                <h1 class="display-5">User Management</h1>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb float-end">
+                                    <li class="breadcrumb-item">User</li>
+                                    <li class="breadcrumb-item active" aria-current="page">
+                                        User Management
+                                    </li>
+                                </ol>
+                            </nav>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md mb-3">
+                            <button type="button" class="btn text-white text-nowrap fw-medium" data-bs-toggle="modal"
+                                data-bs-target="#addNewModal" style="background-color: darkgreen" title="Add New"
+                                onclick="generatePassword()">
+                                <i class="bi bi-plus"></i> Add New
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="table" class="table table-striped table-hover fw-medium" cellspacing="0" width="100%">
+                    <thead>
+                        <th class="text-left">ID Number</th>
+                        <th class="text-left">Name</th>
+                        <th>Permission</th>
+                        <th>Temporary Password</th>
+                        <th>Student</th>
+                        <th>Admin</th>
+                        <th>Active</th>
+                        <th>Manage</th>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Update</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs mb-3">
+                        <li class="nav-item">
+                            <a href="#personalInformation" class="nav-link active" data-bs-toggle="tab">Personal
+                                Information</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#userCredentials" class="nav-link" data-bs-toggle="tab">Login Credentials</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#editPermission" class="nav-link" data-bs-toggle="tab">Permission</a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="#editStatus" class="nav-link" data-bs-toggle="tab">Status</a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane fade show active" id="personalInformation">
+                            <form class="form" id="editUserInfoForm">
+                                <div class="container-fluid">
+                                    <div class="row mb-3">
+                                        <h4>Personal Information</h4>
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Given Name</label>
+                                            <input class="form-control" id="editGivenName" name="givenname" required />
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Middle Name</label>
+                                            <input class="form-control" id="editMiddleName" name="middlename" />
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Last Name</label>
+                                            <input class="form-control" id="editLastName" name="surname" required />
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Gender</label>
+                                            <select id="editGender" name="gender" class="form-control"
+                                                data-live-search="true" aria-label="Default select example" required>
+                                                <option disabled selected value="">Select</option>
+                                                <option value="MALE">Male</option>
+                                                <option value="FEMALE">Female</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Course</label>
+                                            <select id="editCourse" name="course_id" class="form-control"
+                                                data-live-search="true" aria-label="Default select example" required>
+                                                <option disabled selected value="">Select</option>
+                                                <option value='null'>--- NOT A STUDENT ---</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md">
+                                            <label class="form-label fw-bold">Year Level</label>
+                                            <select id="editYearLevel" name="year_level" class="form-control"
+                                                data-live-search="true" aria-label="Default select example" required>
+                                                <option disabled selected value="">Select</option>
+                                                <option value='null'>--- NOT A STUDENT ---</option>
+                                                <option value="1">1st Year</option>
+                                                <option value="2">2nd Year</option>
+                                                <option value="3">3rd Year</option>
+                                                <option value="4">4th Year</option>
+                                                <option value="5">5th Year</option>
+                                                <option value="6">6th Year</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                                <button type="submit" style="background-color: darkgreen"
+                                    class="btn btn-default border text-white text-nowrap" form="editUserInfoForm">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="userCredentials">
+                            <form class="form" id="editUserCredentialsForm">
+                                <div class="row mb-3">
+                                    <h4 class="mb-3">User Credentials</h4>
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Username</label>
+                                        <input class="form-control" id="editUsername" name="username"
+                                            placeholder="ID Number" required />
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Password</label>
+                                        <input class="form-control" id="editPassword" name="password" placeholder=""
+                                            type="password" required />
+                                        <input type="checkbox" onclick="showPassword()" />
+                                        <label class="form-label mt-1">Show Password</label>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-check-label fw-bold text-nowrap">Temporary Password</label>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check float-end form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="editTemporaryPassword" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                                <button type="submit" style="background-color: darkgreen"
+                                    class="btn btn-default border text-white text-nowrap"
+                                    form="editUserCredentialsForm">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="editPermission">
+                            <form class="form" id="editPermissionForm">
+                                <h4>Permission</h4>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label for="editPermissionSelect" class="form-label fw-bold">Permission</label>
+                                        <select id="editPermissionSelect" name="permission_id" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Role</label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" id="student" type="radio" name="role"
+                                                value="student" />
+                                            <label class="form-check-label"> Student </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" id="admin" type="radio" name="role"
+                                                value="admin" />
+                                            <label class="form-check-label"> Admin </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </form>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                                <button type="submit" style="background-color: darkgreen"
+                                    class="btn btn-default border text-white text-nowrap" form="editPermissionForm">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="editStatus">
+                            <form class="form" id="editStatusForm">
+                                <h4>Status</h4>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-check-label fw-bold text-nowrap">Active User</label>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check float-end form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="editIsUserActive" checked />
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            <div class="modal-footer border-0">
+                                <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                                    Cancel
+                                </button>
+                                <button type="submit" style="background-color: darkgreen"
+                                    class="btn btn-default border text-white text-nowrap" form="editStatusForm">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal fade" data-bs-backdrop="static" id="addNewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">
+                        Add New User
+                    </h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form" id="newUserForm">
+                        <div class="container-fluid">
+                            <div class="row mb-3">
+                                <h4 class="mb-3">User Credentials</h4>
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Username</label>
+                                    <input class="form-control" id="addUsername" name="username" placeholder="ID Number"
+                                        required />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Password</label>
+                                    <input class="form-control" id="addPassword" name="password" placeholder=""
+                                        type="text" required />
+                                    <input type="checkbox" onclick="showPassword()" checked />
+                                    <label class="form-label mt-1">Show Password</label>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <h4>Personal Information</h4>
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Given Name</label>
+                                    <input class="form-control" id="addGivenName" name="givenname" required />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Middle Name</label>
+                                    <input class="form-control" id="addMiddleName" name="middlename" />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Last Name</label>
+                                    <input class="form-control" id="addLastName" name="surname" required />
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Gender</label>
+                                    <select id="addGender" name="gender" class="form-select"
+                                        aria-label="Default select example" required>
+                                        <option disabled selected value="">Select</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Course</label>
+                                    <select id="addCourse" name="course_id" class="form-control" data-live-search="true"
+                                        aria-label="Default select example" required>
+                                        <option disabled selected value="">Select</option>
+                                        <option value='null'>--- NOT A STUDENT ---</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Year Level</label>
+                                    <select id="addYearLevel" name="year_level" class="form-control"
+                                        data-live-search="true" aria-label="Default select example" required>
+                                        <option disabled selected value="">Select</option>
+                                        <option value='null'>--- NOT A STUDENT ---</option>
+                                        <option value="1">1st Year</option>
+                                        <option value="2">2nd Year</option>
+                                        <option value="3">3rd Year</option>
+                                        <option value="4">4th Year</option>
+                                        <option value="5">5th Year</option>
+                                        <option value="6">6th Year</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <label for="permissionSelect" class="form-label fw-bold">Permission</label>
+                                    <select id="permissionSelect" name="permission_id" class="form-control"
+                                        data-live-search="true" aria-label="Default select example" required>
+                                        <option disabled selected value="">Select</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md">
+                                    <label class="form-label fw-bold">Role</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="role" value="student" />
+                                        <label class="form-check-label"> Student </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="role" value="admin" />
+                                        <label class="form-check-label"> Admin </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label class="form-check-label fw-bold text-nowrap">Active User</label>
+                                </div>
+                                <div class="col">
+                                    <div class="form-check float-end form-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" id="isUserActive"
+                                            checked />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <div class="col">
+                        <button type="button" class="btn btn-default border text-nowrap" data-bs-toggle="modal"
+                            data-bs-target="#importFileModal">
+                            Import Multiple
+                        </button>
+                    </div>
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="newUserForm">
+                        Submit
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- import CSV Modal -->
+    <div class="modal fade" data-bs-backdrop="static" id="importFileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h1 class="modal-title fs-5">Import Multiple Entries</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form" id="uploadFileForm">
+                        <div class="container-fluid">
+                            <label for="formFile" class="form-label">This feature allows user to import multiple entries
+                                into the
+                                database.
+                            </label>
+                            <div class="row">
+                                <div class="mt-2 mb-3">
+                                    <label for="formFile" class="form-label">Select a .csv file to upload</label>
+                                    <input class="form-control" type="file" accept=".csv" id="formFile" />
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="submit" style="background-color: darkgreen"
+                        class="btn btn-default border text-white text-nowrap" form="uploadFileForm">
+                        Upload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
+</body>
+
+<footer>
+    <div class="container-fluid text-center">
+        <span class="text-white">
+            NDMU © 2023 | Developed by MIS Department
+        </span>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+    crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+    crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
+<script src="./script.js"></script>
+
+<style></style>
+
+</html>

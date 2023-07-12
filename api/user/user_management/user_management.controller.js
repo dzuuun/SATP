@@ -4,10 +4,9 @@ const {
   addUser,
   updateUserInfo,
   updateUserControl,
-  // updateUserPassword,
-  updateUserUsername,
+  updateStatus,
+  updateUserCredentials,
   deleteUser,
-  searchUsers,
 } = require("./user_management.model");
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
@@ -56,8 +55,8 @@ module.exports = {
 
   addUser: (req, res) => {
     const body = req.body;
-    const salt = genSaltSync(10);
-    body.password = hashSync(body.password, salt);
+    // const salt = genSaltSync(10);
+    // body.password = hashSync(body.password, salt);
     addUser(body, (err, results) => {
       if (err) {
         return res.json({
@@ -119,32 +118,29 @@ module.exports = {
     });
   },
 
-  // updateUserPassword: (req, res) => {
-  //   const body = req.body;
-  //   const salt = genSaltSync(10);
-  //   body.password = hashSync(body.password, salt);
-  //   updateUserPassword(body, (err, results) => {
-  //     console.log(results);
-  //     if (err) {
-  //       console.log(err);
-  //       return false;
-  //     }
-  //     if (results.changedRows == 0) {
-  //       return res.json({
-  //         success: 0,
-  //         message: "Contents are still the same.",
-  //       });
-  //     }
-  //     return res.json({
-  //       success: 1,
-  //       message: "User's password updated successfully.",
-  //     });
-  //   });
-  // },
-
-  updateUserUsername: (req, res) => {
+  updateStatus: (req, res) => {
     const body = req.body;
-    updateUserUsername(body, (err, results) => {
+    updateStatus(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return false;
+      }
+      if (results.changedRows == 0) {
+        return res.json({
+          success: 0,
+          message: "Contents are still the same.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "User's status updated successfully.",
+      });
+    });
+  },
+
+  updateUserCredentials: (req, res) => {
+    const body = req.body;
+    updateUserCredentials(body, (err, results) => {
       if (err) {
         console.log(err);
         return false;
@@ -158,48 +154,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "User's username updated successfully.",
-      });
-    });
-  },
-
-  deleteUser: (req, res) => {
-    const body = req.body;
-    deleteUser(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.affectedRows == 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "User deleted successfully.",
-      });
-    });
-  },
-
-  searchUsers: (req, res) => {
-    const body = req.body;
-    searchUsers(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Users searched successfully.",
-        count: results.length,
-        data: results,
       });
     });
   },

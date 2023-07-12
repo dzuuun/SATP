@@ -4,10 +4,8 @@ const {
   addUser,
   updateUserInfo,
   updateUserControl,
-  // updateUserPassword,
-  updateUserUsername,
-  deleteUser,
-  searchUsers,
+  updateStatus,
+  updateUserCredentials,
 } = require("./user_management.controller");
 const router = require("express").Router();
 
@@ -16,9 +14,7 @@ router.get("/:id", getUserById);
 router.get("/", getUsers);
 router.put("/update/info", updateUserInfo);
 router.put("/update/control", updateUserControl);
-// router.put("/update/password", updateUserPassword);
-router.put("/update/username", updateUserUsername);
-router.get("/search/any", searchUsers);
-router.delete("/delete", deleteUser);
+router.put("/update/status", updateStatus);
+router.put("/update/credentials", updateUserCredentials);
 
 module.exports = router;

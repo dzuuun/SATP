@@ -15,7 +15,7 @@ module.exports = {
 
   getUserById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, user_info.givenname, user_info.middlename, user_info.surname,user_info.gender, user_info.course_id, user_info.year_level,  permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
+      "SELECT users.id, users.username, users.password, user_info.givenname, user_info.middlename, user_info.surname,user_info.gender, user_info.course_id, user_info.year_level,  users.permission_id, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -90,13 +90,11 @@ module.exports = {
       (error, result) => {
         if (result.length == 1) {
           pool.query(
-            "UPDATE users SET permission_id=?, is_temp_pass=?, is_student_rater=?, is_admin_rater=?, is_active=? WHERE id=?",
+            "UPDATE users SET permission_id=?, is_student_rater=?, is_admin_rater=? WHERE id=?",
             [
               data.permission_id,
-              data.is_temp_pass,
               data.is_student_rater,
               data.is_admin_rater,
-              data.is_active,
               data.id,
             ],
             (error, results) => {
@@ -132,7 +130,7 @@ module.exports = {
       "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_info.user_id=?",
       [data.id],
       (error, result) => {
-        console.log(result)
+        console.log(result);
         if (result.length == 1) {
           pool.query(
             "UPDATE user_info SET surname=?, givenname=?, middlename=?, course_id=?, year_level=?, gender=? WHERE user_id=?",
@@ -146,7 +144,8 @@ module.exports = {
               data.id,
             ],
             (error, results) => {
-              console.log(results)
+              console.log(results);
+              console.log(error);
               if (results.changedRows == 1) {
                 pool.query(
                   "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
@@ -163,6 +162,7 @@ module.exports = {
                 if (error) {
                   callBack(error);
                 }
+              } else {
               }
               return callBack(null, results);
             }
@@ -174,10 +174,10 @@ module.exports = {
     );
   },
 
-  updateUserUsername: (data, callBack) => {
+  updateUserCredentials: (data, callBack) => {
     pool.query(
-      "UPDATE users SET username=? WHERE id=?",
-      [data.username, data.id],
+      "UPDATE users SET username=?, password=?, is_temp_pass=? WHERE id=?",
+      [data.username, data.password, data.is_temp_pass, data.id],
       (error, results) => {
         if (results.changedRows == 1) {
           pool.query(
@@ -198,91 +198,39 @@ module.exports = {
     );
   },
 
-  // updateUserPassword: (data, callBack) => {
-  //   pool.query(
-  //     "SELECT username FROM users WHERE id=?",
-  //     [data.id],
-  //     (error, result) => {
-  //       if (result.length == 1) {
-  //         pool.query(
-  //           "UPDATE users SET password=? WHERE id=?",
-  //           [data.password, data.id],
-  //           (error, results) => {
-  //             if (results.changedRows == 1) {
-  //               pool.query(
-  //                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-  //                 [
-  //                   data.user_id,
-  //                   "Updated User's password: " + result[0].username,
-  //                 ],
-  //                 (error, results) => {
-  //                   if (error) {
-  //                     console.log(error);
-  //                   }
-  //
-  //                 }
-  //               );
-  //               if (error) {
-  //                 callBack(error);
-  //               }
-  //             }
-  //             return callBack(null, results);
-  //           }
-  //         );
-  //       } else {
-  //         return callBack(null, result);
-  //       }
-  //     }
-  //   );
-  // },
-
-  deleteUser: (data, callBack) => {
+  updateStatus: (data, callBack) => {
     pool.query(
-      "SELECT username FROM users WHERE id=?",
+      "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_id=?",
       [data.id],
       (error, result) => {
-        pool.query(
-          "DELETE FROM users WHERE id=?",
-          [data.id],
-          (error, results) => {
-            if (results.affectedRows == 1) {
-              pool.query(
-                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Deleted User: " + result[0].username],
-                (error, results) => {
-                  if (error) {
-                    console.log(error);
+        if (result.length == 1) {
+          pool.query(
+            "UPDATE users SET is_active=? WHERE id=?",
+            [data.is_active, data.id],
+            (error, results) => {
+              if (results.changedRows == 1) {
+                pool.query(
+                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                  [
+                    data.user_id,
+                    "Updated User's status: " + result[0].username,
+                  ],
+                  (error, results) => {
+                    if (error) {
+                      console.log(error);
+                    }
                   }
+                );
+                if (error) {
+                  callBack(error);
                 }
-              );
+              }
+              return callBack(null, results);
             }
-            if (error) {
-              callBack(error);
-            }
-            return callBack(null, results);
-          }
-        );
-        if (error) {
-          return callBack(error);
+          );
+        } else {
+          return callBack(null, result);
         }
-      }
-    );
-  },
-
-  searchUsers: (data, callBack) => {
-    pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS NAME, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE user_info.givenname LIKE '%" +
-        data.search +
-        "%'  OR user_info.middlename LIKE '%" +
-        data.search +
-        "%' OR user_info.surname LIKE '%" +
-        data.search +
-        "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
       }
     );
   },
