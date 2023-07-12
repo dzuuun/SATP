@@ -84,6 +84,7 @@ searchData.addEventListener("change", (event) => {
   if (student_id !== "" && semester_id !== "" && school_year_id !== "") {
     loadIncludedData();
     loadExcludedData();
+    document.querySelector('.excluded').disabled = false;
   }
 });
 
