@@ -1,9 +1,13 @@
-const table1 = document.querySelector("#table1");
-const table2 = document.querySelector("#table2");
-const table3 = document.querySelector("#table3");
-const table4 = document.querySelector("#table4");
-const table5 = document.querySelector("#table5");
-
+const table = document.querySelector("#table");
+const school_year = document.querySelector("#schoolYear");
+const semester = document.querySelector("#semester");
+const studentRater = document.querySelector("#studentRater");
+const teacherRatee = document.querySelector("#teacherRatee");
+const subjectCode = document.querySelector("#subjectCode");
+const baseURL = "http://localhost:3000";
+let transactionToRate;
+var transaction_id;
+var item_id = [];
 
 const getdata = async () => {
   const endpoint = "http://localhost:3000/api/item/active/rate",
@@ -11,115 +15,115 @@ const getdata = async () => {
     data = await response.json(),
     rows = data.data;
 
-  var result = rows.reduce((x, y) => {
-    (x[y.category] = x[y.category] || []).push(y);
-    return x;
-  }, {});
-
-  // console.log(rows);
-  // console.log(result.TEACHER);
-  // console.log(result["TEACHING PROCEDURES"]);
-  // console.log(result.STUDENTS);
-  // console.log(result.METHODOLOGY);
-  // console.log(result["GENERAL OBSERVATION"]);
-
-  result.TEACHER.forEach((row) => {
-    table1.innerHTML += `
-    <tr id="${row.id}">
-      <td class="text-center">${row.number}</td>
-        <td class="text-wrap fs-6">${row.question}</td>
-      <td>
-      <div class="col-md text-nowrap fs-4">
-      <i value="1" class="bi bi-star"></i>
-      <i value="2" class="bi bi-star"></i>
-      <i value="3" class="bi bi-star"></i>
-      <i value="4" class="bi bi-star"></i>
-      <i value="5" class="bi bi-star"></i>
-    </div>     
-      </td> 
-    </tr>`;
+  rows.forEach((data) => {
+    item_id.push(data.id);
+  });
+  rows.forEach((data) => {
+    table.innerHTML += `
+      <tr id="${data.id}">
+        <td class="text-center">${data.number}</td>
+        <td class="text-wrap fs-6">${data.category}</td>
+        <td class="text-wrap fs-6">${data.question}</td>
+          <td>
+            <div class="text-nowrap fs-4">
+              <select class="star-rating" required>
+                <option value="">Select a rating</option>
+                <option value="5">Excellent</option>
+                <option value="4">Very Good</option>
+                <option value="3">Average</option>
+                <option value="2">Poor</option>
+                <option value="1">Terrible</option>
+              </select>
+            </div>
+          </td>
+        </tr>`;
   });
 
-  result["TEACHING PROCEDURES"].forEach((row) => {
-    table2.innerHTML += `
-    <tr id="${row.id}">
-      <td class="text-center">${row.number}</td>
-        <td class="text-wrap fs-6">${row.question}</td>
-      <td>
-      <div class="col-md text-nowrap fs-4">
-      <i value="1" class="bi bi-star"></i>
-      <i value="2" class="bi bi-star"></i>
-      <i value="3" class="bi bi-star"></i>
-      <i value="4" class="bi bi-star"></i>
-      <i value="5" class="bi bi-star"></i>
-    </div>   
-      </td> 
-    </tr>`;
-  });
-
-  result.STUDENTS.forEach((row) => {
-    table3.innerHTML += `
-    <tr id="${row.id}">
-      <td class="text-center">${row.number}</td>
-        <td class="text-wrap fs-6">${row.question}</td>
-      <td>
-      <div class="col-md text-nowrap fs-4">
-      <i value="1" class="bi bi-star"></i>
-      <i value="2" class="bi bi-star"></i>
-      <i value="3" class="bi bi-star"></i>
-      <i value="4" class="bi bi-star"></i>
-      <i value="5" class="bi bi-star"></i>
-    </div>     
-      </td> 
-    </tr>`;
-  });
-
-  result.METHODOLOGY.forEach((row) => {
-    table4.innerHTML += `
-    <tr id="${row.id}">
-      <td class="text-center">${row.number}</td>
-        <td class="text-wrap fs-6">${row.question}</td>
-      <td>
-      <div class="col-md text-nowrap fs-4">
-      <i value="1" class="bi bi-star"></i>
-      <i value="2" class="bi bi-star"></i>
-      <i value="3" class="bi bi-star"></i>
-      <i value="4" class="bi bi-star"></i>
-      <i value="5" class="bi bi-star"></i>
-    </div>   
-      </td> 
-    </tr>`;
-  });
-
-  result["GENERAL OBSERVATION"].forEach((row) => {
-    table5.innerHTML += `
-    <tr id="${row.id}">
-      <td class="text-center">${row.number}</td>
-        <td class="text-wrap fs-6">${row.question}</td>
-      <td>
-      <div class="col-md text-nowrap fs-4">
-      <i value="1" class="bi bi-star"></i>
-      <i value="2" class="bi bi-star"></i>
-      <i value="3" class="bi bi-star"></i>
-      <i value="4" class="bi bi-star"></i>
-      <i value="5" class="bi bi-star"></i>
-    </div>     
-      </td> 
-    </tr>`;
-  });
+  // var result = rows.reduce((x, y) => {
+  //   (x[y.category] = x[y.category] || []).push(y);
+  //   return x;
+  // }, {});
+  stars.rebuild();
 };
-getdata();
 
-const school_year = document.querySelector("#schoolYear");
-school_year.innerHTML += `2019-2020`;
+async function getTransactionInfo(id) {
+  await fetch(`${baseURL}/api/transaction/` + id, {
+    method: "GET",
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      // console.log(response.data[0]);
+      school_year.innerHTML = response.data[0].school_year;
+      studentRater.innerHTML = response.data[0].student_name;
+      semester.innerHTML = response.data[0].semester;
+      teacherRatee.innerHTML = response.data[0].teachers_name;
+      subjectCode.innerHTML = response.data[0].subject_code;
+      transaction_id = response.data[0].id;
+      // console.log(transaction_id);
+    });
+}
 
-const semester = document.querySelector("#semester");
-semester.innerHTML += `First Semester`;
+var stars = new StarRating(".star-rating");
+var rate = [];
 
-const studentRater = document.querySelector("#studentRater");
-studentRater.innerHTML += `Student Name`;
+function submitRating() {
+  let comment = document.getElementById("comment").value;
+  var commentStatus = {
+    comment: comment,
+    transaction_id: transactionToRate,
+    user_id: 1,
+  };
+  rate = [];
 
-const teacherRatee = document.querySelector("#teacherRatee");
-teacherRatee.innerHTML += `Teacher Name`;
-const subjectCode = document.querySelector("#subjectCode");
-subjectCode.innerHTML += `Subject Code`;
+  if (confirm("Are you sure? This action cannot be undone.") == true) {
+    for (let i = 0; i < item_id.length; i++) {
+      var rating = {
+        transaction_id: transactionToRate,
+        item_id: item_id[i],
+        rate: stars.widgets[i].indexSelected + 1,
+      };
+      console.log(rating);
+
+      // fetch(`${baseURL}/api/transaction/add/rating`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(rating),
+      // })
+      //   .then((res) => res.json())
+      //   .then((response) => {
+      //     if (response.success == 0) {
+      //     } else {
+      //       console.log(response.message);
+      //     }
+      //   });
+    }
+
+    // fetch(`${baseURL}/api/transaction/submit/ ` + transactionToRate, {
+    //   method: "PUT",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    //   body: JSON.stringify(commentStatus),
+    // })
+    //   .then((res) => res.json())
+    //   .then((response) => {
+    //     if (response.success == 0) {
+    //       setErrorMessage(response.message);
+    //     } else {
+    //       $("#rateDoneModal").modal("show");
+    //     }
+    //   });
+  }
+}
+
+function closeRating() {
+  window.open("../rating/index.html", "_self"); // prompt modal first that the rating has been successfully submitted then open the previous window
+}
+
+$(document).ready(function () {
+  transactionToRate = localStorage.getItem("transactionToRate");
+  getdata();
+  getTransactionInfo(transactionToRate);
+});

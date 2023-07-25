@@ -43,6 +43,21 @@
                             </div>
                         </div>
                     </div>
+                    <link href="/node_modules/star-rating.js/dist/star-rating.css" rel="stylesheet">
+
+                    <!-- <select class="star-rating">
+                        <option value="">Select a rating</option>
+                        <option value="5">Excellent</option>
+                        <option value="4">Very Good</option>
+                        <option value="3">Average</option>
+                        <option value="2">Poor</option>
+                        <option value="1">Terrible</option>
+                    </select> -->
+
+                    <script src="/node_modules/star-rating.js/dist/star-rating.min.js"></script>
+                    <script>
+                        // var stars = new StarRating('.star-rating');
+                    </script>
 
                     <div class="row border-bottom mt-3 text-nowrap">
                         <div class="col-sm-3">
@@ -157,56 +172,63 @@
                             <table class="table">
                                 <thead>
                                     <th>#</th>
+                                    <th>Category</th>
                                     <th>Question</th>
                                     <th>Rate</th>
                                 </thead>
-                                <tbody id="table1">
-                                    <td colspan="3">
-                                        <strong>TEACHER</strong>
-                                    </td>
+                                <tbody id="table">
                                 </tbody>
-                                <tbody id="table2">
-                                    <td colspan="3">
-                                        <strong>TEACHING PROCEDURES</strong>
-                                    </td>
-                                </tbody>
-                                <tbody id="table3">
-                                    <td colspan="3">
-                                        <strong>STUDENTS</strong>
-                                    </td>
-                                </tbody>
-                                <tbody id="table4">
-                                    <td colspan="3">
-                                        <strong>METHODOLOGY</strong>
-                                    </td>
-                                </tbody>
-                                <tbody id="table5">
-                                    <td colspan="3">
-                                        <strong>GENERAL OBSERVATION</strong>
-                                    </td>
-                                </tbody>
+
                             </table>
                         </div>
                     </div>
 
                     <div class="row mt-3">
                         <div class="col">
-                            <label for="itemNumber" class="form-label fw-bold">Comment</label>
-                            <textarea style="resize: none" class="form-control" id="exampleFormControlTextarea1"
-                                rows="4" required></textarea>
+                            <label  class="form-label fw-bold">Comment</label>
+                            <textarea style="resize: none" class="form-control" id="comment" rows="4"
+                                required></textarea>
                         </div>
                     </div>
 
                     <div class="row mt-3 float-end">
                         <div class="col">
-                            <button type="button" class="btn btn-success ">Submit</button>
+                            <button type="button" class="btn btn-success" onclick="submitRating()">Submit</button>
                         </div>
                     </div>
-                    
+
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="rateDoneModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="container text-center mb-3">
+                        <div class="">
+                            <i class="bi bi-check2-circle" style="font-size: 3rem; color: green"></i>
+                        </div>
+                        <strong class="fs-4">Rate Submitted</strong>
+                        <br />
+                        <label class="mt-3">Your rating has been successfully submitted. Thank you for your
+                            candor.</label>
+                    </div>
+                    <div class="text-center mt-3 mb-3">
+                        <button type="button" class="btn btn-outline-secondary border-0 text-white text-nowrap"
+                            style="background-color: darkgreen" onclick="closeRating()">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
 </body>
 
 <footer>
