@@ -7,16 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SATP | Create Rating</title>
     <link rel="icon" type="image/x-icon" href="../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
     <link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.css" rel="stylesheet" />
     <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css">
+        href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css" />
 </head>
 
-<body style=" min-height: 400px; margin-bottom: 100px; clear: both;">
+<body style="min-height: 400px; margin-bottom: 100px; clear: both">
     <nav class="navbar sticky-top" style="background-color: darkgreen">
         <div class="container-fluid">
             <a class="navbar-brand fs-7 text-white">
@@ -43,7 +43,7 @@
                             </div>
                         </div>
                     </div>
-                    <link href="/node_modules/star-rating.js/dist/star-rating.css" rel="stylesheet">
+                    <link href="/node_modules/star-rating.js/dist/star-rating.css" rel="stylesheet" />
 
                     <!-- <select class="star-rating">
                         <option value="">Select a rating</option>
@@ -56,111 +56,122 @@
 
                     <script src="/node_modules/star-rating.js/dist/star-rating.min.js"></script>
                     <script>
-                        // var stars = new StarRating('.star-rating');
+              // var stars = new StarRating('.star-rating');
                     </script>
 
                     <div class="row border-bottom mt-3 text-nowrap">
                         <div class="col-sm-3">
                             <div class="mb-3">
-                                <h4 for="schoolYear" class="form-label fw-bold">School Year</h4>
+                                <h4 for="schoolYear" class="form-label fs-4 fw-bold">
+                                    School Year
+                                </h4>
                                 <div class="">
-                                    <span id="schoolYear"></span>
+                                    <span class="fs-5" id="schoolYear"></span>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <h4 for="semester" class="form-label fw-bold">Semester</h4>
+                                <h4 for="semester" class="form-label fs-4 fw-bold">
+                                    Semester
+                                </h4>
                                 <div>
-                                    <span id="semester"></span>
+                                    <span class="fs-5" id="semester"></span>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <h4 for="studentRater" class="form-label fw-bold">Rater</h4>
+                                <h4 for="studentRater" class="form-label fs-4 fw-bold">
+                                    Rater
+                                </h4>
                                 <div>
-                                    <span id="studentRater"></span>
+                                    <span class="fs-5" id="studentRater"></span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-sm-3">
                             <div class="mb-3">
-                                <h4 for="teacherRatee" class="form-label fw-bold">Teacher</h4>
+                                <h4 for="teacherRatee" class="form-label fs-4 fw-bold">
+                                    Teacher
+                                </h4>
                                 <div>
-                                    <span id="teacherRatee"></span>
+                                    <span class="fs-5" id="teacherRatee"></span>
                                 </div>
                             </div>
                             <div class="mb-2">
-                                <h4 for="subjectCode" class="form-label fw-bold">Subject Code</h4>
+                                <h4 for="subjectCode" class="form-label fs-4 fw-bold">
+                                    Subject Code
+                                </h4>
                                 <div>
-                                    <span id="subjectCode"></span>
+                                    <span class="fs-5" id="subjectCode"></span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="col-sm mb-3 text-center">
-
                             <img width="200" height="200"
-                                src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png">
-
+                                src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" />
                         </div>
                     </div>
 
                     <div class="row mt-3">
-                        <div class="col-sm  border-bottom">
+                        <div class="col-sm border-bottom">
                             <div class="row">
-                                <p class="fs-5">Using the scale described below, please rate your teacher in this
-                                    subject on the basis of your own experience with him/her. Read each item carefully
-                                    and select your star rating provided at the end of each item.</p>
+                                <p class="fs-5">
+                                    Using the scale described below, please rate your teacher in
+                                    this subject on the basis of your own experience with
+                                    him/her. Read each item carefully and select your star
+                                    rating provided at the end of each item.
+                                </p>
                             </div>
 
                             <div class="row text-center text-nowrap">
                                 <div class="col-sm">
                                     <p class="fs-2 fw-bold">1</p>
                                     <div class="fs-4">
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star "></i>
-                                        <i class="bi bi-star "></i>
-                                        <i class="bi bi-star "></i>
-                                        <i class="bi bi-star "></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
                                     </div>
                                 </div>
                                 <div class="col-sm">
                                     <p class="fs-2 fw-bold">2</p>
                                     <div class="fs-4">
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star"></i>
-                                        <i class="bi bi-star"></i>
-                                        <i class="bi bi-star"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
                                     </div>
                                 </div>
                                 <div class="col-sm">
                                     <p class="fs-2 fw-bold">3</p>
                                     <div class="fs-4">
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star "></i>
-                                        <i class="bi bi-star "></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
                                     </div>
                                 </div>
                                 <div class="col-sm">
                                     <p class="fs-2 fw-bold">4</p>
                                     <div class="fs-4">
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star "></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
                                     </div>
                                 </div>
                                 <div class="col-sm">
                                     <p class="fs-2 fw-bold">5</p>
                                     <div class="fs-4">
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
-                                        <i class="bi bi-star-fill" style="color: gold;"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
                                     </div>
                                 </div>
                             </div>
@@ -176,16 +187,14 @@
                                     <th>Question</th>
                                     <th>Rate</th>
                                 </thead>
-                                <tbody id="table">
-                                </tbody>
-
+                                <tbody id="table"></tbody>
                             </table>
                         </div>
                     </div>
 
                     <div class="row mt-3">
                         <div class="col">
-                            <label  class="form-label fw-bold">Comment</label>
+                            <label class="form-label fw-bold">Comment</label>
                             <textarea style="resize: none" class="form-control" id="comment" rows="4"
                                 required></textarea>
                         </div>
@@ -193,16 +202,17 @@
 
                     <div class="row mt-3 float-end">
                         <div class="col">
-                            <button type="button" class="btn btn-success" onclick="submitRating()">Submit</button>
+                            <button type="button" class="btn btn-success" onclick="submitRating()">
+                                Submit
+                            </button>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Delete Modal -->
+    <!-- confirmation Modal -->
     <div class="modal fade" id="rateDoneModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
