@@ -7,48 +7,150 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SATP | Activity Log</title>
   <link rel="icon" type="image/x-icon" href="../../images/NDMU-Logo.png" />
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
   <link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.css" rel="stylesheet" />
   <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css">
+    href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css" />
 </head>
 
 <body style="min-height: 400px; margin-bottom: 100px; clear: both">
   <div id="mySidenav" class="sidenav">
-    <div>
-      <a>hello</a>
+    <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary h-100" style="width: 280px">
+      <a href="#" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+        <img class="bi pe-none me-2" width="30" height="30" src="../../images/NDMU-Logo.png" />
+
+        <span>SATP | Menu</span>
+      </a>
+      <hr />
+      <ul class="nav nav-pills flex-column mb-auto">
+        <li class="mb-1">
+          <button onclick="window.location.href= `../../transaction/index.html`"
+            class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+            Transaction
+          </button>
+        </li>
+        <li class="mb-1">
+          <button onclick="window.location.href= `../../report/index.html`"
+            class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+            Report
+          </button>
+          <div class="collapse" id="dashboard-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li>
+                <a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5">Overall
+                  Ranking</a>
+              </li>
+              <li>
+                <a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5">Weekly</a>
+              </li>
+              <li>
+                <a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5">Monthly</a>
+              </li>
+              <li>
+                <a href="#" class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5">Annually</a>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <li class="mb-1">
+          <button class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed"
+            data-bs-toggle="collapse" data-bs-target="#home-collapse" aria-expanded="false">
+            Maintenance
+          </button>
+          <div class="collapse" id="home-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li>
+                <a href="../../maintenance/admin/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Admin</a>
+              </li>
+              <li>
+                <a href="../../maintenance/category/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Category</a>
+              </li>
+              <li>
+                <a href="../../maintenance/college/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">College</a>
+              </li>
+              <li>
+                <a href="../../maintenance/course/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Course</a>
+              </li>
+              <li>
+                <a href="../../maintenance/departments/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Department</a>
+              </li>
+              <li>
+                <a href="../../maintenance/items/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Items</a>
+              </li>
+              <li>
+                <a href="../../maintenance/room/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Room</a>
+              </li>
+              <li>
+                <a href="../../maintenance/school_year/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">School Year</a>
+              </li>
+              <li>
+                <a href="../../maintenance/semester/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Semester</a>
+              </li>
+              <li>
+                <a href="../../maintenance/student/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Student</a>
+              </li>
+              <li>
+                <a href="../../maintenance/student_subject/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Student Subject</a>
+              </li>
+              <li>
+                <a href="../../maintenance/subject/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Subject</a>
+              </li>
+              <li>
+                <a href="../../maintenance/teacher/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Teacher</a>
+              </li>
+            </ul>
+          </div>
+        </li>
+
+        <li class="mb-1">
+          <button class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed"
+            data-bs-toggle="collapse" data-bs-target="#orders-collapse" aria-expanded="true">
+            User
+          </button>
+          <div class="collapse show" id="orders-collapse">
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li>
+                <a href="./index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Activity Log</a>
+              </li>
+              <li>
+                <a href="../permission/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Permission</a>
+              </li>
+              <li>
+                <a href="../user_management/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">User Management</a>
+              </li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+      <hr />
+      <div class="dropdown">
+        <button id="signout" class="btn d-flex align-items-center link-body-emphasis text-decoration-none border-0">
+          Sign Out
+        </button>
+      </div>
     </div>
-    <a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-      Maintenance
-    </a>
-    <ul class="dropdown-menu">
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/admin/">Admin</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/room/">Room</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/category/">Category</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/college/">College</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/course/">Course</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/student/">Student</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/semester/">Semester</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/subject/">Subject</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/teacher/">Teacher</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/student_subject/">Student Subject</a>
-      </li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/departments/">Department</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/school_year/">School Year</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/maintenance/items/">Items</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/user/activity_log/">Activity Log | User</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/user/permission/">Permission | User</a></li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/user/user_management/">User Management | User</a>
-      </li>
-      <li><a class="dropdown-item" href="http://127.0.0.1:5500/client/user/transaction/">Transaction</a></li>
-    </ul>
   </div>
+
   <div id="main">
-
-
     <nav class="navbar sticky-top" style="background-color: darkgreen">
       <div class="container-fluid">
         <a class="navbar-brand fs-7 text-white">
@@ -62,40 +164,40 @@
         </span>
       </div>
     </nav>
-  </div>
 
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md">
-        <div class="container-fluid mt-3">
-          <div class="row align-items-center  border-bottom mb-2">
-            <div class="col-md">
-              <div class="container-fluid mb-3">
-                <h1 class="display-5">Activity Log</h1>
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-md">
+          <div class="container-fluid mt-3">
+            <div class="row align-items-center border-bottom mb-2">
+              <div class="col-md">
+                <div class="container-fluid mb-3">
+                  <h1 class="display-5">Activity Log</h1>
+                </div>
               </div>
-            </div>
-            <div class="col-md">
-              <nav aria-label="breadcrumb">
-                <ol class="breadcrumb float-end">
-                  <li class="breadcrumb-item">User</li>
-                  <li class="breadcrumb-item active" aria-current="page">
-                    Activity Log
-                  </li>
-                </ol>
-              </nav>
+              <div class="col-md">
+                <nav aria-label="breadcrumb">
+                  <ol class="breadcrumb float-end">
+                    <li class="breadcrumb-item">User</li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                      Activity Log
+                    </li>
+                  </ol>
+                </nav>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="table-responsive mt-2">
-        <table id="table" class="table table-striped table-hover fw-medium" cellspacing="0" width="100%">
-          <thead>
-            <th class="col-md-3">Date Time</th>
-            <th class="col-md-3">Transacted By:</th>
-            <th class="col-md-6">Action Performed</th>
-          </thead>
-        </table>
+        <div class="table-responsive mt-2">
+          <table id="table" class="table table-striped table-hover fw-medium" cellspacing="0" width="100%">
+            <thead>
+              <th class="col-md-3">Date Time</th>
+              <th class="col-md-3">Transacted By:</th>
+              <th class="col-md-6">Action Performed</th>
+            </thead>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -108,7 +210,6 @@
     </span>
   </div>
 </footer>
-
 
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"

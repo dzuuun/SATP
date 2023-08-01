@@ -38,3 +38,12 @@ function closeNav() {
 function toggleNav() {
   nav ? closeNav() : openNav();
 }
+
+let signOutButton = document.getElementById("signout");
+
+signOutButton.addEventListener("click", () => {
+  // sessionStorage.clear();
+  window.location.href = "../../index.html";
+});
+
+openNav()
