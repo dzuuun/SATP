@@ -55,8 +55,8 @@ module.exports = {
 
   addUser: (req, res) => {
     const body = req.body;
-    // const salt = genSaltSync(10);
-    // body.password = hashSync(body.password, salt);
+    const salt = genSaltSync(10);
+    body.password = hashSync(body.password, salt);
     addUser(body, (err, results) => {
       if (err) {
         return res.json({
@@ -140,6 +140,8 @@ module.exports = {
 
   updateUserCredentials: (req, res) => {
     const body = req.body;
+    const salt = genSaltSync(10);
+    body.password = hashSync(body.password, salt);
     updateUserCredentials(body, (err, results) => {
       if (err) {
         console.log(err);
