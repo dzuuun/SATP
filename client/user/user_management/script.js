@@ -1,4 +1,14 @@
 const baseURL = "http://localhost:3000";
+var user = sessionStorage.getItem("user_id");
+
+console.log(user)
+
+// ADD CHECK USER IF LOGGED IN OR NOT
+if (user === null) {
+  console.log("null user")
+} else {
+  console.log(user)
+}
 
 var data = $("#table").DataTable({
   ajax: {
@@ -171,7 +181,7 @@ formAddUser.addEventListener("submit", (event) => {
   }
 
   formData.append("is_temp_pass", "1"); // automatic mark password as temporary after generating a password
-  formData.append("user_id", "1"); // get user id from cookie (mock data)
+  formData.append("user_id", user); // get user id from cookie (mock data)
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/user/add`, {
@@ -303,7 +313,7 @@ formEditUserInfo.addEventListener("submit", (event) => {
   }
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", "1"); // get user id from localStorage (mock data)
+  formData.append("user_id", user); // get user id from localStorage (mock data)
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/user/update/info`, {
@@ -341,7 +351,7 @@ formEditUserCredentials.addEventListener("submit", (event) => {
   }
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", "1"); // get user id from localStorage (mock data)
+  formData.append("user_id", user); // get user id from localStorage (mock data)
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/user/update/credentials`, {
@@ -382,7 +392,7 @@ formEditPermission.addEventListener("submit", (event) => {
   formData.delete("role");
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", "1"); // get user id from localStorage (mock data)
+  formData.append("user_id", user); // get user id from localStorage (mock data)
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/user/update/control`, {
@@ -412,9 +422,9 @@ formEditStatus.addEventListener("submit", (event) => {
   const isActive = document.getElementById("editIsUserActive").checked;
   let status;
   if (isActive == false) {
-    status = { is_active: 0, id: rowIdToUpdate, user_id: 1 };
+    status = { is_active: 0, id: rowIdToUpdate, user_id: user};
   } else {
-    status = { is_active: 1, id: rowIdToUpdate, user_id: 1 };
+    status = { is_active: 1, id: rowIdToUpdate, user_id: user };
   }
 
   if (confirm("This action cannot be undone.") == true) {
@@ -441,4 +451,29 @@ formEditStatus.addEventListener("submit", (event) => {
 $(document).ready(function () {
   getCourse();
   getPermission();
+});
+
+
+function openNav() {
+  document.getElementById("mySidenav").style.width = "250px";
+  document.getElementById("main").style.marginLeft = "250px";
+  nav = true;
+}
+
+var nav = false;
+
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+  document.getElementById("main").style.marginLeft = "0";
+  nav = false;
+}
+function toggleNav() {
+  nav ? closeNav() : openNav();
+}
+
+let signOutButton = document.getElementById("signout");
+
+signOutButton.addEventListener("click", () => {
+  // sessionStorage.clear();
+  window.location.href = "../../index.html";
 });
