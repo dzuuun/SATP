@@ -4,7 +4,7 @@ const {
   getUsers,
   getUserByUserName,
 } = require("./login.model");
-// const { genSaltSync, hashSync, compareSync } = require("bcrypt");
+const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
 module.exports = {
   createUser: (req, res) => {
@@ -83,16 +83,19 @@ module.exports = {
       }
       const result = compareSync(body.password, results.password);
       if (result) {
-        results.password = undefined;
+        // results.password = undefined;
         // const jsontoken = sign({ result: results }, process.env.SECRET_KEY, {
         //   expiresIn: "4h",
         // });
         return res.json({
           success: 1,
           message: "User logged in successfully.",
+          user_id: results.user_id,
+          data: results,
+          // token: jsontoken,
         });
       } else {
-        return res.json({
+        return res.status(500).json({
           success: 0,
           message: "Invalid username or password.",
         });
