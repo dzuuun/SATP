@@ -52,7 +52,7 @@ const getCategory = async () => {
     categoryList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     categoryList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
-  $('.form-control').selectpicker('refresh');
+  $(".form-control").selectpicker("refresh");
 };
 
 getCategory();
@@ -96,7 +96,7 @@ formAddItem.addEventListener("submit", (event) => {
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
-  $('.form-control').selectpicker('refresh');
+  $(".form-control").selectpicker("refresh");
 });
 
 function setSuccessMessage(message) {
@@ -170,7 +170,7 @@ async function editFormCall(id) {
         document.getElementById("isQuestionActiveEdit").checked = true;
       }
       $("#editModal").modal("show");
-      $('.form-control').selectpicker('refresh');
+      $(".form-control").selectpicker("refresh");
     });
 }
 const formEditItem = document.querySelector("#editItemForm");
@@ -220,25 +220,46 @@ function deleteRow(id) {
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: 1 };
   if (confirm("This action cannot be undone.") == true) {
-  await fetch(`${baseURL}/api/item/delete`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#deleteModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-      }
-    });
+    await fetch(`${baseURL}/api/item/delete`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        if (response.success == 0) {
+          setErrorMessage(response.message);
+        } else {
+          setSuccessMessage(response.message);
+          $("#deleteModal").modal("hide");
+          $("#table").DataTable().ajax.reload();
+        }
+      });
   }
 }
 
-// initialize datas on page load
+function openNav() {
+  document.getElementById("mySidenav").style.width = "250px";
+  document.getElementById("main").style.marginLeft = "250px";
+  nav = true;
+}
 
+var nav = false;
+
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+  document.getElementById("main").style.marginLeft = "0";
+  nav = false;
+}
+function toggleNav() {
+  nav ? closeNav() : openNav();
+}
+
+let signOutButton = document.getElementById("signout");
+
+signOutButton.addEventListener("click", () => {
+  // sessionStorage.clear();
+  window.location.href = "../../index.html";
+});

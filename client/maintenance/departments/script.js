@@ -4,7 +4,7 @@ let data = $("#table").DataTable({
   ajax: {
     type: "GET",
     url: `${baseURL}/api/department`,
-    cache: true, 
+    cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [
@@ -50,7 +50,7 @@ const getCollege = async () => {
     collegeList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
     collegeList2.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
   });
-  $('.form-control').selectpicker('refresh');
+  $(".form-control").selectpicker("refresh");
 };
 
 getCollege(); // Initialize college dropdown
@@ -94,7 +94,7 @@ formAddDepartment.addEventListener("submit", (event) => {
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
-  $('.form-control').selectpicker('refresh');
+  $(".form-control").selectpicker("refresh");
 });
 
 function setSuccessMessage(message) {
@@ -158,7 +158,7 @@ async function editFormCall(id) {
         document.getElementById("isDepartmentActiveEdit").checked = true;
       }
       $("#editModal").modal("show");
-      $('.form-control').selectpicker('refresh');
+      $(".form-control").selectpicker("refresh");
     });
 }
 const formEditDepartment = document.querySelector("#editDepartmentForm");
@@ -223,3 +223,27 @@ async function confirmDelete() {
       }
     });
 }
+
+function openNav() {
+  document.getElementById("mySidenav").style.width = "250px";
+  document.getElementById("main").style.marginLeft = "250px";
+  nav = true;
+}
+
+var nav = false;
+
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+  document.getElementById("main").style.marginLeft = "0";
+  nav = false;
+}
+function toggleNav() {
+  nav ? closeNav() : openNav();
+}
+
+let signOutButton = document.getElementById("signout");
+
+signOutButton.addEventListener("click", () => {
+  // sessionStorage.clear();
+  window.location.href = "../../index.html";
+});

@@ -254,28 +254,52 @@ async function confirmDelete() {
   }
 }
 
-const input = document.querySelector(".input")
-const output = document.querySelector(".output")
-let imagesArray = []
+const input = document.querySelector(".input");
+const output = document.querySelector(".output");
+let imagesArray = [];
 
 input.addEventListener("change", () => {
-  const file = input.files
-  imagesArray.push(file[0])
-  displayImages()
-})
+  const file = input.files;
+  imagesArray.push(file[0]);
+  displayImages();
+});
 
 function displayImages() {
-  let images = ""
+  let images = "";
   imagesArray.forEach((image, index) => {
     images = `<div class="image">
                 <img src="${URL.createObjectURL(image)}" alt="image">
                 <span onclick="deleteImage(${index})">&times;</span>
-              </div>`
-  })
-  output.innerHTML = images
+              </div>`;
+  });
+  output.innerHTML = images;
 }
 
 function deleteImage(index) {
-  imagesArray.splice(index, 1)
-  displayImages()
+  imagesArray.splice(index, 1);
+  displayImages();
 }
+
+function openNav() {
+  document.getElementById("mySidenav").style.width = "250px";
+  document.getElementById("main").style.marginLeft = "250px";
+  nav = true;
+}
+
+var nav = false;
+
+function closeNav() {
+  document.getElementById("mySidenav").style.width = "0";
+  document.getElementById("main").style.marginLeft = "0";
+  nav = false;
+}
+function toggleNav() {
+  nav ? closeNav() : openNav();
+}
+
+let signOutButton = document.getElementById("signout");
+
+signOutButton.addEventListener("click", () => {
+  // sessionStorage.clear();
+  window.location.href = "../../index.html";
+});

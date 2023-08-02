@@ -17,330 +17,454 @@
 </head>
 
 <body style="min-height: 400px; margin-bottom: 100px; clear: both">
-    <nav class="navbar sticky-top" style="background-color: darkgreen">
-        <div class="container-fluid">
-            <a class="navbar-brand fs-7 text-white">
-                <!-- <i onclick="toggleNav()" class="bi bi-list"></i> -->
-                <img src="../../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
-                    class="d-inline-block align-text-top" />
-                Notre Dame of Marbel University
+    <div id="mySidenav" class="sidenav">
+        <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary h-100" style="width: 280px">
+            <a href="#"
+                class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+                <img class="bi pe-none me-2" width="30" height="30" src="../../images/NDMU-Logo.png" />
+
+                <span>SATP | Menu</span>
             </a>
-            <span class="navbar-text text-white">
-                Student Assessment of Teacher's Performance
-            </span>
-        </div>
-    </nav>
+            <hr />
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="mb-1">
+                    <button onclick="window.location.href= `../../transaction/index.html`"
+                        class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+                        Transaction
+                    </button>
+                </li>
+                <li class="mb-1">
+                    <button onclick="window.location.href= `../../report/index.html`"
+                        class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+                        Report
+                    </button>
+                </li>
+                <li class="mb-1">
+                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed"
+                        data-bs-toggle="collapse" data-bs-target="#maintenance-collapse" aria-expanded="true">
+                        Maintenance
+                    </button>
+                    <div class="collapse show" id="maintenance-collapse">
+                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                            <li>
+                                <a href="../admin/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Admin</a>
+                            </li>
+                            <li>
+                                <a href="../category/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Category</a>
+                            </li>
+                            <li>
+                                <a href="../college/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">College</a>
+                            </li>
+                            <li>
+                                <a href="../course/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Course</a>
+                            </li>
+                            <li>
+                                <a href="../departments/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Department</a>
+                            </li>
+                            <li>
+                                <a href="../items/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Items</a>
+                            </li>
+                            <li>
+                                <a href="../room/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Room</a>
+                            </li>
+                            <li>
+                                <a href="../school_year/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">School
+                                    Year</a>
+                            </li>
+                            <li>
+                                <a href="../semester/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Semester</a>
+                            </li>
+                            <li>
+                                <a href="../student/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Student</a>
+                            </li>
+                            <li>
+                                <a href="./index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Student
+                                    Subject</a>
+                            </li>
+                            <li>
+                                <a href="../subject/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Subject</a>
+                            </li>
+                            <li>
+                                <a href="../teacher/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Teacher</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- <div class="col-1">sidebar here</div> -->
-            <div class="col-md">
-                <div class="container-fluid mt-3">
-                    <div class="row align-items-center border-bottom mb-3">
-                        <div class="col-md">
+                <li class="mb-1">
+                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed"
+                        data-bs-toggle="collapse" data-bs-target="#user-collapse" aria-expanded="false">
+                        User
+                    </button>
+                    <div class="collapse" id="user-collapse">
+                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                            <li>
+                                <a href="../../user/activity_log/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Activity
+                                    Log</a>
+                            </li>
+                            <li>
+                                <a href="../../user/permission/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Permission</a>
+                            </li>
+                            <li>
+                                <a href="../../user/user_management/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">User
+                                    Management</a>
+                            </li>
+                        </ul>
+                    </div>
+                </li>
+            </ul>
+            <hr />
+            <div class="dropdown">
+                <button id="signout"
+                    class="btn d-flex align-items-center link-body-emphasis text-decoration-none border-0">
+                    Sign Out
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="main">
+        <nav class="navbar sticky-top" style="background-color: darkgreen">
+            <div class="container-fluid">
+                <a class="navbar-brand fs-7 text-white">
+                    <i onclick="toggleNav()" class="bi bi-list"></i>
+                    <img src="../../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
+                        class="d-inline-block align-text-top" />
+                    Notre Dame of Marbel University
+                </a>
+                <span class="navbar-text text-white">
+                    Student Assessment of Teacher's Performance
+                </span>
+            </div>
+        </nav>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md">
+                    <div class="container-fluid mt-3">
+                        <div class="row align-items-center border-bottom mb-3">
+                            <div class="col-md">
+                                <div class="container-fluid">
+                                    <h1 class="display-5">Student Subject</h1>
+                                </div>
+                            </div>
+                            <div class="col-md">
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb float-end">
+                                        <li class="breadcrumb-item">Maintenance</li>
+                                        <li class="breadcrumb-item active" aria-current="page">
+                                            Student Subject
+                                        </li>
+                                    </ol>
+                                </nav>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md text-nowrap mb-3">
+                                <button type="button" class="btn text-white text-nowrap fw-medium" onclick="addNew()"
+                                    style="background-color: darkgreen" title="Add New">
+                                    <i class="bi bi-plus"></i> Add New
+                                </button>
+                                <button type="button" class="btn text-nowrap border excluded fw-medium"
+                                    data-bs-toggle="modal" data-bs-target="#excludedModal" disabled>
+                                    Show Excluded Entries
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row" id="loaddata">
+                            <div class="d-flex flex-wrap justify-content-center">
+                                <div class="col-md-3 me-3 mb-3">
+                                    <select name="student_id" id="loadStudent" class="form-control"
+                                        data-live-search="true" aria-label="Default select example" required>
+                                        <option disabled selected value="">Select Student</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 me-3 mb-3">
+                                    <select name="school_year_id" id="loadSchoolYear" class="form-control"
+                                        data-live-search="true" aria-label="Default select example" required>
+                                        <option disabled selected value="">Select School Year</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 me-3 mb-3">
+                                    <select name="semester_id" id="loadSemester" class="form-control"
+                                        data-live-search="true" aria-label="Default select example" required>
+                                        <option disabled selected value="">Select Semester</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table id="table" class="table table-sm table-hover fw-medium" cellspacing="0" width="100%">
+                    <thead>
+                        <th>Subject Code</th>
+                        <th>Subject Name</th>
+                        <th>Teacher</th>
+                        <th>Schedule Code</th>
+                        <th>Time Start</th>
+                        <th>Time End</th>
+                        <th>Day</th>
+                        <th>Room</th>
+                        <th>Excluded</th>
+                        <th>Manage</th>
+                    </thead>
+                </table>
+            </div>
+        </div>
+
+        <!-- generate transaction Modal -->
+        <div class="modal fade" id="transactionModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="container text-center mb-3">
+                            <div class="">
+                                <i class="bi bi-check2-circle" style="font-size: 3rem; color: green"></i>
+                            </div>
+                            <strong class="fs-4">Create Transaction</strong>
+                            <br />
+                            <label class="mt-3">This will create transaction for rating of the subject. <br />
+                                This action cannot be undone.</label>
+                        </div>
+                        <div class="text-center mt-3 mb-3">
+                            <button type="button" class="cancel btn btn-default border-0 text-nowrap"
+                                data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="button" style="background-color: darkgreen"
+                                class="btn btn-default border text-white text-nowrap"
+                                onclick="confirmGenerateTransaction()" id="deleteRow">
+                                Create
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Modal -->
+        <div class="modal fade" data-bs-backdrop="static" id="addNewModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            Add New Student's Subject
+                        </h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form" id="newStudentSubjectForm">
+
                             <div class="container-fluid">
-                                <h1 class="display-5">Student Subject</h1>
-                            </div>
-                        </div>
-                        <div class="col-md">
-                            <nav aria-label="breadcrumb">
-                                <ol class="breadcrumb float-end">
-                                    <li class="breadcrumb-item">Maintenance</li>
-                                    <li class="breadcrumb-item active" aria-current="page">
-                                        Student Subject
-                                    </li>
-                                </ol>
-                            </nav>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md text-nowrap mb-3">
-                            <button type="button" class="btn text-white text-nowrap fw-medium" onclick="addNew()"
-                                style="background-color: darkgreen" title="Add New">
-                                <i class="bi bi-plus"></i> Add New
-                            </button>
-                            <button type="button" class="btn text-nowrap border excluded fw-medium" data-bs-toggle="modal"
-                                data-bs-target="#excludedModal" disabled>
-                                Show Excluded Entries
-                            </button>
-                        </div>
-                    </div>
-                    <div class="row" id="loaddata">
-                        <div class="d-flex flex-wrap justify-content-center">
-                            <div class="col-md-3 me-3 mb-3">
-                                <select name="student_id" id="loadStudent" class="form-control" data-live-search="true"
-                                    aria-label="Default select example" required>
-                                    <option disabled selected value="">Select Student</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 me-3 mb-3">
-                                <select name="school_year_id" id="loadSchoolYear" class="form-control"
-                                    data-live-search="true" aria-label="Default select example" required>
-                                    <option disabled selected value="">Select School Year</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3 me-3 mb-3">
-                                <select name="semester_id" id="loadSemester" class="form-control"
-                                    data-live-search="true" aria-label="Default select example" required>
-                                    <option disabled selected value="">Select Semester</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="table-responsive">
-            <table id="table" class="table table-sm table-hover fw-medium" cellspacing="0" width="100%">
-                <thead>
-                    <th>Subject Code</th>
-                    <th>Subject Name</th>
-                    <th>Teacher</th>
-                    <th>Schedule Code</th>
-                    <th>Time Start</th>
-                    <th>Time End</th>
-                    <th>Day</th>
-                    <th>Room</th>
-                    <th>Excluded</th>
-                    <th>Manage</th>
-                </thead>
-            </table>
-        </div>
-    </div>
-
-    <!-- generate transaction Modal -->
-    <div class="modal fade" id="transactionModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="container text-center mb-3">
-                        <div class="">
-                            <i class="bi bi-check2-circle" style="font-size: 3rem; color: green"></i>
-                        </div>
-                        <strong class="fs-4">Create Transaction</strong>
-                        <br />
-                        <label class="mt-3">This will create transaction for rating of the subject. <br />
-                            This action cannot be undone.</label>
-                    </div>
-                    <div class="text-center mt-3 mb-3">
-                        <button type="button" class="cancel btn btn-default border-0 text-nowrap"
-                            data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="button" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap" onclick="confirmGenerateTransaction()"
-                            id="deleteRow">
-                            Create
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Modal -->
-    <div class="modal fade" data-bs-backdrop="static" id="addNewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">
-                        Add New Student's Subject
-                    </h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form class="form" id="newStudentSubjectForm">
-
-                        <div class="container-fluid">
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <h4 class="mb-3">Student's Subject Information</h4>
-                                    <label class="form-label fw-bold">Student</label>
-                                    <select name="student_id" id="selectStudent" class="form-control"
-                                        data-live-search="true" aria-label="Default select example" required>
-                                        <option disabled selected value="">Select</option>
-                                    </select>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <h4 class="mb-3">Student's Subject Information</h4>
+                                        <label class="form-label fw-bold">Student</label>
+                                        <select name="student_id" id="selectStudent" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">School Year</label>
-                                    <select name="school_year_id" id="selectSchoolYear" class="form-control"
-                                        data-live-search="true" aria-label="Default select example" required>
-                                        <option disabled selected value="">Select</option>
-                                    </select>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">School Year</label>
+                                        <select name="school_year_id" id="selectSchoolYear" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Semester</label>
-                                    <select name="semester_id" id="selectSemester" class="form-control"
-                                        data-live-search="true" aria-label="Default select example" required>
-                                        <option disabled selected value="">Select</option>
-                                    </select>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Semester</label>
+                                        <select name="semester_id" id="selectSemester" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Subject</label>
-                                    <select name="subject_id" id="selectSubject" class="form-control"
-                                        data-live-search="true" aria-label="Default select example" required>
-                                        <option disabled selected value="">Select</option>
-                                    </select>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Subject</label>
+                                        <select name="subject_id" id="selectSubject" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Teacher</label>
-                                    <select name="teacher_id" id="selectTeacher" class="form-control"
-                                        data-live-search="true" aria-label="Default select example" required>
-                                        <option disabled selected value="">Select</option>
-                                    </select>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Teacher</label>
+                                        <select name="teacher_id" id="selectTeacher" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Schedule Code</label>
-                                    <input class="form-control" id="addScheduleCode" name="schedule_code"
-                                        placeholder="Example: " required />
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Schedule Code</label>
+                                        <input class="form-control" id="addScheduleCode" name="schedule_code"
+                                            placeholder="Example: " required />
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Time Start</label>
-                                    <input type="time" class="form-control" id="addTimeStart" name="time_start"
-                                        required />
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Time Start</label>
+                                        <input type="time" class="form-control" id="addTimeStart" name="time_start"
+                                            required />
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Time End</label>
-                                    <input type="time" class="form-control" id="addTimeEnd" name="time_end" required />
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Time End</label>
+                                        <input type="time" class="form-control" id="addTimeEnd" name="time_end"
+                                            required />
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Day</label>
-                                    <input class="form-control" id="addDay" name="day" placeholder="Example: MTH/TTF"
-                                        required />
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Day</label>
+                                        <input class="form-control" id="addDay" name="day"
+                                            placeholder="Example: MTH/TTF" required />
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Room</label>
-                                    <select name="room_id" id="selectRoom" class="form-control" data-live-search="true"
-                                        aria-label="Default select example" required>
-                                        <option disabled selected value="">Select</option>
-                                    </select>
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Room</label>
+                                        <select name="room_id" id="selectRoom" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label class="form-label fw-bold">Included</label>
-                                </div>
-                                <div class="col">
-                                    <div class="form-check float-end form-switch">
-                                        <input class="form-check-input" type="checkbox" role="switch" id="isIncluded"
-                                            checked />
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label fw-bold">Included</label>
+                                    </div>
+                                    <div class="col">
+                                        <div class="form-check float-end form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                id="isIncluded" checked />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0">
-                    <div class="col">
-                        <button type="button" class="btn btn-default border text-nowrap" data-bs-toggle="modal"
-                            data-bs-target="#importFileModal">
-                            Import Multiple
-                        </button>
-                    </div>
-                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-                    <button type="submit" style="background-color: darkgreen"
-                        class="btn btn-default border text-white text-nowrap" form="newStudentSubjectForm">
-                        Submit
-                    </button>
-                </div>
-
-            </div>
-        </div>
-    </div>
-
-    <!-- show excluded data Modal -->
-    <div class="modal fade" id="excludedModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h1 class="modal-title fs-5">Excluded Entries</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <div class="table-responsive">
-                            <table id="tableExcluded" class="table table-sm table-hover fw-medium" cellspacing="0"
-                                width="100%">
-                                <thead>
-                                    <th>Subject Code</th>
-                                    <th>Subject Name</th>
-                                    <th>Teacher</th>
-                                    <th>Schedule Code</th>
-                                    <th>Time Start</th>
-                                    <th>Time End</th>
-                                    <th>Day</th>
-                                    <th>Room</th>
-                                    <th>Excluded</th>
-                                    <th>Reason</th>
-                                </thead>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- import CSV Modal -->
-    <div class="modal fade" data-bs-backdrop="static" id="importFileModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h1 class="modal-title fs-5">Import Multiple Entries</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form class="form" id="uploadFileForm">
-                    <div class="modal-body">
-                        <div class="container-fluid">
-                            <label for="formFile" class="form-label">This feature allows user to import multiple entries
-                                into the
-                                database.
-                            </label>
-                            <div class="row">
-                                <div class="mt-2 mb-3">
-                                    <label for="formFile" class="form-label">Select a .csv file to upload</label>
-                                    <input class="form-control" type="file" accept=".csv" id="formFile" />
-                                </div>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                     <div class="modal-footer border-0">
+                        <div class="col">
+                            <button type="button" class="btn btn-default border text-nowrap" data-bs-toggle="modal"
+                                data-bs-target="#importFileModal">
+                                Import Multiple
+                            </button>
+                        </div>
                         <button type="button" class="btn btn-default" data-bs-dismiss="modal">
                             Cancel
                         </button>
                         <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap">
-                            Upload
+                            class="btn btn-default border text-white text-nowrap" form="newStudentSubjectForm">
+                            Submit
                         </button>
                     </div>
-                </form>
+
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- show reason modal
+        <!-- show excluded data Modal -->
+        <div class="modal fade" id="excludedModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h1 class="modal-title fs-5">Excluded Entries</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <div class="table-responsive">
+                                <table id="tableExcluded" class="table table-sm table-hover fw-medium" cellspacing="0"
+                                    width="100%">
+                                    <thead>
+                                        <th>Subject Code</th>
+                                        <th>Subject Name</th>
+                                        <th>Teacher</th>
+                                        <th>Schedule Code</th>
+                                        <th>Time Start</th>
+                                        <th>Time End</th>
+                                        <th>Day</th>
+                                        <th>Room</th>
+                                        <th>Excluded</th>
+                                        <th>Reason</th>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- import CSV Modal -->
+        <div class="modal fade" data-bs-backdrop="static" id="importFileModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h1 class="modal-title fs-5">Import Multiple Entries</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form class="form" id="uploadFileForm">
+                        <div class="modal-body">
+                            <div class="container-fluid">
+                                <label for="formFile" class="form-label">This feature allows user to import multiple
+                                    entries
+                                    into the
+                                    database.
+                                </label>
+                                <div class="row">
+                                    <div class="mt-2 mb-3">
+                                        <label for="formFile" class="form-label">Select a .csv file to upload</label>
+                                        <input class="form-control" type="file" accept=".csv" id="formFile" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
+                            <button type="submit" style="background-color: darkgreen"
+                                class="btn btn-default border text-white text-nowrap">
+                                Upload
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- show reason modal
     <div class="modal fade" id="reasonModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog  modal-dialog-centered">
             <div class="modal-content">
@@ -353,43 +477,44 @@
         </div>
     </div> -->
 
-    <!-- DEACTIVATE modal -->
-    <div class="modal fade" id="deactivateModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header border-0">
-                    <h1 class="modal-title fs-5">Deactivate Student's Subject</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form class="form" id="deactivateStudentSubjectForm">
-                        <div class="container-fluid">
-                            <div class="row mb-3">
-                                <div class="col-md">
-                                    <label class="form-label fw-bold">Reason</label>
-                                    <input class="form-control" id="updateReason" name="reason"
-                                        placeholder="Give a reason." maxlength="75" required />
+        <!-- DEACTIVATE modal -->
+        <div class="modal fade" id="deactivateModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header border-0">
+                        <h1 class="modal-title fs-5">Deactivate Student's Subject</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form" id="deactivateStudentSubjectForm">
+                            <div class="container-fluid">
+                                <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Reason</label>
+                                        <input class="form-control" id="updateReason" name="reason"
+                                            placeholder="Give a reason." maxlength="75" required />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                        Cancel
-                    </button>
-                    <button type="submit" style="background-color: darkgreen"
-                        class="btn btn-default border text-white text-nowrap" form="deactivateStudentSubjectForm">
-                        Submit
-                    </button>
-                </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                            Cancel
+                        </button>
+                        <button type="submit" style="background-color: darkgreen"
+                            class="btn btn-default border text-white text-nowrap" form="deactivateStudentSubjectForm">
+                            Submit
+                        </button>
+                    </div>
 
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Toast container -->
-    <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
+        <!-- Toast container -->
+        <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
+    </div>
 </body>
 
 <footer>
