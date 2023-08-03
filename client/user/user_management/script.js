@@ -1,13 +1,15 @@
 const baseURL = "http://localhost:3000";
 var user = sessionStorage.getItem("user_id");
+var user_admin = sessionStorage.getItem("is_admin_rater");
 
-console.log(user)
-
-// ADD CHECK USER IF LOGGED IN OR NOT
 if (user === null) {
-  console.log("null user")
-} else {
-  console.log(user)
+  alert("Log in to continue.");
+  window.location.href = "../../index.html";
+}
+
+if (user_admin == 0) {
+  alert("You don't have permission to access this page. Redirecting...");
+  window.location.href = "../../rating/index.html";
 }
 
 var data = $("#table").DataTable({
@@ -422,7 +424,7 @@ formEditStatus.addEventListener("submit", (event) => {
   const isActive = document.getElementById("editIsUserActive").checked;
   let status;
   if (isActive == false) {
-    status = { is_active: 0, id: rowIdToUpdate, user_id: user};
+    status = { is_active: 0, id: rowIdToUpdate, user_id: user };
   } else {
     status = { is_active: 1, id: rowIdToUpdate, user_id: user };
   }
@@ -453,7 +455,6 @@ $(document).ready(function () {
   getPermission();
 });
 
-
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
   document.getElementById("main").style.marginLeft = "250px";
@@ -474,6 +475,6 @@ function toggleNav() {
 let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
-  // sessionStorage.clear();
+  sessionStorage.clear();
   window.location.href = "../../index.html";
 });
