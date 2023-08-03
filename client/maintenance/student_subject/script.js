@@ -2,6 +2,18 @@ const baseURL = "http://localhost:3000";
 var student_id;
 var semester_id;
 var school_year_id;
+var user = sessionStorage.getItem("user_id");
+var user_admin = sessionStorage.getItem("is_admin_rater");
+
+if (user === null) {
+  alert("Log in to continue.");
+  window.location.href = "../../index.html";
+}
+
+if (user_admin == 0) {
+  alert("You don't have permission to access this page. Redirecting...");
+  window.location.href = "../../rating/index.html";
+}
 
 let table = $("#table").DataTable({
   columnDefs: [{ className: "dt-center", targets: "_all" }],
@@ -134,7 +146,7 @@ formAddStudentSubject.addEventListener("submit", (event) => {
     formData.append("is_excluded", "1");
   }
 
-  formData.append("user_id", "1"); // get user id from cookie (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/studentsubject/add`, {
@@ -229,7 +241,7 @@ async function confirmGenerateTransaction() {
         semester_id: data[0].semester_id,
         subject_id: data[0].subject_id,
         teacher_id: data[0].teacher_id,
-        user_id: 1, // GET FROM LOCAL STORAGE, ID OF THE SIGNED IN USER
+        user_id: user,
         id: data[0].student_id,
       };
     });
@@ -249,6 +261,8 @@ async function confirmGenerateTransaction() {
         } else {
           $("#transactionModal").modal("hide");
           setSuccessMessage(response.message);
+          loadExcludedData();
+          loadIncludedData();
         }
       });
   }
@@ -269,7 +283,7 @@ formDeactivateSubject.addEventListener("submit", (event) => {
   const formData = new FormData(formDeactivateSubject);
 
   formData.append("id", rowIdToDeact);
-  formData.append("user_id", "1"); // get user id from cookie (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
 
   if (confirm("This action cannot be undone.") == true) {
@@ -293,26 +307,6 @@ formDeactivateSubject.addEventListener("submit", (event) => {
       });
   }
 });
-
-// function showReason(id) {
-//   fetch(`${baseURL}/api/studentsubject/excluded/` + id, {
-//     method: "GET",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(body),
-//   })
-//     .then((res) => res.json())
-//     .then((response) => {
-//       if (response.success == 0) {
-//         setErrorMessage(response.message);
-//       } else {
-//         $("#reasonModal").modal("show");
-//         console.log(response);
-//         document.getElementById("reason").innerHTML = response.data[0].reason;
-//       }
-//     });
-// }
 
 // Get schoolYear from API
 const getSchoolYear = async () => {
@@ -390,7 +384,7 @@ const getStudent = async () => {
   $(".form-control").selectpicker("refresh");
 };
 
-// Get student from API
+// Get room from API
 const getRoom = async () => {
   const roomList = document.querySelector("#selectRoom");
   const endpoint = `${baseURL}/api/room/all/active`,
@@ -433,6 +427,6 @@ function toggleNav() {
 let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
-  // sessionStorage.clear();
+  sessionStorage.clear();
   window.location.href = "../../index.html";
 });

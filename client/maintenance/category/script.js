@@ -1,4 +1,16 @@
 const baseURL = "http://localhost:3000";
+var user = sessionStorage.getItem("user_id");
+var user_admin = sessionStorage.getItem("is_admin_rater");
+
+if (user === null) {
+  alert("Log in to continue.");
+  window.location.href = "../../index.html";
+}
+
+if (user_admin == 0) {
+  alert("You don't have permission to access this page. Redirecting...");
+  window.location.href = "../../rating/index.html";
+}
 
 let data = $("#table").DataTable({
   ajax: {
@@ -48,7 +60,7 @@ formAddCategory.addEventListener("submit", (event) => {
     formData.append("is_active", "1");
   }
 
-  formData.append("user_id", "1"); // get user id from cookie (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/category/add`, {
@@ -80,17 +92,19 @@ function setSuccessMessage(message) {
   document.getElementById(
     "toast-container"
   ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-    <i class="bi bi-check-circle me-2"></i>
-    <strong id="toastLabel" class="me-auto">Success</strong>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-  </div>
-  <div class="d-flex">
-    <div class="toast-body">
-      ${message}
-    </div>
-  </div>
-</div>`;
+                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong id="toastLabel" class="me-auto">Success</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                
+                  <div class="d-flex">
+                    <div class="toast-body">
+                      ${message}
+                    </div>
+                  </div>
+
+                </div>`;
   $("#toastContainer").toast("show");
   setTimeout(() => {
     $(".alert").alert("close");
@@ -101,17 +115,19 @@ function setErrorMessage(message) {
   document.getElementById(
     "toast-container"
   ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-    <i class="bi bi-check-circle me-2"></i>
-    <strong id="toastLabel" class="me-auto">Error</strong>
-    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-  </div>
-  <div class="d-flex">
-    <div class="toast-body">
-      ${message}
-    </div>
-  </div>
-</div>`;
+                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
+                    <i class="bi bi-check-circle me-2"></i>
+                    <strong id="toastLabel" class="me-auto">Error</strong>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                
+                  <div class="d-flex">
+                    <div class="toast-body">
+                      ${message}
+                    </div>
+                  </div>
+                  
+                </div>`;
   $("#toastContainer").toast("show");
   setTimeout(() => {
     $(".alert").alert("close");
@@ -150,7 +166,7 @@ formEditCategory.addEventListener("submit", (event) => {
   }
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", "1"); // get user id from localStorage (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/category/update`, {
@@ -181,7 +197,7 @@ function deleteRow(id) {
 }
 
 async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: 1 };
+  const data = { id: rowIdToDelete, user_id: user };
   await fetch(`${baseURL}/api/category/delete`, {
     method: "DELETE",
     headers: {
@@ -200,7 +216,6 @@ async function confirmDelete() {
       }
     });
 }
-
 
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
@@ -222,7 +237,6 @@ function toggleNav() {
 let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
-  // sessionStorage.clear();
+  sessionStorage.clear();
   window.location.href = "../../index.html";
 });
-

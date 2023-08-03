@@ -140,7 +140,7 @@ formAddPermission.addEventListener("submit", (event) => {
     formData.append("is_active", "1");
   }
 
-  formData.append("user_id", user); // get user id from cookie (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/permission/add`, {
@@ -302,7 +302,7 @@ formEditPermission.addEventListener("submit", (event) => {
   }
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user); // get user id from localStorage (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/permission/update`, {
@@ -373,6 +373,6 @@ function toggleNav() {
 let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
-  // sessionStorage.clear();
+  sessionStorage.clear();
   window.location.href = "../../index.html";
 });

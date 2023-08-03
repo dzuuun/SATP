@@ -1,6 +1,18 @@
 const baseURL = "http://localhost:3000";
 var semester_id;
 var school_year_id;
+var user = sessionStorage.getItem("user_id");
+var user_admin = sessionStorage.getItem("is_admin_rater");
+
+if (user === null) {
+  alert("Log in to continue.");
+  window.location.href = "../index.html";
+}
+
+if (user_admin == 0) {
+  alert("You don't have permission to access this page. Redirecting...");
+  window.location.href = "../../rating/index.html";
+}
 
 let table = $("#table").DataTable({
   columnDefs: [{ className: "dt-center", targets: "" }],

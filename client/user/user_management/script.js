@@ -183,7 +183,7 @@ formAddUser.addEventListener("submit", (event) => {
   }
 
   formData.append("is_temp_pass", "1"); // automatic mark password as temporary after generating a password
-  formData.append("user_id", user); // get user id from cookie (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/user/add`, {
@@ -315,7 +315,7 @@ formEditUserInfo.addEventListener("submit", (event) => {
   }
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user); // get user id from localStorage (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/user/update/info`, {
@@ -353,7 +353,7 @@ formEditUserCredentials.addEventListener("submit", (event) => {
   }
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user); // get user id from localStorage (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/user/update/credentials`, {
@@ -394,7 +394,7 @@ formEditPermission.addEventListener("submit", (event) => {
   formData.delete("role");
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user); // get user id from localStorage (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/user/update/control`, {

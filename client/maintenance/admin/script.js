@@ -1,4 +1,16 @@
 const baseURL = "http://localhost:3000";
+var user = sessionStorage.getItem("user_id");
+var user_admin = sessionStorage.getItem("is_admin_rater");
+
+if (user === null) {
+  alert("Log in to continue.");
+  window.location.href = "../../index.html";
+}
+
+if (user_admin == 0) {
+  alert("You don't have permission to access this page. Redirecting...");
+  window.location.href = "../../rating/index.html";
+}
 
 let data = $("#table").DataTable({
   ajax: {
@@ -89,7 +101,7 @@ formAddAdmin.addEventListener("submit", (event) => {
     formData.append("is_active", "1");
   }
   formData.append("is_temp_pass", "0");
-  formData.append("user_id", "1"); // get user id from cookie (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/admin/add`, {
@@ -192,7 +204,7 @@ formEditAdmin.addEventListener("submit", (event) => {
   const formData = new FormData(formEditAdmin);
 
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", "1"); // get user id from localStorage (mock data)
+  formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   console.log(data);
   if (confirm("This action cannot be undone.") == true) {
@@ -223,9 +235,9 @@ formEditAdminStatus.addEventListener("submit", (event) => {
   const isActive = document.getElementById("editIsAdminStatusActive").checked;
   let status;
   if (isActive == false) {
-    status = { is_active: 0, id: rowIdToUpdate, user_id: 1 };
+    status = { is_active: 0, id: rowIdToUpdate, user_id: user };
   } else {
-    status = { is_active: 1, id: rowIdToUpdate, user_id: 1 };
+    status = { is_active: 1, id: rowIdToUpdate, user_id: user };
   }
 
   if (confirm("This action cannot be undone.") == true) {
@@ -257,7 +269,7 @@ function deleteRow(id) {
 }
 
 async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: 1 };
+  const data = { id: rowIdToDelete, user_id: user };
   if (confirm("This action cannot be undone.") == true) {
     await fetch(`${baseURL}/api/admin/delete`, {
       method: "DELETE",
@@ -299,7 +311,6 @@ function toggleNav() {
 let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
-  // sessionStorage.clear();
+  sessionStorage.clear();
   window.location.href = "../../index.html";
 });
-
