@@ -1,6 +1,8 @@
 const baseURL = "http://localhost:3000";
 var user = sessionStorage.getItem("user_id");
 var user_admin = sessionStorage.getItem("is_admin_rater")
+var username = sessionStorage.getItem("username");
+document.getElementById("userName").innerHTML = username;
 
 if (user === null) {
   alert("Log in to continue.")
