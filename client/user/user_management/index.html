@@ -29,13 +29,15 @@
             <ul class="nav nav-pills flex-column mb-auto">
                 <li class="mb-1">
                     <button onclick="window.location.href= `../../transaction/index.html`"
-                        class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+                        class="btn fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+                        <span class="me-2"><i class="bi bi-list-task"></i></span>
                         Transaction
                     </button>
                 </li>
                 <li class="mb-1">
                     <button onclick="window.location.href= `../../report/index.html`"
-                        class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+                        class="btn fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+                        <span class="me-2"><i class="bi bi-file-earmark-check"></i></span>
                         Report
                     </button>
                 </li>
@@ -105,8 +107,10 @@
                 </li>
 
                 <li class="mb-1">
-                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed"
-                        data-bs-toggle="collapse" data-bs-target="#user-collapse" aria-expanded="true">
+                    <button
+                        class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed rounded-0 border-start border-5"
+                        style="--bs-border-color: darkgreen;" data-bs-toggle="collapse" data-bs-target="#user-collapse"
+                        aria-expanded="true">
                         User
                     </button>
                     <div class="collapse show" id="user-collapse">
@@ -122,7 +126,8 @@
                             </li>
                             <li>
                                 <a href="./index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">User
+                                    class="link-body-emphasis d-inline-flex text-decoration-none ms-5 fs-6 rounded-0 border-start border-5"
+                                    style="--bs-border-color: darkgreen;">User
                                     Management</a>
                             </li>
                         </ul>
@@ -131,16 +136,20 @@
             </ul>
             <hr />
             <div class="dropdown">
-                <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                  <img src="../../images/blank-profile-picture-973460_1280.png" alt="" width="32" height="32" class="rounded-circle me-2">
-                  <strong id="userName"></strong>
+                <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="../../images/blank-profile-picture-973460_1280.png" alt="" width="32" height="32"
+                        class="rounded-circle me-2" />
+                    <strong id="userName"></strong>
                 </a>
                 <ul class="dropdown-menu text-small shadow">
-                  <li><a class="dropdown-item" href="#">Update Password</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" id="signout">Sign out</a></li>
+                    <li><a class="dropdown-item" href="../../update/password/index.html">Update Password</a></li>
+                    <li>
+                        <hr class="dropdown-divider" />
+                    </li>
+                    <li><a class="dropdown-item" id="signout">Sign out</a></li>
                 </ul>
-              </div>
+            </div>
         </div>
     </div>
 
