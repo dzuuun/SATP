@@ -40,8 +40,10 @@
                     </button>
                 </li>
                 <li class="mb-1">
-                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed"
-                        data-bs-toggle="collapse" data-bs-target="#maintenance-collapse" aria-expanded="true">
+                    <button
+                        class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed rounded-0 border-start border-5"
+                        style="--bs-border-color: darkgreen;" data-bs-toggle="collapse"
+                        data-bs-target="#maintenance-collapse" aria-expanded="true">
                         Maintenance
                     </button>
                     <div class="collapse show" id="maintenance-collapse">
@@ -56,7 +58,8 @@
                             </li>
                             <li>
                                 <a href="./index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">College</a>
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded-0 ms-5 fs-6 border-start border-5"
+                                    style="--bs-border-color: darkgreen;">College</a>
                             </li>
                             <li>
                                 <a href="../course/index.html"
@@ -131,10 +134,19 @@
             </ul>
             <hr />
             <div class="dropdown">
-                <button id="signout"
-                    class="btn d-flex align-items-center link-body-emphasis text-decoration-none border-0">
-                    Sign Out
-                </button>
+                <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
+                    data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="../../images/blank-profile-picture-973460_1280.png" alt="" width="32" height="32"
+                        class="rounded-circle me-2">
+                    <strong id="userName"></strong>
+                </a>
+                <ul class="dropdown-menu text-small shadow">
+                    <li><a class="dropdown-item" href="../../update/password/index.html">Update Password</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li><a class="dropdown-item" id="signout">Sign out</a></li>
+                </ul>
             </div>
         </div>
     </div>
