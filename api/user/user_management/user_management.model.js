@@ -182,7 +182,7 @@ module.exports = {
         if (results.changedRows == 1) {
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated User's username: " + data.username],
+            [data.user_id, "Updated User's credentials: " + data.username],
             (error, results) => {
               if (error) {
                 console.log(error);
