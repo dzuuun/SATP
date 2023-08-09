@@ -20,7 +20,7 @@
 <body style="min-height: 400px; margin-bottom: 100px; clear: both">
   <div id="mySidenav" class="sidenav">
     <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary h-100" style="width: 280px">
-      <a href="#" class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
+      <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
         <img class="bi pe-none me-2" width="30" height="30" src="../../images/NDMU-Logo.png" />
 
         <span>SATP | Menu</span>
@@ -29,13 +29,15 @@
       <ul class="nav nav-pills flex-column mb-auto">
         <li class="mb-1">
           <button onclick="window.location.href= `../../transaction/index.html`"
-            class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+            class="btn fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+            <span class="me-2"><i class="bi bi-list-task"></i></span>
             Transaction
           </button>
         </li>
         <li class="mb-1">
           <button onclick="window.location.href= `../../report/index.html`"
-            class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+            class="btn fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
+            <span class="me-2"><i class="bi bi-file-earmark-check"></i></span>
             Report
           </button>
         </li>
