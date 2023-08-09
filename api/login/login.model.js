@@ -67,10 +67,10 @@ module.exports = {
     );
   },
 
-  getUserByUserId: (Id, callBack) => {
+  checkPassword: (data, callBack) => {
     pool.query(
-      "SELECT id, username, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active FROM users WHERE id = ?",
-      [Id],
+      "SELECT id, username, password, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active FROM users WHERE id = ?",
+      [data.id],
       (error, results) => {
         if (error) {
           callBack(error);
@@ -104,6 +104,30 @@ module.exports = {
         data.user_id,
       ],
       (error, results, fields) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+  updatePassword: (data, callBack) => {
+    pool.query(
+      "UPDATE users SET password=?, is_temp_pass=0 WHERE id=?",
+      [data.password, data.id],
+      (error, results) => {
+        if (results.changedRows == 1) {
+          pool.query(
+            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+            [data.user_id, "Updated User's Password"],
+            (error, results) => {
+              if (error) {
+                console.log(error);
+              }
+            }
+          );
+        }
         if (error) {
           callBack(error);
         }

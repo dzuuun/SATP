@@ -1,8 +1,9 @@
 const {
   createUser,
-  getUserByUserId,
+  checkPassword,
   getUsers,
   getUserByUserName,
+  updatePassword
 } = require("./login.model");
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
@@ -27,12 +28,20 @@ module.exports = {
     });
   },
 
-  getUserByUserId: (req, res) => {
-    const id = req.params.id;
-    getUserByUserId(id, (err, results) => {
+  checkPassword: (req, res) => {
+    const body = req.body;
+    checkPassword(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
+      }
+      const result = compareSync(body.password, results.password);
+      if (result === false) {
+        return res.json({
+          success: 0,
+          passwordMatched: "false",
+          message: "Invalid Password.",
+        });
       }
       if (!results) {
         return res.json({
@@ -42,8 +51,8 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "User information retrieved successfully.",
-        data: results,
+        passwordMatched: "true",
+        message: "Existing password matched.",
       });
     });
   },
@@ -100,6 +109,28 @@ module.exports = {
           message: "Invalid username or password.",
         });
       }
+    });
+  },
+
+  updatePassword: (req, res) => {
+    const body = req.body;
+    const salt = genSaltSync(10);
+    body.password = hashSync(body.password, salt);
+    updatePassword(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return false;
+      }
+      if (results.changedRows == 0) {
+        return res.json({
+          success: 0,
+          message: "Contents are still the same.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Password updated successfully.",
+      });
     });
   },
 };
