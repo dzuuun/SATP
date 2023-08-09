@@ -3,6 +3,8 @@ var semester_id;
 var school_year_id;
 var user = sessionStorage.getItem("user_id");
 var user_admin = sessionStorage.getItem("is_admin_rater");
+var username = sessionStorage.getItem("username");
+document.getElementById("userName").innerHTML = username;
 
 if (user === null) {
   alert("Log in to continue.");
@@ -11,7 +13,7 @@ if (user === null) {
 
 if (user_admin == 0) {
   alert("You don't have permission to access this page. Redirecting...");
-  window.location.href = "../../rating/index.html";
+  history.back();
 }
 
 let table = $("#table").DataTable({

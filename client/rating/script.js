@@ -5,16 +5,13 @@ var student_id = sessionStorage.getItem("user_id");
 var username = sessionStorage.getItem("username");
 var user = sessionStorage.getItem("user_id");
 var user_admin = sessionStorage.getItem("is_admin_rater");
+var username = sessionStorage.getItem("username");
+document.getElementById("userName").innerHTML = username;
 
 if (user === null) {
   alert("Log in to continue.");
   window.location.href = "../../index.html";
 }
-
-// if (user_admin == 1) {
-//   alert("You don't have permission to access this page. Redirecting...")
-//   window.location.href = "../../rating/index.html";
-// }
 
 document.getElementById("userName").innerHTML = username;
 
@@ -97,6 +94,7 @@ async function rate(id) {
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
   document.getElementById("main").style.marginLeft = "250px";
+  document.querySelector("footer").style.marginLeft = "250px";
   nav = true;
 }
 
@@ -105,6 +103,7 @@ var nav = false;
 function closeNav() {
   document.getElementById("mySidenav").style.width = "0";
   document.getElementById("main").style.marginLeft = "0";
+  document.querySelector("footer").style.marginLeft = "0";
   nav = false;
 }
 function toggleNav() {

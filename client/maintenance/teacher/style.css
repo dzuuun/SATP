@@ -54,9 +54,8 @@ footer {
   bottom: 0;
   right: 0;
   z-index: 0;
+  transition: margin-left 0.3s;
 }
-
-/*  */
 
 output {
   width: 75;

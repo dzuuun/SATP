@@ -11,7 +11,7 @@ if (user === null) {
 
 if (user_admin == 0) {
   alert("You don't have permission to access this page. Redirecting...");
-  window.location.href = "../../rating/index.html";
+  history.back();
 }
 
 var data = $("#table").DataTable({
