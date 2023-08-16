@@ -1,5 +1,6 @@
 const {
   getPermissions,
+  getRaterId,
   getActivePermissions,
   getPermissionById,
   addPermission,
@@ -29,6 +30,27 @@ module.exports = {
       });
     });
   },
+
+  getRaterId: (req, res) => {
+    getRaterId((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Rater id retrieved successfully.",
+        rater_id: results.id,
+      });
+    });
+  },
+
 
   getActivePermissions: (req, res) => {
     getActivePermissions((err, results) => {

@@ -22,7 +22,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "User added successfully.",
+        message: "Signed up successfully.",
         data: results,
       });
     });

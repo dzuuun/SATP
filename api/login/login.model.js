@@ -6,13 +6,9 @@ module.exports = {
       "SELECT username FROM users WHERE username=?",
       [data.username],
       (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-
         if (results.length === 0) {
           pool.query(
-            "INSERT INTO users ( username, password, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO users (username, password, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?)",
             [
               data.username,
               data.password,
@@ -22,34 +18,41 @@ module.exports = {
               data.is_admin_rater,
               data.is_active,
             ],
-            (error, results) => {
+            (error, result) => {
               if (error) {
                 callBack(error);
               }
-
-              if (results.length === 1) {
-                pool.query(
-                  "INSERT INTO user_info (user_id, surname, givenname, middlename, course_id, year_level, gender) VALUES (?,?,?,?,?,?,?)",
-                  [
-                    results[0].user_id,
-                    data.surname,
-                    data.givenname,
-                    data.middlename,
-                    data.course_id,
-                    data.year_level,
-                    data.gender,
-                  ],
-                  (error, results) => {
-                    if (error) {
-                      callBack(error);
+              pool.query(
+                "INSERT INTO user_info (user_id, surname, givenname, middlename, course_id, year_level, gender) VALUES (?,?,?,?,?,?,?)",
+                [
+                  result.insertId,
+                  data.surname,
+                  data.givenname,
+                  data.middlename,
+                  data.course_id,
+                  data.year_level,
+                  data.gender,
+                ],
+                (error, results) => {
+                  pool.query(
+                    "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                    [result.insertId, "Registered via sign up page"],
+                    (error, results) => {
+                      if (error) {
+                        console.log(error);
+                      }
                     }
-
-                    return callBack(null, results);
+                  );
+                  if (error) {
+                    callBack(error);
                   }
-                );
-              }
+                }
+              );
+              return callBack(null, results);
             }
           );
+        } else {
+          return callBack(results);
         }
       }
     );

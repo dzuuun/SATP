@@ -1,0 +1,26 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+footer {
+  background-color: darkgreen;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 0;
+  transition: margin-left 0.3s;
+}
+
+p {
+  color: #b3b3b3;
+  font-weight: 300;
+}
+
+.content {
+display: grid;
+margin-top: 20px;
+place-items: center;
+} 

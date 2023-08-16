@@ -19,6 +19,15 @@ module.exports = {
     });
   },
 
+  getRaterId: (callBack) => {
+    pool.query('SELECT id FROM permissions WHERE name="Rater"', (error, results) => {
+    if (error) {
+      callBack(error);
+    }
+    return callBack(null, results[0]);
+  });
+},
+
 
   getPermissionById: (Id, callBack) => {
     pool.query(

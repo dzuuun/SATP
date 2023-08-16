@@ -133,7 +133,7 @@ const getCourse = async () => {
     courseList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     courseList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
-  document.getElementById("editPassword").value = data.password;
+
 };
 
 // Get course from API
@@ -149,7 +149,7 @@ const getPermission = async () => {
     permissionList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     permissionList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
-  document.getElementById("editPassword").value = data.password;
+
 };
 
 // post user to API

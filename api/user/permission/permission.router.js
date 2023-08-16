@@ -1,5 +1,6 @@
 const {
   getPermissions,
+  getRaterId,
   getActivePermissions,
   getPermissionById,
   addPermission,
@@ -16,5 +17,6 @@ router.get("/all/active", getActivePermissions);
 router.put("/update", updatePermission);
 router.get("/search/any", searchPermissions);
 router.delete("/delete", deletePermission);
+router.get("/rater/id", getRaterId);
 
 module.exports = router;
