@@ -84,7 +84,6 @@ registerForm.addEventListener("submit", (event) => {
             setSuccessMessage(response.message);
             setTimeout(function () {
                 window.location.href = "../index.html";
-  
             }, 1000);
           }
         });

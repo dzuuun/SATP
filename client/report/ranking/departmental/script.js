@@ -3,21 +3,37 @@ const tbody = document.querySelector("#tbData");
 var genSchoolYear = sessionStorage.getItem("genReportSchoolYear");
 var genSemester = sessionStorage.getItem("genReportSemester");
 var genTeachingStatus = sessionStorage.getItem("genReportTeachingStatus");
+var genDepartment = sessionStorage.getItem("genReportDepartment");
 const header = document.getElementById("header");
 const school_year = document.querySelector("#schoolYear");
 const semester = document.querySelector("#semester");
 const dateGenerated = document.querySelector("#dateGenerated");
-
+var department;
 var today = new Date();
+
+function getDepartmentData() {
+  fetch(`${baseURL}/api/department/` + genDepartment, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      department = response.data.code;
+    });
+}
+getDepartmentData();
 
 const getdata = async () => {
   var query = {
     school_year_id: genSchoolYear,
     semester_id: genSemester,
     is_part_time: genTeachingStatus,
+    departments_id: genDepartment,
   };
 
-  fetch(`${baseURL}/api/report/ranking/overall`, {
+  fetch(`${baseURL}/api/report/ranking/departmental`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -27,15 +43,15 @@ const getdata = async () => {
     .then((res) => res.json())
     .then((response) => {
       if (response.count === 0) {
-        alert("no data found");
-        window.location.href = `../../index.html`;
+        alert("no data found")
+        window.location.href=`../../index.html`
       } else {
         if (response.data[0].is_part_time === 0) {
           header.innerHTML =
-            "OVERALL RANKING RESULT OF TEACHERS WITH FULL-TIME LOAD";
+            "DEPARTMENTAL RANKING RESULT OF TEACHERS WITH FULL-TIME LOAD";
         } else {
           header.innerHTML =
-            "OVERALL RANKING RESULT OF TEACHERS WITH PART-TIME LOAD";
+            "DEPARTMENTAL RANKING RESULT OF TEACHERS WITH PART-TIME LOAD";
         }
         response.data.forEach((data) => {
           tbody.innerHTML += `<tr>
@@ -73,7 +89,7 @@ function csvExport(table_id, separator = ",") {
   }
   var csv_string = csv.join("\n");
 
-  var filename = "SATP Overall Ranking " + today.toDateString() + ".csv";
+  var filename = department +" SATP Departmental Ranking " + today.toDateString() + ".csv";
   var link = document.createElement("a");
   link.style.display = "none";
   link.setAttribute("target", "_blank");

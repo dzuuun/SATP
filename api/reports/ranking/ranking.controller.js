@@ -2,8 +2,8 @@ const { getOverallRanking, getCollegiateRanking, getDepartmentalRanking } = requ
 
 module.exports = {
   getOverallRanking: (req, res) => {
-    const query = req.params;
-    getOverallRanking(query, (err, results) => {
+    const body = req.body;
+    getOverallRanking(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -24,8 +24,8 @@ module.exports = {
   },
 
   getCollegiateRanking: (req, res) => {
-    const query = req.params;
-    getCollegiateRanking(query, (err, results) => {
+    const body = req.body;
+    getCollegiateRanking(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
@@ -46,8 +46,8 @@ module.exports = {
   },
 
   getDepartmentalRanking: (req, res) => {
-    const query = req.params;
-    getDepartmentalRanking(query, (err, results) => {
+    const body = req.body;
+    getDepartmentalRanking(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
