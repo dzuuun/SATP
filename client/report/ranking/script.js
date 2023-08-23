@@ -7,7 +7,7 @@ document.getElementById("userName").innerHTML = username;
 
 if (user === null) {
   alert("Log in to continue.");
-  window.location.href = "../index.html";
+  window.location.href = "../../index.html";
 }
 
 if (user_admin == 0) {
@@ -104,17 +104,17 @@ generateReport.addEventListener("submit", async (e) => {
   switch (data.rankingReport) {
     case "overall":
       console.log("overall");
-      window.location.href = "ranking/overall/index.html";
+      window.location.href = "overall/index.html";
       break;
     case "collegiate":
       console.log("collegiate");
       sessionStorage.setItem("genReportCollege", data.college);
-      window.location.href = "ranking/collegiate/index.html";
+      window.location.href = "collegiate/index.html";
       break;
     case "departmental":
       console.log("departmental");
       sessionStorage.setItem("genReportDepartment", data.department);
-      window.location.href = "ranking/departmental/index.html";
+      window.location.href = "departmental/index.html";
       break;
   }
 });
@@ -140,5 +140,5 @@ let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
   sessionStorage.clear();
-  window.location.href = "../index.html";
+  window.location.href = "../../index.html";
 });

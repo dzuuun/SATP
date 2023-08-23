@@ -28,7 +28,7 @@ const getdata = async () => {
     .then((response) => {
       if (response.count === 0) {
         alert("no data found");
-        window.location.href = `../../index.html`;
+        window.location.href = `../index.html`;
       } else {
         if (response.data[0].is_part_time === 0) {
           header.innerHTML =
