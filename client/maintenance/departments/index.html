@@ -35,11 +35,22 @@
                     </button>
                 </li>
                 <li class="mb-1">
-                    <button onclick="window.location.href= `../../report/index.html`"
-                        class="btn fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
-                        <span class="me-2"><i class="bi bi-file-earmark-check"></i></span>
+                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed"
+                        data-bs-toggle="collapse" data-bs-target="#report-collapse" aria-expanded="false">
                         Report
                     </button>
+                    <div class="collapse" id="report-collapse">
+                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+                            <li>
+                                <a href="../../report/ranking/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded-0 ms-5 fs-6">Ranking</a>
+                            </li>
+                            <li>
+                                <a href="../../report/rating/index.html"
+                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Rating</a>
+                            </li>
+                        </ul>
+                    </div>
                 </li>
                 <li class="mb-1">
                     <button
