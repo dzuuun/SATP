@@ -10,37 +10,43 @@ var transaction_id;
 var item_id = [];
 
 const getdata = async () => {
-  const endpoint = "http://localhost:3000/api/item/active/rate",
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
+  fetch(`${baseURL}/api/item/active/rate`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      console.log(response);
+      rows = response.data;
 
-  rows.forEach((data) => {
-    item_id.push(data.id);
-  });
-  console.log(item_id);
-  rows.forEach((data) => {
-    table.innerHTML += `
-      <tr id="${data.id}">
-        <td class="text-center">${data.number}</td>
-        <td class="text-nowrap fs-6">${data.category}</td>
-        <td class="text-wrap fs-6">${data.question}</td>
-          <td>
-            <div class="text-nowrap fs-4">
-              <select class="star-rating" required>
-                <option value="0">Select a rating</option>
-                <option value="5">Excellent</option>
-                <option value="4">Very Good</option>
-                <option value="3">Average</option>
-                <option value="2">Poor</option>
-                <option value="1">Terrible</option>
-              </select>
-            </div>
-          </td>
-        </tr>`;
-  });
-
-  stars.rebuild();
+      rows.forEach((data) => {
+        item_id.push(data.id);
+      });
+      console.log(item_id);
+      rows.forEach((data) => {
+        table.innerHTML += `
+          <tr id="${data.id}">
+            <td class="text-center">${data.number}</td>
+            <td class="text-nowrap fs-6">${data.category}</td>
+            <td class="text-wrap fs-6">${data.question}</td>
+              <td>
+                <div class="text-nowrap fs-4">
+                  <select class="star-rating" required>
+                    <option value="0">Select a rating</option>
+                    <option value="5">Excellent</option>
+                    <option value="4">Very Good</option>
+                    <option value="3">Average</option>
+                    <option value="2">Poor</option>
+                    <option value="1">Terrible</option>
+                  </select>
+                </div>
+              </td>
+            </tr>`;
+      });
+      stars.rebuild();
+    });
 };
 
 async function getTransactionInfo(id) {
@@ -49,6 +55,7 @@ async function getTransactionInfo(id) {
   })
     .then((res) => res.json())
     .then((response) => {
+      console.log(response);
       school_year.innerHTML = response.data[0].school_year;
       studentRater.innerHTML = response.data[0].student_name;
       semester.innerHTML = response.data[0].semester;
@@ -57,10 +64,6 @@ async function getTransactionInfo(id) {
       transaction_id = response.data[0].id;
     });
 }
-
-var stars = new StarRating(".star-rating", {
-  tooltip: false,
-});
 
 function submitRating() {
   let comment = document.getElementById("comment").value;
@@ -149,7 +152,7 @@ function setErrorMessage(message) {
 }
 
 $(document).ready(function () {
-  transactionToRate = localStorage.getItem("transactionToRate");
+  transactionToRate = sessionStorage.getItem("transactionToRate");
   getdata();
   getTransactionInfo(transactionToRate);
 });

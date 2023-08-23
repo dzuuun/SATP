@@ -37,8 +37,10 @@ const getdata = async () => {
           header.innerHTML =
             "OVERALL RANKING RESULT OF TEACHERS WITH PART-TIME LOAD";
         }
+
         response.data.forEach((data) => {
           tbody.innerHTML += `<tr>
+                    <td></td>
                     <td>${data.teacher_name}</td>
                     <td style="text-transform:uppercase">${data.department}</td>
                     <td style="text-transform:uppercase">${data.college}</td>
