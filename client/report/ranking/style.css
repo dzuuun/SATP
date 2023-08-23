@@ -1,4 +1,7 @@
-
+content {
+  display: flex;
+  place-items: center;
+}
 .sidenav {
     height: 100%;
     width: 0;
