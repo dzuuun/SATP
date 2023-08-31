@@ -1,6 +1,6 @@
 const baseURL = "http://localhost:3000";
-var user = sessionStorage.getItem("user_id");
-var user_admin = sessionStorage.getItem("is_admin_rater");
+var user = localStorage.getItem("user_id");
+var user_admin = localStorage.getItem("is_admin_rater");
 var currentPassword, newPassword, currentPassword;
 
 if (user === null) {

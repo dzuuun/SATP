@@ -152,7 +152,7 @@ function setErrorMessage(message) {
 }
 
 $(document).ready(function () {
-  transactionToRate = sessionStorage.getItem("transactionToRate");
+  transactionToRate = localStorage.getItem("transactionToRate");
   getdata();
   getTransactionInfo(transactionToRate);
 });

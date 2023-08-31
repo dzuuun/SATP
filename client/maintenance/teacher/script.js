@@ -1,7 +1,7 @@
 const baseURL = "http://localhost:3000";
-var user = sessionStorage.getItem("user_id");
-var user_admin = sessionStorage.getItem("is_admin_rater");
-var username = sessionStorage.getItem("username");
+var user = localStorage.getItem("user_id");
+var user_admin = localStorage.getItem("is_admin_rater");
+var username = localStorage.getItem("username");
 document.getElementById("userName").innerHTML = username;
 
 if (user === null) {
@@ -320,6 +320,6 @@ function toggleNav() {
 let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
-  sessionStorage.clear();
+  localStorage.clear();
   window.location.href = "../../index.html";
 });

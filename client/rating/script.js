@@ -1,11 +1,11 @@
 const baseURL = "http://localhost:3000";
-var school_year_id = sessionStorage.getItem("school_year_id");
-var semester_id = sessionStorage.getItem("semester_id");
-var student_id = sessionStorage.getItem("user_id");
-var username = sessionStorage.getItem("username");
-var user = sessionStorage.getItem("user_id");
-var user_admin = sessionStorage.getItem("is_admin_rater");
-var username = sessionStorage.getItem("username");
+var school_year_id = localStorage.getItem("school_year_id");
+var semester_id = localStorage.getItem("semester_id");
+var student_id = localStorage.getItem("user_id");
+var username = localStorage.getItem("username");
+var user = localStorage.getItem("user_id");
+var user_admin = localStorage.getItem("is_admin_rater");
+var username = localStorage.getItem("username");
 document.getElementById("userName").innerHTML = username;
 
 if (user === null) {
@@ -87,7 +87,7 @@ function setErrorMessage(message) {
 }
 
 async function rate(id) {
-  sessionStorage.setItem("transactionToRate", id);
+  localStorage.setItem("transactionToRate", id);
   window.open("../rate/index.html", "_self");
 }
 
@@ -113,6 +113,6 @@ function toggleNav() {
 let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
-  sessionStorage.clear();
+  localStorage.clear();
   window.location.href = "../index.html";
 });

@@ -1,7 +1,7 @@
 const baseURL = "http://localhost:3000";
-var user = sessionStorage.getItem("user_id");
-var user_admin = sessionStorage.getItem("is_admin_rater");
-var username = sessionStorage.getItem("username");
+var user = localStorage.getItem("user_id");
+var user_admin = localStorage.getItem("is_admin_rater");
+var username = localStorage.getItem("username");
 
 document.getElementById("userName").innerHTML = username;
 
@@ -97,9 +97,9 @@ generateReport.addEventListener("submit", async (e) => {
   e.preventDefault();
   const formData = new FormData(generateReport);
   const data = Object.fromEntries(formData);
-  sessionStorage.setItem("genReportSchoolYear", data.school_year);
-  sessionStorage.setItem("genReportSemester", data.semester);
-  sessionStorage.setItem("genReportTeachingStatus", data.teaching_status);
+  localStorage.setItem("genReportSchoolYear", data.school_year);
+  localStorage.setItem("genReportSemester", data.semester);
+  localStorage.setItem("genReportTeachingStatus", data.teaching_status);
 
   switch (data.rankingReport) {
     case "overall":
@@ -108,12 +108,12 @@ generateReport.addEventListener("submit", async (e) => {
       break;
     case "collegiate":
       console.log("collegiate");
-      sessionStorage.setItem("genReportCollege", data.college);
+      localStorage.setItem("genReportCollege", data.college);
       window.location.href = "collegiate/index.html";
       break;
     case "departmental":
       console.log("departmental");
-      sessionStorage.setItem("genReportDepartment", data.department);
+      localStorage.setItem("genReportDepartment", data.department);
       window.location.href = "departmental/index.html";
       break;
   }
@@ -139,6 +139,6 @@ function toggleNav() {
 let signOutButton = document.getElementById("signout");
 
 signOutButton.addEventListener("click", () => {
-  sessionStorage.clear();
+  localStorage.clear();
   window.location.href = "../../index.html";
 });
