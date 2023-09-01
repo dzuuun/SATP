@@ -169,11 +169,11 @@ formAddUser.addEventListener("submit", (event) => {
     formData.append("is_admin_rater", "1");
   }
 
-  if (document.getElementById("editCourse").value === "null") {
+  if (document.getElementById("addCourse").value === "null") {
     formData.delete("course_id");
   }
 
-  if (document.getElementById("editYearLevel").value === "null") {
+  if (document.getElementById("addYearLevel").value === "null") {
     formData.delete("year_level");
   }
 
@@ -269,6 +269,7 @@ async function edit(id) {
     .then((response) => {
       data = response.data;
       rowIdToUpdate = data.id;
+      console.log(document.getElementById("editgender"))
       document.getElementById("editGivenName").value = data.givenname;
       document.getElementById("editMiddleName").value = data.middlename;
       document.getElementById("editLastName").value = data.surname;
@@ -455,6 +456,21 @@ formEditStatus.addEventListener("submit", (event) => {
 $(document).ready(function () {
   getCourse();
   getPermission();
+});
+
+$("input[name='role']").change(function () {
+  if ($(this).val() == "student") {
+    $("#course").show();
+    $("#addCourse").prop("required", true);
+    $("#yearLevel").show();
+    $("#addYearLevel").prop("required", true);
+  } else {
+    $("#course").hide();
+    $("#addCourse").prop("required", false);
+    $("#yearLevel").hide();
+    $("#addYearLevel").prop("required", false);
+  }
+
 });
 
 function openNav() {

@@ -491,32 +491,51 @@
                         </div>
                         <div class="row mb-3">
                             <div class="col-md">
-                                <label class="form-label fw-bold">Gender</label>
-                                <select id="addGender" name="gender" class="form-select"
-                                    aria-label="Default select example" required>
-                                    <option disabled selected value="">Select</option>
-                                    <option value="Male">Male</option>
-                                    <option value="Female">Female</option>
-                                </select>
+                              <label class="form-label fw-medium">Gender</label>
+                              <br>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender" id="male"
+                                  value="MALE" required>
+                                <label class="form-check-label" >Male</label>
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="gender" id="female"
+                                  value="FEMALE">
+                                <label class="form-check-label" >Female</label>
+                              </div>
                             </div>
-                        </div>
-                        <div class="row mb-3">
+                          </div>
+                          <div class="row mb-3">
+                            <div class="col-md">
+                              <label class="form-label fw-medium">Role</label>
+                              <br>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="role" value="student" required>
+                                <label class="form-check-label" >Student</label>
+                              </div>
+                              <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="role" value="admin">
+                                <label class="form-check-label" >Admin</label>
+                              </div>
+                            </div>
+                          </div>
+                        <div class="row mb-3" id="course"  style="display: none">
                             <div class="col-md">
                                 <label class="form-label fw-bold">Course</label>
                                 <select id="addCourse" name="course_id" class="form-control" data-live-search="true"
-                                    aria-label="Default select example" required>
+                                    aria-label="Default select example">
                                     <option disabled selected value="">Select</option>
-                                    <option value="null">--- NOT A STUDENT ---</option>
+                                    <!-- <option value="null">--- NOT A STUDENT ---</option> -->
                                 </select>
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        <div class="row mb-3" id="yearLevel"  style="display: none">
                             <div class="col-md">
                                 <label class="form-label fw-bold">Year Level</label>
                                 <select id="addYearLevel" name="year_level" class="form-control" data-live-search="true"
-                                    aria-label="Default select example" required>
+                                    aria-label="Default select example">
                                     <option disabled selected value="">Select</option>
-                                    <option value="null">--- NOT A STUDENT ---</option>
+                                    <!-- <option value="null">--- NOT A STUDENT ---</option> -->
                                     <option value="1">1st Year</option>
                                     <option value="2">2nd Year</option>
                                     <option value="3">3rd Year</option>
@@ -535,20 +554,6 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md">
-                                <label class="form-label fw-bold">Role</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="role" value="student" />
-                                    <label class="form-check-label"> Student </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="role" value="admin" />
-                                    <label class="form-check-label"> Admin </label>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-check-label fw-bold text-nowrap">Active User</label>
