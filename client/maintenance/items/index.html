@@ -36,22 +36,22 @@
         </li>
         <li class="mb-1">
           <button class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed"
-              data-bs-toggle="collapse" data-bs-target="#report-collapse" aria-expanded="false">
-              Report
+            data-bs-toggle="collapse" data-bs-target="#report-collapse" aria-expanded="false">
+            Report
           </button>
           <div class="collapse" id="report-collapse">
-              <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                  <li>
-                      <a href="../../report/ranking/index.html"
-                          class="link-body-emphasis d-inline-flex text-decoration-none rounded-0 ms-5 fs-6">Ranking</a>
-                  </li>
-                  <li>
-                      <a href="../../report/rating/index.html"
-                          class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Rating</a>
-                  </li>
-              </ul>
+            <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
+              <li>
+                <a href="../../report/ranking/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded-0 ms-5 fs-6">Ranking</a>
+              </li>
+              <li>
+                <a href="../../report/rating/index.html"
+                  class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Rating</a>
+              </li>
+            </ul>
           </div>
-      </li>
+        </li>
         <li class="mb-1">
           <button
             class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed rounded-0 border-start border-5"
@@ -386,15 +386,30 @@
           <div class="modal-body">
             <form class="form" id="uploadFileForm">
               <div class="container-fluid">
-                <label for="formFile" class="form-label">This feature allows user to import multiple entries into the
-                  database.
-                </label>
+                <p>This feature allows user to import multiple
+                  entries
+                  into the
+                  database. Use this <a id="downloadLink" class="link-underline-primary">template</a>
+                  to import the necessary data.
+                </p>
+                <p> Import data by Category. Populate the Item Number on the "number" column, and
+                  the Item Question on the "question" column.</p>
                 <div class="row">
                   <div class="mt-2 mb-3">
                     <label for="formFile" class="form-label">Select a .csv file to upload</label>
-                    <input class="form-control" type="file" accept=".csv" id="formFile" />
+                    <input class="form-control" type="file" id="csvInput" accept=".csv" required />
                   </div>
                 </div>
+                <div class="row">
+                  <div class="col-md mb-3">
+                    <label class="form-label fw-bold">Category</label>
+                    <select name="college_id" id="selectImportCategory" class="form-control" data-live-search="true"
+                      aria-label="Default select example" required>
+                      <option disabled selected value="">Select</option>
+                    </select>
+                  </div>
+                </div>
+
               </div>
             </form>
           </div>
@@ -424,6 +439,7 @@
   </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
   integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>

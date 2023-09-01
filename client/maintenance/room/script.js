@@ -221,7 +221,6 @@ async function confirmDelete() {
 }
 
 const csvInput = document.getElementById("csvInput");
-const uploadCSV = document.getElementById("uploadCSV");
 
 const uploadFileForm = document.querySelector("#uploadFileForm");
 uploadFileForm.addEventListener("submit", (event) => {
@@ -267,7 +266,9 @@ uploadFileForm.addEventListener("submit", (event) => {
                 }
               });
             $("#importFileModal").modal("hide");
-            setSuccessMessage(`${data.length} entries was imported successfully.`)
+            setSuccessMessage(
+              `${data.length} entries was imported successfully.`
+            );
           }
         }
       },
@@ -279,8 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const downloadLink = document.getElementById("downloadLink");
 
   downloadLink.addEventListener("click", function () {
-    const csvContent =
-      "name";
+    const csvContent = "name";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
 
@@ -292,7 +292,6 @@ document.addEventListener("DOMContentLoaded", function () {
     URL.revokeObjectURL(url);
   });
 });
-
 
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";

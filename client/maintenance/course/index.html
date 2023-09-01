@@ -397,17 +397,30 @@
                     <div class="modal-body">
                         <form class="form" id="uploadFileForm">
                             <div class="container-fluid">
-                                <label for="formFile" class="form-label">This feature allows user to import multiple
+                                <p>This feature allows user to import multiple
                                     entries
                                     into the
-                                    database.
-                                </label>
+                                    database. Use this <a id="downloadLink" class="link-underline-primary">template</a>
+                                    to import the necessary data.
+                                </p>
+                                <p> Import data by Department. Populate the Course Code on the "code" column, and
+                                    the Course Name on the "name" column.</p>
                                 <div class="row">
                                     <div class="mt-2 mb-3">
                                         <label for="formFile" class="form-label">Select a .csv file to upload</label>
-                                        <input class="form-control" type="file" accept=".csv" id="formFile" />
+                                        <input class="form-control" type="file" id="csvInput" accept=".csv" required />
                                     </div>
                                 </div>
+                                <div class="row">
+                                    <div class="col-md mb-3">
+                                        <label class="form-label fw-bold">Department</label>
+                                        <select name="department_id" id="selectImportDepartment" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                             </div>
                         </form>
                     </div>
@@ -437,6 +450,7 @@
     </div>
 </footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"

@@ -22,7 +22,7 @@ let data = $("#table").DataTable({
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [
-    { width: "5%", data: "department_code" },
+    { width: "10%", data: "department_code" },
     { data: "name" },
     { width: "5%", data: "college_code" },
     {
@@ -55,6 +55,7 @@ let data = $("#table").DataTable({
 const getCollege = async () => {
   const collegeList = document.querySelector("#selectCollege");
   const collegeList2 = document.querySelector("#selectCollegeEdit");
+  const collegeList3 = document.querySelector("#selectImportCollege");
   const endpoint = `${baseURL}/api/college/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
@@ -63,6 +64,7 @@ const getCollege = async () => {
   rows.forEach((row) => {
     collegeList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
     collegeList2.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
+    collegeList3.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
   });
   $(".form-control").selectpicker("refresh");
 };
@@ -241,6 +243,81 @@ async function confirmDelete() {
       }
     });
 }
+
+const csvInput = document.getElementById("csvInput");
+
+const uploadFileForm = document.querySelector("#uploadFileForm");
+uploadFileForm.addEventListener("submit", (event) => {
+  var college = document.getElementById("selectImportCollege").value;
+  event.preventDefault();
+  const file = csvInput.files[0];
+  if (file) {
+    Papa.parse(file, {
+      complete: function (results) {
+        const headers = results.data[0];
+        const data = [];
+
+        for (let i = 1; i < results.data.length; i++) {
+          const values = results.data[i];
+          if (
+            values.length === headers.length &&
+            values.some((value) => value.trim() !== "")
+          ) {
+            const rowObject = {};
+            for (let j = 0; j < headers.length; j++) {
+              rowObject[headers[j]] = values[j];
+            }
+            rowObject["user_id"] = user;
+            rowObject["is_active"] = 1;
+            rowObject["college_id"] = college;
+            data.push(rowObject);
+          }
+        }
+
+        if (confirm("This action cannot be undone.") == true) {
+          for (let i = 0; i < data.length; i++) {
+            fetch(`${baseURL}/api/department/add`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data[i]),
+            })
+              .then((res) => res.json())
+              .then((response) => {
+                if (response.success == 0) {
+                  setErrorMessage(response.message);
+                } else {
+                  $("#table").DataTable().ajax.reload();
+                }
+              });
+            $("#importFileModal").modal("hide");
+            setSuccessMessage(
+              `${data.length} entries was imported successfully.`
+            );
+          }
+        }
+      },
+    });
+  }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const downloadLink = document.getElementById("downloadLink");
+
+  downloadLink.addEventListener("click", function () {
+    const csvContent = "code,name";
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "department_template.csv";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  });
+});
 
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
