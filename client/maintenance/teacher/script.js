@@ -123,6 +123,9 @@ formAddTeacher.addEventListener("submit", (event) => {
 $(".modal").on("hidden.bs.modal", function () {
   $(this).find("form").trigger("reset");
   $(".form-control").selectpicker("refresh");
+  $("#imageInput").val("");
+  $("#preview").empty();
+  $("#preview").css("display", "none");
 });
 
 function setSuccessMessage(message) {
@@ -272,31 +275,27 @@ async function confirmDelete() {
   }
 }
 
-const input = document.querySelector(".input");
-const output = document.querySelector(".output");
-let imagesArray = [];
+document.addEventListener("DOMContentLoaded", function () {
+  const imageInput = document.getElementById("imageInput");
+  const preview = document.getElementById("preview");
 
-input.addEventListener("change", () => {
-  const file = input.files;
-  imagesArray.push(file[0]);
-  displayImages();
-});
+  imageInput.addEventListener("change", function () {
+    const file = this.files[0];
 
-function displayImages() {
-  let images = "";
-  imagesArray.forEach((image, index) => {
-    images = `<div class="image">
-                <img src="${URL.createObjectURL(image)}" alt="image">
-                <span onclick="deleteImage(${index})">&times;</span>
-              </div>`;
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        preview.innerHTML = "";
+        preview.appendChild(img);
+        preview.style.display = "flex";
+      };
+
+      reader.readAsDataURL(file);
+  
   });
-  output.innerHTML = images;
-}
-
-function deleteImage(index) {
-  imagesArray.splice(index, 1);
-  displayImages();
-}
+});
 
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
