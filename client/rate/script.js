@@ -9,6 +9,46 @@ let transactionToRate;
 var transaction_id;
 var item_id = [];
 
+// const getdata = async () => {
+//   fetch(`${baseURL}/api/item/active/rate`, {
+//     method: "GET",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//   })
+//     .then((res) => res.json())
+//     .then((response) => {
+//       console.log(response);
+//       rows = response.data;
+
+//       rows.forEach((data) => {
+//         item_id.push(data.id);
+//       });
+//       console.log(item_id);
+//       rows.forEach((data) => {
+// table.innerHTML += `
+//   <tr id="${data.id}">
+//     <td class="text-center">${data.number}</td>
+//     <td class="text-nowrap fs-6">${data.category}</td>
+//     <td class="text-wrap fs-6">${data.question}</td>
+//       <td>
+//         <div class="text-nowrap fs-4">
+//           <select class="star-rating" required>
+//             <option value="0">Select a rating</option>
+//             <option value="5">Excellent</option>
+//             <option value="4">Very Good</option>
+//             <option value="3">Average</option>
+//             <option value="2">Poor</option>
+//             <option value="1">Terrible</option>
+//           </select>
+//         </div>
+//       </td>
+//     </tr>`;
+//       });
+//       stars.rebuild();
+//     });
+// };
+
 const getdata = async () => {
   fetch(`${baseURL}/api/item/active/rate`, {
     method: "GET",
@@ -18,34 +58,40 @@ const getdata = async () => {
   })
     .then((res) => res.json())
     .then((response) => {
-      console.log(response);
-      rows = response.data;
+      var result = response.data.reduce((x, y) => {
+        (x[y.category] = x[y.category] || []).push(y);
+        return x;
+      }, {});
 
-      rows.forEach((data) => {
-        item_id.push(data.id);
-      });
-      console.log(item_id);
-      rows.forEach((data) => {
-        table.innerHTML += `
-          <tr id="${data.id}">
-            <td class="text-center">${data.number}</td>
-            <td class="text-nowrap fs-6">${data.category}</td>
-            <td class="text-wrap fs-6">${data.question}</td>
-              <td>
-                <div class="text-nowrap fs-4">
-                  <select class="star-rating" required>
-                    <option value="0">Select a rating</option>
-                    <option value="5">Excellent</option>
-                    <option value="4">Very Good</option>
-                    <option value="3">Average</option>
-                    <option value="2">Poor</option>
-                    <option value="1">Terrible</option>
-                  </select>
-                </div>
-              </td>
-            </tr>`;
-      });
-      stars.rebuild();
+      for (let i = 0; i < Object.keys(result).length; i++) {
+        table.innerHTML += `<th class="text-center" scope="row" colspan="4">${
+          Object.values(result)[i][0].category
+        }</th>`;
+
+        for (let j = 0; j < Object.values(result)[i].length; j++) {
+          item_id.push(Object.values(result)[i][j].id);
+          table.innerHTML += `
+            <tr id="${Object.values(result)[i][j].id}">
+              <td class="text-center">${Object.values(result)[i][j].number}</td>
+              <td class="text-wrap fs-6">${
+                Object.values(result)[i][j].question
+              }</td>
+                <td>
+                  <div class="text-nowrap fs-4">
+                    <select class="star-rating" required>
+                      <option value="0">Select a rating</option>
+                      <option value="5">Excellent</option>
+                      <option value="4">Very Good</option>
+                      <option value="3">Average</option>
+                      <option value="2">Poor</option>
+                      <option value="1">Terrible</option>
+                    </select>
+                  </div>
+                </td>
+              </tr>`;
+        }
+        stars.rebuild();
+      }
     });
 };
 
@@ -55,7 +101,7 @@ async function getTransactionInfo(id) {
   })
     .then((res) => res.json())
     .then((response) => {
-      console.log(response);
+      // console.log(response);
       school_year.innerHTML = response.data[0].school_year;
       studentRater.innerHTML = response.data[0].student_name;
       semester.innerHTML = response.data[0].semester;
@@ -88,7 +134,6 @@ function submitRating() {
         item_id: item_id[i],
         rate: stars.widgets[i].indexSelected + 1,
       };
-
       fetch(`${baseURL}/api/transaction/add/rating`, {
         method: "POST",
         headers: {

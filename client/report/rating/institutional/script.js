@@ -15,6 +15,7 @@ const subjectCode = document.getElementById("subject_code");
 var today = new Date();
 let itemAverage = [];
 let meanAverage = [];
+averagePerSubjectTotal = [];
 
 const getdata = async () => {
   var query = {
@@ -45,18 +46,18 @@ const getdata = async () => {
           tbody.innerHTML += `<th class="text-start" scope="row" colspan="3">${
             Object.values(result)[i][0].category
           }</th>`;
+
           for (let j = 0; j < Object.values(result)[i].length; j++) {
             meanAverage.push(Object.values(result)[i][j].mean);
             itemAverage.push(Object.values(result)[i][j].mean);
+            averagePerSubjectTotal.push(Object.values(result)[i][j].mean); // change the value
 
             tbody.innerHTML += `<tr>
                         <td class="text-start text-wrap">${
                           Object.values(result)[i][j].number
                         }. ${Object.values(result)[i][j].question}</td>
-                        <td style="text-transform:uppercase">5</td>
-                        <td style="text-transform:uppercase">${Object.values(
-                          result
-                        )[i][j].mean.toFixed(2)}</td>
+                        <td>${Object.values(result)[i][j].mean.toFixed(2)}</td>
+                        <td>${Object.values(result)[i][j].mean.toFixed(2)}</td>
                     </tr>`;
           }
           tbody.innerHTML += `<th class="text-end" scope="row" colspan="2">Category Average: </th>
@@ -64,8 +65,14 @@ const getdata = async () => {
           itemAverage = [];
         }
         tbody.innerHTML += `<th class="text-end" scope="row" colspan="1">Average: </th>
-        <td class="fw-bold">5</td>
+        <td class="fw-bold">${average(averagePerSubjectTotal).toFixed(
+          // change the value
+          2
+        )}</td>
         <td></td>`;
+
+        averagePerSubjectTotal = [];
+
         tbody.innerHTML += `<th class="text-end" scope="row" colspan="1">Mean Average: </th>
         <td  colspan="2" class="fw-bold">${average(meanAverage).toFixed(
           2
