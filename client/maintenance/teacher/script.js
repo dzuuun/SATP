@@ -80,6 +80,7 @@ getDepartment();
 
 const formAddTeacher = document.querySelector("#newTeacherForm");
 formAddTeacher.addEventListener("submit", (event) => {
+  var teacher;
   event.preventDefault();
 
   const formData = new FormData(formAddTeacher);
@@ -97,7 +98,7 @@ formAddTeacher.addEventListener("submit", (event) => {
   }
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
-  console.log(data);
+
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/teacher/add`, {
       method: "POST",
@@ -108,6 +109,9 @@ formAddTeacher.addEventListener("submit", (event) => {
     })
       .then((res) => res.json())
       .then((response) => {
+        // console.log(response.data.insertId);
+        teacher = response.data.insertId;
+        uploadImage(teacher);
         if (response.success == 0) {
           setErrorMessage(response.message);
         } else {
@@ -118,6 +122,42 @@ formAddTeacher.addEventListener("submit", (event) => {
       });
   }
 });
+
+async function uploadImage(teacher_id) {
+  // console.log(teacher_id);
+  const image = imageInput.files[0];
+  const imageFormData = new FormData();
+  imageFormData.append("image", image);
+
+  await fetch(`${baseURL}/upload`, {
+    method: "POST",
+    body: imageFormData,
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      imageData = {
+        teacher_id: teacher_id,
+        name: response.fileName,
+        path: response.imagePath,
+      };
+
+      fetch(`${baseURL}/api/teacher/image/upload`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(imageData),
+      })
+        .then((res) => res.json())
+        .then((response) => {
+          if (response.success == 0) {
+            setErrorMessage(response.message);
+          } else {
+            setSuccessMessage(response.message);
+          }
+        });
+    });
+}
 
 // clear modal form upon closing
 $(".modal").on("hidden.bs.modal", function () {
@@ -183,6 +223,7 @@ async function editTeacherInfo(id) {
     .then((res) => res.json())
     .then((response) => {
       data = response.data;
+      document.getElementById("updatePreview").src = `/${data.path}`;
       document.getElementById("editGivenName").value = data.givenname;
       document.getElementById("editMiddleName").value = data.middlename;
       document.getElementById("editLastName").value = data.surname;
@@ -282,18 +323,17 @@ document.addEventListener("DOMContentLoaded", function () {
   imageInput.addEventListener("change", function () {
     const file = this.files[0];
 
-      const reader = new FileReader();
+    const reader = new FileReader();
 
-      reader.onload = function (e) {
-        const img = document.createElement("img");
-        img.src = e.target.result;
-        preview.innerHTML = "";
-        preview.appendChild(img);
-        preview.style.display = "flex";
-      };
+    reader.onload = function (e) {
+      const img = document.createElement("img");
+      img.src = e.target.result;
+      preview.innerHTML = "";
+      preview.appendChild(img);
+      preview.style.display = "flex";
+    };
 
-      reader.readAsDataURL(file);
-  
+    reader.readAsDataURL(file);
   });
 });
 

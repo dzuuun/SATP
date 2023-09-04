@@ -2,9 +2,13 @@ require("dotenv").config();
 
 // express
 const express = require("express");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
 const app = express();
 app.use(express.json());
 app.use(express.static("client"));
+
 
 // import routes
 const loginRouter = require("./api/login/login.router");
@@ -68,6 +72,36 @@ app.use("/api/transaction", transactionRouter);
 
 app.use("/api/report/ranking", rankingRouter);
 app.use("/api/report/rating", ratingRouter);
+
+// image upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/");
+  },
+  filename: (req, file, cb) => {
+    const fileName = Date.now() + path.extname(file.originalname);
+    cb(null, fileName);
+  },
+});
+
+const upload = multer({ storage });
+
+app.use(express.static(__dirname));
+app.use("/uploads", express.static("uploads"));
+
+app.post("/upload", upload.single("image"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send("No file uploaded.");
+  }
+
+  const responseObj = {
+    imagePath: req.file.path,
+    fileName: req.file.filename,
+  };
+
+  const imagePath = req.file.path;
+    res.json(responseObj);
+});
 
 app.listen(process.env.PORT || "3000", () => {
   console.log(`Server is running on port: ${process.env.PORT || "3000"}`);

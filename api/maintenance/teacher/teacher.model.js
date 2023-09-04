@@ -27,7 +27,7 @@ module.exports = {
 
   getTeacherById: (Id, callBack) => {
     pool.query(
-      "SELECT teachers.id, teachers.givenname, teachers.surname, teachers.middlename, departments.id AS department_id, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id WHERE teachers.id=?",
+      "SELECT image_file.path, teachers.id, teachers.givenname, teachers.surname, teachers.middlename, departments.id AS department_id, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id INNER JOIN image_file ON teachers.id=image_file.teacher_id WHERE teachers.id=?",
       [Id],
       (error, results) => {
         if (error) {
@@ -37,6 +37,126 @@ module.exports = {
       }
     );
   },
+
+  getTeacherImageById: (Id, callBack) => {
+    pool.query(
+"SELECT path FROM image_file WHERE teacher_id=?",
+      [Id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  // uploadTeacherImage: (data, callBack) => {
+  //   pool.query(
+  //     "SELECT CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name FROM teachers WHERE id=?",
+  //     [data.teacher_id],
+  //     (error, results) => {
+  //       console.log(results)
+  //       if (results.length == 1) {
+  //         pool.query(
+  //           "INSERT INTO image_file(teacher_id, name, path) VALUES (?,?,?)",
+  //           [
+  //             data.teacher_id,
+  //             data.name,
+  //             data.path,
+  //           ],
+  //           (error, results) => {
+  //             console.log(results)
+  //             pool.query(
+  //               "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+  //               [
+  //                 data.user_id,
+  //                 "Added Teacher's Image: " + results.teacher_name ,
+  //               ],
+  //               (error, results) => {
+  //                 if (error) {
+  //                   console.log(error);
+  //                 }
+  //               }
+  //             );
+  //             if (error) {
+  //               callBack(error);
+  //             }
+  //             return callBack(null, results);
+  //           }
+  //         );
+  //       } else {
+  //         return callBack(results);
+  //       }
+  //     }
+  //   );
+  // },
+
+  uploadTeacherImage: (data, callBack) => {
+    // Check if there is an existing entry for the teacher
+    pool.query(
+      "SELECT CONCAT(givenname, ' ', surname) AS teacher_name FROM teachers WHERE id = ?",
+      [data.teacher_id],
+      (error, results) => {
+        if (error) {
+          console.log(error);
+          return callBack(error);
+        }
+  
+        if (results.length === 1) {
+          const teacherName = results[0].teacher_name;
+  
+          // Check if there is already an image entry for this teacher
+          pool.query(
+            "SELECT id FROM image_file WHERE teacher_id = ?",
+            [data.teacher_id],
+            (imageError, imageResults) => {
+              if (imageError) {
+                console.log(imageError);
+                return callBack(imageError);
+              }
+  
+              if (imageResults.length === 0) {
+                // Insert the image into the database
+                pool.query(
+                  "INSERT INTO image_file (teacher_id, name, path) VALUES (?, ?, ?)",
+                  [data.teacher_id, data.name, data.path],
+                  (insertError, insertResults) => {
+                    if (insertError) {
+                      console.log(insertError);
+                      return callBack(insertError);
+                    }
+  
+                    // Insert a log entry
+                    pool.query(
+                      "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+                      [data.user_id, "Added Teacher's Image: " + teacherName],
+                      (logError, logResults) => {
+                        if (logError) {
+                          console.log(logError);
+                          return callBack(logError);
+                        }
+  
+                        // Return the insertResults to the callBack
+                        return callBack(null, insertResults);
+                      }
+                    );
+                  }
+                );
+              } else {
+                // Image entry already exists, no need to insert again
+                return callBack(null, "Image for this teacher already exists.");
+              }
+            }
+          );
+        } else {
+          // Teacher not found
+          return callBack("Teacher not found.");
+        }
+      }
+    );
+  },
+  
 
   addTeacher: (data, callBack) => {
     pool.query(

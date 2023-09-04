@@ -5,6 +5,8 @@ const {
   addTeacher,
   updateTeacher,
   deleteTeacher,
+  uploadTeacherImage,
+  getTeacherImageById
 } = require("./teacher.model");
 
 module.exports = {
@@ -71,6 +73,28 @@ module.exports = {
     });
   },
 
+  getTeacherImageById: (req, res) => {
+    const id = req.params.id;
+    getTeacherImageById(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Teacher information retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
+
   addTeacher: (req, res) => {
     const body = req.body;
     addTeacher(body, (err, results) => {
@@ -89,6 +113,30 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Teacher added successfully.",
+        data: results,
+      });
+    });
+  },
+
+  uploadTeacherImage: (req, res) => {
+    console.log("controller reached")
+    const body = req.body;
+    uploadTeacherImage(body, (err, results) => {
+      if (err) {
+        return res.json({
+          success: 0,
+          message: "Teacher's image already exists. Try again.",
+        });
+      }
+      // if (results === undefined) {
+      //   return res.status(500).json({
+      //     success: 0,
+      //     message: "Some fields are missing or incorrect format.",
+      //   });
+      // }
+      return res.json({
+        success: 1,
+        message: "Teacher's image added successfully.",
         data: results,
       });
     });
