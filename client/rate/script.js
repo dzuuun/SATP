@@ -101,7 +101,8 @@ async function getTransactionInfo(id) {
   })
     .then((res) => res.json())
     .then((response) => {
-      // console.log(response);
+      console.log(response);
+      document.getElementById("teacherImage").src=`/${response.data[0].path}`;
       school_year.innerHTML = response.data[0].school_year;
       studentRater.innerHTML = response.data[0].student_name;
       semester.innerHTML = response.data[0].semester;
