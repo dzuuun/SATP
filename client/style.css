@@ -15,17 +15,21 @@ footer {
     left: 50%;
     transform: translate(-50%, -50%);
   }
+  
   .image {
     height: 200px;
     width: 200px;
   }
 
   body {
-    background-image: url(./images/DSC_0716-75.png);
+    background-image: url(./images/DSC_0716\ dark.png);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center center;
   }
   
   .box {
-    background-color: whitesmoke;
-    border-radius: 10px;
-    opacity: 90%;
+    border-radius: 15px;
+    background:rgba(245, 245, 245, 0.90)
   }
