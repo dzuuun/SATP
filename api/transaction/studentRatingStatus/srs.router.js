@@ -5,7 +5,8 @@ const {
   getCommentByTransactionId,
   addTransaction,
   submitRating,
-  submitCommentStatus
+  submitCommentStatus,
+  getNotRatedTransactions,
 } = require("./srs.controller");
 const router = require("express").Router();
 
@@ -22,4 +23,5 @@ router.get("/comment/:id", getCommentByTransactionId);
 router.post("/add", addTransaction);
 router.post("/add/rating", submitRating);
 router.put("/submit/:id", submitCommentStatus);
+router.post("/transactions/notrated", getNotRatedTransactions);
 module.exports = router;

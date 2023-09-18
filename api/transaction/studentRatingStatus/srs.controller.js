@@ -5,7 +5,8 @@ const {
   getCommentByTransactionId,
   addTransaction,
   submitRating,
-  submitCommentStatus
+  submitCommentStatus,
+  getNotRatedTransactions
 } = require("./srs.model");
 
 module.exports = {
@@ -162,6 +163,28 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Subject rated successfully. Thank you for your participation.",
+        data: results,
+      });
+    });
+  },
+
+  getNotRatedTransactions: (req, res) => {
+    const body = req.params;
+    getNotRatedTransactions(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Items information retrieved successfully.",
+        count: results.length,
         data: results,
       });
     });
