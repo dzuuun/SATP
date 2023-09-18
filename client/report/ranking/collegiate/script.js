@@ -43,8 +43,8 @@ const getdata = async () => {
     .then((res) => res.json())
     .then((response) => {
       if (response.count === 0) {
-        alert("no data found")
-        window.location.href=`../index.html`
+        alert("no data found");
+        window.location.href = `../index.html`;
       } else {
         if (response.data[0].is_part_time === 0) {
           header.innerHTML =
@@ -55,7 +55,7 @@ const getdata = async () => {
         }
         response.data.forEach((data) => {
           tbody.innerHTML += `<tr>
-          
+          <td></td>
                     <td>${data.teacher_name}</td>
                     <td style="text-transform:uppercase">${data.department}</td>
                     <td style="text-transform:uppercase">${data.college}</td>
@@ -90,7 +90,8 @@ function csvExport(table_id, separator = ",") {
   }
   var csv_string = csv.join("\n");
 
-  var filename = college +" SATP Collegiate Ranking " + today.toDateString() + ".csv";
+  var filename =
+    college + " SATP Collegiate Ranking " + today.toDateString() + ".csv";
   var link = document.createElement("a");
   link.style.display = "none";
   link.setAttribute("target", "_blank");

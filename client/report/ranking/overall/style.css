@@ -1,25 +1,31 @@
 body {
-    font-size: 15px;
-  }
+  font-size: 15px;
+}
 
+th,
+td {
+  font-size: 15px;
+}
+
+@media print {
+  #printPageButton {
+    display: none;
+  }
   th,
-  td {
-    font-size: 15px;
+  td,
+  html {
+    margin-top: -20px;
+    font-size: 12px;
   }
+}
 
-  @media print {
-    #printPageButton {
-      display: none;
-    }
-  }
-
-  table {
-    width: 50%;
-    counter-reset: -1;
-  }
-  table tr {
-    counter-increment: row-num;
-  }
-  table tr td:first-child::before {
-      content: counter(row-num) ". ";
-  }
+table {
+  width: 50%;
+  counter-reset: -1;
+}
+table tr {
+  counter-increment: row-num;
+}
+table tr td:first-child::before {
+  content: counter(row-num) ". ";
+}
