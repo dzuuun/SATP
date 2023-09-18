@@ -56,9 +56,9 @@ const getdata = async () => {
         response.data.forEach((data) => {
           tbody.innerHTML += `<tr>
           <td></td>
-                    <td>${data.teacher_name}</td>
-                    <td style="text-transform:uppercase">${data.department}</td>
-                    <td style="text-transform:uppercase">${data.college}</td>
+                    <td class="text-capitalize">${data.teacher_name}</td>
+                    <td class="text-uppercase">${data.department}</td>
+                    <td class="text-uppercase">${data.college}</td>
                     <td class="text-center">${data.mean}</td>
                 </tr>`;
         });
