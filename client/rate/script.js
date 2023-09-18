@@ -72,7 +72,7 @@ const getdata = async () => {
           item_id.push(Object.values(result)[i][j].id);
           table.innerHTML += `
             <tr id="${Object.values(result)[i][j].id}">
-              <td class="text-center">${Object.values(result)[i][j].number}</td>
+              <td class="text-center">${Object.values(result)[i][j].number}.</td>
               <td class="text-wrap fs-6">${
                 Object.values(result)[i][j].question
               }</td>
@@ -199,6 +199,11 @@ function setErrorMessage(message) {
 
 $(document).ready(function () {
   transactionToRate = localStorage.getItem("transactionToRate");
+  console.log(transactionToRate)
+  if(transactionToRate === null) {
+    alert("No subject to rate. Redirecting...")
+    window.open("../rating/index.html", "_self");
+  }
   getdata();
   getTransactionInfo(transactionToRate);
 });
