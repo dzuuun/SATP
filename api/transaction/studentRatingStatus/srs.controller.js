@@ -169,7 +169,7 @@ module.exports = {
   },
 
   getNotRatedTransactions: (req, res) => {
-    const body = req.params;
+    const body = req.body;
     getNotRatedTransactions(body, (err, results) => {
       if (err) {
         console.log(err);

@@ -23,5 +23,5 @@ router.get("/comment/:id", getCommentByTransactionId);
 router.post("/add", addTransaction);
 router.post("/add/rating", submitRating);
 router.put("/submit/:id", submitCommentStatus);
-router.post("/transactions/notrated", getNotRatedTransactions);
+router.post("/notrated", getNotRatedTransactions);
 module.exports = router;

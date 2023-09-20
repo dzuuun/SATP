@@ -70,17 +70,17 @@ const getDepartment = async () => {
 };
 
 const getTeacher = async () => {
-    const teacherList = document.querySelector("#teacher");
-    const endpoint = `${baseURL}/api/teacher/all/active`,
-      response = await fetch(endpoint),
-      data = await response.json(),
-      rows = data.data;
-  
-    rows.forEach((row) => {
-      teacherList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-    });
-    $(".form-control").selectpicker("refresh");
-  };
+  const teacherList = document.querySelector("#teacher");
+  const endpoint = `${baseURL}/api/teacher/all/active`,
+    response = await fetch(endpoint),
+    data = await response.json(),
+    rows = data.data;
+
+  rows.forEach((row) => {
+    teacherList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
+  });
+  $(".form-control").selectpicker("refresh");
+};
 
 getSemester();
 getSchoolYear();
@@ -88,55 +88,59 @@ getCollege();
 getDepartment();
 getTeacher();
 
-$("#rating").change(function () {
-  if ($(this).val() == "collegiate") {
-    $("#collegeSelect").show();
-    $("#college").prop("required", true);
-  } else {
-    $("#collegeSelect").hide();
-    $("#college").prop("required", false);
-  }
+// $("#rating").change(function () {
+//   if ($(this).val() == "collegiate") {
+//     $("#collegeSelect").show();
+//     $("#college").prop("required", true);
+//   } else {
+//     $("#collegeSelect").hide();
+//     $("#college").prop("required", false);
+//   }
 
-  if ($(this).val() == "departmental") {
-    $("#departmentSelect").show();
-    $("#department").prop("required", true);
-  } else {
-    $("#departmentSelect").hide();
-    $("#department").prop("required", false);
-  }
-});
+//   if ($(this).val() == "departmental") {
+//     $("#departmentSelect").show();
+//     $("#department").prop("required", true);
+//   } else {
+//     $("#departmentSelect").hide();
+//     $("#department").prop("required", false);
+//   }
+// });
 
 let generateReport = document.querySelector("#generateReportForm");
 generateReport.addEventListener("submit", async (e) => {
   e.preventDefault();
   const formData = new FormData(generateReport);
   const data = Object.fromEntries(formData);
-  console.log(data)
+  console.log(data);
   localStorage.setItem("genReportSchoolYear", data.school_year);
   localStorage.setItem("genReportSemester", data.semester);
   localStorage.setItem("genReportteacher", data.teacher);
-//   localStorage.setItem("genReportTeachingStatus", data.teaching_status);
+  localStorage.setItem("genReportSubject", data.subject);
 
-  switch (data.ratingReport) {
-    case "institutional":
-      console.log("institutional");
-      window.location.href = "institutional/index.html";
-      break;
-    case "collegiate":
-      console.log("collegiate");
-      localStorage.setItem("genReportCollege", data.college);
-      window.location.href = "collegiate/index.html";
-      break;
-    case "departmental":
-      console.log("departmental");
-      localStorage.setItem("genReportDepartment", data.department);
-      window.location.href = "departmental/index.html";
-      break;
-      case "individual":
-        console.log("individual");
-        window.location.href = "individual/index.html";
-        break;
-  }
+  localStorage.setItem("genReport", data.ratingReport);
+  window.location.href = "report/index.html";
+
+  // switch (data.ratingReport) {
+  //   case "institutional":
+  //     console.log("institutional");
+  //     window.location.href = "institutional/index.html";
+  //     break;
+  //   case "collegiate":
+  //     console.log("collegiate");
+  //     // localStorage.setItem("genReportCollege", data.college);
+  //     localStorage.setItem("genReport", "collegiate")
+  //     window.location.href = "institutional/index.html";
+  //     break;
+  //   case "departmental":
+  //     console.log("departmental");
+  //     localStorage.setItem("genReportDepartment", data.department);
+  //     window.location.href = "departmental/index.html";
+  //     break;
+  //   case "individual":
+  //     console.log("individual");
+  //     window.location.href = "individual/index.html";
+  //     break;
+  // }
 });
 
 function openNav() {
@@ -161,4 +165,36 @@ let signOutButton = document.getElementById("signout");
 signOutButton.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../../index.html";
+});
+
+const searchData = document.querySelector("#teacher");
+searchData.addEventListener("change", () => {
+  document.getElementById("subject").innerHTML = ``;
+  console.log(document.getElementById("schoolYear").value);
+  var query = {
+    school_year_id: document.getElementById("schoolYear").value,
+    semester_id: document.getElementById("semester").value,
+    teacher_id: document.getElementById("teacher").value,
+    subject_id: document.getElementById("subject").value,
+  };
+
+  fetch(`${baseURL}/api/report/rating/teacher/subjects`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(query),
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      console.log(response);
+      rows = response.data;
+      response.data.forEach((row) => {
+        console.log(row);
+        document.getElementById(
+          "subject"
+        ).innerHTML += `<option data-subtext="${row.subject_code}" value="${row.subject_id}">${row.subject_name}</option>`;
+      });
+      $(".form-control").selectpicker("refresh");
+    });
 });
