@@ -111,7 +111,7 @@ generateReport.addEventListener("submit", async (e) => {
   e.preventDefault();
   const formData = new FormData(generateReport);
   const data = Object.fromEntries(formData);
-  console.log(data);
+
   localStorage.setItem("genReportSchoolYear", data.school_year);
   localStorage.setItem("genReportSemester", data.semester);
   localStorage.setItem("genReportteacher", data.teacher);
@@ -170,7 +170,6 @@ signOutButton.addEventListener("click", () => {
 const searchData = document.querySelector("#teacher");
 searchData.addEventListener("change", () => {
   document.getElementById("subject").innerHTML = ``;
-  console.log(document.getElementById("schoolYear").value);
   var query = {
     school_year_id: document.getElementById("schoolYear").value,
     semester_id: document.getElementById("semester").value,
@@ -187,10 +186,8 @@ searchData.addEventListener("change", () => {
   })
     .then((res) => res.json())
     .then((response) => {
-      console.log(response);
       rows = response.data;
       response.data.forEach((row) => {
-        console.log(row);
         document.getElementById(
           "subject"
         ).innerHTML += `<option data-subtext="${row.subject_code}" value="${row.subject_id}">${row.subject_name}</option>`;

@@ -62,7 +62,6 @@ const getDepartment = async () => {
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
-console.log(rows)
   rows.forEach((row) => {
     departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
   });
@@ -103,16 +102,13 @@ generateReport.addEventListener("submit", async (e) => {
 
   switch (data.rankingReport) {
     case "overall":
-      console.log("overall");
       window.location.href = "overall/index.html";
       break;
     case "collegiate":
-      console.log("collegiate");
       localStorage.setItem("genReportCollege", data.college);
       window.location.href = "collegiate/index.html";
       break;
     case "departmental":
-      console.log("departmental");
       localStorage.setItem("genReportDepartment", data.department);
       window.location.href = "departmental/index.html";
       break;

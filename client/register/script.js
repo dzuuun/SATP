@@ -1,6 +1,5 @@
 const baseURL = "http://localhost:3000";
 
-
 let showPassword = document.getElementById("showPassword");
 showPassword.addEventListener("click", async (e) => {
   var x = document.getElementById("createPassword");
@@ -24,7 +23,6 @@ showConfirmPassword.addEventListener("click", async (e) => {
     showConfirmPassword.innerHTML = '<i class="bi bi-eye"></i>';
   }
 });
-
 
 const getCourse = async () => {
   const courseList = document.querySelector("#course");
@@ -67,7 +65,6 @@ registerForm.addEventListener("submit", (event) => {
   const data = Object.fromEntries(formData);
   if (createPassword === confirmPassword) {
     document.getElementById("passwordMatchField").innerHTML = "";
-    console.log(data);
     if (confirm("This action cannot be undone.") == true) {
       fetch(`${baseURL}/api/login/register`, {
         method: "POST",
@@ -83,7 +80,7 @@ registerForm.addEventListener("submit", (event) => {
           } else {
             setSuccessMessage(response.message);
             setTimeout(function () {
-                window.location.href = "../index.html";
+              window.location.href = "../index.html";
             }, 1000);
           }
         });

@@ -130,7 +130,6 @@ module.exports = {
       "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_info.user_id=?",
       [data.id],
       (error, result) => {
-        console.log(result);
         if (result.length == 1) {
           pool.query(
             "UPDATE user_info SET surname=?, givenname=?, middlename=?, course_id=?, year_level=?, gender=? WHERE user_id=?",
@@ -144,8 +143,6 @@ module.exports = {
               data.id,
             ],
             (error, results) => {
-              console.log(results);
-              console.log(error);
               if (results.changedRows == 1) {
                 pool.query(
                   "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",

@@ -208,7 +208,6 @@ formEditAdmin.addEventListener("submit", (event) => {
   formData.append("id", rowIdToUpdate);
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
-  console.log(data);
   if (confirm("This action cannot be undone.") == true) {
     fetch(`${baseURL}/api/admin/update/info`, {
       method: "PUT",

@@ -133,7 +133,6 @@ const getCourse = async () => {
     courseList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
     courseList2.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
   });
-
 };
 
 // Get course from API
@@ -149,7 +148,6 @@ const getPermission = async () => {
     permissionList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     permissionList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
-
 };
 
 // post user to API
@@ -269,7 +267,6 @@ async function edit(id) {
     .then((response) => {
       data = response.data;
       rowIdToUpdate = data.id;
-      console.log(document.getElementById("editgender"))
       document.getElementById("editGivenName").value = data.givenname;
       document.getElementById("editMiddleName").value = data.middlename;
       document.getElementById("editLastName").value = data.surname;
@@ -470,7 +467,6 @@ $("input[name='role']").change(function () {
     $("#yearLevel").hide();
     $("#addYearLevel").prop("required", false);
   }
-
 });
 
 function openNav() {

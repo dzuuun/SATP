@@ -119,7 +119,6 @@ module.exports = {
   },
 
   uploadTeacherImage: (req, res) => {
-    console.log("controller reached")
     const body = req.body;
     uploadTeacherImage(body, (err, results) => {
       if (err) {

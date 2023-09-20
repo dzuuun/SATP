@@ -63,7 +63,6 @@ const getdata = async () => {
           (x[y.category] = x[y.category] || []).push(y);
           return x;
         }, {});
-        console.log(result);
         for (let i = 0; i < Object.keys(result).length; i++) {
           tbody.innerHTML += `<th class="text-start" scope="row" colspan="2">${
             Object.values(result)[i][0].category

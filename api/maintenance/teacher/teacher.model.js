@@ -93,7 +93,6 @@ module.exports = {
   // },
 
   uploadTeacherImage: (data, callBack) => {
-    // Check if there is an existing entry for the teacher
     pool.query(
       "SELECT CONCAT(givenname, ' ', surname) AS teacher_name FROM teachers WHERE id = ?",
       [data.teacher_id],
@@ -106,7 +105,6 @@ module.exports = {
         if (results.length === 1) {
           const teacherName = results[0].teacher_name;
   
-          // Check if there is already an image entry for this teacher
           pool.query(
             "SELECT id FROM image_file WHERE teacher_id = ?",
             [data.teacher_id],
@@ -117,7 +115,6 @@ module.exports = {
               }
   
               if (imageResults.length === 0) {
-                // Insert the image into the database
                 pool.query(
                   "INSERT INTO image_file (teacher_id, name, path) VALUES (?, ?, ?)",
                   [data.teacher_id, data.name, data.path],
@@ -127,7 +124,6 @@ module.exports = {
                       return callBack(insertError);
                     }
   
-                    // Insert a log entry
                     pool.query(
                       "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
                       [data.user_id, "Added Teacher's Image: " + teacherName],
@@ -137,20 +133,17 @@ module.exports = {
                           return callBack(logError);
                         }
   
-                        // Return the insertResults to the callBack
                         return callBack(null, insertResults);
                       }
                     );
                   }
                 );
               } else {
-                // Image entry already exists, no need to insert again
                 return callBack(null, "Image for this teacher already exists.");
               }
             }
           );
         } else {
-          // Teacher not found
           return callBack("Teacher not found.");
         }
       }

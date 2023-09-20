@@ -109,7 +109,6 @@ formAddTeacher.addEventListener("submit", (event) => {
     })
       .then((res) => res.json())
       .then((response) => {
-        // console.log(response.data.insertId);
         teacher = response.data.insertId;
         uploadImage(teacher);
         if (response.success == 0) {
@@ -124,7 +123,6 @@ formAddTeacher.addEventListener("submit", (event) => {
 });
 
 async function uploadImage(teacher_id) {
-  // console.log(teacher_id);
   const image = imageInput.files[0];
   const imageFormData = new FormData();
   imageFormData.append("image", image);

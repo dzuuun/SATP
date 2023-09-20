@@ -27,7 +27,6 @@ loginButton.addEventListener("submit", async (e) => {
     .then((response) => {
       if (response.success == 0) {
         setErrorMessage(response.message);
-        console.log(response.message);
       } else {
         setSuccessMessage(response.message);
 

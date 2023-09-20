@@ -18,13 +18,11 @@ var item_id = [];
 //   })
 //     .then((res) => res.json())
 //     .then((response) => {
-//       console.log(response);
 //       rows = response.data;
 
 //       rows.forEach((data) => {
 //         item_id.push(data.id);
 //       });
-//       console.log(item_id);
 //       rows.forEach((data) => {
 // table.innerHTML += `
 //   <tr id="${data.id}">
@@ -72,7 +70,9 @@ const getdata = async () => {
           item_id.push(Object.values(result)[i][j].id);
           table.innerHTML += `
             <tr id="${Object.values(result)[i][j].id}">
-              <td class="text-center">${Object.values(result)[i][j].number}.</td>
+              <td class="text-center">${
+                Object.values(result)[i][j].number
+              }.</td>
               <td class="text-wrap fs-6">${
                 Object.values(result)[i][j].question
               }</td>
@@ -101,8 +101,7 @@ async function getTransactionInfo(id) {
   })
     .then((res) => res.json())
     .then((response) => {
-      console.log(response);
-      document.getElementById("teacherImage").src=`/${response.data[0].path}`;
+      document.getElementById("teacherImage").src = `/${response.data[0].path}`;
       school_year.innerHTML = response.data[0].school_year;
       studentRater.innerHTML = response.data[0].student_name;
       semester.innerHTML = response.data[0].semester;
@@ -199,9 +198,8 @@ function setErrorMessage(message) {
 
 $(document).ready(function () {
   transactionToRate = localStorage.getItem("transactionToRate");
-  console.log(transactionToRate)
-  if(transactionToRate === null) {
-    alert("No subject to rate. Redirecting...")
+  if (transactionToRate === null) {
+    alert("No subject to rate. Redirecting...");
     window.open("../rating/index.html", "_self");
   }
   getdata();

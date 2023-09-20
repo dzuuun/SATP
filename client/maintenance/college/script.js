@@ -251,7 +251,6 @@ uploadFileForm.addEventListener("submit", (event) => {
 
         if (confirm("This action cannot be undone.") == true) {
           for (let i = 0; i < data.length; i++) {
-            console.log(data[i]);
             fetch(`${baseURL}/api/college/add`, {
               method: "POST",
               headers: {
