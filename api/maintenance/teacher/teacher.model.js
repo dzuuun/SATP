@@ -27,7 +27,7 @@ module.exports = {
 
   getTeacherById: (Id, callBack) => {
     pool.query(
-      "SELECT image_file.path, teachers.id, teachers.givenname, teachers.surname, teachers.middlename, departments.id AS department_id, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id INNER JOIN image_file ON teachers.id=image_file.teacher_id WHERE teachers.id=?",
+      "SELECT  teachers.id, teachers.givenname, teachers.surname, teachers.middlename, departments.id AS department_id, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id  WHERE teachers.id=?",
       [Id],
       (error, results) => {
         if (error) {

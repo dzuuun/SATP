@@ -7,6 +7,7 @@ const {
   updateStudentActiveStatus,
   deleteStudent,
 } = require("./student.model");
+const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
 module.exports = {
   getAllStudent: (req, res) => {
@@ -74,8 +75,8 @@ module.exports = {
 
   addStudent: (req, res) => {
     const body = req.body;
-    // const salt = genSaltSync(10);
-    // body.password = hashSync(body.password, salt);
+    const salt = genSaltSync(10);
+    body.password = hashSync(body.password, salt);
     addStudent(body, (err, results) => {
       if (err) {
         return res.json({
