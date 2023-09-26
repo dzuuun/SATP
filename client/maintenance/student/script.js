@@ -64,6 +64,7 @@ function showPassword() {
 const getCourse = async () => {
   const courseList = document.querySelector("#courseSelect");
   const courseList2 = document.querySelector("#editCourseSelect");
+  const courseList3 = document.querySelector("#selectImportCourse");
   const endpoint = `${baseURL}/api/course/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
@@ -72,6 +73,7 @@ const getCourse = async () => {
   course.forEach((row) => {
     courseList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
     courseList2.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
+    courseList3.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
   });
   $(".form-control").selectpicker("refresh");
 };
@@ -89,6 +91,7 @@ function generatePassword() {
     counter += 1;
   }
   document.getElementById("addPassword").value = result;
+  return result;
 }
 
 // post school year to API
@@ -296,6 +299,84 @@ async function confirmDelete() {
       });
   }
 }
+
+const csvInput = document.getElementById("csvInput");
+
+const uploadFileForm = document.querySelector("#uploadFileForm");
+uploadFileForm.addEventListener("submit", (event) => {
+  var course = document.getElementById("selectImportCourse").value;
+  event.preventDefault();
+  const file = csvInput.files[0];
+  if (file) {
+    Papa.parse(file, {
+      complete: function (results) {
+        const headers = results.data[0];
+        const data = [];
+
+        for (let i = 1; i < results.data.length; i++) {
+          const values = results.data[i];
+          if (
+            values.length === headers.length &&
+            values.some((value) => value.trim() !== "")
+          ) {
+            const rowObject = {};
+            for (let j = 0; j < headers.length; j++) {
+              rowObject[headers[j]] = values[j];
+            }
+            rowObject["user_id"] = user;
+            rowObject["is_active"] = 1;
+            rowObject["course_id"] = course;
+            rowObject["permission_id"] = 12;
+            rowObject["is_temp_pass"] = 1;
+            data.push(rowObject);
+          }
+        }
+
+        if (confirm("This action cannot be undone.") == true) {
+          for (let i = 0; i < data.length; i++) {
+            fetch(`${baseURL}/api/student/add`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data[i]),
+            })
+              .then((res) => res.json())
+              .then((response) => {
+                if (response.success == 0) {
+                  setErrorMessage(response.message);
+                } else {
+                  $("#table").DataTable().ajax.reload();
+                }
+              });
+            $("#importFileModal").modal("hide");
+            setSuccessMessage(
+              `${data.length} entries was imported successfully.`
+            );
+          }
+        }
+      },
+    });
+  }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+  const downloadLink = document.getElementById("downloadLink");
+
+  downloadLink.addEventListener("click", function () {
+    const csvContent =
+      "username,password,surname,givenname,middlename,year_level,gender";
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "student_template.csv";
+    a.click();
+
+    URL.revokeObjectURL(url);
+  });
+});
 
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";

@@ -64,14 +64,16 @@ let data = $("#table").DataTable({
 const getDepartment = async () => {
   const departmentList = document.querySelector("#departmentSelect");
   const departmentList2 = document.querySelector("#editDepartmentSelect");
+  const departmentList3 = document.querySelector("#selectImportDepartment");
   const endpoint = `${baseURL}/api/department/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     department = data.data;
 
   department.forEach((row) => {
-    departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.department_code}</option>`;
-    departmentList2.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.department_code}</option>`;
+    departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
+    departmentList2.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
+    departmentList3.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
   });
   $(".form-control").selectpicker("refresh");
 };
@@ -109,8 +111,8 @@ formAddTeacher.addEventListener("submit", (event) => {
     })
       .then((res) => res.json())
       .then((response) => {
-        teacher = response.data.insertId;
-        uploadImage(teacher);
+        // teacher = response.data.insertId;
+        // uploadImage(teacher);
         if (response.success == 0) {
           setErrorMessage(response.message);
         } else {
@@ -221,7 +223,9 @@ async function editTeacherInfo(id) {
     .then((res) => res.json())
     .then((response) => {
       data = response.data;
-      document.getElementById("updatePreview").src = `/${data.path}`;
+      console.log(response);
+      console.log(id);
+      // document.getElementById("updatePreview").src = `/${data.path}`;
       document.getElementById("editGivenName").value = data.givenname;
       document.getElementById("editMiddleName").value = data.middlename;
       document.getElementById("editLastName").value = data.surname;
@@ -314,24 +318,99 @@ async function confirmDelete() {
   }
 }
 
+// document.addEventListener("DOMContentLoaded", function () {
+//   const imageInput = document.getElementById("imageInput");
+//   const preview = document.getElementById("preview");
+
+//   imageInput.addEventListener("change", function () {
+//     const file = this.files[0];
+
+//     const reader = new FileReader();
+
+//     reader.onload = function (e) {
+//       const img = document.createElement("img");
+//       img.src = e.target.result;
+//       preview.innerHTML = "";
+//       preview.appendChild(img);
+//       preview.style.display = "flex";
+//     };
+
+//     reader.readAsDataURL(file);
+//   });
+// });
+
+const csvInput = document.getElementById("csvInput");
+
+const uploadFileForm = document.querySelector("#uploadFileForm");
+uploadFileForm.addEventListener("submit", (event) => {
+  var department = document.getElementById("selectImportDepartment").value;
+  event.preventDefault();
+  const file = csvInput.files[0];
+  if (file) {
+    Papa.parse(file, {
+      complete: function (results) {
+        const headers = results.data[0];
+        const data = [];
+
+        for (let i = 1; i < results.data.length; i++) {
+          const values = results.data[i];
+          if (
+            values.length === headers.length &&
+            values.some((value) => value.trim() !== "")
+          ) {
+            const rowObject = {};
+            for (let j = 0; j < headers.length; j++) {
+              rowObject[headers[j]] = values[j];
+            }
+            rowObject["user_id"] = user;
+            rowObject["is_active"] = 1;
+            rowObject["department_id"] = department;
+            data.push(rowObject);
+          }
+        }
+
+        if (confirm("This action cannot be undone.") == true) {
+          for (let i = 0; i < data.length; i++) {
+            fetch(`${baseURL}/api/teacher/add`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data[i]),
+            })
+              .then((res) => res.json())
+              .then((response) => {
+                if (response.success == 0) {
+                  setErrorMessage(response.message);
+                } else {
+                  $("#table").DataTable().ajax.reload();
+                }
+              });
+            $("#importFileModal").modal("hide");
+            setSuccessMessage(
+              `${data.length} entries was imported successfully.`
+            );
+          }
+        }
+      },
+    });
+  }
+});
+
 document.addEventListener("DOMContentLoaded", function () {
-  const imageInput = document.getElementById("imageInput");
-  const preview = document.getElementById("preview");
+  const downloadLink = document.getElementById("downloadLink");
 
-  imageInput.addEventListener("change", function () {
-    const file = this.files[0];
+  downloadLink.addEventListener("click", function () {
+    const csvContent = "surname,givenname,middlename,is_part_time";
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
 
-    const reader = new FileReader();
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "teacher_template.csv";
+    a.click();
 
-    reader.onload = function (e) {
-      const img = document.createElement("img");
-      img.src = e.target.result;
-      preview.innerHTML = "";
-      preview.appendChild(img);
-      preview.style.display = "flex";
-    };
-
-    reader.readAsDataURL(file);
+    URL.revokeObjectURL(url);
   });
 });
 
