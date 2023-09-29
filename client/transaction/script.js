@@ -50,12 +50,27 @@ searchData.addEventListener("change", (event) => {
   }
 });
 
+let totalTransactions = document.getElementById("totalTransactions");
+let TransactionsAccomplished = document.getElementById(
+  "TransactionsAccomplished"
+);
+let transactionsToAccomplish = document.getElementById(
+  "transactionsToAccomplish"
+);
 function loadIncludedData() {
   $.ajax({
     url: `${baseURL}/api/transaction/all/school_year_id=${school_year_id}&semester_id=${semester_id}`,
     type: "get",
   })
     .done(function (response) {
+      totalTransactions.innerHTML = response.count;
+      TransactionsAccomplished.innerHTML = response.data.filter(
+        (item) => item.status === 1
+      ).length;
+      transactionsToAccomplish.innerHTML = response.data.filter(
+        (item) => item.status === 0
+      ).length;
+      document.getElementById("generateList").style.display = "inline";
       setSuccessMessage(response.message);
       table.clear().draw();
       table.rows.add(response.data).draw();
@@ -141,6 +156,16 @@ function setErrorMessage(message) {
     $(".alert").alert("close");
   }, 2000);
 }
+
+let generateList = document.getElementById("generateList");
+generateList.addEventListener("click", async (e) => {
+  e.preventDefault();
+  console.log(school_year_id, semester_id);
+  localStorage.setItem("transListSchoolYear", school_year_id);
+  localStorage.setItem("transListSemester", semester_id);
+
+  window.location.href = "unrated/index.html";
+});
 
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
