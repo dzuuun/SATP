@@ -14,10 +14,62 @@ module.exports = {
     );
   },
 
+  getDepartmentalRating: (data, callBack) => {
+    pool.query(
+      "SELECT COUNT(transactions.id) AS respondents, school_years.name AS school_year, semesters.name AS semester, departments.name AS department, colleges.name AS college, categories.name AS category, items.number, items.question, ROUND( AVG(CAST(trans_item.rate AS FLOAT)), 3 ) AS mean FROM trans_item INNER JOIN transactions ON trans_item.transaction_id = transactions.id INNER JOIN subjects ON transactions.subject_id = subjects.id INNER JOIN items ON trans_item.item_id = items.id INNER JOIN categories ON items.category_id = categories.id INNER JOIN school_years ON transactions.school_year_id = school_years.id INNER JOIN semesters ON transactions.semester_id = semesters.id INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN departments ON teachers.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE transactions.school_year_id = ? AND transactions.semester_id = ? AND departments.id = ? GROUP BY items.id",
+      [data.school_year_id, data.semester_id, data.department_id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+  getCollegiateRating: (data, callBack) => {
+    pool.query(
+      "SELECT COUNT(transactions.id) AS respondents, school_years.name AS school_year, semesters.name AS semester, colleges.name AS college, categories.name AS category, items.number, items.question, ROUND( AVG(CAST(trans_item.rate AS FLOAT)), 3 ) AS mean FROM trans_item INNER JOIN transactions ON trans_item.transaction_id = transactions.id INNER JOIN subjects ON transactions.subject_id = subjects.id INNER JOIN items ON trans_item.item_id = items.id INNER JOIN categories ON items.category_id = categories.id INNER JOIN school_years ON transactions.school_year_id = school_years.id INNER JOIN semesters ON transactions.semester_id = semesters.id INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN departments ON teachers.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE transactions.school_year_id = ? AND transactions.semester_id = ? AND colleges.id = ? GROUP BY items.id;",
+      [data.school_year_id, data.semester_id, data.college_id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
   getComment: (data, callBack) => {
     pool.query(
       "SELECT comment FROM transactions WHERE school_year_id = ? AND semester_id = ? AND teacher_id = ? AND COMMENT IS NOT NULL",
       [data.school_year_id, data.semester_id, data.teacher_id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+  getDepartmentalComment: (data, callBack) => {
+    pool.query(
+      "SELECT transactions.comment FROM transactions INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN departments ON teachers.department_id = departments.id WHERE school_year_id = ? AND semester_id = ? AND departments.id = ? AND COMMENT IS NOT NULL",
+      [data.school_year_id, data.semester_id, data.department_id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      }
+    );
+  },
+
+  getCollegiateComment: (data, callBack) => {
+    pool.query(
+      "SELECT transactions.comment FROM transactions INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN departments ON teachers.department_id = departments.id INNER JOIN colleges on departments.college_id = colleges.id WHERE school_year_id = ? AND semester_id = ? AND colleges.id = ? AND COMMENT IS NOT NULL",
+      [data.school_year_id, data.semester_id, data.college_id],
       (error, results) => {
         if (error) {
           callBack(error);
