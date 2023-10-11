@@ -344,15 +344,17 @@ const getSemester = async () => {
 
 // Get subject from API
 const getSubject = async () => {
-  const subjectList = document.querySelector("#selectSubject");
+  const subjectList = document.getElementById("selectSubject");
   const endpoint = `${baseURL}/api/subject/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
 
+  var optionRow = "";
   rows.forEach((row) => {
-    subjectList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
+    optionRow += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
   });
+  subjectList.innerHTML += optionRow;
   $(".form-control").selectpicker("refresh");
 };
 
@@ -364,9 +366,11 @@ const getTeacher = async () => {
     data = await response.json(),
     rows = data.data;
 
+  var optionRow = "";
   rows.forEach((row) => {
-    teacherList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
+    optionRow += `<option value="${row.id}">${row.name}</option>`;
   });
+  teacherList.innerHTML += optionRow;
   $(".form-control").selectpicker("refresh");
 };
 
@@ -379,10 +383,12 @@ const getStudent = async () => {
     data = await response.json(),
     rows = data.data;
 
+  var optionRow = "";
   rows.forEach((row) => {
-    studentList.innerHTML += `<option data-subtext="${row.username}" value="${row.id}">${row.name}</option>`;
-    studentList2.innerHTML += `<option data-subtext="${row.username}" value="${row.id}">${row.name}</option>`;
+    optionRow += `<option data-subtext="${row.username}" value="${row.id}">${row.name}</option>`;
   });
+  studentList.innerHTML += optionRow;
+  studentList2.innerHTML += optionRow;
   $(".form-control").selectpicker("refresh");
 };
 
@@ -404,8 +410,8 @@ $(document).ready(function () {
   getRoom();
   getSchoolYear();
   getSemester();
-  getSubject();
   getTeacher();
+  getSubject();
   getStudent();
 });
 
