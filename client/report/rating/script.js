@@ -88,23 +88,35 @@ getCollege();
 getDepartment();
 getTeacher();
 
-// $("#rating").change(function () {
-//   if ($(this).val() == "collegiate") {
-//     $("#collegeSelect").show();
-//     $("#college").prop("required", true);
-//   } else {
-//     $("#collegeSelect").hide();
-//     $("#college").prop("required", false);
-//   }
+$("#rating").change(function () {
+  if ($(this).val() == "collegiate") {
+    $("#collegeSelect").show();
+    $("#college").prop("required", true);
+  } else {
+    $("#collegeSelect").hide();
+    $("#college").prop("required", false);
+  }
 
-//   if ($(this).val() == "departmental") {
-//     $("#departmentSelect").show();
-//     $("#department").prop("required", true);
-//   } else {
-//     $("#departmentSelect").hide();
-//     $("#department").prop("required", false);
-//   }
-// });
+  if ($(this).val() == "departmental") {
+    $("#departmentSelect").show();
+    $("#department").prop("required", true);
+  } else {
+    $("#departmentSelect").hide();
+    $("#department").prop("required", false);
+  }
+
+  if ($(this).val() == "individual" || $(this).val() == "institutional") {
+    $("#teacherSelect").show();
+    $("#teacher").prop("required", true);
+    $("#subjectSelect").show();
+    $("#subject").prop("required", true);
+  } else {
+    $("#teacherSelect").hide();
+    $("#teacher").prop("required", false);
+    $("#subjectSelect").hide();
+    $("#subject").prop("required", false);
+  }
+});
 
 let generateReport = document.querySelector("#generateReportForm");
 generateReport.addEventListener("submit", async (e) => {
@@ -117,30 +129,26 @@ generateReport.addEventListener("submit", async (e) => {
   localStorage.setItem("genReportteacher", data.teacher);
   localStorage.setItem("genReportSubject", data.subject);
 
-  localStorage.setItem("genReport", data.ratingReport);
-  window.location.href = "report/index.html";
-
-  // switch (data.ratingReport) {
-  //   case "institutional":
-  //     console.log("institutional");
-  //     window.location.href = "institutional/index.html";
-  //     break;
-  //   case "collegiate":
-  //     console.log("collegiate");
-  //     // localStorage.setItem("genReportCollege", data.college);
-  //     localStorage.setItem("genReport", "collegiate")
-  //     window.location.href = "institutional/index.html";
-  //     break;
-  //   case "departmental":
-  //     console.log("departmental");
-  //     localStorage.setItem("genReportDepartment", data.department);
-  //     window.location.href = "departmental/index.html";
-  //     break;
-  //   case "individual":
-  //     console.log("individual");
-  //     window.location.href = "individual/index.html";
-  //     break;
-  // }
+  switch (data.ratingReport) {
+    case "institutional":
+      console.log("institutional");
+      window.location.href = "institutional/index.html";
+      break;
+    case "collegiate":
+      console.log("collegiate");
+      localStorage.setItem("genReportCollege", data.college);
+      window.location.href = "collegiate/index.html";
+      break;
+    case "departmental":
+      console.log("departmental");
+      localStorage.setItem("genReportDepartment", data.department);
+      window.location.href = "departmental/index.html";
+      break;
+    case "individual":
+      console.log("individual");
+      window.location.href = "individual/index.html";
+      break;
+  }
 });
 
 function openNav() {
