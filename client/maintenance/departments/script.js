@@ -269,38 +269,48 @@ uploadFileForm.addEventListener("submit", (event) => {
             }
             rowObject["user_id"] = user;
             rowObject["is_active"] = 1;
-            rowObject["college_id"] = college;
+            // rowObject["college_id"] = college;
             data.push(rowObject);
           }
         }
 
         if (confirm("This action cannot be undone.") == true) {
-          for (let i = 0; i < data.length; i++) {
-            fetch(`${baseURL}/api/department/add`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data[i]),
-            })
-              .then((res) => res.json())
-              .then((response) => {
-                if (response.success == 0) {
-                  setErrorMessage(response.message);
-                } else {
-                  $("#table").DataTable().ajax.reload();
-                }
-              });
-            $("#importFileModal").modal("hide");
-            setSuccessMessage(
-              `${data.length} entries was imported successfully.`
-            );
-          }
+          uploadData(data);
         }
       },
     });
   }
 });
+
+async function uploadData(data) {
+  let counter = 0;
+  for (let i = 0; i < data.length; i++) {
+    await fetch(`${baseURL}/api/department/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data[i]),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        $("#importFileModal").modal("hide");
+        // $("#spinnerStatusModal").modal("show");
+        document.getElementById("statusMessage").innerHTML =
+          ((i / data.length) * 100).toFixed(0) + "%";
+        if (response.success == 0) {
+        } else {
+          counter++;
+        }
+      });
+  }
+
+  $("#table").DataTable().ajax.reload();
+  setSuccessMessage(
+    `${counter} of ${data.length} entries was imported successfully.`
+  );
+    // $("#spinnerStatusModal").modal("hide");
+}
 
 document.addEventListener("DOMContentLoaded", function () {
   const downloadLink = document.getElementById("downloadLink");

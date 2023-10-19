@@ -49,6 +49,7 @@ let data = $("#table").DataTable({
       },
     },
   ],
+  order: [[1, "asc"]],
 });
 
 function showPassword() {
@@ -301,7 +302,6 @@ async function confirmDelete() {
 }
 
 const csvInput = document.getElementById("csvInput");
-
 const uploadFileForm = document.querySelector("#uploadFileForm");
 uploadFileForm.addEventListener("submit", (event) => {
   var course = document.getElementById("selectImportCourse").value;
@@ -325,40 +325,49 @@ uploadFileForm.addEventListener("submit", (event) => {
             }
             rowObject["user_id"] = user;
             rowObject["is_active"] = 1;
-            rowObject["course_id"] = course;
-            rowObject["permission_id"] = 12;
+            // rowObject["course_id"] = course; // do not use
+            rowObject["permission_id"] = 5; // 5 for deployment, 12 on test db
             rowObject["is_temp_pass"] = 1;
             data.push(rowObject);
           }
         }
 
         if (confirm("This action cannot be undone.") == true) {
-          for (let i = 0; i < data.length; i++) {
-            fetch(`${baseURL}/api/student/add`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data[i]),
-            })
-              .then((res) => res.json())
-              .then((response) => {
-                if (response.success == 0) {
-                  setErrorMessage(response.message);
-                } else {
-                  $("#table").DataTable().ajax.reload();
-                }
-              });
-            $("#importFileModal").modal("hide");
-            setSuccessMessage(
-              `${data.length} entries was imported successfully.`
-            );
-          }
+          uploadData(data);
         }
       },
     });
   }
 });
+
+async function uploadData(data) {
+  let counter = 0;
+  for (let i = 0; i < data.length; i++) {
+    await fetch(`${baseURL}/api/student/add`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data[i]),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        $("#importFileModal").modal("hide");
+        $("#spinnerStatusModal").modal("show");
+        document.getElementById("statusMessage").innerHTML =
+        ((i / data.length) * 100).toFixed(0) + "%";
+        if (response.success == 0) {
+        } else {
+          counter++;
+        }
+      });
+  }
+  $("#spinnerStatusModal").modal("hide");
+  $("#table").DataTable().ajax.reload();
+  setSuccessMessage(
+    `${counter} of ${data.length} entries was imported successfully.`
+  );
+}
 
 document.addEventListener("DOMContentLoaded", function () {
   const downloadLink = document.getElementById("downloadLink");
@@ -402,4 +411,9 @@ let signOutButton = document.getElementById("signout");
 signOutButton.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../../index.html";
+});
+
+$(document).ready(function () {
+  console.log("ready!");
+  // $("#spinnerStatusModal").modal("show");
 });
