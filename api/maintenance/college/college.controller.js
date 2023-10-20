@@ -2,6 +2,7 @@ const {
   getColleges,
   getActiveColleges,
   getCollegeById,
+  getCollegeByCode,
   addCollege,
   updateCollege,
   deleteCollege,
@@ -53,6 +54,27 @@ module.exports = {
   getCollegeById: (req, res) => {
     const id = req.params.id;
     getCollegeById(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "College information retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
+  getCollegeByCode: (req, res) => {
+    const body = req.body;
+    getCollegeByCode(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

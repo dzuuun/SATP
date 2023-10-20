@@ -2,6 +2,7 @@ const {
   getColleges,
   getActiveColleges,
   getCollegeById,
+  getCollegeByCode,
   addCollege,
   updateCollege,
   deleteCollege,
@@ -14,5 +15,6 @@ router.get("/all/active", getActiveColleges);
 router.get("/", getColleges);
 router.put("/update", updateCollege);
 router.delete("/delete", deleteCollege);
+router.post("/get", getCollegeByCode);
 
 module.exports = router;

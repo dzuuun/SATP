@@ -4,7 +4,7 @@ const pool = createPool({
 
     password: '',
     user: 'root',
-    database: 'test',
+    database: 'satp',
     host: 'localhost',
     port: '3306'
 

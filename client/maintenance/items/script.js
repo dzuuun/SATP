@@ -310,7 +310,7 @@ uploadFileForm.addEventListener("submit", (event) => {
               });
             $("#importFileModal").modal("hide");
             setSuccessMessage(
-              `${data.length} entries was imported successfully.`
+              `${data.length} entries were imported successfully.`
             );
           }
         }

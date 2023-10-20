@@ -450,7 +450,7 @@
                                     database. Use this <a id="downloadLink" class="link-underline-primary">template</a>
                                     to import the necessary data.
                                 </p>
-                                <p>Populate the CSV file accordingly and import data by Department. For the is_part_time
+                                <p>Populate the CSV file accordingly. For the is_part_time
                                     column, put 1 if the Teacher is a Part Time Teacher, otherwise, put 0.</p>
                                 <div class="row">
                                     <div class="mt-2 mb-3">
@@ -458,15 +458,15 @@
                                         <input class="form-control" type="file" id="csvInput" accept=".csv" required />
                                     </div>
                                 </div>
-                                <div class="row">
+                                <!-- <div class="row">
                                     <div class="col-md mb-3">
                                         <label class="form-label fw-bold">Department</label>
                                         <select name="department_id" id="selectImportDepartment" class="form-control"
-                                            data-live-search="true" aria-label="Default select example" required>
+                                            data-live-search="true" aria-label="Default select example">
                                             <option disabled selected value="">Select</option>
                                         </select>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </form>
                     </div>
@@ -489,13 +489,35 @@
                 <div class="modal-content">
                     <div class="modal-body">
                         <div class="loader"></div>
-                        <p id="statusMessage" class="text-center mt-3 fs-4">100%</p>
+                        <p id="statusMessage" class="text-center mt-3 fs-4">0%</p>
                         <p class="text-center mt-3">Import in progress. Do not refresh the page...</p>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Modal for displaying failed data -->
+        <div class="modal fade" data-bs-backdrop="static" id="failedDataModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="failedDataModalLabel">Failed Data</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>The following data wasn't successfully imported.</p>
+                        <p id="totalFailedData"></p>
+                        <ul id="failedDataList"></ul>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Toast container -->
         <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>

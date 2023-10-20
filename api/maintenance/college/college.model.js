@@ -11,18 +11,34 @@ module.exports = {
   },
 
   getActiveColleges: (callBack) => {
-    pool.query("SELECT * FROM colleges WHERE is_active = 1", (error, results) => {
-      if (error) {
-        callBack(error);
+    pool.query(
+      "SELECT * FROM colleges WHERE is_active = 1",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
       }
-      return callBack(null, results);
-    });
+    );
   },
 
   getCollegeById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM colleges WHERE id = ?",
       [Id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  getCollegeByCode: (data, callBack) => {
+    pool.query(
+      "SELECT colleges.id, colleges.code, colleges.name, departments.id AS department_id, colleges.is_active FROM colleges INNER JOIN departments ON departments.college_id = colleges.id WHERE colleges.code = ?",
+      [data.college_code],
       (error, results) => {
         if (error) {
           callBack(error);

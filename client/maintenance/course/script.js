@@ -55,7 +55,7 @@ let data = $("#table").DataTable({
 const getDepartment = async () => {
   const departmentList = document.querySelector("#selectDepartment");
   const departmentList2 = document.querySelector("#selectDepartmentEdit");
-  const departmentList3 = document.querySelector("#selectImportDepartment");
+  // const departmentList3 = document.querySelector("#selectImportDepartment");
   const endpoint = `${baseURL}/api/department/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
@@ -64,7 +64,7 @@ const getDepartment = async () => {
   rows.forEach((row) => {
     departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
     departmentList2.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
-    departmentList3.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
+    // departmentList3.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
   });
   $(".form-control").selectpicker("refresh");
 };
@@ -246,15 +246,19 @@ async function confirmDelete() {
 }
 
 const csvInput = document.getElementById("csvInput");
-
 const uploadFileForm = document.querySelector("#uploadFileForm");
-uploadFileForm.addEventListener("submit", (event) => {
-  var department = document.getElementById("selectImportDepartment").value;
+uploadFileForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const file = csvInput.files[0];
-  if (file) {
-    Papa.parse(file, {
-      complete: function (results) {
+
+  if (confirm("This action cannot be undone.")) {
+    $("#importFileModal").modal("hide");
+    $("#spinnerStatusModal").modal("show");
+    const file = csvInput.files[0];
+
+    if (file) {
+      try {
+        const results = await parseCSV(file);
+
         const headers = results.data[0];
         const data = [];
 
@@ -270,46 +274,85 @@ uploadFileForm.addEventListener("submit", (event) => {
             }
             rowObject["user_id"] = user;
             rowObject["is_active"] = 1;
-            rowObject["department_id"] = department;
+
+            const response = await postData(`${baseURL}/api/department/get`, {
+              department_code: rowObject.department_code,
+            });
+            rowObject["department_id"] = response.data.id;
             data.push(rowObject);
           }
         }
 
-        if (confirm("This action cannot be undone.") == true) {
-          uploadData(data);
+        const failedData = [];
+        let counter = 0;
+
+        for (let i = 0; i < data.length; i++) {
+          try {
+            const response = await postData(
+              `${baseURL}/api/course/add`,
+              data[i]
+            );
+            document.getElementById("statusMessage").innerHTML =
+              ((i / data.length) * 100).toFixed(0) + "%";
+            if (response.success === 0) {
+              failedData.push(data[i].code);
+            } else {
+              counter++;
+            }
+          } catch (error) {
+            console.error(error);
+          }
         }
-      },
-    });
+
+        // Show the failed data in the modal
+        if (failedData.length > 0) {
+          document.getElementById("totalFailedData").innerHTML =
+            `Total: ` + failedData.length;
+          const failedDataList = document.getElementById("failedDataList");
+          failedDataList.innerHTML = "";
+
+          for (const item of failedData) {
+            const listItem = document.createElement("li");
+            listItem.textContent = JSON.stringify(item);
+            failedDataList.appendChild(listItem);
+          }
+          $("#failedDataModal").modal("show");
+        }
+
+        $("#spinnerStatusModal").modal("hide");
+        $("#table").DataTable().ajax.reload();
+        setSuccessMessage(
+          `${counter} of ${data.length} entries were imported successfully.`
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
   }
 });
 
-async function uploadData(data) {
-  let counter = 0;
-  for (let i = 0; i < data.length; i++) {
-    await fetch(`${baseURL}/api/course/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+async function parseCSV(file) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      complete: function (results) {
+        resolve(results);
       },
-      body: JSON.stringify(data[i]),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        $("#importFileModal").modal("hide");
-        $("#spinnerStatusModal").modal("show");
-        document.getElementById("statusMessage").innerHTML =
-          ((i / data.length) * 100).toFixed(0) + "%";
-        if (response.success == 0) {
-        } else {
-          counter++;
-        }
-      });
-  }
-  $("#spinnerStatusModal").modal("hide");
-  $("#table").DataTable().ajax.reload();
-  setSuccessMessage(
-    `${counter} of ${data.length} entries was imported successfully.`
-  );
+      error: function (error) {
+        reject(error);
+      },
+    });
+  });
+}
+
+async function postData(url, data) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
 }
 
 document.addEventListener("DOMContentLoaded", function () {
