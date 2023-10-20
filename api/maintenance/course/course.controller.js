@@ -2,6 +2,7 @@ const {
   getCourses,
   getActiveCourses,
   getCourseById,
+  getCourseByCode,
   addCourse,
   updateCourse,
   deleteCourse,
@@ -53,6 +54,27 @@ module.exports = {
   getCourseById: (req, res) => {
     const id = req.params.id;
     getCourseById(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Course information retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
+  getCourseByCode: (req, res) => {
+    const body = req.body;
+    getCourseByCode(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

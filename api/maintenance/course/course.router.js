@@ -2,6 +2,7 @@ const {
   getCourses,
   getActiveCourses,
   getCourseById,
+  getCourseByCode,
   addCourse,
   updateCourse,
   deleteCourse,
@@ -14,5 +15,5 @@ router.get("/all/active", getActiveCourses);
 router.get("/", getCourses);
 router.put("/update", updateCourse);
 router.delete("/delete", deleteCourse);
-
+router.post("/get", getCourseByCode);
 module.exports = router;

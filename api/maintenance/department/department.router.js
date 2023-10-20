@@ -2,6 +2,7 @@ const {
   getDepartments,
   getActiveDepartments,
   getDepartmentById,
+  getDepartmentByCode,
   addDepartment,
   updateDepartment,
   deleteDepartment,
@@ -14,5 +15,6 @@ router.get("/all/active", getActiveDepartments);
 router.post("/add", addDepartment);
 router.put("/update", updateDepartment);
 router.delete("/delete", deleteDepartment);
+router.post("/get", getDepartmentByCode);
 
 module.exports = router;

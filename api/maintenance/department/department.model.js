@@ -24,11 +24,24 @@ module.exports = {
       }
     );
   },
-  
+
   getDepartmentById: (Id, callBack) => {
     pool.query(
       "SELECT departments.id, departments.code, departments.name, colleges.id AS college_id, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id WHERE departments.id = ?",
       [Id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  getDepartmentByCode: (data, callBack) => {
+    pool.query(
+      "SELECT departments.id, departments.code, departments.name, colleges.id AS college_id, departments.is_active FROM departments INNER JOIN colleges ON departments.college_id = colleges.id WHERE departments.code = ?",
+      [data.department_code],
       (error, results) => {
         if (error) {
           callBack(error);

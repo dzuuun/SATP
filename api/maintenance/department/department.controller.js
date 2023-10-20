@@ -2,6 +2,7 @@ const {
   getDepartments,
   getActiveDepartments,
   getDepartmentById,
+  getDepartmentByCode,
   addDepartment,
   updateDepartment,
   deleteDepartment,
@@ -53,6 +54,27 @@ module.exports = {
   getDepartmentById: (req, res) => {
     const id = req.params.id;
     getDepartmentById(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Department information retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
+  getDepartmentByCode: (req, res) => {
+    const body = req.body;
+    getDepartmentByCode(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
