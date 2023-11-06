@@ -107,7 +107,7 @@ formAddStudent.addEventListener("submit", (event) => {
   } else {
     formData.append("is_active", "1");
   }
-  formData.append("permission_id", "12");
+  formData.append("permission_id", "5");
   formData.append("is_temp_pass", "0");
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);

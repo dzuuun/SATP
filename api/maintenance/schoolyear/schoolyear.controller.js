@@ -2,6 +2,7 @@ const {
   getSchoolYears,
   getActiveSchoolYears,
   getSchoolYearById,
+  getSchoolYearByName,
   addSchoolYear,
   updateSchoolYear,
   deleteSchoolYear,
@@ -53,6 +54,27 @@ module.exports = {
   getSchoolYearById: (req, res) => {
     const id = req.params.id;
     getSchoolYearById(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "School Year information retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
+  getSchoolYearByName: (req, res) => {
+    const body = req.body;
+    getSchoolYearByName(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

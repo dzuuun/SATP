@@ -36,6 +36,19 @@ module.exports = {
         return callBack(null, results[0]);
       }
     );
+  }, 
+
+  getTeacherByName: (data, callBack) => {
+    pool.query(
+      "SELECT  teachers.id, teachers.givenname, teachers.surname, teachers.middlename, departments.id AS department_id, teachers.is_part_time, teachers.is_active FROM teachers INNER JOIN departments on teachers.department_id=departments.id  WHERE teachers.givenname LIKE ? AND teachers.surname LIKE ?",
+      [data.givenname + '%', data.surname + '%'],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      }
+    );
   },
 
   getTeacherImageById: (Id, callBack) => {

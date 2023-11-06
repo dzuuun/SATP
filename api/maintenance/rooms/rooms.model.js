@@ -19,7 +19,6 @@ module.exports = {
     });
   },
 
-
   getRoomById: (Id, callBack) => {
     pool.query("SELECT * FROM rooms WHERE id = ?", [Id], (error, results) => {
       if (error) {
@@ -27,6 +26,19 @@ module.exports = {
       }
       return callBack(null, results[0]);
     });
+  },
+
+  getRoomByCode: (data, callBack) => {
+    pool.query(
+      "SELECT * FROM rooms WHERE name LIKE ?",
+      [data.room_name],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      }
+    );
   },
 
   addRoom: (data, callBack) => {

@@ -1,5 +1,6 @@
 const {
   getSchoolYearById,
+  getSchoolYearByName,
   getActiveSchoolYears,
   getSchoolYears,
   addSchoolYear,
@@ -14,5 +15,5 @@ router.get("/all/active", getActiveSchoolYears);
 router.get("/", getSchoolYears);
 router.put("/update", updateSchoolYear);
 router.delete("/delete", deleteSchoolYear);
-
+router.post("/get", getSchoolYearByName);
 module.exports = router;

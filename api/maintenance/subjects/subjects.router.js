@@ -2,6 +2,7 @@ const {
   addSubject,
   getActiveSubjects,
   getSubjectById,
+  getSubjectByCode,
   getSubjects,
   updateSubject,
   deleteSubject,
@@ -14,5 +15,5 @@ router.get("/all/active", getActiveSubjects);
 router.get("/", getSubjects);
 router.put("/update", updateSubject);
 router.delete("/delete", deleteSubject);
-
+router.post("/get", getSubjectByCode);
 module.exports = router;

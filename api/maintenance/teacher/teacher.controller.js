@@ -2,6 +2,7 @@ const {
   getTeachers,
   getActiveTeachers,
   getTeacherById,
+  getTeacherByName,
   addTeacher,
   updateTeacher,
   deleteTeacher,
@@ -55,6 +56,27 @@ module.exports = {
   getTeacherById: (req, res) => {
     const id = req.params.id;
     getTeacherById(id, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Teacher information retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
+  getTeacherByName: (req, res) => {
+    const body = req.body;
+    getTeacherByName(body, (err, results) => {
       if (err) {
         console.log(err);
         return;

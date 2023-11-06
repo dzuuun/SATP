@@ -2,6 +2,7 @@ const {
   getAllStudent,
   getAllActiveStudent,
   getStudentById,
+  getStudentByUserName,
   addStudent,
   updateStudentInfo,
   updateStudentActiveStatus,
@@ -72,6 +73,28 @@ module.exports = {
       });
     });
   },
+
+  getStudentByUserName: (req, res) => {
+    const body = req.body;
+    getStudentByUserName(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Student retrieved successfully.",
+        data: results,
+      });
+    });
+  },
+
 
   addStudent: (req, res) => {
     const body = req.body;

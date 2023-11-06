@@ -32,6 +32,20 @@ module.exports = {
     );
   },
 
+  getSubjectByCode: (data, callBack) => {
+    pool.query(
+"     SELECT * FROM subjects WHERE code LIKE ?",
+      [data.subject_code],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+
   addSubject: (data, callBack) => {
     pool.query(
       "SELECT code FROM subjects WHERE code=?",

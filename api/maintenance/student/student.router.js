@@ -2,6 +2,7 @@ const {
   getAllStudent,
   getAllActiveStudent,
   getStudentById,
+  getStudentByUserName,
   addStudent,
   updateStudentInfo,
   updateStudentActiveStatus,
@@ -16,5 +17,6 @@ router.get("/", getAllStudent);
 router.put("/update/info", updateStudentInfo);
 router.put("/update/status", updateStudentActiveStatus);
 router.delete("/delete", deleteStudent);
+router.post("/get", getStudentByUserName);
 
 module.exports = router;

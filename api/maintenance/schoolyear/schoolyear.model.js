@@ -11,18 +11,34 @@ module.exports = {
   },
 
   getActiveSchoolYears: (callBack) => {
-    pool.query("SELECT * FROM school_years WHERE is_active=1", (error, results) => {
-      if (error) {
-        callBack(error);
+    pool.query(
+      "SELECT * FROM school_years WHERE is_active = 1",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
       }
-      return callBack(null, results);
-    });
+    );
   },
 
   getSchoolYearById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM school_years WHERE id = ?",
       [Id],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      }
+    );
+  },
+
+  getSchoolYearByName: (data, callBack) => {
+    pool.query(
+      "SELECT * FROM school_years WHERE name LIKE ?",
+      [data.school_year],
       (error, results) => {
         if (error) {
           callBack(error);
