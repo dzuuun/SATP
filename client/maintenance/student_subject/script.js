@@ -19,7 +19,7 @@ if (user_admin == 0) {
 
 let table = $("#table").DataTable({
   columnDefs: [{ className: "dt-center", targets: "_all" }],
-  ordering: false,
+  // ordering: false,
   columns: [
     { data: "subject_code" },
     { data: "subject_name" },
@@ -29,18 +29,18 @@ let table = $("#table").DataTable({
     { data: "time_end" },
     { data: "day" },
     { data: "room" },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_excluded
-            ? `<span  style="color: red">Yes</span>`
-            : "<span>No</span>"
-        }
-                </td>`;
-      },
-    },
+    // {
+    //   width: "5%",
+    //   data: "null",
+    //   render: function (data, type, row) {
+    //     return `<td class="text-center fw-medium">${
+    //       row.is_excluded
+    //         ? `<span  style="color: red">Yes</span>`
+    //         : "<span>No</span>"
+    //     }
+    //             </td>`;
+    //   },
+    // },
     {
       width: "5%",
       data: null,
@@ -231,7 +231,7 @@ function generateTransaction(id) {
 }
 
 var body;
-async function confirmGenerateTransaction() {
+async function confirmGenerateTransaction(rowId) {
   await fetch(`${baseURL}/api/studentsubject/` + rowId, {
     method: "GET",
   })
@@ -247,27 +247,27 @@ async function confirmGenerateTransaction() {
         id: data[0].student_id,
       };
     });
-  if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/transaction/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-          $("#transactionModal").modal("hide");
-        } else {
-          $("#transactionModal").modal("hide");
-          setSuccessMessage(response.message);
-          loadExcludedData();
-          loadIncludedData();
-        }
-      });
-  }
+  // if (confirm("This action cannot be undone.") == true) {
+  fetch(`${baseURL}/api/transaction/add`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      if (response.success == 0) {
+        setErrorMessage(response.message);
+        $("#transactionModal").modal("hide");
+      } else {
+        $("#transactionModal").modal("hide");
+        // setSuccessMessage(response.message);
+        // loadExcludedData();
+        // loadIncludedData();
+      }
+    });
+  // }
 }
 
 // update status on the API
@@ -405,6 +405,144 @@ const getRoom = async () => {
   });
   $(".form-control").selectpicker("refresh");
 };
+
+const csvInput = document.getElementById("csvInput");
+const uploadFileForm = document.querySelector("#uploadFileForm");
+uploadFileForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (confirm("This action cannot be undone.")) {
+    $("#importFileModal").modal("hide");
+    $("#spinnerStatusModal").modal("show");
+    const file = csvInput.files[0];
+
+    if (file) {
+      try {
+        const results = await parseCSV(file);
+
+        const headers = results.data[0];
+        const data = [];
+
+        for (let i = 1; i < results.data.length; i++) {
+          const values = results.data[i];
+          if (
+            values.length === headers.length &&
+            values.some((value) => value.trim() !== "")
+          ) {
+            const rowObject = {};
+            for (let j = 0; j < headers.length; j++) {
+              rowObject[headers[j]] = values[j];
+            }
+
+            document.getElementById("statusMessage").innerHTML =
+              ((i / results.data.length) * 100).toFixed(0) + "%";
+            document.getElementById(
+              "spinnerMessage"
+            ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
+            rowObject["user_id"] = user;
+            rowObject["is_active"] = 1;
+            console.log(rowObject);
+            const subject = await postData(`${baseURL}/api/subject/get`, {
+              subject_code: rowObject.SubjectCode,
+            });
+            rowObject["subject_id"] = subject.data.id;
+            const room = await postData(`${baseURL}/api/room/get`, {
+              room_name: rowObject.RoomCode,
+            });
+            rowObject["room_id"] = room.data.id;
+            const schoolYear = await postData(`${baseURL}/api/schoolyear/get`, {
+              school_year: rowObject.SchoolYear,
+            });
+            rowObject["school_year_id"] = schoolYear.data.id;
+            const teacher = await postData(`${baseURL}/api/teacher/get`, {
+              givenname: rowObject.TeacherFirstName,
+              surname: rowObject.TeacherLastName,
+            });
+            rowObject["teacher_id"] = teacher.data.id;
+            const student = await postData(`${baseURL}/api/student/get`, {
+              username: rowObject.StudentID,
+            });
+            rowObject["student_id"] = student.data.id;
+            rowObject["is_excluded"] = 0;
+            data.push(rowObject);
+            // console.log(data)
+          }
+        }
+        console.log(data);
+        const failedData = [];
+        let counter = 0;
+        for (let i = 0; i < data.length; i++) {
+          try {
+            const response = await postData(
+              `${baseURL}/api/studentsubject/add`,
+              data[i]
+            );
+
+            document.getElementById("statusMessage").innerHTML =
+              ((i / data.length) * 100).toFixed(0) + "%";
+        document.getElementById("spinnerMessage").innerHTML = `Import in progress. Do not refresh the page...`;
+            if (response.success === 0) {
+              failedData.push(data[i]);
+              console.log(data[i]);
+              console.log(response);
+            } else {
+              counter++;
+              // console.log(response);
+              confirmGenerateTransaction(response.id)
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        }
+
+        // Show the failed data in the modal
+        if (failedData.length > 0) {
+          document.getElementById("totalFailedData").innerHTML =
+            `Total: ` + failedData.length;
+          const failedDataList = document.getElementById("failedDataList");
+          failedDataList.innerHTML = "";
+
+          for (const item of failedData) {
+            const listItem = document.createElement("li");
+            listItem.textContent = JSON.stringify(item);
+            failedDataList.appendChild(listItem);
+          }
+          $("#failedDataModal").modal("show");
+        }
+        $("#spinnerStatusModal").modal("hide");
+        // $("#table").DataTable().ajax.reload();
+        setSuccessMessage(
+          `${counter} of ${data.length} entries were imported successfully.`
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+});
+
+async function parseCSV(file) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      complete: function (results) {
+        resolve(results);
+      },
+      error: function (error) {
+        reject(error);
+      },
+    });
+  });
+}
+
+async function postData(url, data) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+}
 
 $(document).ready(function () {
   getRoom();
