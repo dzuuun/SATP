@@ -31,7 +31,7 @@ let table = $("#table").DataTable({
       render: function (data, type, row) {
         return `<td class="text-center fw-medium">${
           row.status
-            ? ` <button class='btn bi fs-4 bi-check-circle' style="color: green" onclick="getRatings(${row.id})" ></button>`
+            ? ` <button class='btn bi fs-4 bi-check-circle' style="color: green"></button>`
             : `<i class="bi fs-4 bi-x-circle" style="color: red"></i>`
         }
                 </td>`;
@@ -160,11 +160,45 @@ function setErrorMessage(message) {
 let generateList = document.getElementById("generateList");
 generateList.addEventListener("click", async (e) => {
   e.preventDefault();
-  console.log(school_year_id, semester_id);
-  localStorage.setItem("transListSchoolYear", school_year_id);
-  localStorage.setItem("transListSemester", semester_id);
+  // console.log(school_year_id, semester_id);
+  // localStorage.setItem("transListSchoolYear", school_year_id);
+  // localStorage.setItem("transListSemester", semester_id);
 
-  window.location.href = "unrated/index.html";
+  // window.location.href = "unrated/index.html";
+
+  var query = {
+    school_year_id: school_year_id,
+    semester_id: semester_id,
+  };
+  await fetch(`${baseURL}/api/transaction/notrated`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(query),
+  })
+    .then((res) => res.json())
+    .then((response) => {
+      if (response.count === 0) {
+        alert("no data found");
+        window.location.href = `../index.html`;
+      } else {
+        const csv = Papa.unparse(response.data);
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute("download", "SATP Unrated Transactions.csv");
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+        alert("File downloaded.")
+      }
+    });
 });
 
 function openNav() {
