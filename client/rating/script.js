@@ -24,6 +24,7 @@ let table = $("#table").DataTable({
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [
     { width: "2%", data: "subject_code" },
+    { width: "15%", data: "subject_name" },
     { width: "15%", data: "teachers_name" },
     {
       width: "5%",

@@ -5,6 +5,7 @@ const studentRater = document.querySelector("#studentRater");
 const teacherRatee = document.querySelector("#teacherRatee");
 const subjectCode = document.querySelector("#subjectCode");
 const baseURL = "http://localhost:3000";
+var userLoggedIn;
 let transactionToRate;
 var transaction_id;
 var item_id = [];
@@ -117,13 +118,13 @@ function submitRating() {
   if (comment === "") {
     var commentStatus = {
       transaction_id: transactionToRate,
-      user_id: 1,
+      user_id: userLoggedIn,
     };
   } else {
     var commentStatus = {
       comment: comment,
       transaction_id: transactionToRate,
-      user_id: 1,
+      user_id: userLoggedIn,
     };
   }
 
@@ -197,6 +198,7 @@ function setErrorMessage(message) {
 }
 
 $(document).ready(function () {
+  userLoggedIn = localStorage.getItem("user_id");
   transactionToRate = localStorage.getItem("transactionToRate");
   if (transactionToRate === null) {
     alert("No subject to rate. Redirecting...");
