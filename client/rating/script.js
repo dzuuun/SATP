@@ -6,7 +6,6 @@ var username = localStorage.getItem("username");
 var user = localStorage.getItem("user_id");
 var user_admin = localStorage.getItem("is_admin_rater");
 var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
 
 if (user === null) {
   alert("Log in to continue.");

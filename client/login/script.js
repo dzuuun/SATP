@@ -47,6 +47,18 @@ loginButton.addEventListener("submit", async (e) => {
     });
 });
 
+let showPassword = document.getElementById("showPassword");
+showPassword.addEventListener("click", async (e) => {
+  var x = document.getElementById("password");
+  if (x.type === "password") {
+    x.type = "text";
+    showPassword.innerHTML = '<i class="bi bi-eye-slash-fill"></i>';
+  } else {
+    x.type = "password";
+    showPassword.innerHTML = '<i class="bi bi-eye"></i>';
+  }
+});
+
 function setErrorMessage(message) {
   document.getElementById(
     "toast-container"
