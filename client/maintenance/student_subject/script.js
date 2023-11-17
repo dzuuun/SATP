@@ -166,6 +166,8 @@ formAddStudentSubject.addEventListener("submit", (event) => {
           setSuccessMessage(response.message);
           $("#addNewModal").modal("hide");
           generateTransaction(response.id);
+          loadExcludedData();
+          loadIncludedData();
         }
       });
   }
@@ -227,7 +229,7 @@ function setErrorMessage(message) {
 var rowId;
 function generateTransaction(id) {
   rowId = id;
-  $("#transactionModal").modal("show");
+  // $("#transactionModal").modal("show");
 }
 
 var body;
@@ -479,7 +481,9 @@ uploadFileForm.addEventListener("submit", async (event) => {
 
             document.getElementById("statusMessage").innerHTML =
               ((i / data.length) * 100).toFixed(0) + "%";
-        document.getElementById("spinnerMessage").innerHTML = `Import in progress. Do not refresh the page...`;
+            document.getElementById(
+              "spinnerMessage"
+            ).innerHTML = `Import in progress. Do not refresh the page...`;
             if (response.success === 0) {
               failedData.push(data[i]);
               console.log(data[i]);
@@ -487,7 +491,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
             } else {
               counter++;
               // console.log(response);
-              confirmGenerateTransaction(response.id)
+              confirmGenerateTransaction(response.id);
             }
           } catch (error) {
             console.error(error);
