@@ -9,6 +9,10 @@ let loginButton = document.querySelector("#loginForm");
 // signupButton.addEventListener("click", () => {
 //   window.location.href = "http://localhost:5000/register";
 // });
+let forgotPass = document.getElementById("forgot-pass");
+forgotPass.addEventListener("click", () => {
+  alert("Visit MIS Office for password reset.");
+});
 
 loginButton.addEventListener("submit", async (e) => {
   e.preventDefault();
