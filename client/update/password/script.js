@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:3000";
+const baseURL = "http://192.168.118.170:3000";
 var user = localStorage.getItem("user_id");
 var user_admin = localStorage.getItem("is_admin_rater");
 var currentPassword, newPassword, currentPassword;

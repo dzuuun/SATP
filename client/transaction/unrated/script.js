@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:3000";
+const baseURL = "http://192.168.118.170:3000";
 const tbody = document.getElementById("tbData");
 var genSchoolYear = localStorage.getItem("transListSchoolYear");
 var genSemester = localStorage.getItem("transListSemester");
