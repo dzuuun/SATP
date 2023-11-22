@@ -1,4 +1,4 @@
-const baseURL = "http://192.168.118.170:3000";
+const baseURL = "http://120.72.27.137:3000";
 var schoolyear, semester;
 
 let username = document.getElementById("username");
