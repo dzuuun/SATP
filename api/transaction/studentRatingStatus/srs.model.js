@@ -97,15 +97,38 @@ module.exports = {
     );
   },
 
+  // submitRating: (data, callBack) => {
+  //   pool.query(
+  //     "INSERT INTO trans_item (transaction_id, item_id, rate) VALUES (?,?,?)",
+  //     [data.transaction_id, data.item_id, data.rate],
+  //     (error, results) => {
+  //       if (error) {
+  //         callBack(error);
+  //       }
+  //       return callBack(null, results);
+  //     }
+  //   );
+  // },
+
   submitRating: (data, callBack) => {
     pool.query(
-      "INSERT INTO trans_item (transaction_id, item_id, rate) VALUES (?,?,?)",
-      [data.transaction_id, data.item_id, data.rate],
+      "SELECT * FROM trans_item WHERE transaction_id = ? AND item_id = ?",
+      [data.transaction_id, data.item_id],
       (error, results) => {
-        if (error) {
-          callBack(error);
+        if (results.length === 0) {
+          pool.query(
+            "INSERT INTO trans_item (transaction_id, item_id, rate) VALUES (?,?,?)",
+            [data.transaction_id, data.item_id, data.rate],
+            (error, results) => {
+              if (error) {
+                callBack(error);
+              }
+              return callBack(null, results);
+            }
+          );
+        } else {
+          return callBack(results);
         }
-        return callBack(null, results);
       }
     );
   },
