@@ -138,3 +138,19 @@ signOutButton.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../../index.html";
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadSpinner();
+
+  window.addEventListener("load", function () {
+    hideSpinner();
+  });
+});
+
+function loadSpinner() {
+  document.getElementById("overlay").style.display = "flex";
+}
+
+function hideSpinner() {
+  document.getElementById("overlay").style.display = "none";
+}
