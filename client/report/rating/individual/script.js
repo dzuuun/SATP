@@ -23,8 +23,8 @@ let itemAverage = [];
 let meanAverage = [];
 averagePerSubjectTotal = [];
 
-
 const getdata = async () => {
+  loadSpinner();
   var query = {
     school_year_id: genSchoolYear,
     semester_id: genSemester,
@@ -41,7 +41,6 @@ const getdata = async () => {
   })
     .then((res) => res.json())
     .then((response) => {
-      console.log(response)
       if (response.count === 0) {
         alert("no data found");
         window.location.href = `../index.html`;
@@ -84,6 +83,7 @@ const getdata = async () => {
         respondents.innerHTML = `${response.data[0].respondents}`;
 
         meanAverage = [];
+        hideSpinner();
       }
     });
 };
@@ -106,7 +106,7 @@ const getTeacherInfo = async () => {
   })
     .then((res) => res.json())
     .then((response) => {
-      console.log(response)
+      console.log(response);
       teacher.innerHTML = `${response.data.teacher_name}`;
       school_year.innerHTML = `${response.data.school_year}`;
       semester.innerHTML = `${response.data.semester}`;
@@ -114,7 +114,6 @@ const getTeacherInfo = async () => {
       department.innerHTML = `${response.data.department}`;
       dateGenerated.innerHTML = `${today.toDateString()}`;
       totalMean = response.data.mean.toFixed(2);
-      
     });
 };
 
@@ -155,4 +154,20 @@ function average(numbers) {
   }, 0);
   let avg = sum / numbers.length;
   return avg;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadSpinner();
+
+  window.addEventListener("load", function () {
+    hideSpinner();
+  });
+});
+
+function loadSpinner() {
+  document.getElementById("overlay").style.display = "flex";
+}
+
+function hideSpinner() {
+  document.getElementById("overlay").style.display = "none";
 }

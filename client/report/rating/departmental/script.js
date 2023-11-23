@@ -22,6 +22,7 @@ let meanAverage = [];
 averagePerSubjectTotal = [];
 
 const getdata = async () => {
+  loadSpinner();
   var query = {
     school_year_id: genSchoolYear,
     semester_id: genSemester,
@@ -79,6 +80,7 @@ const getdata = async () => {
         respondents.innerHTML = `${response.data[0].respondents}`;
 
         meanAverage = [];
+        hideSpinner();
       }
     });
 };
@@ -120,4 +122,20 @@ function average(numbers) {
   }, 0);
   let avg = sum / numbers.length;
   return avg;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadSpinner();
+
+  window.addEventListener("load", function () {
+    hideSpinner();
+  });
+});
+
+function loadSpinner() {
+  document.getElementById("overlay").style.display = "flex";
+}
+
+function hideSpinner() {
+  document.getElementById("overlay").style.display = "none";
 }

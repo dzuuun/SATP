@@ -26,6 +26,7 @@ const getdata = async () => {
   })
     .then((res) => res.json())
     .then((response) => {
+      loadSpinner();
       if (response.count === 0) {
         alert("no data found");
         window.location.href = `../index.html`;
@@ -52,10 +53,9 @@ const getdata = async () => {
         semester.innerHTML += `${response.data[0].semester}`;
         dateGenerated.innerHTML += `${today.toDateString()}`;
       }
+      hideSpinner();
     });
 };
-
-getdata();
 
 function csvExport(table_id, separator = ",") {
   var rows = document.querySelectorAll("table#" + table_id + " tr");
@@ -87,4 +87,21 @@ function csvExport(table_id, separator = ",") {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadSpinner();
+  getdata();
+
+  window.addEventListener("load", function () {
+    // hideSpinner();
+  });
+});
+
+function loadSpinner() {
+  document.getElementById("overlay").style.display = "flex";
+}
+
+function hideSpinner() {
+  document.getElementById("overlay").style.display = "none";
 }
