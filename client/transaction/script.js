@@ -58,6 +58,7 @@ let transactionsToAccomplish = document.getElementById(
   "transactionsToAccomplish"
 );
 function loadIncludedData() {
+  loadSpinner();
   $.ajax({
     url: `${baseURL}/api/transaction/all/school_year_id=${school_year_id}&semester_id=${semester_id}`,
     type: "get",
@@ -71,6 +72,7 @@ function loadIncludedData() {
         (item) => item.status === 0
       ).length;
       document.getElementById("generateList").style.display = "inline";
+      hideSpinner();
       setSuccessMessage(response.message);
       table.clear().draw();
       table.rows.add(response.data).draw();
@@ -186,7 +188,7 @@ generateList.addEventListener("click", async (e) => {
         const csv = Papa.unparse(response.data);
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");
-        
+
         const url = URL.createObjectURL(blob);
         link.href = url;
         link.setAttribute("download", "SATP Unrated Transactions.csv");
@@ -196,7 +198,7 @@ generateList.addEventListener("click", async (e) => {
         link.click();
 
         document.body.removeChild(link);
-        alert("File downloaded.")
+        alert("File downloaded.");
       }
     });
 });
@@ -226,3 +228,19 @@ signOutButton.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../index.html";
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadSpinner();
+
+  window.addEventListener("load", function () {
+    hideSpinner();
+  });
+});
+
+function loadSpinner() {
+  document.getElementById("overlay").style.display = "flex";
+}
+
+function hideSpinner() {
+  document.getElementById("overlay").style.display = "none";
+}

@@ -129,6 +129,7 @@ function submitRating() {
   }
 
   if (confirm("Are you sure? This action cannot be undone.") == true) {
+    loadSpinner();
     for (let i = 0; i < stars.widgets.length; i++) {
       var rating = {
         transaction_id: transactionToRate,
@@ -164,6 +165,7 @@ function submitRating() {
         if (response.success == 0) {
           setErrorMessage(response.message);
         } else {
+          hideSpinner();
           $("#rateDoneModal").modal("show");
         }
       });
@@ -197,7 +199,8 @@ function setErrorMessage(message) {
   }, 2000);
 }
 
-$(document).ready(function () {
+document.addEventListener("DOMContentLoaded", function () {
+  loadSpinner();
   userLoggedIn = localStorage.getItem("user_id");
   transactionToRate = localStorage.getItem("transactionToRate");
   if (transactionToRate === null) {
@@ -206,4 +209,16 @@ $(document).ready(function () {
   }
   getdata();
   getTransactionInfo(transactionToRate);
+
+  window.addEventListener("load", function () {
+    hideSpinner();
+  });
 });
+
+function loadSpinner() {
+  document.getElementById("overlay").style.display = "flex";
+}
+
+function hideSpinner() {
+  document.getElementById("overlay").style.display = "none";
+}

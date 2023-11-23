@@ -103,11 +103,13 @@ searchData.addEventListener("change", (event) => {
 });
 
 function loadIncludedData() {
+  loadSpinner();
   $.ajax({
     url: `${baseURL}/api/studentsubject/included/student_id=${student_id}&school_year_id=${school_year_id}&semester_id=${semester_id}`,
     type: "get",
   })
     .done(function (response) {
+      hideSpinner();
       setSuccessMessage(response.message);
       table.clear().draw();
       table.rows.add(response.data).draw();
@@ -165,7 +167,7 @@ formAddStudentSubject.addEventListener("submit", (event) => {
         } else {
           setSuccessMessage(response.message);
           $("#addNewModal").modal("hide");
-          generateTransaction(response.id);
+          confirmGenerateTransaction(response.id);
           loadExcludedData();
           loadIncludedData();
         }
@@ -548,15 +550,6 @@ async function postData(url, data) {
   return response.json();
 }
 
-$(document).ready(function () {
-  getRoom();
-  getSchoolYear();
-  getSemester();
-  getTeacher();
-  getSubject();
-  getStudent();
-});
-
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
   document.getElementById("main").style.marginLeft = "250px";
@@ -582,3 +575,25 @@ signOutButton.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../../index.html";
 });
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadSpinner();
+  getRoom();
+  getSchoolYear();
+  getSemester();
+  getTeacher();
+  getSubject();
+  getStudent();
+
+  window.addEventListener("load", function () {
+    hideSpinner();
+  });
+});
+
+function loadSpinner() {
+  document.getElementById("overlay").style.display = "flex";
+}
+
+function hideSpinner() {
+  document.getElementById("overlay").style.display = "none";
+}
