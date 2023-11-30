@@ -5,11 +5,14 @@ var genSemester = localStorage.getItem("genReportSemester");
 var genTeachingStatus = localStorage.getItem("genReportTeachingStatus");
 var genCollege = localStorage.getItem("genReportCollege");
 const header = document.getElementById("header");
+const collegeHeader = document.getElementById("collegeHeader");
 const school_year = document.querySelector("#schoolYear");
 const semester = document.querySelector("#semester");
 const dateGenerated = document.querySelector("#dateGenerated");
+const mean = document.getElementById("mean");
 var college;
 var today = new Date();
+let meanAverage = [];
 
 function getCollegeData() {
   fetch(`${baseURL}/api/college/` + genCollege, {
@@ -55,22 +58,31 @@ const getdata = async () => {
             "COLLEGIATE RANKING RESULT OF TEACHERS WITH PART-TIME LOAD";
         }
         response.data.forEach((data) => {
+          meanAverage.push(data.mean);
           tbody.innerHTML += `<tr>
           <td></td>
                     <td class="text-capitalize">${data.teacher_name}</td>
                     <td class="text-uppercase">${data.department}</td>
-                    <td class="text-uppercase">${data.college}</td>
                     <td class="text-center">${data.mean}</td>
                 </tr>`;
         });
-
+        mean.innerHTML = `Overall Mean: ${average(meanAverage).toFixed(2)}`;
         school_year.innerHTML += `${response.data[0].school_year}`;
         semester.innerHTML += `${response.data[0].semester}`;
+        collegeHeader.innerHTML = `${response.data[0].college}`;
         dateGenerated.innerHTML += `${today.toDateString()}`;
       }
       hideSpinner();
     });
 };
+
+function average(numbers) {
+  let sum = numbers.reduce((accumulator, currentValue) => {
+    return accumulator + currentValue;
+  }, 0);
+  let avg = sum / numbers.length;
+  return avg;
+}
 
 function csvExport(table_id, separator = ",") {
   var rows = document.querySelectorAll("table#" + table_id + " tr");

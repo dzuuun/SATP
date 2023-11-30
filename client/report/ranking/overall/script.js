@@ -7,6 +7,8 @@ const header = document.getElementById("header");
 const school_year = document.querySelector("#schoolYear");
 const semester = document.querySelector("#semester");
 const dateGenerated = document.querySelector("#dateGenerated");
+const mean = document.getElementById("mean");
+let meanAverage = [];
 
 var today = new Date();
 
@@ -40,6 +42,7 @@ const getdata = async () => {
         }
 
         response.data.forEach((data) => {
+          meanAverage.push(data.mean);
           tbody.innerHTML += `<tr>
                     <td></td>
                     <td class="text-capitalize">${data.teacher_name}</td>
@@ -48,7 +51,7 @@ const getdata = async () => {
                     <td class="text-center">${data.mean}</td>
                 </tr>`;
         });
-
+        mean.innerHTML = `Overall Mean: ${average(meanAverage).toFixed(2)}`;
         school_year.innerHTML += `${response.data[0].school_year}`;
         semester.innerHTML += `${response.data[0].semester}`;
         dateGenerated.innerHTML += `${today.toDateString()}`;
@@ -56,6 +59,14 @@ const getdata = async () => {
       hideSpinner();
     });
 };
+
+function average(numbers) {
+  let sum = numbers.reduce((accumulator, currentValue) => {
+    return accumulator + currentValue;
+  }, 0);
+  let avg = sum / numbers.length;
+  return avg;
+}
 
 function csvExport(table_id, separator = ",") {
   var rows = document.querySelectorAll("table#" + table_id + " tr");

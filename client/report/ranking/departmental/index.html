@@ -70,10 +70,15 @@
   <div class="container-md col-md-9">
     <h6 class="text-center">STUDENT ASSESSMENT OF TEACHER'S PERFORMANCE</h6>
     <h5 class="text-center" id="header"></h5>
+
   </div>
   <div class="container-md col-md-9">
     <table id="table" class="table text-black table-bordered table-sm table-responsive-sm text-nowrap">
       <div class="row mb-3">
+        <span>College: <label class="fw-bold" id="collegeHeader"></label>
+        </span>
+        <span>Department: <label class="fw-bold" id="departmentHeader"></label>
+        </span>
         <span>School Year: <label class="fw-bold" id="schoolYear"></label>
         </span>
         <span>Semester: <label class="fw-bold" id="semester"></label> </span>
@@ -81,21 +86,17 @@
           <label class="fw-bold" id="dateGenerated"></label>
         </span>
       </div>
-      <!-- <div class="row">
-        <div class="col">
-          <p class="fw-medium">
-            Teachers with more than 14 raters per class:
-          </p>
+      <div class="row">
+        <div class="text-end fw-bold" id="mean">
+          Overall Mean:
         </div>
-      </div> -->
+      </div>
 
       <thead class="table-light">
         <tr>
-          <th>#</th>
+          <th class="col-1">#</th>
           <th class="col-4">Name</th>
-          <th class="col-3">Department</th>
-          <th class="col-4">College</th>
-          <th class="col-1">General Mean</th>
+          <th class="col-1 text-center">General Mean</th>
         </tr>
       </thead>
       <tbody id="tbData"></tbody>
