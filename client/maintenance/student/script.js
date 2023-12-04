@@ -329,6 +329,14 @@ uploadFileForm.addEventListener("submit", async (event) => {
             }
             rowObject["user_id"] = user;
             rowObject["is_active"] = 1;
+            rowObject["permission_id"] = 5;
+            rowObject["is_temp_pass"] = 1;
+
+            document.getElementById("statusMessage").innerHTML =
+            ((i / results.data.length) * 100).toFixed(0) + "%";
+          document.getElementById(
+            "spinnerMessage"
+          ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
 
             const response = await postData(`${baseURL}/api/course/get`, {
               course_code: rowObject.course_code,
@@ -348,6 +356,9 @@ uploadFileForm.addEventListener("submit", async (event) => {
 
             document.getElementById("statusMessage").innerHTML =
               ((i / data.length) * 100).toFixed(0) + "%";
+            document.getElementById(
+              "spinnerMessage"
+            ).innerHTML = `Import in progress. Do not refresh the page...`;
             if (response.success === 0) {
               failedData.push(data[i].username);
             } else {
