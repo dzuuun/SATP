@@ -1,4 +1,4 @@
-const baseURL = "http://120.72.27.137:3000";
+const baseURL = "http://satp.ndmu.edu.ph:3000";
 const user = localStorage.getItem("user_id");
 const tbody = document.querySelector("#tbData");
 const comment = document.getElementById("comments");
