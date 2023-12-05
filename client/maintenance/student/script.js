@@ -333,10 +333,11 @@ uploadFileForm.addEventListener("submit", async (event) => {
             rowObject["is_temp_pass"] = 1;
 
             document.getElementById("statusMessage").innerHTML =
-            ((i / results.data.length) * 100).toFixed(0) + "%";
-          document.getElementById(
-            "spinnerMessage"
-          ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
+              ((i / results.data.length) * 100).toFixed(0) + "%";
+            console.log(((i / results.data.length) * 100).toFixed(0) + "%");
+             document.getElementById(
+               "spinnerMessage"
+             ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
 
             const response = await postData(`${baseURL}/api/course/get`, {
               course_code: rowObject.course_code,
