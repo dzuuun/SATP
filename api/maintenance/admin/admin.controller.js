@@ -1,4 +1,4 @@
-const { genSaltSync } = require("bcrypt");
+const { genSaltSync,  hashSync, compareSync } = require("bcrypt");
 const {
   getAllAdmin,
   getAllActiveAdmin,
@@ -75,8 +75,8 @@ module.exports = {
 
   addAdmin: (req, res) => {
     const body = req.body;
-    // const salt = genSaltSync(10);
-    // body.password = hashSync(body.password, salt);
+    const salt = genSaltSync(10);
+    body.password = hashSync(body.password, salt);
     addAdmin(body, (err, results) => {
       if (err) {
         return res.json({
