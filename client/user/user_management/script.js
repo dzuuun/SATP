@@ -274,7 +274,7 @@ async function edit(id) {
       document.getElementById("editCourse").value = data.course_id;
       document.getElementById("editYearLevel").value = data.year_level;
       document.getElementById("editUsername").value = data.username;
-      document.getElementById("editPassword").value = data.password;
+      // document.getElementById("editPassword").value = data.password;
       document.getElementById("editPermissionSelect").value =
         data.permission_id;
 
