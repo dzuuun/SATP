@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:3000";
+const baseURL = "http://satp.ndmu.edu.ph:3000";
 var schoolyear, semester;
 
 let username = document.getElementById("username");
@@ -7,7 +7,7 @@ let loginButton = document.querySelector("#loginForm");
 // let signupButton = document.getElementById("signup");
 
 // signupButton.addEventListener("click", () => {
-//   window.location.href = "http://localhost:5000/register";
+//   window.location.href = "http://satp.ndmu.edu.ph:5000/register";
 // });
 let forgotPass = document.getElementById("forgot-pass");
 forgotPass.addEventListener("click", () => {
