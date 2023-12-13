@@ -52,7 +52,7 @@ let data = $("#table").DataTable({
 
 // post school year to API
 const formAddSubject = document.querySelector("#newSubjectForm");
-formAddSubject.addEventListener("submit", (event) => {
+formAddSubject.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddSubject);
@@ -66,7 +66,7 @@ formAddSubject.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/subject/add`, {
+    await fetch(`${baseURL}/api/subject/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -158,7 +158,7 @@ async function editFormCall(id) {
     });
 }
 const formEditSubject = document.querySelector("#editSubjectForm");
-formEditSubject.addEventListener("submit", (event) => {
+formEditSubject.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditSubject);
 
@@ -173,7 +173,7 @@ formEditSubject.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/subject/update`, {
+    await fetch(`${baseURL}/api/subject/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

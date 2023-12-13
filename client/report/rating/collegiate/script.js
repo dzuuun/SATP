@@ -26,7 +26,7 @@ const getdata = async () => {
     college_id: genCollege,
   };
 
-  fetch(`${baseURL}/api/report/rating/collegiate`, {
+  await fetch(`${baseURL}/api/report/rating/collegiate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -90,7 +90,7 @@ const getComment = async () => {
     college_id: genCollege,
   };
 
-  fetch(`${baseURL}/api/report/rating/comment/collegiate`, {
+  await fetch(`${baseURL}/api/report/rating/comment/collegiate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

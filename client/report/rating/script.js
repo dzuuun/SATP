@@ -176,7 +176,7 @@ signOutButton.addEventListener("click", () => {
 });
 
 const searchData = document.querySelector("#teacher");
-searchData.addEventListener("change", () => {
+searchData.addEventListener("change", async () => {
   document.getElementById("subject").innerHTML = ``;
   var query = {
     school_year_id: document.getElementById("schoolYear").value,
@@ -185,7 +185,7 @@ searchData.addEventListener("change", () => {
     subject_id: document.getElementById("subject").value,
   };
 
-  fetch(`${baseURL}/api/report/rating/teacher/subjects`, {
+  await fetch(`${baseURL}/api/report/rating/teacher/subjects`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -206,7 +206,6 @@ searchData.addEventListener("change", () => {
 
 document.addEventListener("DOMContentLoaded", function () {
   loadSpinner();
-
 
   window.addEventListener("load", function () {
     hideSpinner();

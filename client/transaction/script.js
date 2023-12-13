@@ -41,7 +41,7 @@ let table = $("#table").DataTable({
 });
 
 const searchData = document.querySelector("#loaddata");
-searchData.addEventListener("change", (event) => {
+searchData.addEventListener("change", async (event) => {
   semester_id = document.getElementById("loadSemester").value;
   school_year_id = document.getElementById("loadSchoolYear").value;
 

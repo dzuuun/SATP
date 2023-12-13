@@ -32,7 +32,7 @@ const getdata = async () => {
     subject_id: genSubject,
   };
 
-  fetch(`${baseURL}/api/report/rating/individual`, {
+  await fetch(`${baseURL}/api/report/rating/individual`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -97,7 +97,7 @@ const getTeacherInfo = async () => {
     teacher_id: genTeacher,
   };
 
-  fetch(`${baseURL}/api/report/rating/teacher/information`, {
+  await fetch(`${baseURL}/api/report/rating/teacher/information`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -126,7 +126,7 @@ const getComment = async () => {
     teacher_id: genTeacher,
   };
 
-  fetch(`${baseURL}/api/report/rating/comment`, {
+  await fetch(`${baseURL}/api/report/rating/comment`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

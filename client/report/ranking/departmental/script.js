@@ -15,8 +15,8 @@ var department;
 var today = new Date();
 let meanAverage = [];
 
-function getDepartmentData() {
-  fetch(`${baseURL}/api/department/` + genDepartment, {
+async function getDepartmentData() {
+  await fetch(`${baseURL}/api/department/` + genDepartment, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -38,7 +38,7 @@ const getdata = async () => {
     departments_id: genDepartment,
   };
 
-  fetch(`${baseURL}/api/report/ranking/departmental`, {
+  await fetch(`${baseURL}/api/report/ranking/departmental`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

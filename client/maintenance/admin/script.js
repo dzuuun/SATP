@@ -92,7 +92,7 @@ function generatePassword() {
 
 // post school year to API
 const formAddAdmin = document.querySelector("#newAdminForm");
-formAddAdmin.addEventListener("submit", (event) => {
+formAddAdmin.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddAdmin);
@@ -106,7 +106,7 @@ formAddAdmin.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/admin/add`, {
+    await fetch(`${baseURL}/api/admin/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -201,7 +201,7 @@ async function edit(id) {
     });
 }
 const formEditAdmin = document.querySelector("#editAdminInfoForm");
-formEditAdmin.addEventListener("submit", (event) => {
+formEditAdmin.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditAdmin);
 
@@ -209,7 +209,7 @@ formEditAdmin.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/admin/update/info`, {
+    await fetch(`${baseURL}/api/admin/update/info`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -230,7 +230,7 @@ formEditAdmin.addEventListener("submit", (event) => {
 });
 
 const formEditAdminStatus = document.querySelector("#editAdminStatusForm");
-formEditAdminStatus.addEventListener("submit", (event) => {
+formEditAdminStatus.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const isActive = document.getElementById("editIsAdminStatusActive").checked;
@@ -242,7 +242,7 @@ formEditAdminStatus.addEventListener("submit", (event) => {
   }
 
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/admin/update/status`, {
+    await fetch(`${baseURL}/api/admin/update/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
