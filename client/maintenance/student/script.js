@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:3000";
+const baseURL = "http://satp.ndmu.edu.ph:3000";
 var user = localStorage.getItem("user_id");
 var user_admin = localStorage.getItem("is_admin_rater");
 var username = localStorage.getItem("username");
@@ -334,9 +334,11 @@ uploadFileForm.addEventListener("submit", async (event) => {
 
             document.getElementById("statusMessage").innerHTML =
               ((i / results.data.length) * 100).toFixed(0) + "%";
-            document.getElementById(
-              "spinnerMessage"
-            ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
+
+            console.log(((i / results.data.length) * 100).toFixed(0) + "%");
+             document.getElementById(
+               "spinnerMessage"
+             ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
 
             const response = await postData(`${baseURL}/api/course/get`, {
               course_code: rowObject.course_code,
