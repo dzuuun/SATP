@@ -79,7 +79,7 @@ const getDepartment = async () => {
 getDepartment();
 
 const formAddTeacher = document.querySelector("#newTeacherForm");
-formAddTeacher.addEventListener("submit", (event) => {
+formAddTeacher.addEventListener("submit", async (event) => {
   var teacher;
   event.preventDefault();
 
@@ -100,7 +100,7 @@ formAddTeacher.addEventListener("submit", (event) => {
   const data = Object.fromEntries(formData);
 
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/teacher/add`, {
+    await fetch(`${baseURL}/api/teacher/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -246,7 +246,7 @@ async function editTeacherInfo(id) {
     });
 }
 const formEditStudent = document.querySelector("#editTeacherInfoForm");
-formEditStudent.addEventListener("submit", (event) => {
+formEditStudent.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditStudent);
   const isPartTime = document.getElementById("editIsTeacherPartTime").checked;
@@ -266,7 +266,7 @@ formEditStudent.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/teacher/update`, {
+    await fetch(`${baseURL}/api/teacher/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

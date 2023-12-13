@@ -97,7 +97,7 @@ function generatePassword() {
 
 // post school year to API
 const formAddStudent = document.querySelector("#newStudentForm");
-formAddStudent.addEventListener("submit", (event) => {
+formAddStudent.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddStudent);
@@ -112,7 +112,7 @@ formAddStudent.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/student/add`, {
+    await fetch(`${baseURL}/api/student/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -210,7 +210,7 @@ async function edit(id) {
     });
 }
 const formEditStudent = document.querySelector("#editStudentInfoForm");
-formEditStudent.addEventListener("submit", (event) => {
+formEditStudent.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditStudent);
 
@@ -218,7 +218,7 @@ formEditStudent.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/student/update/info`, {
+    await fetch(`${baseURL}/api/student/update/info`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -239,7 +239,7 @@ formEditStudent.addEventListener("submit", (event) => {
 });
 
 const formEditStudentStatus = document.querySelector("#editStudentStatusForm");
-formEditStudentStatus.addEventListener("submit", (event) => {
+formEditStudentStatus.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const isActive = document.getElementById("editIsStudentStatusActive").checked;
@@ -251,7 +251,7 @@ formEditStudentStatus.addEventListener("submit", (event) => {
   }
 
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/student/update/status`, {
+    await fetch(`${baseURL}/api/student/update/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -334,6 +334,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
 
             document.getElementById("statusMessage").innerHTML =
               ((i / results.data.length) * 100).toFixed(0) + "%";
+
             console.log(((i / results.data.length) * 100).toFixed(0) + "%");
              document.getElementById(
                "spinnerMessage"

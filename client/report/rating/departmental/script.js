@@ -29,7 +29,7 @@ const getdata = async () => {
     department_id: genDepartment,
   };
 
-  fetch(`${baseURL}/api/report/rating/departmental`, {
+  await fetch(`${baseURL}/api/report/rating/departmental`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -94,7 +94,7 @@ const getComment = async () => {
     department_id: genDepartment,
   };
 
-  fetch(`${baseURL}/api/report/rating/comment/departmental`, {
+  await fetch(`${baseURL}/api/report/rating/comment/departmental`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

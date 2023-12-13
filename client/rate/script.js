@@ -49,7 +49,7 @@ var item_id = [];
 // };
 
 const getdata = async () => {
-  fetch(`${baseURL}/api/item/active/rate`, {
+  await fetch(`${baseURL}/api/item/active/rate`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -112,7 +112,7 @@ async function getTransactionInfo(id) {
     });
 }
 
-function submitRating() {
+async function submitRating() {
   let comment = document.getElementById("comment").value;
 
   if (comment === "") {
@@ -136,7 +136,7 @@ function submitRating() {
         item_id: item_id[i],
         rate: stars.widgets[i].indexSelected + 1,
       };
-      fetch(`${baseURL}/api/transaction/add/rating`, {
+      await fetch(`${baseURL}/api/transaction/add/rating`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +153,7 @@ function submitRating() {
         });
     }
 
-    fetch(`${baseURL}/api/transaction/submit/ ` + transactionToRate, {
+    await fetch(`${baseURL}/api/transaction/submit/ ` + transactionToRate, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

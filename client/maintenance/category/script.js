@@ -51,7 +51,7 @@ let data = $("#table").DataTable({
 
 // post school year to API
 const formAddCategory = document.querySelector("#newCategoryForm");
-formAddCategory.addEventListener("submit", (event) => {
+formAddCategory.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddCategory);
@@ -156,7 +156,7 @@ async function editFormCall(id) {
     });
 }
 const formEditCategory = document.querySelector("#editCategoryForm");
-formEditCategory.addEventListener("submit", (event) => {
+formEditCategory.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditCategory);
 
@@ -171,7 +171,7 @@ formEditCategory.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/category/update`, {
+    await fetch(`${baseURL}/api/category/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

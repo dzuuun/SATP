@@ -100,7 +100,7 @@ var data = $("#table").DataTable({
 
 // post permission to API
 const formAddPermission = document.querySelector("#newPermissionForm");
-formAddPermission.addEventListener("submit", (event) => {
+formAddPermission.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddPermission);
@@ -145,7 +145,7 @@ formAddPermission.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/permission/add`, {
+    await fetch(`${baseURL}/api/permission/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -260,7 +260,7 @@ async function editFormCall(id) {
     });
 }
 const formEditPermission = document.querySelector("#editPermissionForm");
-formEditPermission.addEventListener("submit", (event) => {
+formEditPermission.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditPermission);
 
@@ -307,7 +307,7 @@ formEditPermission.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/permission/update`, {
+    await fetch(`${baseURL}/api/permission/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

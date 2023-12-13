@@ -14,8 +14,8 @@ var college;
 var today = new Date();
 let meanAverage = [];
 
-function getCollegeData() {
-  fetch(`${baseURL}/api/college/` + genCollege, {
+async function getCollegeData() {
+  await fetch(`${baseURL}/api/college/` + genCollege, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -36,7 +36,7 @@ const getdata = async () => {
     colleges_id: genCollege,
   };
 
-  fetch(`${baseURL}/api/report/ranking/collegiate`, {
+  await fetch(`${baseURL}/api/report/ranking/collegiate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

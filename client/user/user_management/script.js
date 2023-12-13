@@ -152,7 +152,7 @@ const getPermission = async () => {
 
 // post user to API
 const formAddUser = document.querySelector("#newUserForm");
-formAddUser.addEventListener("submit", (event) => {
+formAddUser.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddUser);
@@ -186,7 +186,7 @@ formAddUser.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/user/add`, {
+    await fetch(`${baseURL}/api/user/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -302,7 +302,7 @@ async function edit(id) {
 }
 
 const formEditUserInfo = document.querySelector("#editUserInfoForm");
-formEditUserInfo.addEventListener("submit", (event) => {
+formEditUserInfo.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditUserInfo);
 
@@ -318,7 +318,7 @@ formEditUserInfo.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/user/update/info`, {
+    await fetch(`${baseURL}/api/user/update/info`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -341,7 +341,7 @@ formEditUserInfo.addEventListener("submit", (event) => {
 const formEditUserCredentials = document.querySelector(
   "#editUserCredentialsForm"
 );
-formEditUserCredentials.addEventListener("submit", (event) => {
+formEditUserCredentials.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditUserCredentials);
 
@@ -356,7 +356,7 @@ formEditUserCredentials.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/user/update/credentials`, {
+    await fetch(`${baseURL}/api/user/update/credentials`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -377,7 +377,7 @@ formEditUserCredentials.addEventListener("submit", (event) => {
 });
 
 const formEditPermission = document.querySelector("#editPermissionForm");
-formEditPermission.addEventListener("submit", (event) => {
+formEditPermission.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditPermission);
 
@@ -397,7 +397,7 @@ formEditPermission.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/user/update/control`, {
+    await fetch(`${baseURL}/api/user/update/control`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -418,7 +418,7 @@ formEditPermission.addEventListener("submit", (event) => {
 });
 
 const formEditStatus = document.querySelector("#editStatusForm");
-formEditStatus.addEventListener("submit", (event) => {
+formEditStatus.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const isActive = document.getElementById("editIsUserActive").checked;
@@ -430,7 +430,7 @@ formEditStatus.addEventListener("submit", (event) => {
   }
 
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/user/update/status`, {
+    await fetch(`${baseURL}/api/user/update/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

@@ -52,7 +52,7 @@ let data = $("#table").DataTable({
 
 // post room to API
 const formAddRoom = document.querySelector("#newRoomForm");
-formAddRoom.addEventListener("submit", (event) => {
+formAddRoom.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddRoom);
@@ -66,7 +66,7 @@ formAddRoom.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/room/add`, {
+    await fetch(`${baseURL}/api/room/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -157,7 +157,7 @@ async function editFormCall(id) {
     });
 }
 const formEditRoom = document.querySelector("#editRoomForm");
-formEditRoom.addEventListener("submit", (event) => {
+formEditRoom.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditRoom);
 
@@ -172,7 +172,7 @@ formEditRoom.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/room/update`, {
+    await fetch(`${baseURL}/api/room/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

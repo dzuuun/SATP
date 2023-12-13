@@ -90,7 +90,7 @@ let tableExcluded = $("#tableExcluded").DataTable({
 });
 
 const searchData = document.querySelector("#loaddata");
-searchData.addEventListener("change", (event) => {
+searchData.addEventListener("change", async (event) => {
   student_id = document.getElementById("loadStudent").value;
   semester_id = document.getElementById("loadSemester").value;
   school_year_id = document.getElementById("loadSchoolYear").value;
@@ -139,7 +139,7 @@ function addNew() {
 
 // post student subject to API
 const formAddStudentSubject = document.querySelector("#newStudentSubjectForm");
-formAddStudentSubject.addEventListener("submit", (event) => {
+formAddStudentSubject.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddStudentSubject);
@@ -153,7 +153,7 @@ formAddStudentSubject.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/studentsubject/add`, {
+    await fetch(`${baseURL}/api/studentsubject/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -252,7 +252,7 @@ async function confirmGenerateTransaction(rowId) {
       };
     });
   // if (confirm("This action cannot be undone.") == true) {
-  fetch(`${baseURL}/api/transaction/add`, {
+  await fetch(`${baseURL}/api/transaction/add`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -283,7 +283,7 @@ function deactivateSubject(id) {
 const formDeactivateSubject = document.querySelector(
   "#deactivateStudentSubjectForm"
 );
-formDeactivateSubject.addEventListener("submit", (event) => {
+formDeactivateSubject.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formDeactivateSubject);
@@ -293,7 +293,7 @@ formDeactivateSubject.addEventListener("submit", (event) => {
   const data = Object.fromEntries(formData);
 
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/studentsubject/deactivate`, {
+    await fetch(`${baseURL}/api/studentsubject/deactivate`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

@@ -73,7 +73,7 @@ getDepartment();
 
 // post course to API
 const formAddCourse = document.querySelector("#newCourseForm");
-formAddCourse.addEventListener("submit", (event) => {
+formAddCourse.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddCourse);
@@ -87,7 +87,7 @@ formAddCourse.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/course/add`, {
+    await fetch(`${baseURL}/api/course/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -183,7 +183,7 @@ async function editFormCall(id) {
     });
 }
 const formEditCourse = document.querySelector("#editCourseForm");
-formEditCourse.addEventListener("submit", (event) => {
+formEditCourse.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditCourse);
   const isActive = document.getElementById("isCourseActiveEdit").checked;
@@ -197,7 +197,7 @@ formEditCourse.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/course/update`, {
+    await fetch(`${baseURL}/api/course/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

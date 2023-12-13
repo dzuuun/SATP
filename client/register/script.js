@@ -48,7 +48,7 @@ async function raterId() {
 raterId();
 
 const registerForm = document.querySelector("#registerForm");
-registerForm.addEventListener("submit", (event) => {
+registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(registerForm);
@@ -66,7 +66,7 @@ registerForm.addEventListener("submit", (event) => {
   if (createPassword === confirmPassword) {
     document.getElementById("passwordMatchField").innerHTML = "";
     if (confirm("This action cannot be undone.") == true) {
-      fetch(`${baseURL}/api/login/register`, {
+      await fetch(`${baseURL}/api/login/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

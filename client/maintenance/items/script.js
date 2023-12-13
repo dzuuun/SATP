@@ -75,7 +75,7 @@ getCategory();
 
 // post item to API
 const formAddItem = document.querySelector("#newItemForm");
-formAddItem.addEventListener("submit", (event) => {
+formAddItem.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddItem);
@@ -89,7 +89,7 @@ formAddItem.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/item/add`, {
+    await fetch(`${baseURL}/api/item/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -194,7 +194,7 @@ async function editFormCall(id) {
     });
 }
 const formEditItem = document.querySelector("#editItemForm");
-formEditItem.addEventListener("submit", (event) => {
+formEditItem.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formEditItem);
@@ -210,7 +210,7 @@ formEditItem.addEventListener("submit", (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    fetch(`${baseURL}/api/item/update`, {
+    await fetch(`${baseURL}/api/item/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
