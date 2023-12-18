@@ -33,10 +33,19 @@ loginButton.addEventListener("submit", async (e) => {
         setErrorMessage(response.message);
       } else {
         setSuccessMessage(response.message);
-
+        
         localStorage.setItem("user_id", response.user_id);
         localStorage.setItem("username", response.data.username);
-        localStorage.setItem("is_admin_rater", response.data.is_admin_rater);
+        localStorage.setItem(
+          "transactionAccess",
+          response.data.transaction_access
+        );
+        localStorage.setItem(
+          "maintenanceAccess",
+          response.data.maintenance_access
+        );
+        localStorage.setItem("reportsAccess", response.data.reports_access);
+        localStorage.setItem("usersAccess", response.data.users_access);
         getSchoolYear();
         getSemester();
 
