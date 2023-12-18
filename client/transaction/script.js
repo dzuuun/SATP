@@ -20,11 +20,10 @@ let table = $("#table").DataTable({
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [
     { width: "1%", data: "username" },
-    { width: "5%", data: "student_name" },
+    { width: "10%", data: "student_name" },
     { width: "15%", data: "teachers_name" },
     { width: "2%", data: "subject_code" },
-    { width: "1%", data: "school_year" },
-    { width: "1%", data: "semester" },
+    { width: "2%", data: "college_code" },
     {
       width: "1%",
       data: "null",
