@@ -1,6 +1,6 @@
 const baseURL = "http://satp.ndmu.edu.ph:3000";
 var user = localStorage.getItem("user_id");
-var user_admin = localStorage.getItem("is_admin_rater");
+var reportsAccess = localStorage.getItem("reportsAccess");
 var username = localStorage.getItem("username");
 
 document.getElementById("userName").innerHTML = username;
@@ -10,7 +10,7 @@ if (user === null) {
   window.location.href = "../../index.html";
 }
 
-if (user_admin == 0) {
+if (reportsAccess == 0) {
   alert("You don't have permission to access this page. Redirecting...");
   history.back();
 }
