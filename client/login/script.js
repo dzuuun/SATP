@@ -53,7 +53,12 @@ loginButton.addEventListener("submit", async (e) => {
           if (response.data.is_student_rater === 1) {
             window.location.href = "../rating/index.html";
           } else {
-            window.location.href = "../user/user_management/index.html";
+            // window.location.href = "../user/user_management/index.html";
+            if (response.data.transaction_access == 1) {
+              window.location.href = "../transaction/index.html";
+            } else {
+              window.location.href = "../user/user_management/index.html";
+            }
           }
         }, 1000);
       }
