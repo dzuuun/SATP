@@ -217,7 +217,7 @@
                         <thead>
                             <th class="text-left">Name</th>
                             <th>Department</th>
-                            <th>Part Time</th>
+                            <th>Teaching Status</th>
                             <th>Active</th>
                             <th>Manage</th>
                         </thead>
@@ -305,6 +305,18 @@
                                     </div>
                                 </div> -->
                                 <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Teaching Status</label>
+                                        <select id="teachingStatusSelect" name="is_part_time" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                            <option value="0">Full Time</option>
+                                            <option value="1">Part Time</option>
+                                            <option value="2">NTPO & Admin</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- <div class="row mb-3">
                                     <div class="col">
                                         <label class="form-check-label  fw-bold">Part Time</label>
                                     </div>
@@ -314,7 +326,7 @@
                                                 id="isTeacherPartTime" />
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="row mb-3">
                                     <div class="col">
                                         <label class="form-check-label fw-bold text-nowrap">Active Teacher</label>
@@ -396,6 +408,18 @@
                                     </div>
                                 </div> -->
                                 <div class="row mb-3">
+                                    <div class="col-md">
+                                        <label class="form-label fw-bold">Teaching Status</label>
+                                        <select id="editTeachingStatusSelect" name="is_part_time" class="form-control"
+                                            data-live-search="true" aria-label="Default select example" required>
+                                            <option disabled selected value="">Select</option>
+                                            <option value="0">Full Time</option>
+                                            <option value="1">Part Time</option>
+                                            <option value="2">NTPO & Admin</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- <div class="row mb-3">
                                     <div class="col">
                                         <label class="form-check-label  fw-bold">Part Time</label>
                                     </div>
@@ -405,7 +429,7 @@
                                                 id="editIsTeacherPartTime" checked />
                                         </div>
                                     </div>
-                                </div>
+                                </div> -->
                                 <div class="row mb-3">
                                     <div class="col">
                                         <label class="form-check-label fw-bold text-nowrap">Active Teacher</label>
