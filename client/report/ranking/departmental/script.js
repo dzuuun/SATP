@@ -53,10 +53,15 @@ const getdata = async () => {
       } else {
         if (response.data[0].is_part_time === 0) {
           header.innerHTML =
-            "DEPARTMENTAL RANKING RESULT OF TEACHERS WITH FULL-TIME LOAD";
-        } else {
+            "COLLEGIATE RANKING RESULT OF TEACHERS WITH FULL-TIME LOAD";
+        } else if (response.data[0].is_part_time === 1) {
           header.innerHTML =
-            "DEPARTMENTAL RANKING RESULT OF TEACHERS WITH PART-TIME LOAD";
+            "COLLEGIATE RANKING RESULT OF TEACHERS WITH PART-TIME LOAD";
+        } else if (response.data[0].is_part_time === 2) {
+          header.innerHTML =
+            "COLLEGIATE RANKING RESULT OF TEACHERS WITH ADMIN LOAD";
+        } else {
+          header.innerHTML = "COLLEGIATE RANKING RESULT";
         }
         response.data.forEach((data) => {
           meanAverage.push(data.mean);

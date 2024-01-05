@@ -25,11 +25,17 @@ let data = $("#table").DataTable({
     { data: "name" },
     { width: "10%", data: "department_code" },
     {
-      width: "10%",
+      width: "15%",
       data: "null",
       render: function (data, type, row) {
         return `<td class="text-center fw-medium">${
-          row.is_part_time ? "<span>Yes</span>" : "<span>No</span>"
+          row.is_part_time === 0
+            ? "<span>Full Time</span>"
+            : row.is_part_time === 1
+            ? "<span>Part Time</span>"
+            : row.is_part_time === 2
+            ? "<span>NTPO & Admin</span>"
+            : ""
         }
                   </td>`;
       },
@@ -84,12 +90,12 @@ formAddTeacher.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddTeacher);
-  const isPartTime = document.getElementById("isTeacherPartTime").checked;
-  if (isPartTime == false) {
-    formData.append("is_part_time", "0");
-  } else {
-    formData.append("is_part_time", "1");
-  }
+  // const isPartTime = document.getElementById("isTeacherPartTime").checked;
+  // if (isPartTime == false) {
+  //   formData.append("is_part_time", "0");
+  // } else {
+  //   formData.append("is_part_time", "1");
+  // }
   const isActive = document.getElementById("isTeacherActive").checked;
   if (isActive == false) {
     formData.append("is_active", "0");
@@ -221,19 +227,20 @@ async function editTeacherInfo(id) {
     .then((res) => res.json())
     .then((response) => {
       data = response.data;
-      console.log(response);
-      console.log(id);
+
       // document.getElementById("updatePreview").src = `/${data.path}`;
       document.getElementById("editGivenName").value = data.givenname;
       document.getElementById("editMiddleName").value = data.middlename;
       document.getElementById("editLastName").value = data.surname;
       document.getElementById("editDepartmentSelect").value =
         data.department_id;
-      if (data.is_part_time == 0) {
-        document.getElementById("editIsTeacherPartTime").checked = false;
-      } else {
-        document.getElementById("editIsTeacherPartTime").checked = true;
-      }
+      // if (data.is_part_time == 0) {
+      //   document.getElementById("editIsTeacherPartTime").checked = false;
+      // } else {
+      //   document.getElementById("editIsTeacherPartTime").checked = true;
+      // }
+      document.getElementById("editTeachingStatusSelect").value =
+        data.is_part_time;
 
       rowIdToUpdate = data.id;
       if (data.is_active == 0) {
@@ -249,12 +256,12 @@ const formEditStudent = document.querySelector("#editTeacherInfoForm");
 formEditStudent.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditStudent);
-  const isPartTime = document.getElementById("editIsTeacherPartTime").checked;
-  if (isPartTime == false) {
-    formData.append("is_part_time", "0");
-  } else {
-    formData.append("is_part_time", "1");
-  }
+  // const isPartTime = document.getElementById("editIsTeacherPartTime").checked;
+  // if (isPartTime == false) {
+  //   formData.append("is_part_time", "0");
+  // } else {
+  //   formData.append("is_part_time", "1");
+  // }
   const isActive = document.getElementById("editIsTeacherActive").checked;
   if (isActive == false) {
     formData.append("is_active", "0");

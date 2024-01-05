@@ -51,12 +51,15 @@ const getdata = async () => {
         window.location.href = `../index.html`;
       } else {
         if (response.data[0].is_part_time === 0) {
-          header.innerHTML =
-            "COLLEGIATE RANKING RESULT OF TEACHERS WITH FULL-TIME LOAD";
+          header.innerHTML = "COLLEGIATE RANKING RESULT OF TEACHERS WITH FULL-TIME LOAD";
+        } else if (response.data[0].is_part_time === 1) {
+          header.innerHTML = "COLLEGIATE RANKING RESULT OF TEACHERS WITH PART-TIME LOAD";
+        } else if (response.data[0].is_part_time === 2) {
+          header.innerHTML = "COLLEGIATE RANKING RESULT OF TEACHERS WITH ADMIN LOAD";
         } else {
-          header.innerHTML =
-            "COLLEGIATE RANKING RESULT OF TEACHERS WITH PART-TIME LOAD";
+          header.innerHTML = "COLLEGIATE RANKING RESULT";
         }
+        
         response.data.forEach((data) => {
           meanAverage.push(data.mean);
           tbody.innerHTML += `<tr>
