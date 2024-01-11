@@ -17,7 +17,7 @@ const respondents = document.getElementById("respondents");
 const teacher = document.querySelector("#teacher");
 const subject = document.getElementById("subject");
 const generalMean = document.getElementById("generalMean");
-var totalMean;
+var totalMean = 0;
 var today = new Date();
 let itemAverage = [];
 let meanAverage = [];
@@ -88,8 +88,6 @@ const getdata = async () => {
     });
 };
 
-getdata();
-
 const getTeacherInfo = async () => {
   var query = {
     school_year_id: genSchoolYear,
@@ -106,7 +104,6 @@ const getTeacherInfo = async () => {
   })
     .then((res) => res.json())
     .then((response) => {
-      console.log(response);
       teacher.innerHTML = `${response.data.teacher_name}`;
       school_year.innerHTML = `${response.data.school_year}`;
       semester.innerHTML = `${response.data.semester}`;
@@ -114,6 +111,7 @@ const getTeacherInfo = async () => {
       department.innerHTML = `${response.data.department}`;
       dateGenerated.innerHTML = `${today.toDateString()}`;
       totalMean = response.data.mean.toFixed(2);
+      getdata();
     });
 };
 
