@@ -33,7 +33,7 @@ loginButton.addEventListener("submit", async (e) => {
         setErrorMessage(response.message);
       } else {
         setSuccessMessage(response.message);
-        
+
         localStorage.setItem("user_id", response.user_id);
         localStorage.setItem("username", response.data.username);
         localStorage.setItem(
@@ -51,7 +51,11 @@ loginButton.addEventListener("submit", async (e) => {
 
         setTimeout(function () {
           if (response.data.is_student_rater === 1) {
-            window.location.href = "../rating/index.html";
+            // window.location.href = "../rating/index.html";
+            alert(
+              "Subject rating is no longer available at this moment. Wait for further instructions, thank you. \n\n Redirecting you back to the Landing Page."
+            );
+            window.location.href = "../index.html";
           } else {
             // window.location.href = "../user/user_management/index.html";
             if (response.data.transaction_access == 1) {
