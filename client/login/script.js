@@ -56,6 +56,7 @@ loginButton.addEventListener("submit", async (e) => {
               "Subject rating is no longer available at this moment. Wait for further instructions, thank you. \n\n Redirecting you back to the Landing Page."
             );
             window.location.href = "../index.html";
+            localStorage.clear();
           } else {
             // window.location.href = "../user/user_management/index.html";
             if (response.data.transaction_access == 1) {
