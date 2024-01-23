@@ -121,6 +121,7 @@ const getComment = async () => {
   var query = {
     school_year_id: genSchoolYear,
     semester_id: genSemester,
+    subject_id: genSubject,
     teacher_id: genTeacher,
   };
 
