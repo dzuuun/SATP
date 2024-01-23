@@ -42,8 +42,8 @@ module.exports = {
 
   getComment: (data, callBack) => {
     pool.query(
-      "SELECT comment FROM transactions WHERE school_year_id = ? AND semester_id = ? AND teacher_id = ? AND COMMENT IS NOT NULL",
-      [data.school_year_id, data.semester_id, data.teacher_id],
+      "SELECT comment FROM transactions WHERE school_year_id = ? AND semester_id = ? AND subject_id = ? AND teacher_id = ? AND COMMENT IS NOT NULL",
+      [data.school_year_id, data.semester_id, data.subject_id, data.teacher_id],
       (error, results) => {
         if (error) {
           callBack(error);
