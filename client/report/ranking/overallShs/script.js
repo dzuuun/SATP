@@ -19,7 +19,7 @@ const getdata = async () => {
     is_part_time: genTeachingStatus,
   };
 
-  await fetch(`${baseURL}/api/report/ranking/overall`, {
+  await fetch(`${baseURL}/api/report/ranking/overall/shs`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

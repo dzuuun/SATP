@@ -104,6 +104,9 @@ generateReport.addEventListener("submit", async (e) => {
     case "overall":
       window.location.href = "overall/index.html";
       break;
+      case "overallSHS":
+        window.location.href = "overallShs/index.html";
+        break;
     case "collegiate":
       localStorage.setItem("genReportCollege", data.college);
       window.location.href = "collegiate/index.html";
