@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph:3000";
+const baseURL = "http://localhost:3000";
 const tbody = document.querySelector("#tbData");
 var genSchoolYear = localStorage.getItem("genReportSchoolYear");
 var genSemester = localStorage.getItem("genReportSemester");
@@ -19,7 +19,7 @@ const getdata = async () => {
     is_part_time: genTeachingStatus,
   };
 
-  await fetch(`${baseURL}/api/report/ranking/overall`, {
+  await fetch(`${baseURL}/api/report/ranking/overall/shs`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
