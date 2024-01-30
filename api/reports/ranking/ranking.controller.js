@@ -1,9 +1,31 @@
-const { getOverallRanking, getCollegiateRanking, getDepartmentalRanking } = require("./ranking.model");
+const { getOverallRanking, getOverallRankingSHS, getCollegiateRanking, getDepartmentalRanking } = require("./ranking.model");
 
 module.exports = {
   getOverallRanking: (req, res) => {
     const body = req.body;
     getOverallRanking(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Overall ranking retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getOverallRankingSHS: (req, res) => {
+    const body = req.body;
+    getOverallRankingSHS(body, (err, results) => {
       if (err) {
         console.log(err);
         return;
