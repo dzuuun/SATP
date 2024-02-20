@@ -1,6 +1,7 @@
 const {
   getSemesters,
   getActiveSemesters,
+  getInUseSemester,
   getSemesterById,
   addSemester,
   updateSemester,
@@ -31,6 +32,27 @@ module.exports = {
 
   getActiveSemesters: (req, res) => {
     getActiveSemesters((err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Semesters information retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getInUseSemester: (req, res) => {
+    getInUseSemester((err, results) => {
       if (err) {
         console.log(err);
         return;

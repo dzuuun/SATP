@@ -32,7 +32,7 @@ const getSchoolYear = async () => {
 // Get semester from API
 const getSemester = async () => {
   const semesterList = document.querySelector("#semester");
-  const endpoint = `${baseURL}/api/semester/all/active`,
+  const endpoint = `${baseURL}/api/semester/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
