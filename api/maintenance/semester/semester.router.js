@@ -1,6 +1,7 @@
 const {
   getSemesters,
   getActiveSemesters,
+  getInUseSemester,
   getSemesterById,
   addSemester,
   updateSemester,
@@ -14,5 +15,5 @@ router.get("/all/active", getActiveSemesters);
 router.get("/", getSemesters);
 router.put("/update", updateSemester);
 router.delete("/delete", deleteSemester);
-
+router.get("/inuse/active", getInUseSemester);
 module.exports = router;

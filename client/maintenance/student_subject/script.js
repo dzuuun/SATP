@@ -334,7 +334,7 @@ const getSchoolYear = async () => {
 const getSemester = async () => {
   const semesterList = document.querySelector("#selectSemester");
   const semesterList2 = document.querySelector("#loadSemester");
-  const endpoint = `${baseURL}/api/semester/all/active`,
+  const endpoint = `${baseURL}/api/semester/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
