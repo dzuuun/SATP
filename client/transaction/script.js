@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+const baseURL = "http://localhost:4000";
 var semester_id;
 var school_year_id;
 var user = localStorage.getItem("user_id");
