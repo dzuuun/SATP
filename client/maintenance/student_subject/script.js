@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:4000";
+const baseURL = "http://satp.ndmu.edu.ph";
 var student_id;
 var semester_id;
 var school_year_id;
