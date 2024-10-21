@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:3000";
+const baseURL = "http://localhost:4000";
 const tbody = document.querySelector("#tbData");
 var genSchoolYear = localStorage.getItem("genReportSchoolYear");
 var genSemester = localStorage.getItem("genReportSemester");

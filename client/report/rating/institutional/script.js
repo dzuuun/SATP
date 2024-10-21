@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:3000";
+const baseURL = "http://localhost:4000";
 const user = localStorage.getItem("user_id");
 const tbody = document.querySelector("#tbData");
 const comment = document.getElementById("comments");
