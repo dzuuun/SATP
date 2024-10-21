@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+const baseURL = "http://localhost:4000";
 
 let showPassword = document.getElementById("showPassword");
 showPassword.addEventListener("click", async (e) => {
