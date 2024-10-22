@@ -300,7 +300,6 @@ async function confirmDelete() {
       });
   }
 }
-
 const csvInput = document.getElementById("csvInput");
 const uploadFileForm = document.querySelector("#uploadFileForm");
 uploadFileForm.addEventListener("submit", async (event) => {
@@ -316,6 +315,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
 
         const headers = results.data[0];
         const data = [];
+        const failedData = []; // To store failed rows
 
         for (let i = 1; i < results.data.length; i++) {
           const values = results.data[i];
@@ -336,38 +336,49 @@ uploadFileForm.addEventListener("submit", async (event) => {
               ((i / results.data.length) * 100).toFixed(0) + "%";
 
             console.log(((i / results.data.length) * 100).toFixed(0) + "%");
-             document.getElementById(
-               "spinnerMessage"
-             ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
+            document.getElementById(
+              "spinnerMessage"
+            ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
 
-            const response = await postData(`${baseURL}/api/course/get`, {
-              course_code: rowObject.course_code,
-            });
-            rowObject["course_id"] = response.data.id;
-            data.push(rowObject);
+            try {
+              // Fetch course_id from API
+              const response = await postData(`${baseURL}/api/course/get`, {
+                course_code: rowObject.course_code,
+              });
+              if (!response.data || !response.data.id) {
+                throw new Error("Course not found");
+              }
+              rowObject["course_id"] = response.data.id;
+
+              // Add row to data if everything is valid
+              data.push(rowObject);
+            } catch (error) {
+              console.error("Failed to process row:", error);
+              failedData.push({ ...rowObject, error: error.message }); // Add row to failed data with error message
+              continue; // Skip to the next iteration if this one fails
+            }
           }
         }
-        const failedData = [];
+
         let counter = 0;
         for (let i = 0; i < data.length; i++) {
           try {
-            const response = await postData(
-              `${baseURL}/api/student/add`,
-              data[i]
-            );
+            const response = await postData(`${baseURL}/api/student/add`, data[i]);
 
             document.getElementById("statusMessage").innerHTML =
               ((i / data.length) * 100).toFixed(0) + "%";
             document.getElementById(
               "spinnerMessage"
             ).innerHTML = `Import in progress. Do not refresh the page...`;
+
             if (response.success === 0) {
-              failedData.push(data[i].username);
+              failedData.push(data[i]); // Capture failed row on error
             } else {
               counter++;
             }
           } catch (error) {
             console.error(error);
+            failedData.push(data[i]); // Capture failed row on error
           }
         }
 
@@ -384,7 +395,11 @@ uploadFileForm.addEventListener("submit", async (event) => {
             failedDataList.appendChild(listItem);
           }
           $("#failedDataModal").modal("show");
+
+          // Optionally, export failed rows to CSV
+          exportFailedDataToCSV(failedData);
         }
+
         $("#spinnerStatusModal").modal("hide");
         $("#table").DataTable().ajax.reload();
         setSuccessMessage(
@@ -396,6 +411,31 @@ uploadFileForm.addEventListener("submit", async (event) => {
     }
   }
 });
+
+// Function to export failed rows to CSV
+function exportFailedDataToCSV(failedData) {
+  const csvHeaders = Object.keys(failedData[0]);
+  const csvRows = [
+    csvHeaders.join(","), // Header row
+    ...failedData.map(row =>
+      csvHeaders.map(header => `"${row[header] || ''}"`).join(",")
+    )
+  ].join("\n");
+
+  // Create a Blob from the CSV data
+  const csvBlob = new Blob([csvRows], { type: "text/csv" });
+
+  // Create a link element to download the CSV file
+  const downloadLink = document.createElement("a");
+  downloadLink.href = URL.createObjectURL(csvBlob);
+  downloadLink.download = "failed_data.csv";
+
+  // Append the link to the body, trigger click, and remove the link
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
 
 async function parseCSV(file) {
   return new Promise((resolve, reject) => {
