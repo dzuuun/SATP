@@ -425,6 +425,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
 
         const headers = results.data[0];
         const data = [];
+        const failedData = [];
 
         for (let i = 1; i < results.data.length; i++) {
           const values = results.data[i];
@@ -444,35 +445,51 @@ uploadFileForm.addEventListener("submit", async (event) => {
             ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
             rowObject["user_id"] = user;
             rowObject["is_active"] = 1;
-            console.log(rowObject);
-            const subject = await postData(`${baseURL}/api/subject/get`, {
-              subject_code: rowObject.SubjectCode,
-            });
-            rowObject["subject_id"] = subject.data.id;
-            const room = await postData(`${baseURL}/api/room/get`, {
-              room_name: rowObject.RoomCode,
-            });
-            rowObject["room_id"] = room.data.id;
-            const schoolYear = await postData(`${baseURL}/api/schoolyear/get`, {
-              school_year: rowObject.SchoolYear,
-            });
-            rowObject["school_year_id"] = schoolYear.data.id;
-            const teacher = await postData(`${baseURL}/api/teacher/get`, {
-              givenname: rowObject.TeacherFirstName,
-              surname: rowObject.TeacherLastName,
-            });
-            rowObject["teacher_id"] = teacher.data.id;
-            const student = await postData(`${baseURL}/api/student/get`, {
-              username: rowObject.StudentID,
-            });
-            rowObject["student_id"] = student.data.id;
-            rowObject["is_excluded"] = 0;
-            data.push(rowObject);
-            // console.log(data)
+
+            try {
+              const subject = await postData(`${baseURL}/api/subject/get`, {
+                subject_code: rowObject.SubjectCode,
+              });
+              if (!subject.data.id) throw new Error("Subject not found");
+              rowObject["subject_id"] = subject.data.id;
+
+              const room = await postData(`${baseURL}/api/room/get`, {
+                room_name: rowObject.RoomCode,
+              });
+              if (!room.data.id) throw new Error("Room not found");
+              rowObject["room_id"] = room.data.id;
+
+              const schoolYear = await postData(
+                `${baseURL}/api/schoolyear/get`,
+                { school_year: rowObject.SchoolYear }
+              );
+              if (!schoolYear.data.id) throw new Error("School year not found");
+              rowObject["school_year_id"] = schoolYear.data.id;
+
+              const teacher = await postData(`${baseURL}/api/teacher/get`, {
+                givenname: rowObject.TeacherFirstName,
+                surname: rowObject.TeacherLastName,
+              });
+              if (!teacher.data.id) throw new Error("Teacher not found");
+              rowObject["teacher_id"] = teacher.data.id;
+
+              const student = await postData(`${baseURL}/api/student/get`, {
+                username: rowObject.StudentID,
+              });
+              if (!student.data.id) throw new Error("Student not found");
+              rowObject["student_id"] = student.data.id;
+
+              rowObject["is_excluded"] = 0;
+              data.push(rowObject);
+            } catch (error) {
+              console.error(error);
+              failedData.push({ ...rowObject, error: error.message });
+              continue; // Skip to the next row if this one fails
+            }
           }
         }
+
         console.log(data);
-        const failedData = [];
         let counter = 0;
         for (let i = 0; i < data.length; i++) {
           try {
@@ -492,11 +509,11 @@ uploadFileForm.addEventListener("submit", async (event) => {
               console.log(response);
             } else {
               counter++;
-              // console.log(response);
               confirmGenerateTransaction(response.id);
             }
           } catch (error) {
             console.error(error);
+            failedData.push(data[i]); // Capture failed row on error
           }
         }
 
@@ -513,9 +530,11 @@ uploadFileForm.addEventListener("submit", async (event) => {
             failedDataList.appendChild(listItem);
           }
           $("#failedDataModal").modal("show");
+
+          // Export failed rows to CSV
+          exportFailedDataToCSV(failedData);
         }
         $("#spinnerStatusModal").modal("hide");
-        // $("#table").DataTable().ajax.reload();
         setSuccessMessage(
           `${counter} of ${data.length} entries were imported successfully.`
         );
@@ -525,6 +544,31 @@ uploadFileForm.addEventListener("submit", async (event) => {
     }
   }
 });
+
+// Function to export failed rows to CSV
+function exportFailedDataToCSV(failedData) {
+  const csvHeaders = Object.keys(failedData[0]);
+  const csvRows = [
+    csvHeaders.join(","), // Header row
+    ...failedData.map(row =>
+      csvHeaders.map(header => `"${row[header] || ''}"`).join(",")
+    )
+  ].join("\n");
+
+  // Create a Blob from the CSV data
+  const csvBlob = new Blob([csvRows], { type: "text/csv" });
+
+  // Create a link element to download the CSV file
+  const downloadLink = document.createElement("a");
+  downloadLink.href = URL.createObjectURL(csvBlob);
+  downloadLink.download = "failed_data.csv";
+
+  // Append the link to the body, trigger click, and remove the link
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
 
 async function parseCSV(file) {
   return new Promise((resolve, reject) => {
