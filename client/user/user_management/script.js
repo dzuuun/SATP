@@ -494,3 +494,174 @@ signOutButton.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../../index.html";
 });
+
+
+const csvInput = document.getElementById("updatePasswordcsv");
+const uploadFileForm = document.querySelector("#updatePasswordForm");
+uploadFileForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  if (confirm("This action cannot be undone.")) {
+    $("#updatePasswordModal").modal("hide");
+    $("#spinnerStatusModal").modal("show");
+    const file = csvInput.files[0];
+    if (file) {
+      try {
+        const results = await parseCSV(file);
+
+        const headers = results.data[0];
+        const data = [];
+        const failedData = []; // To store failed rows
+
+        for (let i = 1; i < results.data.length; i++) {
+          const values = results.data[i];
+          if (
+            values.length === headers.length &&
+            values.some((value) => value.trim() !== "")
+          ) {
+            const rowObject = {};
+            for (let j = 0; j < headers.length; j++) {
+              rowObject[headers[j]] = values[j];
+            }
+            rowObject["user_id"] = user;
+
+
+            document.getElementById("statusMessage").innerHTML =
+              ((i / results.data.length) * 100).toFixed(0) + "%";
+
+            console.log(((i / results.data.length) * 100).toFixed(0) + "%");
+            document.getElementById(
+              "spinnerMessage"
+            ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
+
+            try {
+              // Fetch course_id from API
+              const response = await postData(`${baseURL}/api/user/get`, {
+                username: rowObject.username,
+              });
+              if (!response.data || !response.data.id) {
+                throw new Error("Student not found");
+              }
+              rowObject["id"] = response.data.id;
+console.log(rowObject)
+              // Add row to data if everything is valid
+              data.push(rowObject);
+            } catch (error) {
+              console.error("Failed to process row:", error);
+              failedData.push({ ...rowObject, error: error.message }); // Add row to failed data with error message
+              continue; // Skip to the next iteration if this one fails
+            }
+          }
+        }
+
+        let counter = 0;
+        for (let i = 0; i < data.length; i++) {
+          try {
+            const response = await putData(`${baseURL}/api/user/update/password`, data[i]);
+
+            document.getElementById("statusMessage").innerHTML =
+              ((i / data.length) * 100).toFixed(0) + "%";
+            document.getElementById(
+              "spinnerMessage"
+            ).innerHTML = `Import in progress. Do not refresh the page...`;
+
+            if (response.success === 0) {
+              failedData.push(data[i]); // Capture failed row on error
+            } else {
+              counter++;
+            }
+          } catch (error) {
+            console.error(error);
+            failedData.push(data[i]); // Capture failed row on error
+          }
+        }
+
+        // Show the failed data in the modal
+        if (failedData.length > 0) {
+          document.getElementById("totalFailedData").innerHTML =
+            `Total: ` + failedData.length;
+          const failedDataList = document.getElementById("failedDataList");
+          failedDataList.innerHTML = "";
+
+          for (const item of failedData) {
+            const listItem = document.createElement("li");
+            listItem.textContent = JSON.stringify(item);
+            failedDataList.appendChild(listItem);
+          }
+          $("#failedDataModal").modal("show");
+
+          // Optionally, export failed rows to CSV
+          console.log(failedData)
+          exportFailedDataToCSV(failedData);
+        }
+
+        $("#spinnerStatusModal").modal("hide");
+        $("#table").DataTable().ajax.reload();
+        setSuccessMessage(
+          `${counter} of ${data.length} entries were imported successfully.`
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    }
+  }
+});
+
+// Function to export failed rows to CSV
+function exportFailedDataToCSV(failedData) {
+  const csvHeaders = Object.keys(failedData[0]);
+  const csvRows = [
+    csvHeaders.join(","), // Header row
+    ...failedData.map(row =>
+      csvHeaders.map(header => `"${row[header] || ''}"`).join(",")
+    )
+  ].join("\n");
+
+  // Create a Blob from the CSV data
+  const csvBlob = new Blob([csvRows], { type: "text/csv" });
+
+  // Create a link element to download the CSV file
+  const downloadLink = document.createElement("a");
+  downloadLink.href = URL.createObjectURL(csvBlob);
+  downloadLink.download = "failed_data.csv";
+
+  // Append the link to the body, trigger click, and remove the link
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+
+async function parseCSV(file) {
+  return new Promise((resolve, reject) => {
+    Papa.parse(file, {
+      complete: function (results) {
+        resolve(results);
+      },
+      error: function (error) {
+        reject(error);
+      },
+    });
+  });
+}
+
+async function postData(url, data) {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+}
+
+async function putData(url, data) {
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+}

@@ -7,6 +7,8 @@ const {
   updateStatus,
   updateUserCredentials,
   deleteUser,
+  updatePassword,
+  getUserByUserName
 } = require("./user_management.model");
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
@@ -156,6 +158,49 @@ module.exports = {
       return res.json({
         success: 1,
         message: "User's username updated successfully.",
+      });
+    });
+  },
+
+  updatePassword: (req, res) => {
+    const body = req.body;
+    const salt = genSaltSync(10);
+    body.password = hashSync(body.password, salt);
+    updatePassword(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return false;
+      }
+      if (results.changedRows == 0) {
+        return res.json({
+          success: 0,
+          message: "Contents are still the same.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "User's password updated successfully.",
+      });
+    });
+  },
+
+  getUserByUserName: (req, res) => {
+    const body = req.body;
+    getUserByUserName(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "User retrieved successfully.",
+        data: results,
       });
     });
   },
