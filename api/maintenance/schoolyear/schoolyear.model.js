@@ -12,7 +12,7 @@ module.exports = {
 
   getActiveSchoolYears: (callBack) => {
     pool.query(
-      "SELECT * FROM school_years WHERE is_active = 1",
+      "SELECT * FROM school_years WHERE in_use = 1",
       (error, results) => {
         if (error) {
           callBack(error);
