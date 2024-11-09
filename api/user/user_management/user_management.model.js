@@ -231,4 +231,59 @@ module.exports = {
       }
     );
   },
+
+  updatePassword: (data, callBack) => {
+    pool.query(
+      "SELECT users.id FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE username = ?",
+      [data.username],
+      (error, result) => {
+        if (error) {
+          return callBack(error); // Return early on error
+        }
+  
+        if (result.length === 1) {
+          // User found, proceed with password update
+          pool.query(
+            "UPDATE users SET password = ? WHERE id = ?",
+            [data.password, result[0].id],
+            (error, updateResult) => {
+              if (error) {
+                return callBack(error); // Return early on error
+              }
+  
+              if (updateResult.changedRows === 1) {
+                // Log activity after successful password update
+                pool.query(
+                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+                  [data.user_id, `Updated User's Password: ${data.username}`],
+                  (error) => {
+                    if (error) {
+                      console.log("Activity Log Error:", error); // Log the error but don't interrupt flow
+                    }
+                  }
+                );
+              }
+  
+              return callBack(null, updateResult); // Success callback
+            }
+          );
+        } else {
+          return callBack(null, result); // User not found, send result back
+        }
+      }
+    );
+  },
+  
+  getUserByUserName: (data, callBack) => {
+    pool.query(
+      "SELECT users.id, users.username, user_info.givenname, user_info.surname, user_info.middlename, courses.id AS course_id, user_info.gender, user_info.year_level, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.username = ?",
+      [data.username],
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      }
+    );
+  },
 };
