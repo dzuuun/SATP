@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:4000";
+const baseURL = "http://satp.ndmu.edu.ph";
 var schoolyear, semester;
 
 let username = document.getElementById("username");

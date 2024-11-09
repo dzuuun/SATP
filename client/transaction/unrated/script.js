@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:4000";
+const baseURL = "http://satp.ndmu.edu.ph";
 const tbody = document.getElementById("tbData");
 var genSchoolYear = localStorage.getItem("transListSchoolYear");
 var genSemester = localStorage.getItem("transListSemester");
