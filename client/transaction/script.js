@@ -82,7 +82,7 @@ function loadIncludedData() {
 // Get schoolYear from API
 const getSchoolYear = async () => {
   const schoolYearList2 = document.querySelector("#loadSchoolYear");
-  const endpoint = `${baseURL}/api/schoolyear/all/active`,
+  const endpoint = `${baseURL}/api/schoolyear/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
