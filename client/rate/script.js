@@ -146,7 +146,7 @@ async function submitRating() {
         .then((res) => res.json())
         .then((response) => {
           if (response.success == 0) {
-            setErrorMessage(response.message);
+            // setErrorMessage(response.message);
           } else {
             console.log(response.message);
           }
