@@ -212,9 +212,18 @@
                                     <select name="semester_id" id="loadSemester" class="form-control"
                                         data-live-search="true" aria-label="Default select example" required>
                                         <option disabled selected value="">Select Semester</option>
-                                    </select>
+                                    </select> 
                                 </div>
                             </div>
+                        </div>
+                        <div class="row" id="refresh" style="display: none;">
+                            <div class="col mb-3 text-center" >
+                                <button type="button" class="btn text-white text-nowrap fw-medium al"
+                                onclick="loadIncludedData()"
+                                 style="background-color: darkgreen" title="Refresh Data">
+                                 <i class="bi bi-arrow-clockwise"></i> Refresh Data
+                             </button>
+                             </div>
                         </div>
                         <div class="row text-center mt-3 mb-3 text-nowrap">
                             <div class="col-sm">
