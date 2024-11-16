@@ -71,6 +71,7 @@ function loadIncludedData() {
         (item) => item.status === 0
       ).length;
       document.getElementById("generateList").style.display = "inline";
+      document.getElementById('refresh').style = 'inline';
       hideSpinner();
       setSuccessMessage(response.message);
       table.clear().draw();
