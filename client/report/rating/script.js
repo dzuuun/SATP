@@ -18,7 +18,7 @@ if (reportsAccess == 0) {
 // Get schoolYear from API
 const getSchoolYear = async () => {
   const schoolYearList = document.querySelector("#schoolYear");
-  const endpoint = `${baseURL}/api/schoolyear/all/active`,
+  const endpoint = `${baseURL}/api/schoolyear/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;

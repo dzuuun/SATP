@@ -25,7 +25,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Overall ranking retrieved successfully.",
+        message: "Overall rating retrieved successfully.",
         count: results.length,
         data: results,
       });
@@ -46,7 +46,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Overall ranking retrieved successfully.",
+        message: "Overall rating retrieved successfully.",
         count: results.length,
         data: results,
       });
@@ -67,7 +67,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Overall ranking retrieved successfully.",
+        message: "Overall rating retrieved successfully.",
         count: results.length,
         data: results,
       });
