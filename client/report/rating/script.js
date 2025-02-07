@@ -134,9 +134,9 @@ generateReport.addEventListener("submit", async (e) => {
       console.log("institutional");
       for (let i = 0; i < subjectsArray.length; i++) {
         let subject = encodeURIComponent(subjectsArray[i]);
-        // setTimeout(() => {
+        setTimeout(() => {
         window.open(`institutional/index.html?subject=${subject}`, "_blank");
-        // }, i * 500);
+        }, i * 500);
       }
 
       break;
@@ -154,9 +154,9 @@ generateReport.addEventListener("submit", async (e) => {
       console.log("individual");
       for (let i = 0; i < subjectsArray.length; i++) {
         let subject = encodeURIComponent(subjectsArray[i]);
-        // setTimeout(() => {
+        setTimeout(() => {
         window.open(`individual/index.html?subject=${subject}`, "_blank");
-        // }, i * 500);
+        }, i * 500);
       }
       break;
   }
