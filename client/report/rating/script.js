@@ -127,18 +127,19 @@ generateReport.addEventListener("submit", async (e) => {
   localStorage.setItem("genReportSchoolYear", data.school_year);
   localStorage.setItem("genReportSemester", data.semester);
   localStorage.setItem("genReportteacher", data.teacher);
-  // localStorage.setItem("genReportSubject", data.subject);
+  localStorage.setItem("genReportSubject", data.subject);
 
   switch (data.ratingReport) {
     case "institutional":
       console.log("institutional");
-      for (let i = 0; i < subjectsArray.length; i++) {
-        let subject = encodeURIComponent(subjectsArray[i]);
-        setTimeout(() => {
-        window.open(`institutional/index.html?subject=${subject}`, "_blank");
-        }, i * 500);
-      }
-
+      // for (let i = 0; i < subjectsArray.length; i++) {
+      //   let subject = encodeURIComponent(subjectsArray[i]);
+      //   setTimeout(() => {
+      //   window.open(`institutional/index.html?subject=${subject}`, "_blank");
+      //   }, i * 500);
+      // }
+    
+      window.location.href = "institutional/index.html";
       break;
     case "collegiate":
       console.log("collegiate");
@@ -152,12 +153,14 @@ generateReport.addEventListener("submit", async (e) => {
       break;
     case "individual":
       console.log("individual");
-      for (let i = 0; i < subjectsArray.length; i++) {
-        let subject = encodeURIComponent(subjectsArray[i]);
-        setTimeout(() => {
-        window.open(`individual/index.html?subject=${subject}`, "_blank");
-        }, i * 500);
-      }
+      window.location.href = "individual/index.html";
+    
+      // for (let i = 0; i < subjectsArray.length; i++) {
+      //   let subject = encodeURIComponent(subjectsArray[i]);
+      //   setTimeout(() => {
+      //   window.open(`individual/index.html?subject=${subject}`, "_blank");
+      //   }, i * 500);
+      // }
       break;
   }
 });
@@ -194,18 +197,74 @@ const teacherDropdown = document.querySelector("#teacher");
 const schoolYearDropdown = document.querySelector("#schoolYear");
 const semesterDropdown = document.querySelector("#semester");
 
-const updateSubjects = async () => {
-  // Get values from all dropdowns
-  const query = {
-    school_year_id: schoolYearDropdown.value,
-    semester_id: semesterDropdown.value,
-    teacher_id: teacherDropdown.value,
+// const updateSubjects = async () => {
+//   // Get values from all dropdowns
+//   const query = {
+//     school_year_id: schoolYearDropdown.value,
+//     semester_id: semesterDropdown.value,
+//     teacher_id: teacherDropdown.value,
+//   };
+
+//   // Show subject dropdown if subjects are available
+//   document.getElementById("subject").style.display = "block";
+
+//   // Fetch subjects based on selected values
+//   await fetch(`${baseURL}/api/report/rating/teacher/subjects`, {
+//     method: "POST",
+//     headers: {
+//       "Content-Type": "application/json",
+//     },
+//     body: JSON.stringify(query),
+//   })
+//     .then((res) => res.json())
+//     .then((response) => {
+//       rows = response.data;
+//       subjectsArray = [];
+//       subjectList.innerHTML = "";
+//       document.getElementById("genReportButton").disabled = false;
+
+//       // Add subjects to the list
+//       response.data.forEach((row) => {
+//         subjectsArray.push(row.subject_id); // Store subject IDs
+
+//         let li = document.createElement("li");
+//         li.innerHTML = `<strong>${row.subject_name}</strong> <small class="text-muted">(${row.subject_code})</small>`;
+//         li.classList.add("list-group-item"); // Bootstrap styling (optional)
+//         subjectList.appendChild(li);
+//       });
+
+//       // If no subjects are found, show a message
+//       if (response.data.length === 0) {
+//         document.getElementById("genReportButton").disabled = true;
+//         let li = document.createElement("li");
+//         li.textContent = "No subjects available";
+//         li.classList.add("list-group-item", "text-muted", "text-center");
+//         subjectList.appendChild(li);
+//       }
+
+//       $(".form-control").selectpicker("refresh");
+//     });
+// };
+
+// // Add event listeners for each dropdown to trigger subject update
+// teacherDropdown.addEventListener("change", updateSubjects);
+// schoolYearDropdown.addEventListener("change", updateSubjects);
+// semesterDropdown.addEventListener("change", updateSubjects);
+
+// // Call updateSubjects on initial load to populate the list if needed
+// updateSubjects();
+
+
+const searchData = document.querySelector("#teacher");
+searchData.addEventListener("change", async () => {
+  document.getElementById("subject").innerHTML = ``;
+  var query = {
+    school_year_id: document.getElementById("schoolYear").value,
+    semester_id: document.getElementById("semester").value,
+    teacher_id: document.getElementById("teacher").value,
+    subject_id: document.getElementById("subject").value,
   };
 
-  // Show subject dropdown if subjects are available
-  document.getElementById("subject").style.display = "block";
-
-  // Fetch subjects based on selected values
   await fetch(`${baseURL}/api/report/rating/teacher/subjects`, {
     method: "POST",
     headers: {
@@ -216,40 +275,14 @@ const updateSubjects = async () => {
     .then((res) => res.json())
     .then((response) => {
       rows = response.data;
-      subjectsArray = [];
-      subjectList.innerHTML = "";
-      document.getElementById("genReportButton").disabled = false;
-
-      // Add subjects to the list
       response.data.forEach((row) => {
-        subjectsArray.push(row.subject_id); // Store subject IDs
-
-        let li = document.createElement("li");
-        li.innerHTML = `<strong>${row.subject_name}</strong> <small class="text-muted">(${row.subject_code})</small>`;
-        li.classList.add("list-group-item"); // Bootstrap styling (optional)
-        subjectList.appendChild(li);
+        document.getElementById(
+          "subject"
+        ).innerHTML += `<option data-subtext="${row.subject_code}" value="${row.subject_id}">${row.subject_name}</option>`;
       });
-
-      // If no subjects are found, show a message
-      if (response.data.length === 0) {
-        document.getElementById("genReportButton").disabled = true;
-        let li = document.createElement("li");
-        li.textContent = "No subjects available";
-        li.classList.add("list-group-item", "text-muted", "text-center");
-        subjectList.appendChild(li);
-      }
-
       $(".form-control").selectpicker("refresh");
     });
-};
-
-// Add event listeners for each dropdown to trigger subject update
-teacherDropdown.addEventListener("change", updateSubjects);
-schoolYearDropdown.addEventListener("change", updateSubjects);
-semesterDropdown.addEventListener("change", updateSubjects);
-
-// Call updateSubjects on initial load to populate the list if needed
-updateSubjects();
+});
 
 document.addEventListener("DOMContentLoaded", function () {
   loadSpinner();
