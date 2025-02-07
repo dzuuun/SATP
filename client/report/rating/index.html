@@ -273,17 +273,20 @@
                     </div>
                     <div class="row mb-3" id="subjectSelect" style="display: none">
                       <div class="col-md">
-                        <label class="form-label fw-medium">Subject</label>
+                        <!-- <label class="form-label fw-medium">Subject</label>
                         <select id="subject" name="subject" class="form-control" data-live-search="true"
                           aria-label="Default select example">
                           <option disabled selected value="">Select</option>
-                        </select>
+                        </select> -->
+                        <label class="form-label fw-medium" id="subject" style="display: none;">Subjects</label>
+                        <ul id="subjectList" class="list-group"></ul>
+
                       </div>
                     </div>
                   </form>
 
                   <div class="row mb-3 mt-5">
-                    <button type="submit" style="background-color: darkgreen"
+                    <button type="submit" id="genReportButton" style="background-color: darkgreen"
                       class="btn btn-default border text-white text-nowrap" form="generateReportForm">
                       Generate Report
                     </button>
