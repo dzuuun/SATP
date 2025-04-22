@@ -78,6 +78,9 @@ const getdata = async () => {
         tbody.innerHTML += `<th class="text-end" scope="row" >Your Mean: </th>
         <td class="fw-bold">${totalMean}</td>
         `;
+        tbody.innerHTML += `<th class="text-end" scope="row" >Qualitative Equivalent: </th>
+        <td class="fw-bold">${getQualitativeEquivalent(totalMean)}</td>
+        `;
 
         averagePerSubjectTotal = [];
 
@@ -88,6 +91,32 @@ const getdata = async () => {
       }
     });
 };
+
+function getQualitativeEquivalent(score) {
+  let equivalent;
+
+  switch (true) {
+    case score >= 1.0 && score <= 1.5:
+      equivalent = "Poor";
+      break;
+    case score > 1.51 && score <= 2.24:
+      equivalent = "Fair";
+      break;
+    case score > 2.25 && score <= 3.75:
+      equivalent = "Satisfactory";
+      break;
+    case score > 3.76 && score <= 4.49:
+      equivalent = "Very Satisfactory";
+      break;
+    case score >= 4.5 && score <= 5.0:
+      equivalent = "Excellent";
+      break;
+    default:
+      equivalent = "Invalid Score";
+  }
+
+  return equivalent;
+}
 
 const getTeacherInfo = async () => {
   var query = {
