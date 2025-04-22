@@ -69,6 +69,9 @@ const getdata = async () => {
                     <td class="col-1"></td>
                     <td class="text-capitalize">${data.teacher_name}</td>
                     <td class="text-center">${data.mean}</td>
+                     <td class="text-center">${getQualitativeEquivalent(
+                       data.mean
+                     )}</td>
                 </tr>`;
         });
         mean.innerHTML = `Overall Mean: ${average(meanAverage).toFixed(2)}`;
@@ -81,6 +84,32 @@ const getdata = async () => {
       hideSpinner();
     });
 };
+
+function getQualitativeEquivalent(score) {
+  let equivalent;
+
+  switch (true) {
+    case score >= 1.0 && score <= 1.5:
+      equivalent = "Poor";
+      break;
+    case score > 1.51 && score <= 2.24:
+      equivalent = "Fair";
+      break;
+    case score > 2.25 && score <= 3.75:
+      equivalent = "Satisfactory";
+      break;
+    case score > 3.76 && score <= 4.49:
+      equivalent = "Very Satisfactory";
+      break;
+    case score >= 4.5 && score <= 5.0:
+      equivalent = "Excellent";
+      break;
+    default:
+      equivalent = "Invalid Score";
+  }
+
+  return equivalent;
+}
 
 function average(numbers) {
   let sum = numbers.reduce((accumulator, currentValue) => {
