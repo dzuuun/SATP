@@ -466,7 +466,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   downloadLink.addEventListener("click", function () {
     const csvContent =
-      "username,password,surname,givenname,middlename,year_level,gender";
+      "username,password,surname,givenname,middlename,year_level,gender,course_code";
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
 
