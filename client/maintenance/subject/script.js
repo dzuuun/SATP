@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/subject`,
+    url: `/api/subject`,
     cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
@@ -66,7 +66,7 @@ formAddSubject.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/subject/add`, {
+    await fetch(`/api/subject/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -140,7 +140,7 @@ function setErrorMessage(message) {
 // update data on the API
 var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`${baseURL}/api/subject/` + id, {
+  await fetch(`/api/subject/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -173,7 +173,7 @@ formEditSubject.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/subject/update`, {
+    await fetch(`/api/subject/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -202,7 +202,7 @@ function deleteRow(id) {
 
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`${baseURL}/api/subject/delete`, {
+  await fetch(`/api/subject/delete`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -258,7 +258,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
         for (let i = 0; i < data.length; i++) {
           try {
             const response = await postData(
-              `${baseURL}/api/subject/add`,
+              `/api/subject/add`,
               data[i]
             );
 
