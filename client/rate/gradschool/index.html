@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SATP | Create Rating</title>
+    <link rel="icon" type="image/x-icon" href="../../images/NDMU-Logo.png" />
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
+    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.css" rel="stylesheet" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css" />
+    <link href="/node_modules/star-rating.js/dist/star-rating.css" rel="stylesheet" />
+</head>
+
+<body style="min-height: 400px; margin-bottom: 100px; clear: both">
+    <nav class="navbar sticky-top" style="background-color: darkgreen">
+        <div class="container-fluid">
+            <a class="navbar-brand fs-7 text-white">
+                <i onclick="toggleNav()" class="bi bi-list"></i>
+                <img src="../../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
+                    class="d-inline-block align-text-top" />
+                Notre Dame of Marbel University
+            </a>
+            <span class="navbar-text text-white">
+                Student Assessment of Teacher's Performance
+            </span>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <div class="container-fluid">
+                    <div class="row mt-2">
+                        <div class="col">
+                            <div>
+                                <h1 class="display-5">Create Rating</h1>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row text-center border-bottom mt-3 text-nowrap">
+                        <div class="col-sm">
+                            <div class="mb-3">
+                                <h4 for="schoolYear" class="form-label fs-4 fw-bold">
+                                    School Year
+                                </h4>
+                                <div class="">
+                                    <span class="fs-5" id="schoolYear"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="mb-3">
+                                <h4 for="semester" class="form-label fs-4 fw-bold">
+                                    Semester
+                                </h4>
+                                <div>
+                                    <span class="fs-5" id="semester"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="mb-3">
+                                <h4 for="teacherRatee" class="form-label fs-4 fw-bold">
+                                    Teacher
+                                </h4>
+                                <div>
+                                    <span class="fs-5" id="teacherRatee"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="mb-2">
+                                <h4 for="subjectCode" class="form-label fs-4 fw-bold">
+                                    Subject Code
+                                </h4>
+                                <div>
+                                    <span class="fs-5" id="subjectCode"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm">
+                            <div class="mb-3">
+                                <h4 for="studentRater" class="form-label fs-4 fw-bold">
+                                    Rater
+                                </h4>
+                                <div>
+                                    <span class="fs-5" id="studentRater"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- <div class="row border-bottom mt-3 text-nowrap">
+                        <div class="col-sm-3">
+                            <div class="mb-3">
+                                <h4 for="schoolYear" class="form-label fs-4 fw-bold">
+                                    School Year
+                                </h4>
+                                <div class="">
+                                    <span class="fs-5" id="schoolYear"></span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <h4 for="semester" class="form-label fs-4 fw-bold">
+                                    Semester
+                                </h4>
+                                <div>
+                                    <span class="fs-5" id="semester"></span>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <h4 for="studentRater" class="form-label fs-4 fw-bold">
+                                    Rater
+                                </h4>
+                                <div>
+                                    <span class="fs-5" id="studentRater"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-3">
+                            <div class="mb-3">
+                                <h4 for="teacherRatee" class="form-label fs-4 fw-bold">
+                                    Teacher
+                                </h4>
+                                <div>
+                                    <span class="fs-5" id="teacherRatee"></span>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <h4 for="subjectCode" class="form-label fs-4 fw-bold">
+                                    Subject Code
+                                </h4>
+                                <div>
+                                    <span class="fs-5" id="subjectCode"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm mb-3 text-center" id="imageHolder">
+                            <img id="teacherImage" src="" />
+                        </div>
+
+                    </div> -->
+
+                    <div class="row mt-3">
+                        <div class="col-sm border-bottom">
+                            <div class="row">
+                                <p class="fs-5">
+                                    Dear students, <br>
+                                    We are asking you to help us assess the teaching performance of your teachers.
+                                    Please provide us with valuable feedback on their performance. Your honest answers
+                                    will benefit both of your instructors and you because this information will
+                                    hopefully help them improve their weak points and maintain their strong points.
+                                    <br>
+                                    <br>
+                                    Using the scale described below, please rate your teacher in this subject on the
+                                    basis of your own experience with him/her. Read each item carefully and choose your
+                                    response at the end of each item. Please try to answer all items. Whatever answers
+                                    you give will not affect you in any way in relation to your grades. Rest assured
+                                    that your answers are kept confidential.
+                                </p>
+                            </div>
+
+                            <div class="row text-center text-nowrap">
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">1</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                    </div>
+                                    <p>Very Rarely</p>
+                                </div>
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">2 <br></p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                    </div>
+                                    <p>Sometimes</p>
+                                </div>
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">3</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                    </div>
+                                    <p>Regularly</p>
+                                </div>
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">4</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star" style="color: #ffb900"></i>
+                                    </div>
+                                    <p>Often</p>
+                                </div>
+                                <div class="col-sm">
+                                    <p class="fs-2 fw-bold">5</p>
+                                    <div class="fs-4">
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                        <i class="bi bi-star-fill" style="color: #ffb900"></i>
+                                    </div>
+                                    <p>Very Often</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <th>#</th>
+                                    <th>Question</th>
+                                    <th>Rate</th>
+                                </thead>
+                                <tbody id="table"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3" id="commentSection">
+                        <div class="col">
+                            <!-- <label class="form-label fw-bold">Comment</label>
+                            <textarea style="resize: none" class="form-control" id="comment" rows="4"
+                                required></textarea>
+                                <small id="commentHelp" class="form-text text-muted">Reminder: Do not use any emojis in writing your comment.</small> -->
+                        </div>
+                        
+                    </div>
+                    <small id="commentHelp" class="form-text text-muted">Reminder: Do not use any emojis in writing your comment.</small>
+
+                    <div class="row mt-3 float-end">
+                        <div class="col">
+                            <button type="button" class="btn btn-success" onclick="submitRating()">
+                                Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- confirmation Modal -->
+    <div class="modal fade" id="rateDoneModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="container text-center mb-3">
+                        <div class="">
+                            <i class="bi bi-check2-circle" style="font-size: 3rem; color: green"></i>
+                        </div>
+                        <strong class="fs-4">Rate Submitted</strong>
+                        <br />
+                        <label class="mt-3">Your rating has been successfully submitted. Thank you for your
+                            candor.</label>
+                    </div>
+                    <div class="text-center mt-3 mb-3">
+                        <button type="button" class="btn btn-outline-secondary border-0 text-white text-nowrap"
+                            style="background-color: darkgreen" onclick="closeRating()">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
+    <div id="overlay">
+        <div class="spinner"></div>
+</body>
+
+<footer>
+    <div class="container-fluid text-center">
+        <span class="text-white">
+            NDMU © 2023 | Developed by MIS Department
+        </span>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
+    crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
+    crossorigin="anonymous"></script>
+<script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
+<script src="./script.js"></script>
+<script src="/node_modules/star-rating.js/dist/star-rating.min.js"></script>
+<script>
+    var stars = new StarRating(".star-rating", {
+        tooltip: false,
+    });
+</script>
+
+</html>
