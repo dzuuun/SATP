@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 
 let showPassword = document.getElementById("showPassword");
 showPassword.addEventListener("click", async (e) => {
@@ -26,7 +26,7 @@ showConfirmPassword.addEventListener("click", async (e) => {
 
 const getCourse = async () => {
   const courseList = document.querySelector("#course");
-  const endpoint = `${baseURL}/api/course`,
+  const endpoint = `/api/course`,
     response = await fetch(endpoint),
     data = await response.json(),
     course = data.data;
@@ -40,7 +40,7 @@ getCourse();
 
 var permission_id;
 async function raterId() {
-  const endpoint = `${baseURL}/api/permission/rater/id`,
+  const endpoint = `/api/permission/rater/id`,
     response = await fetch(endpoint),
     data = await response.json();
   permission_id = data.rater_id;
@@ -66,7 +66,7 @@ registerForm.addEventListener("submit", async (event) => {
   if (createPassword === confirmPassword) {
     document.getElementById("passwordMatchField").innerHTML = "";
     if (confirm("This action cannot be undone.") == true) {
-      await fetch(`${baseURL}/api/login/register`, {
+      await fetch(`/api/login/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

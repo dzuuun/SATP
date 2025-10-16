@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 const user = localStorage.getItem("user_id");
 const tbody = document.querySelector("#tbData");
 const comment = document.getElementById("comments");
@@ -29,7 +29,7 @@ const getdata = async () => {
     department_id: genDepartment,
   };
 
-  await fetch(`${baseURL}/api/report/rating/departmental`, {
+  await fetch(`/api/report/rating/departmental`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -94,7 +94,7 @@ const getComment = async () => {
     department_id: genDepartment,
   };
 
-  await fetch(`${baseURL}/api/report/rating/comment/departmental`, {
+  await fetch(`/api/report/rating/comment/departmental`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

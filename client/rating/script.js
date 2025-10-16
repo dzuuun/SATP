@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var school_year_id = localStorage.getItem("school_year_id");
 var semester_id = localStorage.getItem("semester_id");
 var student_id = localStorage.getItem("user_id");
@@ -17,7 +17,7 @@ document.getElementById("userName").innerHTML = username;
 let table = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/transaction/student/subjects/school_year_id=${school_year_id}&semester_id=${semester_id}&student_id=${student_id}`,
+    url: `/api/transaction/student/subjects/school_year_id=${school_year_id}&semester_id=${semester_id}&student_id=${student_id}`,
     cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],

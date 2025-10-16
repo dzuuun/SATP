@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 const tbody = document.getElementById("tbData");
 var genSchoolYear = localStorage.getItem("transListSchoolYear");
 var genSemester = localStorage.getItem("transListSemester");
@@ -13,7 +13,7 @@ async function getdata() {
     school_year_id: genSchoolYear,
     semester_id: genSemester,
   };
-  await fetch(`${baseURL}/api/transaction/notrated`, {
+  await fetch(`/api/transaction/notrated`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/course`,
+    url: `/api/course`,
     cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
@@ -56,7 +56,7 @@ const getDepartment = async () => {
   const departmentList = document.querySelector("#selectDepartment");
   const departmentList2 = document.querySelector("#selectDepartmentEdit");
   // const departmentList3 = document.querySelector("#selectImportDepartment");
-  const endpoint = `${baseURL}/api/department/all/active`,
+  const endpoint = `/api/department/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -87,7 +87,7 @@ formAddCourse.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/course/add`, {
+    await fetch(`/api/course/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -162,7 +162,7 @@ function setErrorMessage(message) {
 // update data on the API
 var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`${baseURL}/api/course/` + id, {
+  await fetch(`/api/course/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -197,7 +197,7 @@ formEditCourse.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/course/update`, {
+    await fetch(`/api/course/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -226,7 +226,7 @@ function deleteRow(id) {
 
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`${baseURL}/api/course/delete`, {
+  await fetch(`/api/course/delete`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -275,7 +275,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
             rowObject["user_id"] = user;
             rowObject["is_active"] = 1;
 
-            const response = await postData(`${baseURL}/api/department/get`, {
+            const response = await postData(`/api/department/get`, {
               department_code: rowObject.department_code,
             });
             rowObject["department_id"] = response.data.id;
@@ -289,7 +289,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
         for (let i = 0; i < data.length; i++) {
           try {
             const response = await postData(
-              `${baseURL}/api/course/add`,
+              `/api/course/add`,
               data[i]
             );
             document.getElementById("statusMessage").innerHTML =

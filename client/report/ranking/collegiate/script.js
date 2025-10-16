@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 const tbody = document.querySelector("#tbData");
 var genSchoolYear = localStorage.getItem("genReportSchoolYear");
 var genSemester = localStorage.getItem("genReportSemester");
@@ -15,7 +15,7 @@ var today = new Date();
 let meanAverage = [];
 
 async function getCollegeData() {
-  await fetch(`${baseURL}/api/college/` + genCollege, {
+  await fetch(`/api/college/` + genCollege, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -36,7 +36,7 @@ const getdata = async () => {
     colleges_id: genCollege,
   };
 
-  await fetch(`${baseURL}/api/report/ranking/collegiate`, {
+  await fetch(`/api/report/ranking/collegiate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

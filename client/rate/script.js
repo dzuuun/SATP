@@ -4,14 +4,14 @@ const semester = document.querySelector("#semester");
 const studentRater = document.querySelector("#studentRater");
 const teacherRatee = document.querySelector("#teacherRatee");
 const subjectCode = document.querySelector("#subjectCode");
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var userLoggedIn;
 let transactionToRate;
 var transaction_id;
 var item_id = [];
 
 // const getdata = async () => {
-//   fetch(`${baseURL}/api/item/active/rate`, {
+//   fetch(`/api/item/active/rate`, {
 //     method: "GET",
 //     headers: {
 //       "Content-Type": "application/json",
@@ -49,7 +49,7 @@ var item_id = [];
 // };
 
 const getdata = async () => {
-  await fetch(`${baseURL}/api/item/active/rate`, {
+  await fetch(`/api/item/active/rate`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -97,7 +97,7 @@ const getdata = async () => {
 };
 
 async function getTransactionInfo(id) {
-  await fetch(`${baseURL}/api/transaction/` + id, {
+  await fetch(`/api/transaction/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -136,7 +136,7 @@ async function submitRating() {
         item_id: item_id[i],
         rate: stars.widgets[i].indexSelected + 1,
       };
-      await fetch(`${baseURL}/api/transaction/add/rating`, {
+      await fetch(`/api/transaction/add/rating`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -153,7 +153,7 @@ async function submitRating() {
         });
     }
 
-    await fetch(`${baseURL}/api/transaction/submit/ ` + transactionToRate, {
+    await fetch(`/api/transaction/submit/ ` + transactionToRate, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

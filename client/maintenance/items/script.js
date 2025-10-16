@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/item`,
+    url: `/api/item`,
     cache: true,
   },
   ordering: false,
@@ -58,7 +58,7 @@ const getCategory = async () => {
   const categoryList = document.querySelector("#categorySelect");
   const categoryList2 = document.querySelector("#categorySelectEdit");
   const categoryList3 = document.querySelector("#selectImportCategory");
-  const endpoint = `${baseURL}/api/category/all/active`,
+  const endpoint = `/api/category/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     category = data.data;
@@ -89,7 +89,7 @@ formAddItem.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/item/add`, {
+    await fetch(`/api/item/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -174,7 +174,7 @@ function initializeTable() {
 // update data on the API
 var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`${baseURL}/api/item/` + id, {
+  await fetch(`/api/item/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -210,7 +210,7 @@ formEditItem.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/item/update`, {
+    await fetch(`/api/item/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -240,7 +240,7 @@ function deleteRow(id) {
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/item/delete`, {
+    await fetch(`/api/item/delete`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -293,7 +293,7 @@ uploadFileForm.addEventListener("submit", (event) => {
 
         if (confirm("This action cannot be undone.") == true) {
           for (let i = 0; i < data.length; i++) {
-            fetch(`${baseURL}/api/item/add`, {
+            fetch(`/api/item/add`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

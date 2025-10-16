@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/college`,
+    url: `/api/college`,
     cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
@@ -66,7 +66,7 @@ formAddCollege.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/college/add`, {
+    await fetch(`/api/college/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -140,7 +140,7 @@ function setErrorMessage(message) {
 // update data on the API
 var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`${baseURL}/api/college/` + id, {
+  await fetch(`/api/college/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -173,7 +173,7 @@ formEditCollege.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/college/update`, {
+    await fetch(`/api/college/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -202,7 +202,7 @@ function deleteRow(id) {
 
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`${baseURL}/api/college/delete`, {
+  await fetch(`/api/college/delete`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -256,7 +256,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
         for (let i = 0; i < data.length; i++) {
           try {
             const response = await postData(
-              `${baseURL}/api/college/add`,
+              `/api/college/add`,
               data[i]
             );
 

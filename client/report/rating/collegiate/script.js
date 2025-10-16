@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 const user = localStorage.getItem("user_id");
 const tbody = document.querySelector("#tbData");
 const comment = document.getElementById("comments");
@@ -26,7 +26,7 @@ const getdata = async () => {
     college_id: genCollege,
   };
 
-  await fetch(`${baseURL}/api/report/rating/collegiate`, {
+  await fetch(`/api/report/rating/collegiate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -90,7 +90,7 @@ const getComment = async () => {
     college_id: genCollege,
   };
 
-  await fetch(`${baseURL}/api/report/rating/comment/collegiate`, {
+  await fetch(`/api/report/rating/comment/collegiate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var usersAccess = localStorage.getItem("usersAccess");
 var username = localStorage.getItem("username");
@@ -17,7 +17,7 @@ if (usersAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/activitylog`,
+    url: `/api/activitylog`,
   },
   responsive: true,
   ordering: false,

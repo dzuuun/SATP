@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var user_admin = localStorage.getItem("is_admin_rater");
 var currentPassword, newPassword, currentPassword;
@@ -38,7 +38,7 @@ function change() {
 }
 
 async function checkPassword() {
-  await fetch(`${baseURL}/api/login/user/`, {
+  await fetch(`/api/login/user/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -58,7 +58,7 @@ async function checkPassword() {
 }
 
 async function updatePassword() {
-  await fetch(`${baseURL}/api/login/update/password`, {
+  await fetch(`/api/login/update/password`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
