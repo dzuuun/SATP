@@ -99,13 +99,6 @@ app.post("/upload", upload.single("image"), (req, res) => {
   });
 });
 
-// --- Serve frontend (HTML/JS/CSS) ---
-const clientPath = path.join(__dirname, "client");
-app.use(express.static(clientPath));
-
-
-// --- Start Server ---
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+app.listen(process.env.PORT || "3000", () => {
+  console.log(`Server is running on port: ${process.env.PORT || "3000"}`);
 });

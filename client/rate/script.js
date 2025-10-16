@@ -4,7 +4,7 @@ const semester = document.querySelector("#semester");
 const studentRater = document.querySelector("#studentRater");
 const teacherRatee = document.querySelector("#teacherRatee");
 const subjectCode = document.querySelector("#subjectCode");
-const baseURL = "http://localhost:4000";
+const baseURL = "http://satp.ndmu.edu.ph";
 var userLoggedIn;
 let transactionToRate;
 var transaction_id;
