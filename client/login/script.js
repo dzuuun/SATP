@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:4000";
+// const baseURL = "http://localhost:4000";
 var schoolyear, semester;
 
 let username = document.getElementById("username");
@@ -20,7 +20,7 @@ loginButton.addEventListener("submit", async (e) => {
     username: username.value,
     password: password.value,
   };
-  await fetch(`${baseURL}/api/login`, {
+  await fetch(`/api/login`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -33,6 +33,10 @@ loginButton.addEventListener("submit", async (e) => {
         setErrorMessage(response.message);
       } else {
         setSuccessMessage(response.message);
+        localStorage.setItem(
+          "is_student_rater",
+          response.data.is_student_rater
+        );
 
         localStorage.setItem("user_id", response.user_id);
         localStorage.setItem("username", response.data.username);
@@ -50,7 +54,7 @@ loginButton.addEventListener("submit", async (e) => {
         getSemester();
 
         setTimeout(function () {
-          if (response.data.is_student_rater === 1) {
+          if (response.data.is_student_rater === 1 || response.data.is_student_rater === 2) {
             window.location.href = "../rating/index.html";
             // alert(
             //   "Subject rating is no longer available at this moment. Wait for further instructions, thank you. \n\n Redirecting you back to the Landing Page."
@@ -129,7 +133,7 @@ function setSuccessMessage(message) {
 }
 
 async function getSchoolYear() {
-  await fetch(`${baseURL}/api/schoolyear/all/active`, {
+  await fetch(`/api/schoolyear/all/active`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -147,7 +151,7 @@ async function getSchoolYear() {
 }
 
 async function getSemester() {
-  await fetch(`${baseURL}/api/semester/all/active`, {
+  await fetch(`/api/semester/all/active`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

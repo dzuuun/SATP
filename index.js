@@ -1,18 +1,25 @@
 require("dotenv").config();
-
 // express
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const bodyParser = require("body-parser");
+const cors = require("cors");
+const morgan = require("morgan");
+
 const app = express();
+
+// --- Middleware ---
 app.use(express.json());
-app.use(express.static("client"));
+app.use(bodyParser.json());
+app.use(cors());
+app.use(morgan("combined"));
 
-
-// import routes
+// --- API Routes ---
 const loginRouter = require("./api/login/login.router");
-// maintenance
+
+// Maintenance
 const schoolYearRouter = require("./api/maintenance/schoolyear/schoolyear.router");
 const subjectRouter = require("./api/maintenance/subjects/subjects.router");
 const roomRouter = require("./api/maintenance/rooms/rooms.router");
@@ -26,29 +33,21 @@ const itemRouter = require("./api/maintenance/item/item.router");
 const studentSubjectRouter = require("./api/maintenance/studentsubject/studentsubject.router");
 const studentRouter = require("./api/maintenance/student/student.router");
 const adminRouter = require("./api/maintenance/admin/admin.router");
+const gradSchoolItemRouter = require("./api/maintenance/gradschool_items/gsitem.router");
 
-// user
+// User
 const logRouter = require("./api/user/activity_log/log.router");
 const permissionRouter = require("./api/user/permission/permission.router");
 const userRouter = require("./api/user/user_management/user_management.router");
 
-// transaction
+// Transaction
 const transactionRouter = require("./api/transaction/studentRatingStatus/srs.router");
 
-// report
+// Reports
 const rankingRouter = require("./api/reports/ranking/ranking.router");
 const ratingRouter = require("./api/reports/rating/rating.router");
 
-var bodyParser = require("body-parser");
-app.use(bodyParser.json());
-
-var cors = require("cors");
-app.use(cors());
-
-var morgan = require("morgan");
-app.use(morgan("combined"));
-
-// routes implementation
+// --- API Route Implementation ---
 app.use("/api/login", loginRouter);
 app.use("/api/schoolyear", schoolYearRouter);
 app.use("/api/subject", subjectRouter);
@@ -63,17 +62,17 @@ app.use("/api/item", itemRouter);
 app.use("/api/studentsubject", studentSubjectRouter);
 app.use("/api/student", studentRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/gradschool/item", gradSchoolItemRouter);
 
 app.use("/api/activitylog", logRouter);
 app.use("/api/permission", permissionRouter);
 app.use("/api/user", userRouter);
 
 app.use("/api/transaction", transactionRouter);
-
 app.use("/api/report/ranking", rankingRouter);
 app.use("/api/report/rating", ratingRouter);
 
-// image upload
+// --- File Upload Setup ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "uploads/");
@@ -86,23 +85,27 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-app.use(express.static(__dirname));
 app.use("/uploads", express.static("uploads"));
 
 app.post("/upload", upload.single("image"), (req, res) => {
   if (!req.file) {
-    return res.status(400).send("No file uploaded.");
+    return res.status(400).json({ success: 0, message: "No file uploaded." });
   }
 
-  const responseObj = {
+  res.json({
+    success: 1,
     imagePath: req.file.path,
     fileName: req.file.filename,
-  };
-
-  const imagePath = req.file.path;
-    res.json(responseObj);
+  });
 });
 
-app.listen(process.env.PORT || "4000", () => {
-  console.log(`Server is running on port: ${process.env.PORT || "4000"}`);
+// --- Serve frontend (HTML/JS/CSS) ---
+const clientPath = path.join(__dirname, "client");
+app.use(express.static(clientPath));
+
+
+// --- Start Server ---
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });

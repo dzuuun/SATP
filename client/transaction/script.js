@@ -1,4 +1,4 @@
-const baseURL = "http://localhost:4000";
+// const baseURL = "http://localhost:4000";
 var semester_id;
 var school_year_id;
 var user = localStorage.getItem("user_id");
@@ -59,7 +59,7 @@ let transactionsToAccomplish = document.getElementById(
 function loadIncludedData() {
   loadSpinner();
   $.ajax({
-    url: `${baseURL}/api/transaction/all/school_year_id=${school_year_id}&semester_id=${semester_id}`,
+    url: `/api/transaction/all/school_year_id=${school_year_id}&semester_id=${semester_id}`,
     type: "get",
   })
     .done(function (response) {
@@ -83,7 +83,7 @@ function loadIncludedData() {
 // Get schoolYear from API
 const getSchoolYear = async () => {
   const schoolYearList2 = document.querySelector("#loadSchoolYear");
-  const endpoint = `${baseURL}/api/schoolyear/inuse/active`,
+  const endpoint = `/api/schoolyear/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -97,7 +97,7 @@ const getSchoolYear = async () => {
 // Get semester from API
 const getSemester = async () => {
   const semesterList2 = document.querySelector("#loadSemester");
-  const endpoint = `${baseURL}/api/semester/inuse/active`,
+  const endpoint = `/api/semester/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -172,7 +172,7 @@ generateList.addEventListener("click", async (e) => {
     school_year_id: school_year_id,
     semester_id: semester_id,
   };
-  await fetch(`${baseURL}/api/transaction/notrated`, {
+  await fetch(`/api/transaction/notrated`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
