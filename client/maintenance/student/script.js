@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/student`,
+    url: `/api/student`,
     cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
@@ -66,7 +66,7 @@ const getCourse = async () => {
   const courseList = document.querySelector("#courseSelect");
   const courseList2 = document.querySelector("#editCourseSelect");
   // const courseList3 = document.querySelector("#selectImportCourse");
-  const endpoint = `${baseURL}/api/course/all/active`,
+  const endpoint = `/api/course/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     course = data.data;
@@ -112,7 +112,7 @@ formAddStudent.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/student/add`, {
+    await fetch(`/api/student/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -187,7 +187,7 @@ function setErrorMessage(message) {
 // update data on the API
 var rowIdToUpdate;
 async function edit(id) {
-  await fetch(`${baseURL}/api/student/` + id, {
+  await fetch(`/api/student/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -218,7 +218,7 @@ formEditStudent.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/student/update/info`, {
+    await fetch(`/api/student/update/info`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -251,7 +251,7 @@ formEditStudentStatus.addEventListener("submit", async (event) => {
   }
 
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/student/update/status`, {
+    await fetch(`/api/student/update/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -281,7 +281,7 @@ function deleteRow(id) {
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/student/delete`, {
+    await fetch(`/api/student/delete`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -342,7 +342,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
 
             try {
               // Fetch course_id from API
-              const response = await postData(`${baseURL}/api/course/get`, {
+              const response = await postData(`/api/course/get`, {
                 course_code: rowObject.course_code,
               });
               if (!response.data || !response.data.id) {
@@ -363,7 +363,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
         let counter = 0;
         for (let i = 0; i < data.length; i++) {
           try {
-            const response = await postData(`${baseURL}/api/student/add`, data[i]);
+            const response = await postData(`/api/student/add`, data[i]);
 
             document.getElementById("statusMessage").innerHTML =
               ((i / data.length) * 100).toFixed(0) + "%";

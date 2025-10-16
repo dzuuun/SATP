@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/semester`,
+    url: `/api/semester`,
     cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
@@ -81,7 +81,7 @@ formAddSemester.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/semester/add`, {
+    await fetch(`/api/semester/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -154,7 +154,7 @@ function setErrorMessage(message) {
 // update data on the API
 var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`${baseURL}/api/semester/` + id, {
+  await fetch(`/api/semester/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -196,7 +196,7 @@ formEditSemester.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/semester/update`, {
+    await fetch(`/api/semester/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -225,7 +225,7 @@ function deleteRow(id) {
 
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`${baseURL}/api/semester/delete`, {
+  await fetch(`/api/semester/delete`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",

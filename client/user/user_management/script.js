@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var usersAccess = localStorage.getItem("usersAccess");
 var username = localStorage.getItem("username");
@@ -17,7 +17,7 @@ if (usersAccess == 0) {
 var data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/user`,
+    url: `/api/user`,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
   columns: [
@@ -124,7 +124,7 @@ function generatePassword() {
 const getCourse = async () => {
   const courseList = document.querySelector("#addCourse");
   const courseList2 = document.querySelector("#editCourse");
-  const endpoint = `${baseURL}/api/course`,
+  const endpoint = `/api/course`,
     response = await fetch(endpoint),
     data = await response.json(),
     course = data.data;
@@ -139,7 +139,7 @@ const getCourse = async () => {
 const getPermission = async () => {
   const permissionList = document.querySelector("#permissionSelect");
   const permissionList2 = document.querySelector("#editPermissionSelect");
-  const endpoint = `${baseURL}/api/permission`,
+  const endpoint = `/api/permission`,
     response = await fetch(endpoint),
     data = await response.json(),
     permission = data.data;
@@ -186,7 +186,7 @@ formAddUser.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/user/add`, {
+    await fetch(`/api/user/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -260,7 +260,7 @@ function setErrorMessage(message) {
 // update data on the API
 var rowIdToUpdate;
 async function edit(id) {
-  await fetch(`${baseURL}/api/user/` + id, {
+  await fetch(`/api/user/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -318,7 +318,7 @@ formEditUserInfo.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/user/update/info`, {
+    await fetch(`/api/user/update/info`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -356,7 +356,7 @@ formEditUserCredentials.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/user/update/credentials`, {
+    await fetch(`/api/user/update/credentials`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -397,7 +397,7 @@ formEditPermission.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/user/update/control`, {
+    await fetch(`/api/user/update/control`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -430,7 +430,7 @@ formEditStatus.addEventListener("submit", async (event) => {
   }
 
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/user/update/status`, {
+    await fetch(`/api/user/update/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -535,7 +535,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
 
             try {
               // Fetch course_id from API
-              const response = await postData(`${baseURL}/api/user/get`, {
+              const response = await postData(`/api/user/get`, {
                 username: rowObject.username,
               });
               if (!response.data || !response.data.id) {
@@ -556,7 +556,7 @@ console.log(rowObject)
         let counter = 0;
         for (let i = 0; i < data.length; i++) {
           try {
-            const response = await putData(`${baseURL}/api/user/update/password`, data[i]);
+            const response = await putData(`/api/user/update/password`, data[i]);
 
             document.getElementById("statusMessage").innerHTML =
               ((i / data.length) * 100).toFixed(0) + "%";

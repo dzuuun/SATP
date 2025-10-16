@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var student_id;
 var semester_id;
 var school_year_id;
@@ -105,7 +105,7 @@ searchData.addEventListener("change", async (event) => {
 function loadIncludedData() {
   loadSpinner();
   $.ajax({
-    url: `${baseURL}/api/studentsubject/included/student_id=${student_id}&school_year_id=${school_year_id}&semester_id=${semester_id}`,
+    url: `/api/studentsubject/included/student_id=${student_id}&school_year_id=${school_year_id}&semester_id=${semester_id}`,
     type: "get",
   })
     .done(function (response) {
@@ -119,7 +119,7 @@ function loadIncludedData() {
 
 function loadExcludedData() {
   $.ajax({
-    url: `${baseURL}/api/studentsubject/overall/student_id=${student_id}&school_year_id=${school_year_id}&semester_id=${semester_id}`,
+    url: `/api/studentsubject/overall/student_id=${student_id}&school_year_id=${school_year_id}&semester_id=${semester_id}`,
     type: "get",
   })
     .done(function (response) {
@@ -153,7 +153,7 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/studentsubject/add`, {
+    await fetch(`/api/studentsubject/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -236,7 +236,7 @@ function generateTransaction(id) {
 
 var body;
 async function confirmGenerateTransaction(rowId) {
-  await fetch(`${baseURL}/api/studentsubject/` + rowId, {
+  await fetch(`/api/studentsubject/` + rowId, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -252,7 +252,7 @@ async function confirmGenerateTransaction(rowId) {
       };
     });
   // if (confirm("This action cannot be undone.") == true) {
-  await fetch(`${baseURL}/api/transaction/add`, {
+  await fetch(`/api/transaction/add`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -293,7 +293,7 @@ formDeactivateSubject.addEventListener("submit", async (event) => {
   const data = Object.fromEntries(formData);
 
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/studentsubject/deactivate`, {
+    await fetch(`/api/studentsubject/deactivate`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -318,7 +318,7 @@ formDeactivateSubject.addEventListener("submit", async (event) => {
 const getSchoolYear = async () => {
   const schoolYearList = document.querySelector("#selectSchoolYear");
   const schoolYearList2 = document.querySelector("#loadSchoolYear");
-  const endpoint = `${baseURL}/api/schoolyear/all/active`,
+  const endpoint = `/api/schoolyear/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -334,7 +334,7 @@ const getSchoolYear = async () => {
 const getSemester = async () => {
   const semesterList = document.querySelector("#selectSemester");
   const semesterList2 = document.querySelector("#loadSemester");
-  const endpoint = `${baseURL}/api/semester/inuse/active`,
+  const endpoint = `/api/semester/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -349,7 +349,7 @@ const getSemester = async () => {
 // Get subject from API
 const getSubject = async () => {
   const subjectList = document.getElementById("selectSubject");
-  const endpoint = `${baseURL}/api/subject/all/active`,
+  const endpoint = `/api/subject/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -365,7 +365,7 @@ const getSubject = async () => {
 // Get teacher from API
 const getTeacher = async () => {
   const teacherList = document.querySelector("#selectTeacher");
-  const endpoint = `${baseURL}/api/teacher/all/active`,
+  const endpoint = `/api/teacher/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -382,7 +382,7 @@ const getTeacher = async () => {
 const getStudent = async () => {
   const studentList = document.querySelector("#selectStudent");
   const studentList2 = document.querySelector("#loadStudent");
-  const endpoint = `${baseURL}/api/student/all/active`,
+  const endpoint = `/api/student/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -399,7 +399,7 @@ const getStudent = async () => {
 // Get room from API
 const getRoom = async () => {
   const roomList = document.querySelector("#selectRoom");
-  const endpoint = `${baseURL}/api/room/all/active`,
+  const endpoint = `/api/room/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -447,33 +447,33 @@ uploadFileForm.addEventListener("submit", async (event) => {
             rowObject["is_active"] = 1;
 
             try {
-              const subject = await postData(`${baseURL}/api/subject/get`, {
+              const subject = await postData(`/api/subject/get`, {
                 subject_code: rowObject.SubjectCode,
               });
               if (!subject.data.id) throw new Error("Subject not found");
               rowObject["subject_id"] = subject.data.id;
 
-              const room = await postData(`${baseURL}/api/room/get`, {
+              const room = await postData(`/api/room/get`, {
                 room_name: rowObject.RoomCode,
               });
               if (!room.data.id) throw new Error("Room not found");
               rowObject["room_id"] = room.data.id;
 
               const schoolYear = await postData(
-                `${baseURL}/api/schoolyear/get`,
+                `/api/schoolyear/get`,
                 { school_year: rowObject.SchoolYear }
               );
               if (!schoolYear.data.id) throw new Error("School year not found");
               rowObject["school_year_id"] = schoolYear.data.id;
 
-              const teacher = await postData(`${baseURL}/api/teacher/get`, {
+              const teacher = await postData(`/api/teacher/get`, {
                 givenname: rowObject.TeacherFirstName,
                 surname: rowObject.TeacherLastName,
               });
               if (!teacher.data.id) throw new Error("Teacher not found");
               rowObject["teacher_id"] = teacher.data.id;
 
-              const student = await postData(`${baseURL}/api/student/get`, {
+              const student = await postData(`/api/student/get`, {
                 username: rowObject.StudentID,
               });
               if (!student.data.id) throw new Error("Student not found");
@@ -494,7 +494,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
         for (let i = 0; i < data.length; i++) {
           try {
             const response = await postData(
-              `${baseURL}/api/studentsubject/add`,
+              `/api/studentsubject/add`,
               data[i]
             );
 

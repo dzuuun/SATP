@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var reportsAccess = localStorage.getItem("reportsAccess");
 var username = localStorage.getItem("username");
@@ -18,7 +18,7 @@ if (reportsAccess == 0) {
 // Get schoolYear from API
 const getSchoolYear = async () => {
   const schoolYearList = document.querySelector("#schoolYear");
-  const endpoint = `${baseURL}/api/schoolyear/inuse/active`,
+  const endpoint = `/api/schoolyear/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -32,7 +32,7 @@ const getSchoolYear = async () => {
 // Get semester from API
 const getSemester = async () => {
   const semesterList = document.querySelector("#semester");
-  const endpoint = `${baseURL}/api/semester/inuse/active`,
+  const endpoint = `/api/semester/inuse/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -45,7 +45,7 @@ const getSemester = async () => {
 
 const getCollege = async () => {
   const collegeList = document.querySelector("#college");
-  const endpoint = `${baseURL}/api/college/all/active`,
+  const endpoint = `/api/college/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -58,7 +58,7 @@ const getCollege = async () => {
 
 const getDepartment = async () => {
   const departmentList = document.querySelector("#department");
-  const endpoint = `${baseURL}/api/department/all/active`,
+  const endpoint = `/api/department/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -71,7 +71,7 @@ const getDepartment = async () => {
 
 const getTeacher = async () => {
   const teacherList = document.querySelector("#teacher");
-  const endpoint = `${baseURL}/api/teacher/all/active`,
+  const endpoint = `/api/teacher/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
@@ -209,7 +209,7 @@ const semesterDropdown = document.querySelector("#semester");
 //   document.getElementById("subject").style.display = "block";
 
 //   // Fetch subjects based on selected values
-//   await fetch(`${baseURL}/api/report/rating/teacher/subjects`, {
+//   await fetch(`/api/report/rating/teacher/subjects`, {
 //     method: "POST",
 //     headers: {
 //       "Content-Type": "application/json",
@@ -265,7 +265,7 @@ searchData.addEventListener("change", async () => {
     subject_id: document.getElementById("subject").value,
   };
 
-  await fetch(`${baseURL}/api/report/rating/teacher/subjects`, {
+  await fetch(`/api/report/rating/teacher/subjects`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -1,4 +1,4 @@
-const baseURL = "http://satp.ndmu.edu.ph";
+
 var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/room`,
+    url: `/api/room`,
     cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
@@ -66,7 +66,7 @@ formAddRoom.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/room/add`, {
+    await fetch(`/api/room/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -140,7 +140,7 @@ function setErrorMessage(message) {
 // update data on the API
 var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`${baseURL}/api/room/` + id, {
+  await fetch(`/api/room/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -172,7 +172,7 @@ formEditRoom.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/room/update`, {
+    await fetch(`/api/room/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -201,7 +201,7 @@ function deleteRow(id) {
 
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`${baseURL}/api/room/delete`, {
+  await fetch(`/api/room/delete`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -253,7 +253,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
         let counter = 0;
         for (let i = 0; i < data.length; i++) {
           try {
-            const response = await postData(`${baseURL}/api/room/add`, data[i]);
+            const response = await postData(`/api/room/add`, data[i]);
 
             document.getElementById("statusMessage").innerHTML =
               ((i / data.length) * 100).toFixed(0) + "%";
