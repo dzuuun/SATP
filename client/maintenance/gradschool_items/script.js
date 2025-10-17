@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/gradschool/item`,
+    url: `/api/gradschool/item`,
     cache: true,
   },
   ordering: false,
@@ -87,7 +87,7 @@ formAddItem.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/gradschool/item/add`, {
+    await fetch(`/api/gradschool/item/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -163,7 +163,7 @@ function setErrorMessage(message) {
 // update data on the API
 var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`${baseURL}/api/gradschool/item/` + id, {
+  await fetch(`/api/gradschool/item/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -211,7 +211,7 @@ formEditItem.addEventListener("submit", async (event) => {
   const data = Object.fromEntries(formData);
   console.log(data)
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/gradschool/item/update`, {
+    await fetch(`/api/gradschool/item/update`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -241,7 +241,7 @@ function deleteRow(id) {
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/gradschool/item/delete`, {
+    await fetch(`/api/gradschool/item/delete`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
@@ -294,7 +294,7 @@ uploadFileForm.addEventListener("submit", (event) => {
 
         if (confirm("This action cannot be undone.") == true) {
           for (let i = 0; i < data.length; i++) {
-            fetch(`${baseURL}/api/gradschool/item/add`, {
+            fetch(`/api/gradschool/item/add`, {
               method: "POST",
               headers: {
                 "Content-Type": "application/json",

@@ -17,7 +17,7 @@ if (maintenanceAccess == 0) {
 let data = $("#table").DataTable({
   ajax: {
     type: "GET",
-    url: `${baseURL}/api/admin`,
+    url: `/api/admin`,
     cache: true,
   },
   columnDefs: [{ className: "dt-center", targets: "" }],
@@ -64,7 +64,7 @@ function showPassword() {
 const getPermission = async () => {
   const permissionList = document.querySelector("#permissionSelect");
 
-  const endpoint = `${baseURL}/api/permission/all/active`,
+  const endpoint = `/api/permission/all/active`,
     response = await fetch(endpoint),
     data = await response.json(),
     result = data.data;
@@ -106,7 +106,7 @@ formAddAdmin.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/admin/add`, {
+    await fetch(`/api/admin/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -181,7 +181,7 @@ function setErrorMessage(message) {
 // update information on the API
 var rowIdToUpdate;
 async function edit(id) {
-  await fetch(`${baseURL}/api/admin/` + id, {
+  await fetch(`/api/admin/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -209,7 +209,7 @@ formEditAdmin.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/admin/update/info`, {
+    await fetch(`/api/admin/update/info`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -242,7 +242,7 @@ formEditAdminStatus.addEventListener("submit", async (event) => {
   }
 
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/admin/update/status`, {
+    await fetch(`/api/admin/update/status`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -272,7 +272,7 @@ function deleteRow(id) {
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
   if (confirm("This action cannot be undone.") == true) {
-    await fetch(`${baseURL}/api/admin/delete`, {
+    await fetch(`/api/admin/delete`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
