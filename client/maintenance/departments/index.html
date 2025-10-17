@@ -482,7 +482,7 @@
 <footer>
     <div class="container-fluid text-center">
         <span class="text-white">
-            NDMU © 2023 | Developed by MIS Department
+             NDMU © <span id="year"></span> | Developed by MIS Department
         </span>
     </div>
 </footer>
@@ -497,5 +497,6 @@
 <script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
 <script src="./script.js"></script>
+<script> document.getElementById("year").textContent = new Date().getFullYear();</script>
 
 </html>

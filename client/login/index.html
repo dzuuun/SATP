@@ -95,8 +95,8 @@
                 <div class="col-md">
                   <label class="form-label fw-medium">Password</label>
                   <div class="input-group">
-                    <input class="form-control rounded" id="password" name="password" placeholder=""
-                      type="password" required />
+                    <input class="form-control rounded" id="password" name="password" placeholder="" type="password"
+                      required />
                     <span class="input-group-btn">
                       <button type="button" id="showPassword" class="btn btn-default border-0"
                         title="Toggle Visibility">
@@ -113,13 +113,14 @@
 
             <div class="row mb-3 mt-5">
               <button type="submit" style="background-color: darkgreen"
-                class="btn btn-default border text-white text-nowrap" form="loginForm"  id="login">
+                class="btn btn-default border text-white text-nowrap" form="loginForm" id="login">
                 Sign In
               </button>
             </div>
             <div class="row text-center">
               <!-- <p style="color: black;"> Don't have an account? <a href="../register/index.html" style="color: darkgreen;">Register Here</a> </p>  -->
-              <p style="color: black;"> Don't have an account? <a href="#" style="color: darkgreen;">Register Here</a> </p> 
+              <p style="color: black;"> Don't have an account? <a href="#" style="color: darkgreen;">Register Here</a>
+              </p>
             </div>
 
           </div>
@@ -135,7 +136,7 @@
 <footer>
   <div class="container-fluid text-center">
     <span class="text-white">
-      NDMU © 2023 | Developed by MIS Department
+      NDMU © <span id="year"></span> | Developed by MIS Department
     </span>
   </div>
 </footer>
@@ -148,5 +149,5 @@
 <script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
 <script src="./script.js"></script>
-
+<script> document.getElementById("year").textContent = new Date().getFullYear();</script>
 </html>
