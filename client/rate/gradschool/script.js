@@ -12,7 +12,7 @@ var transaction_id;
 var item_id = [];
 
 // const getdata = async () => {
-//   fetch(`${baseURL}/api/item/active/rate`, {
+//   fetch(`/api/item/active/rate`, {
 //     method: "GET",
 //     headers: {
 //       "Content-Type": "application/json",
@@ -50,7 +50,7 @@ var item_id = [];
 // };
 
 const getdata = async () => {
-  await fetch(`${baseURL}/api/gradschool/item/active/starrating/rate`, {
+  await fetch(`/api/gradschool/item/active/starrating/rate`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -91,7 +91,7 @@ const getdata = async () => {
         stars.rebuild();
       }
     });
-  await fetch(`${baseURL}/api/gradschool/item/active/comment/rate`, {
+  await fetch(`/api/gradschool/item/active/comment/rate`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -109,7 +109,7 @@ const getdata = async () => {
 };
 
 async function getTransactionInfo(id) {
-  await fetch(`${baseURL}/api/transaction/` + id, {
+  await fetch(`/api/transaction/` + id, {
     method: "GET",
   })
     .then((res) => res.json())
@@ -149,7 +149,7 @@ async function submitRating() {
         rate: stars.widgets[i].indexSelected + 1,
       };
       console.log(rating)
-      await fetch(`${baseURL}/api/transaction/add/rating`, {
+      await fetch(`/api/transaction/add/rating`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -178,7 +178,7 @@ async function submitRating() {
     });
 
     for (let i = 0; i < data.length; i++) {
-      await fetch(`${baseURL}/api/gradschool/item/add/comment`, {
+      await fetch(`/api/gradschool/item/add/comment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -200,7 +200,7 @@ async function submitRating() {
       user_id: userLoggedIn,
     };
 
-    await fetch(`${baseURL}/api/transaction/submit/ ` + transactionToRate, {
+    await fetch(`/api/transaction/submit/ ` + transactionToRate, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
