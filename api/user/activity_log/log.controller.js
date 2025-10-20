@@ -1,45 +1,21 @@
-const { getLog, searchLogs } = require("./log.model");
+const { getLog } = require("./log.model");
 
 module.exports = {
   getLog: (req, res) => {
-    getLog((err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (!results) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Activity logs retrieved successfully.",
-        count: results.length,
-        data: results,
-      });
-    });
-  },
+    const draw = parseInt(req.body.draw) || 1;
+    const start = parseInt(req.body.start) || 0;
+    const length = parseInt(req.body.length) || 10;
+    const search = req.body.search?.value || "";
 
-  searchLogs: (req, res) => {
-    const body = req.body;
-    searchLogs(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.length === 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Activity logs searched successfully.",
-        count: results.length,
-        data: results,
+    getLog(start, length, search, (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+
+      // Response in DataTables format
+      res.json({
+        draw,
+        recordsTotal: result.totalRecords,
+        recordsFiltered: result.totalFiltered,
+        data: result.results
       });
     });
   },

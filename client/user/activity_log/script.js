@@ -15,15 +15,27 @@ if (usersAccess == 0) {
 }
 
 let data = $("#table").DataTable({
+  serverSide: true,
+  processing: true,
   ajax: {
-    type: "GET",
-    url: `/api/activitylog`,
+    url: "/api/activitylog",
+    type: "POST",
+    contentType: "application/json",
+    data: function (d) {
+      return JSON.stringify(d); // send draw, start, length as JSON
+    }
   },
+  columns: [
+    { data: "date_time" },
+    { data: "name" },
+    { data: "action" }
+  ],
   responsive: true,
   ordering: false,
-  order: [[0, "desc"]],
-  columns: [{ data: "date_time" }, { data: "name" }, { data: "action" }],
+  pageLength: 15,
 });
+
+
 
 function openNav() {
   document.getElementById("mySidenav").style.width = "250px";
