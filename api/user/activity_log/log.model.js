@@ -1,37 +1,41 @@
 const pool = require("../../../db/db");
 
 module.exports = {
-  getLog: (callBack) => {
-    pool.query(
-      "SELECT DATE_FORMAT(activity_log.date_time, '%M %d, %Y %r') AS date_time, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, activity_log.action FROM activity_log INNER JOIN user_info ON activity_log.user_id = user_info.user_id ORDER BY activity_log.date_time DESC",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
+  getLog: (start, length, search, callBack) => {
+  const params = [];
+  let filter = "";
+  
+  if (search) {
+    filter = "WHERE CONCAT(u.givenname, ' ', u.surname) LIKE ? OR a.action LIKE ?";
+    params.push(`%${search}%`, `%${search}%`);
+  }
 
-  searchLogs: (data, callBack) => {
-    pool.query(
-      "SELECT DATE_FORMAT( activity_log.date_time, '%M %d, %Y %r' ) AS date_time, CONCAT( user_info.givenname, ' ', user_info.surname ) AS NAME, activity_log.action FROM activity_log INNER JOIN user_info ON activity_log.user_id = user_info.user_id WHERE user_info.givenname LIKE '%" +
-        data.search +
-        "%' OR user_info.middlename LIKE '%" +
-        data.search +
-        "%' OR user_info.surname LIKE '%" +
-        data.search +
-        "%' OR activity_log.date_time LIKE '%" +
-        data.search +
-        "%' OR activity_log.action LIKE '%" +
-        data.search +
-        "%'",
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
-    );
-  },
+  const countQuery = `SELECT COUNT(*) AS total FROM activity_log a INNER JOIN user_info u ON a.user_id = u.user_id ${filter}`;
+  const dataQuery = `
+    SELECT DATE_FORMAT(a.date_time, '%M %d, %Y %r') AS date_time,
+           CONCAT(u.givenname, ' ', u.surname) AS name,
+           a.action
+    FROM activity_log a
+    INNER JOIN user_info u ON a.user_id = u.user_id
+    ${filter}
+    ORDER BY a.date_time DESC
+    LIMIT ?, ?
+  `;
+
+  const dataParams = [...params, start, length];
+
+  pool.query(countQuery, params, (err, countResult) => {
+    if (err) return callBack(err);
+    const totalFiltered = countResult[0].total;
+
+    pool.query(dataQuery, dataParams, (err, results) => {
+      if (err) return callBack(err);
+      callBack(null, {
+        totalRecords: totalFiltered,   // if you want, you can query total without filter for recordsTotal
+        totalFiltered,
+        results
+      });
+    });
+  });
+}
 };

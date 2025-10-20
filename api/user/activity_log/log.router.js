@@ -1,7 +1,7 @@
-const { getLog, searchLogs } = require("./log.controller");
 const router = require("express").Router();
+const { getLog } = require("./log.controller");
 
-router.get("/", getLog);
-router.get("/search", searchLogs);
+// DataTables server-side endpoint
+router.post("/", getLog);
 
 module.exports = router;
