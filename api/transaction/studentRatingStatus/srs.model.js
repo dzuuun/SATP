@@ -135,8 +135,7 @@ module.exports = {
 
   submitCommentStatus: (data, callBack) => {
     pool.query(
-      // "SELECT CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, transactions.id FROM transactions INNER JOIN user_info ON transactions.user_id = user_info.user_id WHERE id = ?",
-      "SELECT CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, transactions.id, student_subject.schedule_code FROM transactions INNER JOIN user_info ON transactions.user_id = user_info.user_id INNER JOIN student_subject ON transactions.id = student_subject.id WHERE transactions.id = ?",
+      "SELECT CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, transactions.id FROM transactions INNER JOIN user_info ON transactions.user_id = user_info.user_id WHERE id = ?",
       [data.transaction_id],
       (error, results) => {
         if (results.length === 1) {
@@ -148,9 +147,10 @@ module.exports = {
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
                 [
                   data.user_id,
-                  results[0].name +
-                    " rated Schedule: " +
-                    results[0].schedule_code,
+                  "User: " +
+                    results[0].name +
+                    " rated Transaction No. " +
+                    data.transaction_id,
                 ],
                 (error, results) => {
                   if (error) {
