@@ -98,6 +98,12 @@ app.post("/upload", upload.single("image"), (req, res) => {
   });
 });
 
+// disable registration page
+app.use('/register', (req, res) => {
+ res.status(404).sendFile(path.join(__dirname, 'client', '404.html'));
+});
+
+
 // --- Serve frontend (HTML/JS/CSS) ---
 const clientPath = path.join(__dirname, "client");
 app.use(express.static(clientPath));
