@@ -80,6 +80,7 @@ form.addEventListener("submit", async (e) => {
 
     // Bulk store data
     const { data, user_id } = response;
+
     const storageData = {
       user_id,
       username: data.username,
@@ -88,6 +89,7 @@ form.addEventListener("submit", async (e) => {
       maintenanceAccess: data.maintenance_access,
       reportsAccess: data.reports_access,
       usersAccess: data.users_access,
+      fullname: data.full_name,
     };
 
     Object.entries(storageData).forEach(([key, val]) =>

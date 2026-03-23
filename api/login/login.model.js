@@ -85,7 +85,7 @@ module.exports = {
 
   getUserByUserName: (username, callBack) => {
     pool.query(
-      "SELECT * FROM users LEFT JOIN user_info ON users.id= user_info.user_id inner join permissions ON users.permission_id = permissions.id WHERE username = ?",
+      "SELECT *, CONCAT(user_info.givenname, ' ', user_info.surname) AS full_name FROM users LEFT JOIN user_info ON users.id= user_info.user_id inner join permissions ON users.permission_id = permissions.id WHERE username = ?",
       [username],
       (error, results) => {
         if (error) {

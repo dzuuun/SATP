@@ -2,6 +2,7 @@ const {
   getTransactions,
   getTransactionsByStudent,
   getTransactionInfoById,
+  getSYSemData,
   getCommentByTransactionId,
   addTransaction,
   submitRating,
@@ -48,6 +49,28 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Student's Subjects retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getSYSemData: (req, res) => {
+    const body = req.params;
+    getSYSemData(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return;
+      }
+      if (!results) {
+        return res.json({
+          success: 0,
+          message: "No record found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Information retrieved successfully.",
         count: results.length,
         data: results,
       });
@@ -171,7 +194,8 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Subject rated successfully. Thank you for your participation.",
+        message:
+          "Subject rated successfully. Thank you for your participation.",
         data: results,
       });
     });

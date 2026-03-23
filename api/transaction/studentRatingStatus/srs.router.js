@@ -1,6 +1,7 @@
 const {
   getTransactions,
   getTransactionsByStudent,
+  getSYSemData,
   getTransactionInfoById,
   getCommentByTransactionId,
   addTransaction,
@@ -17,6 +18,10 @@ router.get(
 router.get(
   "/student/subjects/school_year_id=:school_year_id&semester_id=:semester_id&student_id=:student_id",
   getTransactionsByStudent
+);
+router.get(
+  "/stats/school_year_id=:school_year_id&semester_id=:semester_id",
+  getSYSemData
 );
 router.get("/:id", getTransactionInfoById);
 router.get("/comment/:id", getCommentByTransactionId);

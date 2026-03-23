@@ -140,3 +140,12 @@ footer {
     }
 }
 
+/* Apply this specifically to the nav or use the existing .sidenav logic */
+.custom-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+.custom-scrollbar {
+    -ms-overflow-style: none;  /* IE/Edge */
+    scrollbar-width: none;  /* Firefox */
+}
