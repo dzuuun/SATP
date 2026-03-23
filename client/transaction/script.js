@@ -1,247 +1,173 @@
-// const baseURL = "http://localhost:4000";
+// 1. AUTH & GLOBAL STATE
+const state = {
+    user_id: localStorage.getItem("user_id"),
+    transactionAccess: localStorage.getItem("transactionAccess"),
+    username: localStorage.getItem("username"),
+    semester_id: "",
+    school_year_id: ""
+};
 
-var semester_id;
-var school_year_id;
-var user = localStorage.getItem("user_id");
-var transactionAccess = localStorage.getItem("transactionAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
-
-if (user === null) {
-  alert("Log in to continue.");
-  window.location.href = "../index.html";
+// Security Gate
+if (!state.user_id) {
+    alert("Log in to continue.");
+    window.location.href = "../index.html";
+}
+if (state.transactionAccess == 0) {
+    alert("Access Denied.");
+    history.back();
 }
 
-if (transactionAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
-  history.back();
-}
-
-let table = $("#table").DataTable({
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { width: "1%", data: "username" },
-    { width: "10%", data: "student_name" },
-    { width: "15%", data: "teachers_name" },
-    { width: "2%", data: "subject_code" },
-    { width: "2%", data: "college_code" },
-    {
-      width: "1%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.status
-            ? ` <button class='btn bi fs-4 bi-check-circle' style="color: green"></button>`
-            : `<i class="bi fs-4 bi-x-circle" style="color: red"></i>`
+// 2. GRID.JS INITIALIZATION
+const grid = new gridjs.Grid({
+    columns: [
+        { name: "Username", id: 'username', width: '120px' },
+        { name: "Rater", id: 'student_name', width: '200px' },
+        { name: "Ratee", id: 'teachers_name', width: '200px' },
+        { name: "Subject", id: 'subject_code', width: '100px' },
+        { name: "College", id: 'college_code', width: '100px' },
+        { 
+            name: "Status", 
+            id: 'status',
+            width: '80px',
+            formatter: (cell) => gridjs.html(cell == 1 
+                ? '<i class="bi bi-check-circle-fill text-green-600 text-xl"></i>' 
+                : '<i class="bi bi-x-circle-fill text-red-500 text-xl"></i>')
         }
-                </td>`;
-      },
+    ],
+    fixedHeader: true,
+    pagination: { limit: 10 },
+    search: true,
+    sort: true,
+    language: { 'search': { 'placeholder': 'Search records...' } },
+    className: {
+        table: 'w-full text-sm text-left',
+        td: 'p-4 border-b border-gray-50',
+        th: 'bg-gray-50 text-gray-500 font-bold uppercase text-[10px] p-4'
     },
-  ],
-});
+    data: [] 
+}).render(document.getElementById("table-container"));
 
-const searchData = document.querySelector("#loaddata");
-searchData.addEventListener("change", async (event) => {
-  semester_id = document.getElementById("loadSemester").value;
-  school_year_id = document.getElementById("loadSchoolYear").value;
+// 3. API SERVICES
+const API = {
+    async fetchOptions(endpoint, elementId) {
+        try {
+            const res = await fetch(`/api/${endpoint}/inuse/active`);
+            const json = await res.json();
+            const select = document.getElementById(elementId);
+            
+            select.innerHTML = `<option value="">Select ${endpoint.replace('year', ' Year')}</option>`;
+            json.data.forEach(row => {
+                select.innerHTML += `<option value="${row.id}">${row.name}</option>`;
+            });
+        } catch (err) { console.error(`Error loading ${endpoint}:`, err); }
+    },
 
-  if (semester_id !== "" && school_year_id !== "") {
-    loadIncludedData();
-  }
-});
+    loadData() {
+        if (!state.semester_id || !state.school_year_id) return;
 
-let totalTransactions = document.getElementById("totalTransactions");
-let TransactionsAccomplished = document.getElementById(
-  "TransactionsAccomplished"
-);
-let transactionsToAccomplish = document.getElementById(
-  "transactionsToAccomplish"
-);
-function loadIncludedData() {
-  loadSpinner();
-  $.ajax({
-    url: `/api/transaction/all/school_year_id=${school_year_id}&semester_id=${semester_id}`,
-    type: "get",
-  })
-    .done(function (response) {
-      totalTransactions.innerHTML = response.count;
-      TransactionsAccomplished.innerHTML = response.data.filter(
-        (item) => item.status === 1
-      ).length;
-      transactionsToAccomplish.innerHTML = response.data.filter(
-        (item) => item.status === 0
-      ).length;
-      document.getElementById("generateList").style.display = "inline";
-      document.getElementById('refresh').style = 'inline';
-      hideSpinner();
-      setSuccessMessage(response.message);
-      table.clear().draw();
-      table.rows.add(response.data).draw();
-    })
-    .fail(function (jqXHR, textStatus, errorThrown) {});
-}
+        showSpinner();
+        $.ajax({
+            url: `/api/transaction/all/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`,
+            type: "get",
+        })
+        .done(response => {
+            // Update Stats
+            document.getElementById("totalTransactions").textContent = response.count;
+            document.getElementById("TransactionsAccomplished").textContent = response.data.filter(i => i.status === 1).length;
+            document.getElementById("transactionsToAccomplish").textContent = response.data.filter(i => i.status === 0).length;
 
-// Get schoolYear from API
-const getSchoolYear = async () => {
-  const schoolYearList2 = document.querySelector("#loadSchoolYear");
-  const endpoint = `/api/schoolyear/inuse/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  rows.forEach((row) => {
-    schoolYearList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
+            // UI Adjustments
+            $('#generateList, #refresh').removeClass('hidden').show();
+            
+            // Update Table
+            grid.updateConfig({ data: response.data }).forceRender();
+        })
+        .always(hideSpinner);
+    }
 };
 
-// Get semester from API
-const getSemester = async () => {
-  const semesterList2 = document.querySelector("#loadSemester");
-  const endpoint = `/api/semester/inuse/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  rows.forEach((row) => {
-    semesterList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
-};
-
+// 4. CORE EVENT CONTROLLER
 $(document).ready(function () {
-  getSchoolYear();
-  getSemester();
-});
+    // Initial Setup
+    API.fetchOptions('schoolyear', 'loadSchoolYear');
+    API.fetchOptions('semester', 'loadSemester');
+    updateUserUI();
 
-function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
+    // Combined Change Listener for Dropdowns
+    $('#loadSchoolYear, #loadSemester').on('change', function() {
+        state.school_year_id = $('#loadSchoolYear').val();
+        state.semester_id = $('#loadSemester').val();
 
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
+        if (state.school_year_id && state.semester_id) {
+            $('#filterRefresh').removeClass('hidden').addClass('flex');
+            API.loadData();
+        } else {
+            $('#filterRefresh').addClass('hidden').removeClass('flex');
+        }
+    });
 
-function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
+    // Refresh Button Click
+    $('#filterRefresh, #refresh').on('click', function() {
+        const $icon = $(this).find('i');
+        $icon.addClass('animate-spin');
+        API.loadData();
+        setTimeout(() => $icon.removeClass('animate-spin'), 800);
+    });
 
-let generateList = document.getElementById("generateList");
-generateList.addEventListener("click", async (e) => {
-  e.preventDefault();
-  // console.log(school_year_id, semester_id);
-  // localStorage.setItem("transListSchoolYear", school_year_id);
-  // localStorage.setItem("transListSemester", semester_id);
-
-  // window.location.href = "unrated/index.html";
-
-  var query = {
-    school_year_id: school_year_id,
-    semester_id: semester_id,
-  };
-  await fetch(`/api/transaction/notrated`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(query),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.count === 0) {
-        alert("no data found");
-        window.location.href = `../index.html`;
-      } else {
-        const csv = Papa.unparse(response.data);
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.setAttribute("download", "SATP Unrated Transactions.csv");
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        document.body.removeChild(link);
-        alert("File downloaded.");
-      }
+    // Grid Limit Change
+    $('#gridLimit').on('change', function() {
+        grid.updateConfig({ pagination: { limit: parseInt($(this).val()) } }).forceRender();
     });
 });
 
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
-}
+// 5. EXPORT LOGIC
+document.getElementById("generateList").addEventListener("click", async (e) => {
+    e.preventDefault();
+    showSpinner();
+    try {
+        const res = await fetch(`/api/transaction/notrated`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ school_year_id: state.school_year_id, semester_id: state.semester_id }),
+        });
+        const response = await res.json();
 
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
-}
-function toggleNav() {
-  nav ? closeNav() : openNav();
-}
-
-let signOutButton = document.getElementById("signout");
-
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../index.html";
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  loadSpinner();
-
-  window.addEventListener("load", function () {
+        if (!response.data || response.data.length === 0) {
+            alert("No data found to export.");
+        } else {
+            const ws = XLSX.utils.json_to_sheet(response.data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Unrated");
+            XLSX.writeFile(wb, `SATP_Unrated_${state.school_year_id}.xlsx`);
+        }
+    } catch (err) { alert("Export failed."); }
     hideSpinner();
-  });
 });
 
-function loadSpinner() {
-  document.getElementById("overlay").style.display = "flex";
+// 6. UI UTILITIES
+function updateUserUI() {
+    if (state.username) {
+        ['userName', 'sidebarUserName'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = state.username;
+        });
+    }
+    if(document.getElementById("year")) document.getElementById("year").textContent = new Date().getFullYear();
 }
 
-function hideSpinner() {
-  document.getElementById("overlay").style.display = "none";
+function toggleNav() {
+    const side = document.getElementById("mySidenav");
+    const main = document.getElementById("main");
+    const isOpen = side.style.width === "280px";
+    
+    side.style.width = isOpen ? "0" : "280px";
+    main.style.marginLeft = isOpen ? "0" : "280px";
 }
+
+document.getElementById("signout").addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../index.html";
+});
+
+function showSpinner() { document.getElementById("overlay").style.display = "flex"; }
+function hideSpinner() { document.getElementById("overlay").style.display = "none"; }

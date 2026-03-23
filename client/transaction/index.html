@@ -1,312 +1,135 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SATP | Manage Transactions</title>
-    <link rel="icon" type="image/x-icon" href="../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="style.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
-    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.css" rel="stylesheet" />
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SATP | Transaction Management</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css">
+
 </head>
 
-<body style="min-height: 400px; margin-bottom: 100px; clear: both">
-    <div id="mySidenav" class="sidenav">
-        <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary h-100" style="width: 280px">
-            <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-                <img class="bi pe-none me-2" width="30" height="30" src="../images/NDMU-Logo.png" />
+<body class="bg-gray-100 font-sans text-gray-900">
 
-                <span>SATP | Menu</span>
+    <div id="overlay">
+        <div class="flex flex-col items-center">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-green-700"></div>
+            <p class="mt-4 font-semibold text-green-800 text-sm">Loading Data...</p>
+        </div>
+    </div>
+
+    <div id="mySidenav" class="bg-green-800 sidenav shadow-2xl text-white">
+        <a href="javascript:void(0)" class="absolute top-5 right-5 text-3xl" onclick="toggleNav()">&times;</a>
+        <div class="px-8 mb-10">
+            <img src="../images/NDMU-Logo.png" alt="NDMU" class="w-16 h-16 mx-auto mb-4 bg-white rounded-full p-2">
+            <p class="text-center font-bold tracking-widest text-sm uppercase text-green-100">
+                <span id="sidebarUserName">Loading...</span>
+            </p>
+        </div>
+        <nav class="space-y-2">
+            <a href="dashboard.html" class="flex items-center px-8 py-4 hover:bg-green-700 transition">
+                <i class="bi bi-speedometer2 me-3"></i> Dashboard
             </a>
-            <hr />
-            <ul class="nav nav-pills flex-column mb-auto">
-                <li class="mb-1">
-                    <button onclick="window.location.href= `./index.html`"
-                        class="btn fs-4 d-inline-flex align-items-center rounded border-0 collapsed rounded-0 border-start border-5"
-                        style="--bs-border-color: darkgreen;">
-                        <span class="me-2"><i class="bi bi-list-task"></i></span>
-                        Transaction
-                    </button>
-                </li>
-                <li class="mb-1">
-                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed"
-                        data-bs-toggle="collapse" data-bs-target="#report-collapse" aria-expanded="false">
-                        Report
-                    </button>
-                    <div class="collapse" id="report-collapse">
-                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                            <li>
-                                <a href="../report/ranking/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded-0 ms-5 fs-6">Ranking</a>
-                            </li>
-                            <li>
-                                <a href="../report/rating/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Rating</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="mb-1">
-                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed"
-                        data-bs-toggle="collapse" data-bs-target="#maintenance-collapse" aria-expanded="false">
-                        Maintenance
-                    </button>
-                    <div class="collapse" id="maintenance-collapse">
-                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                            <li>
-                                <a href="../maintenance/admin/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Admin</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/category/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Category</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/college/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">College</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/course/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Course</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/departments/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Department</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/items/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Items</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/room/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Room</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/school_year/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">School
-                                    Year</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/semester/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Semester</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/student/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Student</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/student_subject/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Student
-                                    Subject</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/subject/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Subject</a>
-                            </li>
-                            <li>
-                                <a href="../maintenance/teacher/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Teacher</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-
-                <li class="mb-1">
-                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed"
-                        data-bs-toggle="collapse" data-bs-target="#user-collapse" aria-expanded="false">
-                        User
-                    </button>
-                    <div class="collapse" id="user-collapse">
-                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                            <li>
-                                <a href="../user/activity_log/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Activity
-                                    Log</a>
-                            </li>
-                            <li>
-                                <a href="../user/permission/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Permission</a>
-                            </li>
-                            <li>
-                                <a href="../user/user_management/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">User
-                                    Management</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-            </ul>
-            <hr />
-            <div class="dropdown">
-                <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="../images/blank-profile-picture-973460_1280.png" alt="" width="32" height="32"
-                        class="rounded-circle me-2">
-                    <strong id="userName"></strong>
-                </a>
-                <ul class="dropdown-menu text-small shadow">
-                    <li><a class="dropdown-item" href="../update/password/index.html">Update Password</a></li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li><a class="dropdown-item" id="signout">Sign out</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
-    <div id="main">
-        <!-- Header -->
-        <nav class="navbar sticky-top" style="background-color: darkgreen">
-            <div class="container-fluid">
-                <a class="navbar-brand fs-7 text-white">
-                    <i onclick="toggleNav()" class="bi bi-list"></i>
-                    <img src="../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
-                        class="d-inline-block align-text-top" />
-                    Notre Dame of Marbel University
-                </a>
-                <span class="navbar-text text-white">
-                    Student Assessment of Teacher's Performance
-                </span>
-            </div>
+            <a href="index.html" class="flex items-center px-8 py-4 bg-green-800 border-l-4 border-yellow-400">
+                <i class="bi bi-file-earmark-text me-3"></i> Transactions
+            </a>
+            <button id="signout" class="w-full flex items-center px-8 py-4 hover:bg-red-700 transition text-left mt-20">
+                <i class="bi bi-box-arrow-left me-3"></i> Sign Out
+            </button>
         </nav>
+    </div>
 
-        <div class="container-fluid">
-            <div class="row">
-                <!-- <div class="col-1">sidebar here</div> -->
-                <div class="col-md ">
-                    <div class="container-fluid mt-3">
-                        <div class="row align-items-center border-bottom mb-3">
-                            <div class="col-md">
-                                <div class="container-fluid">
-                                    <h1 class="display-5">Transactions</h1>
-                                </div>
-                            </div>
-                            <div class="col-md">
-                                <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb float-end">
-                                        <li class="breadcrumb-item">Maintenance</li>
-                                        <li class="breadcrumb-item active" aria-current="page">
-                                            Transactions
-                                        </li>
-                                    </ol>
-                                </nav>
-                            </div>
-                        </div>
-                        <div class="row " id="loaddata">
-                            <div class="d-flex justify-content-center">
-                                <div class="col-md-3 me-3 mb-3">
-                                    <select name="school_year_id" id="loadSchoolYear" class="form-control"
-                                        data-live-search="true" aria-label="Default select example" required>
-                                        <option disabled selected value="">Select School Year</option>
-                                    </select>
-                                </div>
+    <div id="main" class="transition-all duration-500 flex flex-col flex-grow">
 
-                                <div class="col-md-3 mb-3">
-                                    <select name="semester_id" id="loadSemester" class="form-control"
-                                        data-live-search="true" aria-label="Default select example" required>
-                                        <option disabled selected value="">Select Semester</option>
-                                    </select> 
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row" id="refresh" style="display: none;">
-                            <div class="col mb-3 text-center" >
-                                <button type="button" class="btn text-white text-nowrap fw-medium al"
-                                onclick="loadIncludedData()"
-                                 style="background-color: darkgreen" title="Refresh Data">
-                                 <i class="bi bi-arrow-clockwise"></i> Refresh Data
-                             </button>
-                             </div>
-                        </div>
-                        <div class="row text-center mt-3 mb-3 text-nowrap">
-                            <div class="col-sm">
-                                <div class="mb-3">
-                                    <h4 class="form-label fs-4 fw-bold">
-                                        Total Transactions
-                                    </h4>
-                                    <div>
-                                        <span class="fs-3" id="totalTransactions">0</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm">
-                                <div class="mb-2">
-                                    <h4 class="form-label fs-4 fw-bold">
-                                        Transactions Accomplished
-                                    </h4>
-                                    <div>
-                                        <span class="fs-3" id="TransactionsAccomplished">0</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-sm">
-                                <div class="mb-3">
-                                    <h4 class="form-label fs-4 fw-bold">
-                                        Transactions to Accomplish
-                                    </h4>
-                                    <div>
-                                        <span class="fs-3" id="transactionsToAccomplish">0</span>
-                                        <div class="row">
-                                            <div class="col">
-                                                <button class="btn" id="generateList"
-                                                    style="background-color: darkgreen; color: white; display: none;">
-                                                    Download List
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        <header class="bg-green-800 text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
+            <div class="flex items-center">
+                <button onclick="toggleNav()" class="text-2xl mr-4 hover:text-yellow-400">
+                    <i class="bi bi-list"></i>
+                </button>
+                <img src="../images/NDMU-Logo.png" class="h-8 mr-3">
+                <h1 class="font-bold text-sm md:text-base">Notre Dame of Marbel University</h1>
+            </div>
+            <div class="text-right hidden md:block">
+                <p class=" font-bold text-sm md:text-base"> Student Assessment of Teacher's Performance</p>
+            </div>
+        </header>
+
+        <div class="p-6 md:p-10 max-w-7xl mx-auto w-full flex-grow">
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div
+                    class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-gray-300 relative overflow-hidden group hover:shadow-lg transition">
+                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Transactions</p>
+                    <h2 id="totalTransactions" class="text-4xl font-black text-gray-800">0</h2>
+                    <i class="bi bi-collection absolute -right-2 -bottom-2 text-6xl opacity-5"></i>
                 </div>
-
-                <div class="table-responsive">
-                    <table id="table" class="table table-striped table-hover fw-medium" cellspacing="0" width="100%">
-                        <thead>
-                            <th class="text-left">Username</th>
-                            <th class="text-left">Rater</th>
-                            <th class="text-left">Ratee</th>
-                            <th>Subject Code</th>
-                            <th>College</th>
-                            <th>Status</th>
-                        </thead>
-                    </table>
+                <div
+                    class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-green-600 relative overflow-hidden group hover:shadow-lg transition">
+                    <p class="text-xs font-bold text-green-700 uppercase tracking-widest mb-1">Accomplished</p>
+                    <h2 id="TransactionsAccomplished" class="text-4xl font-black text-green-700">0</h2>
+                    <i class="bi bi-check-circle absolute -right-2 -bottom-2 text-6xl opacity-5"></i>
+                </div>
+                <div
+                    class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-red-500 relative overflow-hidden group hover:shadow-lg transition">
+                    <p class="text-xs font-bold text-red-500 uppercase tracking-widest mb-1">To Accomplish</p>
+                    <h2 id="transactionsToAccomplish" class="text-4xl font-black text-red-500">0</h2>
+                    <i class="bi bi-exclamation-triangle absolute -right-2 -bottom-2 text-6xl opacity-5"></i>
                 </div>
             </div>
-        </div>
-        <div id="overlay">
-            <div class="spinner"></div>
-        </div>
-        <!-- Toast container -->
-        <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
-    </div>
-</body>
 
-<footer>
-    <div class="container-fluid text-center">
-        <span class="text-white">
-             NDMU © <span id="year"></span> | Developed by MIS Department
-        </span>
+            <div class="bg-white p-8 rounded-[2rem] shadow-xl border border-gray-100 mb-10">
+                <div id="loaddata" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">School
+                            Year</label>
+                        <select id="loadSchoolYear"
+                            class="w-full border-2 border-gray-100 p-4 rounded-2xl focus:border-green-600 focus:ring-0 transition outline-none text-sm appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1em_1em]">
+                            <option value="">Select School Year</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Semester</label>
+                        <select id="loadSemester"
+                            class="w-full border-2 border-gray-100 p-4 rounded-2xl focus:border-green-600 focus:ring-0 transition outline-none text-sm appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1em_1em]">
+                            <option value="">Select Semester</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-[2rem] shadow-xl border border-gray-100 mb-10">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="font-black text-xl text-gray-800">Evaluation Records</h3>
+                    <div class="flex gap-2">
+                        <button id="refresh"
+                            class="hidden px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-xs uppercase hover:bg-gray-200 transition">
+                            <i class="bi bi-arrow-clockwise me-2"></i> Refresh
+                        </button>
+                        <button id="generateList"
+                            class="hidden px-6 py-3 bg-green-700 text-white rounded-xl font-bold text-xs uppercase hover:bg-green-800 shadow-lg shadow-green-200 transition">
+                            <i class="bi bi-file-earmark-excel me-2"></i> Export Unrated (XLSX)
+                        </button>
+                    </div>
+                </div>
+                <div id="table-container"></div>
+            </div>
+        </div>
+
+        <footer class="bg-green-800 text-white text-center py-4 text-sm border-t border-green-900 w-full mt-auto">
+            <p>NDMU © <span id="year">2026</span> | Developed by MIS Department</p>
+        </footer>
     </div>
-</footer>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
-    crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
-    crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
-<script src="./script.js"></script>
-<script> document.getElementById("year").textContent = new Date().getFullYear();</script>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
+    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+
+</body>
 
 </html>

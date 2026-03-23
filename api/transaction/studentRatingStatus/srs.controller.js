@@ -6,7 +6,7 @@ const {
   addTransaction,
   submitRating,
   submitCommentStatus,
-  getNotRatedTransactions
+  getNotRatedTransactions,
 } = require("./srs.model");
 
 module.exports = {
@@ -95,23 +95,32 @@ module.exports = {
       });
     });
   },
-
   addTransaction: (req, res) => {
     const body = req.body;
+
     addTransaction(body, (err, results) => {
       if (err) {
-        console.log(err);
-        return res.json({
-          success: 0,
-          message: "Transaction already exists. Try again.",
-        });
-      }
-      if (results === undefined) {
+        console.error("Database error:", err);
         return res.status(500).json({
           success: 0,
-          message: "Some fields are missing or incorrect format.",
+          message: "Database error occurred.",
         });
       }
+
+      if (!results) {
+        return res.status(400).json({
+          success: 0,
+          message: "Invalid or missing data.",
+        });
+      }
+
+      if (results.exists) {
+        return res.status(409).json({
+          success: 0,
+          message: "Transaction already exists.",
+        });
+      }
+
       return res.json({
         success: 1,
         message: "Transaction added successfully.",

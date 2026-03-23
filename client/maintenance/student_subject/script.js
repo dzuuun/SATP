@@ -318,7 +318,7 @@ formDeactivateSubject.addEventListener("submit", async (event) => {
 const getSchoolYear = async () => {
   const schoolYearList = document.querySelector("#selectSchoolYear");
   const schoolYearList2 = document.querySelector("#loadSchoolYear");
-  const endpoint = `/api/schoolyear/all/active`,
+  const endpoint = `/api/schoolyear/`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;

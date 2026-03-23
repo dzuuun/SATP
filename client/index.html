@@ -3,78 +3,78 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SATP | NDMU</title>
     <link rel="icon" type="image/x-icon" href="./images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="style.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
-    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.css" rel="stylesheet" />
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css" />
-    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<!-- Header -->
-<nav class="navbar sticky-top" style="background-color: darkgreen">
-    <div class="container-fluid">
-        <a class="navbar-brand fs-7 text-white">
-            <img src="./images/NDMU-Logo.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top" />
-            Notre Dame of Marbel University
-        </a>
-        <span class="navbar-text text-white">
-            Student Assessment of Teacher's Performance
-        </span>
-    </div>
-</nav>
+<body class="min-h-screen flex flex-col bg-gray-50 font-sans antialiased">
 
-<body>
-    <div class="container content">
-        <div class="row">
-            <div class="col-md">
-                <div class="row justify-content-center">
-                    <div class="col-md-4 box">
-                        <div class="mb-3 text-center">
-                            <img src="./images/satp-branding.png" alt="Image" width="400px" class="img-fluid" />
-                        </div>
-                        <div class="mb-3 text-center">
-                            <!-- <button type="button" class="btn btn-lg text-white text-nowrap"
-                                style="background-color: darkgreen" title="Register"
-                                onclick="window.location.href= `register/index.html`" disabled>
-                                Register
-                            </button> -->
-                            <button type="button" class="btn btn-lg text-white text-nowrap "
-                                style="background-color: darkgreen" title="Log In"
-                                onclick="window.location.href= `login/index.html`">
-                                Log In
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <header class="bg-green-800 text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
+        <div class="flex items-center">
+            <!-- <button onclick="toggleNav()" class="text-2xl mr-4 hover:text-yellow-400"> -->
+                <i class="bi bi-list"></i>
+            </button>
+            <img src="../images/NDMU-Logo.png" class="h-8 mr-3">
+            <h1 class="font-bold text-sm md:text-base">Notre Dame of Marbel University</h1>
         </div>
-    </div>
+        <div class="text-right hidden md:block">
+            <p class=" font-bold text-sm md:text-base"> Student Assessment of Teacher's Performance</p>
+
+        </div>
+    </header>
+
+    <main class="flex-1 flex items-center justify-center p-4 md:p-10">
+        <div class="flex w-full max-w-6xl bg-white shadow-2xl rounded-3xl overflow-hidden min-h-[600px]">
+
+            <section class="hidden md:flex w-1/2 text-white items-center justify-center relative"
+                style="background: linear-gradient(rgba(0, 102, 51, 0.75), rgba(0, 102, 51, 0.75)), url('./images/DSC_0716-75.png') center/cover no-repeat;">
+                <div class="text-center px-12 relative z-10">
+                    <img src="./images/satp-branding.png" alt="SATP Branding" class="mx-auto w-48 mb-8" />
+                    <h1 class="text-4xl font-bold mb-3">Welcome to SATP</h1>
+                    <p class="text-base opacity-90 leading-relaxed">
+                        Student Assessment of Teacher's Performance system.
+                    </p>
+                </div>
+            </section>
+
+            <section class="w-full md:w-1/2 flex items-center justify-center bg-gray-100 p-6">
+                <div class="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl md:shadow-none text-center">
+
+                    <img src="./images/NDMU-Logo.png" alt="NDMU Logo" class="w-20 h-20 mx-auto mb-6 md:hidden" />
+
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Get Started</h2>
+                    <p class="text-gray-500 mb-8">Please sign in to your account to begin the assessment process.</p>
+
+                    <div class="space-y-4">
+                        <button onclick="window.location.href='login/index.html'"
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-green-800 hover:bg-green-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-700 transition-all active:scale-95 shadow-lg">
+                            Log In
+                        </button>
+
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-gray-100">
+                        <p class="text-xs text-gray-400">
+                            For technical assistance, please visit the MIS Department.
+                        </p>
+                    </div>
+
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <footer class="bg-green-800 text-white text-center py-4 text-sm border-t border-green-900">
+        <p>NDMU © <span id="year"></span> | Developed by MIS Department</p>
+    </footer>
+
+    <script>
+        // Set the current year in the footer
+        document.getElementById("year").textContent = new Date().getFullYear();
+    </script>
 </body>
-
-<footer>
-    <div class="container-fluid text-center">
-        <span class="text-white">
-             NDMU © <span id="year"></span> | Developed by MIS Department
-        </span>
-    </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
-    crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
-    crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
-<script src="./script.js"></script>
-<script> document.getElementById("year").textContent = new Date().getFullYear();</script>
 
 </html>

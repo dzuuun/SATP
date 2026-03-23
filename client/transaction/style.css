@@ -1,181 +1,142 @@
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
+/* 1. LAYOUT & FLEXBOX (Fixes Whitespace/Footer) */
+:root {
+  --ndmu-green: #166534; /* bg-green-800 */
+  --ndmu-green-dark: #14532d; /* bg-green-900 */
+  --ndmu-yellow: #fbbf24; /* text-yellow-400 */
+}
+
+html,
+body {
+  height: 100%;
   margin: 0;
 }
 
-.form-switch .form-check-input:focus {
-  border-color: rgba(0, 0, 0, 0.25);
-  outline: 0;
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(0,0,0,0.25)'/></svg>");
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
-.form-switch .form-check-input:checked {
-  background-color: darkgreen;
-  border-color: darkgreen;
-  border: none;
-  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(255,255,255,1.0)'/></svg>");
+#main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.5s;
+}
+
+/* 2. SIDENAV & OVERLAY */
+.sidenav {
+  height: 100%;
+  width: 0;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  background-color: var(--ndmu-green);
+  overflow-x: hidden;
+  transition: 0.5s;
+  padding-top: 60px;
+}
+
+.sidenav a {
+  text-decoration: none;
+  display: block;
+  transition: 0.3s;
+}
+
+#overlay {
+  position: fixed;
+  display: none;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+.sidenav a:hover {
+  background-color: var(--ndmu-green-dark);
+}
+
+.sidenav .active {
+  background-color: var(--ndmu-green-dark);
+  border-left: 4px solid var(--ndmu-yellow);
+  color: white;
+}
+
+/* 3. GRID.JS THEMING (NDMU Style) */
+.gridjs-container {
+  padding: 0 !important;
+  font-family: inherit !important;
+}
+
+.gridjs-search-input {
+  border-radius: 12px !important;
+  border: 1px solid #e5e7eb !important;
+  padding: 10px 15px !important;
+  background-color: #f9fafb !important;
+}
+
+.gridjs-pagination .gridjs-pages button.gridjs-currentPage {
+  background-color: var(--ndmu-green);
+  border-color: #166534 !important;
+  color: white !important;
+}
+
+.gridjs-pagination .gridjs-pages button {
+  border-radius: 8px !important;
+  margin: 0 2px !important;
+}
+
+/* 4. UI UTILITIES */
+.rounded-3xl {
+  border-radius: 1.5rem;
 }
 
 .btn:active {
   transform: translateY(2px);
 }
 
-.pagination > li > a {
-  background-color: white;
-  color: darkgreen;
+/* Hide Spinners on Input Number */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
-.pagination > li > a:focus,
-.pagination > li > a:hover,
-.pagination > li > span:focus,
-.pagination > li > span:hover {
-  color: #5a5a5a;
-  background-color: #eee;
-  border-color: #ddd;
-}
-
-.pagination > .active > a {
-  color: white;
-  background-color: darkgreen !important;
-  border: solid 1px darkgreen !important;
-}
-
-.pagination > .active > a:hover {
-  background-color: darkgreen !important;
-  border: solid 1px darkgreen;
-}
-
+/* 5. FOOTER STICKY (Overrides legacy absolute positioning) */
 footer {
-  background-color: darkgreen;
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  z-index: 0;
-  transition: margin-left 0.3s;
-}
-
-.nav-tabs .nav-item .nav-link {
-  color: black;
-}
-
-.nav-tabs .nav-item .nav-link.active {
+  background-color: #166534; /* Green-800 */
   color: white;
-  background-color: darkgreen;
-}
-
-.sidenav {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
-
-  overflow-x: hidden;
-  transition: 0.3s;
-}
-
-.sidenav a {
-  padding: 8px 8px 8px 8px;
-  text-decoration: none;
-  font-size: 18px;
-  color: black;
-  display: block;
-  transition: 0.3s;
-}
-
-#main {
-  transition: margin-left 0.3s;
-}
-
-@media screen and (max-height: 450px) {
-  .sidenav {
-    padding-top: 15px;
-  }
-  .sidenav a {
-    font-size: 18px;
-  }
-}
-
-.dropdown-toggle {
-  outline: 0;
-}
-
-.btn-toggle {
-  padding: 0.25rem 0.5rem;
-  font-weight: 600;
-  color: var(--bs-emphasis-color);
-  background-color: transparent;
-}
-.btn-toggle:hover,
-.btn-toggle:focus {
-  color: rgba(var(--bs-emphasis-color-rgb), 0.85);
-  background-color: var(--bs-tertiary-bg);
-}
-
-.btn-toggle::before {
-  width: 1.25em;
-  line-height: 0;
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
-  transition: transform 0.35s ease;
-  transform-origin: 0.5em 50%;
-}
-
-[data-bs-theme="dark"] .btn-toggle::before {
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%28255,255,255,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
-}
-
-.btn-toggle[aria-expanded="true"] {
-  color: rgba(var(--bs-emphasis-color-rgb), 0.85);
-}
-.btn-toggle[aria-expanded="true"]::before {
-  transform: rotate(90deg);
-}
-
-.btn-toggle-nav a {
-  padding: 0.1875rem 0.5rem;
-  margin-top: 0.125rem;
-  margin-left: 1.25rem;
-}
-.btn-toggle-nav a:hover,
-.btn-toggle-nav a:focus {
-  background-color: var(--bs-tertiary-bg);
-}
-
-.scrollarea {
-  overflow-y: auto;
-}
-
-#overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.7);
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
+  margin-top: auto; /* Ensures it stays at bottom of flex-grow */
+  z-index: 10;
 }
 
-#overlay .spinner {
-  border: 16px solid #f3f3f3;
-  border-top: 16px solid darkgreen;
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  animation: spin 1s linear infinite;
+/* Responsive Table Fix */
+.gridjs-table {
+    width: 100% !important;
+    table-layout: auto !important; /* Allows columns to adjust to content */
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.gridjs-td {
+    white-space: normal !important; /* Crucial: allows text to wrap */
+    word-break: break-word; /* Prevents long IDs from breaking layout */
+    vertical-align: middle;
+    padding: 12px 8px !important;
+    font-size: 12px; /* Slightly smaller text for mobile */
 }
+
+/* Optional: Hide specific columns on small screens to save space */
+@media (max-width: 640px) {
+    /* Hiding 'Subject' and 'College' on mobile to prioritize names and status */
+    .gridjs-th:nth-child(4), .gridjs-td:nth-child(4),
+    .gridjs-th:nth-child(5), .gridjs-td:nth-child(5) {
+        display: none;
+    }
+}
+
