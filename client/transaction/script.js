@@ -3,7 +3,7 @@ const state = {
   user_id: localStorage.getItem("user_id"),
   transactionAccess: localStorage.getItem("transactionAccess"),
   username: localStorage.getItem("username"),
-   fullname: localStorage.getItem("fullname"),
+  fullname: localStorage.getItem("fullname"),
   semester_id: "",
   school_year_id: "",
 };
@@ -109,24 +109,24 @@ const API = {
       .always(hideSpinner);
   },
   // Inside your API object in the script
-loadDashboardStats() {
+  loadDashboardStats() {
     if (!state.semester_id || !state.school_year_id) return;
 
-    $.get(`/api/transaction/stats/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`)
-        .done((response) => {
-        
-            if (response.success && response.data) {
-                const stats = response.data;
-            
-                // Mapping to your specific HTML IDs
-              $("#totalTransactions").text(stats[0].TotalStudents || 0);
-                $("#TransactionsAccomplished").text(stats[0].FullyRatedCount || 0);
-                $("#transactionsToAccomplish").text(stats[0].IncompleteCount || 0);
-            }
-        })
-        .fail(err => console.error("Dashboard Stat Error:", err));
-},
+    $.get(
+      `/api/transaction/stats/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`,
+    )
+      .done((response) => {
+        if (response.success && response.data) {
+          const stats = response.data;
 
+          // Mapping to your specific HTML IDs
+          $("#totalTransactions").text(stats[0].TotalStudents || 0);
+          $("#TransactionsAccomplished").text(stats[0].FullyRatedCount || 0);
+          $("#transactionsToAccomplish").text(stats[0].IncompleteCount || 0);
+        }
+      })
+      .fail((err) => console.error("Dashboard Stat Error:", err));
+  },
 };
 
 // 4. MODAL LOGIC
@@ -238,13 +238,12 @@ $(document).ready(() => {
 
 // 6. UI UTILITIES
 function updateUserUI() {
-    console.log(state)
   // Use 'fullname' for the sidebar display (ID)
-  $("#userName").text(state.fullname || "User Not Found"); 
-  
+  $("#userName").text(state.fullname || "User Not Found");
+
   // Use 'fullname' for any other elements using the class (Class)
   $(".userName").text(state.fullname || "Guest");
-  
+
   $("#year").text(new Date().getFullYear());
 }
 
@@ -262,21 +261,20 @@ $("#signout").on("click", () => {
 const showSpinner = () => $("#overlay").css("display", "flex");
 const hideSpinner = () => $("#overlay").hide();
 
-$(document).ready(function() {
-    $('.menu-toggle').on('click', function() {
-        const targetId = $(this).data('target');
-        const $targetMenu = $('#' + targetId);
-        const $chevron = $(this).find('.bi-chevron-down');
+$(document).ready(function () {
+  $(".menu-toggle").on("click", function () {
+    const targetId = $(this).data("target");
+    const $targetMenu = $("#" + targetId);
+    const $chevron = $(this).find(".bi-chevron-down");
 
-        // Toggle the 'hidden' class on the menu
-        $targetMenu.toggleClass('hidden');
+    // Toggle the 'hidden' class on the menu
+    $targetMenu.toggleClass("hidden");
 
-        // Optional: Rotate the chevron icon when expanded
-        if ($targetMenu.hasClass('hidden')) {
-            $chevron.css('transform', 'rotate(0deg)');
-        } else {
-            $chevron.css('transform', 'rotate(180deg)');
-        }
-    });
+    // Optional: Rotate the chevron icon when expanded
+    if ($targetMenu.hasClass("hidden")) {
+      $chevron.css("transform", "rotate(0deg)");
+    } else {
+      $chevron.css("transform", "rotate(180deg)");
+    }
+  });
 });
-
