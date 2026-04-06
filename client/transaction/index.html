@@ -22,86 +22,115 @@
         </div>
     </div>
 
-<div id="mySidenav" class="bg-green-800 sidenav shadow-2xl text-white flex flex-col overflow-y-auto">
-    <div class="p-6 flex items-center justify-between border-b border-green-700">
-        <div class="flex items-center gap-3">
-            <img src="../images/NDMU-Logo.png" class="w-10 h-10 bg-white rounded-full p-1">
-            <span class="font-black tracking-tighter text-lg">SATP <span class="text-yellow-400">|</span> Menu</span>
+    <div id="mySidenav" class="bg-green-800 sidenav shadow-2xl text-white flex flex-col overflow-y-auto">
+        <div class="p-6 flex items-center justify-between border-b border-green-700">
+            <div class="flex items-center gap-3">
+                <img src="../images/NDMU-Logo.png" class="w-10 h-10 bg-white rounded-full p-1">
+                <span class="font-black tracking-tighter text-lg">SATP <span class="text-yellow-400">|</span>
+                    Menu</span>
+            </div>
+            <button onclick="toggleNav()" class="text-3xl text-green-200 hover:text-white">&times;</button>
         </div>
-        <button onclick="toggleNav()" class="text-3xl text-green-200 hover:text-white">&times;</button>
-    </div>
+        <nav class="flex-grow py-4 px-2 space-y-1 overflow-y-auto custom-scrollbar">
+            <a href="../../transaction/index.html"
+                class="flex items-center px-6 py-3  hover:bg-green-700 transition group font-bold text-white rounded-xl bg-green-700/50 border-r-4 border-yellow-400 px-4">
+                <i class="bi bi-speedometer2 me-3 text-green-300 group-hover:text-white"></i>
+                <span class="font-semibold text-sm ">Transactions</span>
+            </a>
 
-    <nav class="flex-grow py-4 px-2 space-y-1 overflow-y-auto custom-scrollbar">
-        <a href="../../transaction/index.html" class="flex items-center px-6 py-3  hover:bg-green-700 transition group font-bold text-white bg-green-700/50 border-r-4 border-yellow-400 px-4">
-            <i class="bi bi-speedometer2 me-3 text-green-300 group-hover:text-white"></i>
-            <span class="font-semibold text-sm ">Transactions</span>
-        </a>
-
-        <div class="group">
-            <button class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition" data-target="report-menu">
-                <div class="flex items-center">
-                    <i class="bi bi-file-earmark-bar-graph me-3 text-green-300"></i>
-                    <span class="font-semibold text-sm">Report</span>
+            <div class="group">
+                <button
+                    class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition"
+                    data-target="report-menu">
+                    <div class="flex items-center">
+                        <i class="bi bi-file-earmark-bar-graph me-3 text-green-300"></i>
+                        <span class="font-semibold text-sm">Report</span>
+                    </div>
+                    <i class="bi bi-chevron-down text-[10px] transition-transform"></i>
+                </button>
+                <div id="report-menu" class="hidden ml-12 mt-1 space-y-1">
+                    <a href="../../report/ranking/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white">Ranking</a>
+                    <a href="../../report/rating/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white">Rating</a>
                 </div>
-                <i class="bi bi-chevron-down text-[10px] transition-transform"></i>
-            </button>
-            <div id="report-menu" class="hidden ml-12 mt-1 space-y-1">
-                <a href="../../report/ranking/index.html" class="block py-2 text-xs text-green-200 hover:text-white">Ranking</a>
-                <a href="../../report/rating/index.html" class="block py-2 text-xs text-green-200 hover:text-white">Rating</a>
             </div>
-        </div>
-<div class="group">
-    <button class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition text-left" data-target="maintenance-menu">
-        <div class="flex items-center">
-            <i class="bi bi-gear me-3 text-green-300"></i>
-            <span class="font-semibold text-sm">System Maintenance</span>
-        </div>
-        <i class="bi bi-chevron-down text-[10px] transition-transform duration-200"></i>
-    </button>
-    
-    <div id="maintenance-menu" class="hidden ml-12 mt-1 space-y-1 overflow-hidden border-l border-green-700/50">
-        <a href="../admin/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Admin</a>
-        <a href="../category/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Category</a>
-        <a href="../college/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">College</a>
-        <a href="../course/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Course</a>
-        <a href="../departments/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Department</a>
-        <a href="../items/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Items</a>
-        <a href="../room/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Room</a>
-        <a href="../school_year/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">School Year</a>
-        <a href="../semester/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Semester</a>
-        <a href="../student/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Student</a>
-        <a href="./index.html" class="block py-2 text-xs  text-green-200 hover:text-white px-4 transition">Student Subject</a>
-        <a href="../subject/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Subject</a>
-        <a href="../teacher/index.html" class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Teacher</a>
-    </div>
-</div>
+            <div class="group">
+                <button
+                    class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition text-left"
+                    data-target="maintenance-menu">
+                    <div class="flex items-center">
+                        <i class="bi bi-gear me-3 text-green-300"></i>
+                        <span class="font-semibold text-sm">System Maintenance</span>
+                    </div>
+                    <i class="bi bi-chevron-down text-[10px] transition-transform duration-200"></i>
+                </button>
 
-        <div class="group">
-            <button class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition" data-target="user-menu">
-                <div class="flex items-center">
-                    <i class="bi bi-people me-3 text-green-300"></i>
-                    <span class="font-semibold text-sm">User Management</span>
+                <div id="maintenance-menu"
+                    class="hidden ml-12 mt-1 space-y-1 overflow-hidden border-l border-green-700/50">
+                    <a href="../maintenance/admin/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Admin</a>
+                    <a href="../maintenance/category/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Category</a>
+                    <a href="../maintenance/college/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">College</a>
+                    <a href="../maintenance/course/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Course</a>
+                    <a href="../maintenance/departments/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Department</a>
+                    <a href="../maintenance/items/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Items</a>
+                    <a href="../maintenance/room/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Room</a>
+                    <a href="../maintenance/school_year/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">School Year</a>
+                    <a href="../semester/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Semester</a>
+                    <a href="../maintenance/student/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Student</a>
+                    <a href="../maintenance/student_subject/index.html"
+                        class="block py-2 text-xs  text-green-200 hover:text-white px-4 transition">Student Subject</a>
+                    <a href="../maintenance/subject/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Subject</a>
+                    <a href="../maintenance/teacher/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Teacher</a>
                 </div>
-                <i class="bi bi-chevron-down text-[10px] transition-transform"></i>
-            </button>
-            <div id="user-menu" class="hidden ml-12 mt-1 space-y-1">
-                <a href="../../user/activity_log/index.html" class="block py-2 text-xs text-green-200 hover:text-white">Activity Log</a>
-                <a href="../../user/permission/index.html" class="block py-2 text-xs text-green-200 hover:text-white">Permission</a>
-                <a href="../../user/user_management/index.html" class="block py-2 text-xs text-green-200 hover:text-white">Management</a>
             </div>
-        </div>
-    </nav>
 
-    <div class="p-4 bg-green-900/50 border-t border-green-700">
-        <div class="flex items-center gap-3 px-2">
-            <img src="../images/blank-profile-picture-973460_1280.png" class="w-10 h-10 rounded-circle border-2 border-green-600">
-            <div class="overflow-hidden">
-                <p id="userName" class="text-sm font-bold truncate">Loading...</p>
-                <button id="signout" class="text-[10px] font-black text-red-400 uppercase tracking-tighter hover:text-red-300">Sign Out</button>
+            <div class="group">
+                <button
+                    class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition"
+                    data-target="user-menu">
+                    <div class="flex items-center">
+                        <i class="bi bi-people me-3 text-green-300"></i>
+                        <span class="font-semibold text-sm">User Management</span>
+                    </div>
+                    <i class="bi bi-chevron-down text-[10px] transition-transform"></i>
+                </button>
+                <div id="user-menu" class="hidden ml-12 mt-1 space-y-1">
+                    <a href="../../user/activity_log/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white">Activity Log</a>
+                    <a href="../../user/permission/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white">Permission</a>
+                    <a href="../../user/user_management/index.html"
+                        class="block py-2 text-xs text-green-200 hover:text-white">Management</a>
+                </div>
+            </div>
+        </nav>
+
+        <div class="p-4 bg-green-900/50 border-t border-green-700">
+            <div class="flex items-center gap-3 px-2">
+                <img src="../images/blank-profile-picture-973460_1280.png"
+                    class="w-10 h-10 rounded-full border-2 border-green-600">
+                <div class="overflow-hidden">
+                    <p id="userName" class="text-sm font-bold truncate">Loading...</p>
+                    <button id="signout"
+                        class="text-[10px] font-black text-red-400 uppercase tracking-tighter hover:text-red-300">Sign
+                        Out</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <div id="main" class="transition-all duration-500 flex flex-col grow">
 
@@ -117,7 +146,19 @@
                 <p class=" font-bold text-sm md:text-base"> Student Assessment of Teacher's Performance</p>
             </div>
         </header>
+        <div class="px-3 md:px-5 pt-10 max-w-7xl mx-auto w-full">
+            <div class="flex flex-col md:flex-row md:items-end justify-between border-b border-gray-200 pb-6">
+                <div>
+                    <h2 class="text-5xl font-light text-gray-800 tracking-tight">Transactions</h2>
+                </div>
 
+                <nav class="flex items-center text-sm font-medium text-gray-500 mb-2 md:mb-1">
+                    <span class="hover:text-green-700 cursor-pointer transition-colors">Maintenance</span>
+                    <span class="mx-2 text-gray-300">/</span>
+                    <span class="text-gray-400 font-normal">Transactions</span>
+                </nav>
+            </div>
+        </div>
         <div class="p-4 md:p-6 max-w-7xl mx-auto w-full grow">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div
@@ -143,42 +184,54 @@
             </div>
 
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6">
-    <div id="loaddata" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="relative group">
-            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2 px-1">
-                School Year
-            </label>
-            <div class="relative">
-                <select id="loadSchoolYear"
-                    class="w-full bg-gray-200 border-2 border-gray-50 p-3.5 px-5 rounded-2xl text-gray-700 font-semibold text-sm focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 transition-all outline-none appearance-none cursor-pointer">
-                    <option value="">Select School Year</option>
-                </select>
-                <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400 group-hover:text-green-600 transition-colors">
-                    <i class="bi bi-chevron-down text-xs"></i>
-                </div>
-            </div>
-        </div>
+                <div id="loaddata" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
 
-        <div class="relative group">
-            <label class="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2 px-1">
-                Semester
-            </label>
-            <div class="relative">
-                <select id="loadSemester"
-                    class="w-full bg-gray-200 border-2 border-gray-50 p-3.5 px-5 rounded-2xl text-gray-700 font-semibold text-sm focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 transition-all outline-none appearance-none cursor-pointer">
-                    <option value="">Select Semester</option>
-                </select>
-                <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400 group-hover:text-green-600 transition-colors">
-                    <i class="bi bi-chevron-down text-xs"></i>
+                    <div class="relative group">
+                        <label class="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2 px-1">
+                            School Year
+                        </label>
+                        <div class="relative">
+                            <select id="loadSchoolYear"
+                                class="w-full bg-gray-200 border-2 border-gray-50 p-3.5 px-5 rounded-2xl text-gray-700 font-semibold text-sm focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 transition-all outline-none appearance-none cursor-pointer">
+                                <option value="">Select School Year</option>
+                            </select>
+                            <div
+                                class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400 group-hover:text-green-600 transition-colors">
+                                <i class="bi bi-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative group">
+                        <label class="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2 px-1">
+                            Semester
+                        </label>
+                        <div class="relative">
+                            <select id="loadSemester"
+                                class="w-full bg-gray-200 border-2 border-gray-50 p-3.5 px-5 rounded-2xl text-gray-700 font-semibold text-sm focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 transition-all outline-none appearance-none cursor-pointer">
+                                <option value="">Select Semester</option>
+                            </select>
+                            <div
+                                class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400 group-hover:text-green-600 transition-colors">
+                                <i class="bi bi-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="relative">
+                        <button id="btnSearch"
+                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-green-100 transition-all transform active:scale-95 flex items-center justify-center gap-2">
+                            <i class="bi bi-search text-sm"></i>
+                            <span>Search Records</span>
+                        </button>
+                    </div>
+
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
             <div class="bg-white p-6 rounded-4xl shadow-xl border border-gray-100 mb-6">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h3 class="font-black text-xl text-gray-800">Evaluation Records</h3>
+                    <h3 class="font-black text-xl text-gray-800">Transaction Records</h3>
                     <div class="flex gap-2">
                         <button id="refresh"
                             class="hidden px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-xs uppercase hover:bg-gray-200 transition">
@@ -200,7 +253,7 @@
                 <div class="flex justify-between items-center mb-6 border-b pb-4">
                     <div>
                         <h3 class="text-2xl font-bold text-gray-800">Student Subject Details</h3>
-                        <p class="text-sm text-gray-500">View evaluation status for all enrolled subjects.</p>
+
                     </div>
                     <button onclick="closeModal()"
                         class="text-gray-400 hover:text-red-500 transition-colors text-3xl">&times;</button>

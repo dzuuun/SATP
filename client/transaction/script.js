@@ -38,15 +38,9 @@ const grid = new gridjs.Grid({
       width: "120px",
       formatter: (cell, row) => {
         const studentId = row.cells[0].data;
-        const total = parseInt(row.cells[3].data); // Total Subjects
-        const pending = parseInt(cell); // Pending Count
-
-        // Calculate completed based on your specific logic
-        // If 'cell' represents pending items:
+        const total = parseInt(row.cells[3].data);
+        const pending = parseInt(cell);
         const isComplete = pending === 0 && total > 0;
-
-        // If your 'cell' actually represents completed items, use:
-        // const isComplete = (pending === total && total > 0);
 
         const colorClass = isComplete ? "text-green-600" : "text-red-500";
         const icon = isComplete ? "bi-check-circle-fill" : "bi-x-circle-fill";
@@ -95,7 +89,10 @@ const API = {
   },
 
   loadData() {
-    if (!state.semester_id || !state.school_year_id) return;
+    if (!state.semester_id || !state.school_year_id) {
+      alert("Please select both School Year and Semester.");
+      return;
+    }
 
     showSpinner();
     $.get(
@@ -104,11 +101,13 @@ const API = {
       .done((response) => {
         $("#generateList, #refresh").removeClass("hidden");
         grid.updateConfig({ data: response.data }).forceRender();
+        // Also load stats whenever data is searched
+        API.loadDashboardStats();
       })
       .fail((err) => alert("Failed to load table data."))
       .always(hideSpinner);
   },
-  // Inside your API object in the script
+
   loadDashboardStats() {
     if (!state.semester_id || !state.school_year_id) return;
 
@@ -118,8 +117,6 @@ const API = {
       .done((response) => {
         if (response.success && response.data) {
           const stats = response.data;
-
-          // Mapping to your specific HTML IDs
           $("#totalTransactions").text(stats[0].TotalStudents || 0);
           $("#TransactionsAccomplished").text(stats[0].FullyRatedCount || 0);
           $("#transactionsToAccomplish").text(stats[0].IncompleteCount || 0);
@@ -149,12 +146,17 @@ async function showSubjectModal(studentId) {
       { name: "Instructor", id: "teachers_name" },
       {
         name: "Status",
+        width: "120px",
         formatter: (cell) =>
-          gridjs.html(
-            cell == 1
-              ? '<span class="text-green-600 font-bold">RATED</span>'
-              : '<span class="text-red-500 font-bold">PENDING</span>',
-          ),
+          gridjs.html(`
+      <div class="flex justify-center items-center w-full">
+        ${
+          cell == 1
+            ? '<span class="text-green-600 font-bold">RATED</span>'
+            : '<span class="text-red-500 font-bold">PENDING</span>'
+        }
+      </div>
+    `),
       },
     ],
     server: {
@@ -183,16 +185,25 @@ $(document).ready(() => {
   API.fetchOptions("semester", "loadSemester");
   updateUserUI();
 
-  // Dropdown Changes
+  // Dropdown Changes - Only Update State
   $("#loadSchoolYear, #loadSemester").on("change", function () {
     state.school_year_id = $("#loadSchoolYear").val();
     state.semester_id = $("#loadSemester").val();
 
+    // Show the refresh button if both are selected
     if (state.school_year_id && state.semester_id) {
       $("#filterRefresh").removeClass("hidden").addClass("flex");
-      API.loadData();
-      API.loadDashboardStats();
     }
+  });
+
+  // SEARCH BUTTON CLICK
+  $("#btnSearch").on("click", function () {
+    const $icon = $(this).find("i");
+    $icon.addClass("animate-spin");
+
+    API.loadData();
+
+    setTimeout(() => $icon.removeClass("animate-spin"), 600);
   });
 
   // Refresh & Limit Handlers
@@ -238,12 +249,8 @@ $(document).ready(() => {
 
 // 6. UI UTILITIES
 function updateUserUI() {
-  // Use 'fullname' for the sidebar display (ID)
   $("#userName").text(state.fullname || "User Not Found");
-
-  // Use 'fullname' for any other elements using the class (Class)
   $(".userName").text(state.fullname || "Guest");
-
   $("#year").text(new Date().getFullYear());
 }
 
@@ -267,10 +274,8 @@ $(document).ready(function () {
     const $targetMenu = $("#" + targetId);
     const $chevron = $(this).find(".bi-chevron-down");
 
-    // Toggle the 'hidden' class on the menu
     $targetMenu.toggleClass("hidden");
 
-    // Optional: Rotate the chevron icon when expanded
     if ($targetMenu.hasClass("hidden")) {
       $chevron.css("transform", "rotate(0deg)");
     } else {

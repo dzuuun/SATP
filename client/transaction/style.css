@@ -1,8 +1,9 @@
-/* 1. LAYOUT & FLEXBOX (Fixes Whitespace/Footer) */
+/* --- 1. CORE VARIABLES & FLEXBOX LAYOUT --- */
 :root {
-  --ndmu-green: #166534; /* bg-green-800 */
-  --ndmu-green-dark: #14532d; /* bg-green-900 */
-  --ndmu-yellow: #fbbf24; /* text-yellow-400 */
+  --ndmu-green: #166534; /* Green-800 */
+  --ndmu-green-dark: #14532d; /* Green-900 */
+  --ndmu-yellow: #fbbf24; /* Amber-400 */
+  --border-light: #f1f5f9;
 }
 
 html,
@@ -15,6 +16,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background-color: #f4f7f6;
 }
 
 #main {
@@ -24,7 +26,7 @@ body {
   transition: margin-left 0.5s;
 }
 
-/* 2. SIDENAV & OVERLAY */
+/* --- 2. SIDENAV (With White Hover Fix) --- */
 .sidenav {
   height: 100%;
   width: 0;
@@ -36,6 +38,13 @@ body {
   overflow-x: hidden;
   transition: 0.5s;
   padding-top: 60px;
+  /* Hide scrollbars */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.sidenav::-webkit-scrollbar {
+  display: none;
 }
 
 .sidenav a {
@@ -44,22 +53,11 @@ body {
   transition: 0.3s;
 }
 
-#overlay {
-  position: fixed;
-  display: none;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(255, 255, 255, 0.8);
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
-}
-.sidenav a:hover {
-  background-color: var(--ndmu-green-dark);
+/* Updated Hover: Background becomes white, text becomes green */
+.sidenav a:hover,
+.btn-toggle:hover {
+  background-color: white !important;
+  color: var(--ndmu-green) !important;
 }
 
 .sidenav .active {
@@ -68,22 +66,75 @@ body {
   color: white;
 }
 
-/* 3. GRID.JS THEMING (NDMU Style) */
+/* --- 3. GRID.JS UI (Search & Header) --- */
 .gridjs-container {
   padding: 0 !important;
   font-family: inherit !important;
 }
 
+.gridjs-head {
+  padding: 1.5rem 0.5rem !important; /* Prevents "mushed" search bar */
+}
+
+.gridjs-search {
+  float: left !important;
+}
+
 .gridjs-search-input {
+  width: 320px !important;
+  height: 45px !important;
   border-radius: 12px !important;
   border: 1px solid #e5e7eb !important;
   padding: 10px 15px !important;
   background-color: #f9fafb !important;
+  font-size: 14px !important;
+  outline: none !important;
 }
 
+.gridjs-search-input:focus {
+  border-color: var(--ndmu-green) !important;
+  background-color: #fff !important;
+  box-shadow: 0 4px 12px rgba(22, 101, 52, 0.08) !important;
+}
+
+/* --- 4. TABLE LOGIC (Locked for Page Changes) --- */
+.gridjs-table {
+  width: 100% !important;
+  table-layout: fixed !important; /* CRITICAL: Prevents shifting */
+}
+
+.gridjs-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  overflow-x: initial !important;
+}
+
+.gridjs-th {
+  background-color: #f8fafc !important;
+  color: #94a3b8 !important;
+  text-transform: uppercase !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.1em !important;
+  padding: 1.25rem 1rem !important;
+  border-top: 1px solid var(--border-light) !important;
+  border-bottom: 2px solid var(--border-light) !important;
+}
+
+.gridjs-td {
+  padding: 12px 15px !important;
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 1px solid #f8fafc !important;
+  white-space: normal !important;
+  word-break: break-word;
+  vertical-align: middle !important;
+}
+
+/* Pagination Styling */
 .gridjs-pagination .gridjs-pages button.gridjs-currentPage {
-  background-color: var(--ndmu-green);
-  border-color: #166534 !important;
+  background-color: var(--ndmu-green) !important;
+  border-color: var(--ndmu-green) !important;
   color: white !important;
 }
 
@@ -92,11 +143,44 @@ body {
   margin: 0 2px !important;
 }
 
-/* 4. UI UTILITIES */
+/* --- 5. MODALS & FORMS --- */
+.modal-content {
+  border-radius: 2rem;
+  border: none;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--border-light);
+  padding: 1.5rem 2rem;
+}
+
+.form-control {
+  border-radius: 1rem;
+  padding: 0.75rem 1.25rem;
+  border: 2px solid var(--border-light);
+  transition: all 0.2s;
+}
+
+.form-control:focus {
+  border-color: var(--ndmu-green);
+  box-shadow: none;
+}
+
+/* --- 6. STICKY FOOTER & UTILITIES --- */
+footer {
+  background-color: var(--ndmu-green);
+  color: white;
+  width: 100%;
+  margin-top: auto; /* Keeps footer at bottom of screen */
+  padding: 1rem 0;
+  z-index: 10;
+}
+
 .rounded-3xl {
   border-radius: 1.5rem;
 }
-
 .btn:active {
   transform: translateY(2px);
 }
@@ -108,44 +192,30 @@ input::-webkit-inner-spin-button {
   margin: 0;
 }
 
-/* 5. FOOTER STICKY (Overrides legacy absolute positioning) */
-footer {
-  background-color: #166534; /* Green-800 */
-  color: white;
+/* --- 7. OVERLAY & TABLE CONTAINER --- */
+#overlay {
+  position: fixed;
+  display: none;
+  inset: 0;
+  background-color: rgba(255, 255, 255, 0.8);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+#table-container {
   width: 100%;
-  margin-top: auto; /* Ensures it stays at bottom of flex-grow */
-  z-index: 10;
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
-/* Responsive Table Fix */
-.gridjs-table {
-    width: 100% !important;
-    table-layout: auto !important; /* Allows columns to adjust to content */
+/* Custom horizontal scrollbar for the table container */
+#table-container::-webkit-scrollbar {
+  height: 8px;
 }
-
-.gridjs-td {
-    white-space: normal !important; /* Crucial: allows text to wrap */
-    word-break: break-word; /* Prevents long IDs from breaking layout */
-    vertical-align: middle;
-    padding: 12px 8px !important;
-    font-size: 12px; /* Slightly smaller text for mobile */
-}
-
-/* Optional: Hide specific columns on small screens to save space */
-@media (max-width: 640px) {
-    /* Hiding 'Subject' and 'College' on mobile to prioritize names and status */
-    .gridjs-th:nth-child(4), .gridjs-td:nth-child(4),
-    .gridjs-th:nth-child(5), .gridjs-td:nth-child(5) {
-        display: none;
-    }
-}
-
-/* Apply this specifically to the nav or use the existing .sidenav logic */
-.custom-scrollbar::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-}
-
-.custom-scrollbar {
-    -ms-overflow-style: none;  /* IE/Edge */
-    scrollbar-width: none;  /* Firefox */
+#table-container::-webkit-scrollbar-thumb {
+  background: #0b5134;
+  border-radius: 10px;
 }

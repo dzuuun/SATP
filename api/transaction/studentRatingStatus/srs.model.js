@@ -1,10 +1,11 @@
 const pool = require("../../../db/db");
 
 module.exports = {
+    // updated for new table
   getTransactions: (data, callBack) => {
     pool.query(
       // "SELECT transactions.id, transactions.user_id, school_years.name AS school_year, semesters.name AS semester, transactions.status, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, courses.name AS course, departments.name AS department, colleges.name AS college, colleges.code AS college_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teachers_name FROM transactions INNER JOIN users ON transactions.user_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON transactions.subject_id = subjects.id INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN school_years ON transactions.school_year_id=school_years.id INNER JOIN semesters ON transactions.semester_id=semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE transactions.school_year_id=? AND transactions.semester_id=?",
-      "SELECT school_years.name AS SchoolYear, semesters.name AS Semester, users.username AS IDNumber, CONCAT(user_info.surname, ', ', user_info.givenname) AS FullName, user_info.year_level AS YearLevel, courses.name AS Course, departments.name AS Department, colleges.name AS College, COUNT(transactions.subject_id) AS TotalSubjects, SUM(CASE WHEN transactions.status = 0 THEN 1 ELSE 0 END) AS PendingStatusCount FROM transactions INNER JOIN users ON transactions.user_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN school_years ON transactions.school_year_id = school_years.id INNER JOIN semesters ON transactions.semester_id = semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE transactions.school_year_id = ? AND transactions.semester_id = ? GROUP BY users.id, school_years.id, semesters.id ORDER BY Course, Department, user_info.surname;",
+      "SELECT school_years.name AS SchoolYear, semesters.name AS Semester, users.username AS IDNumber, CONCAT( user_info.surname, ', ', user_info.givenname ) AS FullName, user_info.year_level AS YearLevel, courses.name AS Course, departments.name AS Department, colleges.name AS College, COUNT(academic_records_consolidated.subject_id) AS TotalSubjects, SUM( CASE WHEN academic_records_consolidated.status = 0 THEN 1 ELSE 0 END ) AS PendingStatusCount FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? GROUP BY users.id, school_years.id, semesters.id ORDER BY Course, Department, user_info.surname;",
       [data.school_year_id, data.semester_id],
       (error, results) => {
         if (error) {
@@ -15,9 +16,10 @@ module.exports = {
     );
   },
 
+    // updated for new table
   getTransactionsByStudent: (data, callBack) => {
     pool.query(
-      "SELECT transactions.id, transactions.status, transactions.user_id, school_years.name AS school_year, semesters.name AS semester, transactions.status, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teachers_name FROM transactions INNER JOIN users ON transactions.user_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON transactions.subject_id = subjects.id INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN school_years ON transactions.school_year_id=school_years.id INNER JOIN semesters ON transactions.semester_id=semesters.id WHERE transactions.school_year_id=? AND transactions.semester_id=? AND users.username=?",
+      "SELECT academic_records_consolidated.id, academic_records_consolidated.status, academic_records_consolidated.student_id, school_years.name AS school_year, semesters.name AS semester, academic_records_consolidated.status, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teachers_name FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON academic_records_consolidated.subject_id = subjects.id INNER JOIN teachers ON academic_records_consolidated.teacher_id = teachers.id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? AND users.username = ?",
       [data.school_year_id, data.semester_id, data.student_id],
       (error, results) => {
         if (error) {
@@ -28,9 +30,10 @@ module.exports = {
     );
   },
 
+    // updated for new table
   getSYSemData: (data, callBack) => {
     pool.query(
-      "SELECT COUNT(*) AS TotalStudents, SUM(CASE WHEN PendingStatusCount = 0 THEN 1 ELSE 0 END) AS FullyRatedCount, SUM(CASE WHEN PendingStatusCount > 0 THEN 1 ELSE 0 END) AS IncompleteCount FROM ( SELECT user_id, SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS PendingStatusCount FROM transactions WHERE school_year_id = ? AND semester_id = ? GROUP BY user_id ) AS StudentSummaries;",
+      "SELECT COUNT(*) AS TotalStudents, SUM(CASE WHEN PendingStatusCount = 0 THEN 1 ELSE 0 END) AS FullyRatedCount, SUM(CASE WHEN PendingStatusCount > 0 THEN 1 ELSE 0 END) AS IncompleteCount FROM ( SELECT student_id, SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS PendingStatusCount FROM academic_records_consolidated WHERE school_year_id = ? AND semester_id = ? GROUP BY student_id ) AS StudentSummaries;",
       [data.school_year_id, data.semester_id],
       (error, results) => {
         if (error) {
@@ -185,9 +188,10 @@ module.exports = {
     );
   },
 
+  // updated for new table
   getNotRatedTransactions: (data, callBack) => {
     pool.query(
-      "SELECT school_years.name AS SchoolYear, semesters.name AS Semester, users.username AS IDNumber, user_info.givenname AS FirstName, user_info.surname AS LastName, user_info.year_level AS YearLevel, courses.name AS Course, departments.name AS Department, colleges.name AS College, subjects.code AS SubjectCode, CONCAT( teachers.surname, ', ', teachers.givenname ) AS Teacher FROM transactions INNER JOIN users ON transactions.user_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON transactions.subject_id = subjects.id INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN school_years ON transactions.school_year_id = school_years.id INNER JOIN semesters ON transactions.semester_id = semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE transactions.school_year_id = ? AND transactions.semester_id = ? AND transactions.status = 0 ORDER BY course, department",
+      "SELECT school_years.name AS SchoolYear, semesters.name AS Semester, users.username AS IDNumber, user_info.givenname AS FirstName, user_info.surname AS LastName, user_info.year_level AS YearLevel, courses.name AS Course, departments.name AS Department, colleges.name AS College, subjects.code AS SubjectCode, CONCAT( teachers.surname, ', ', teachers.givenname ) AS Teacher FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON academic_records_consolidated.subject_id = subjects.id INNER JOIN teachers ON academic_records_consolidated.teacher_id = teachers.id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? AND academic_records_consolidated.status = 0 ORDER BY course, department",
       [data.school_year_id, data.semester_id],
       (error, results) => {
         if (error) {
