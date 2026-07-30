@@ -17,269 +17,357 @@ if (!state.user_id) {
   history.back();
 }
 
-// 2. GRID.JS INITIALIZATION (Main Table)
-const grid = new gridjs.Grid({
-  columns: [
-    { name: "ID Number", id: "IDNumber", width: "120px" },
-    { name: "Student Name", id: "FullName", width: "200px" },
-    { name: "College", id: "College", width: "180px" },
-    {
-      name: "Total Subjects",
-      id: "TotalSubjects",
-      width: "120px",
-      formatter: (cell) =>
-        gridjs.html(
-          `<div class="text-center w-full font-medium">${cell}</div>`,
-        ),
-    },
-    {
-      name: "Status",
-      id: "PendingStatusCount",
-      width: "120px",
-      formatter: (cell, row) => {
-        const studentId = row.cells[0].data;
-        const total = parseInt(row.cells[3].data);
-        const pending = parseInt(cell);
-        const isComplete = pending === 0 && total > 0;
-
-        const colorClass = isComplete ? "text-green-600" : "text-red-500";
-        const icon = isComplete ? "bi-check-circle-fill" : "bi-x-circle-fill";
-
-        return gridjs.html(`
-            <div class="flex flex-col items-center justify-center gap-1">
-                <button onclick="showSubjectModal('${studentId}')" class="hover:scale-110 transition-transform">
-                    <i class="bi ${icon} ${colorClass} text-xl cursor-pointer"></i>
-                </button>
-                <span class="text-[10px] font-bold ${colorClass}">
-                    ${total - pending}/${total}
-                </span>
-            </div>
-        `);
-      },
-    },
-  ],
-  data: [],
-  fixedHeader: true,
-  pagination: { limit: 10 },
-  search: true,
-  sort: true,
-  className: {
-    table: "w-full text-sm text-left text-base",
-    th: "bg-gray-50 text-gray-500 font-bold uppercase text-xs p-4",
-  },
-}).render(document.getElementById("table-container"));
-
-// 3. API & DATA SERVICES
+// 2. API & DATA SERVICES
 const API = {
   async fetchOptions(endpoint, elementId) {
     try {
       const res = await fetch(`/api/${endpoint}/inuse/active`);
-      const { data } = await res.json();
-      const $select = $(`#${elementId}`);
+      const result = await res.json();
+      const data = result.data || [];
+      const select = document.getElementById(elementId);
 
-      $select.html(
-        `<option value="">Select ${endpoint.includes("year") ? "School Year" : "Semester"}</option>`,
-      );
-      data.forEach((row) =>
-        $select.append(`<option value="${row.id}">${row.name}</option>`),
-      );
+      if (!select) return;
+
+      select.innerHTML = `<option value="">Select ${endpoint.includes("year") ? "School Year" : "Semester"}</option>`;
+
+      data.forEach((row) => {
+        const opt = document.createElement("option");
+        opt.value = row.id;
+        opt.textContent = row.name;
+        select.appendChild(opt);
+      });
     } catch (err) {
       console.error(`Error loading ${endpoint}:`, err);
     }
   },
 
-  loadData() {
+  async loadData() {
     if (!state.semester_id || !state.school_year_id) {
       alert("Please select both School Year and Semester.");
       return;
     }
 
     showSpinner();
-    $.get(
-      `/api/transaction/all/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`,
-    )
-      .done((response) => {
-        $("#generateList, #refresh").removeClass("hidden");
-        grid.updateConfig({ data: response.data }).forceRender();
-        // Also load stats whenever data is searched
-        API.loadDashboardStats();
-      })
-      .fail((err) => alert("Failed to load table data."))
-      .always(hideSpinner);
+    try {
+      const res = await fetch(
+        `/api/transaction/all/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`,
+      );
+      const response = await res.json();
+      document.getElementById("generateList")?.classList.remove("hidden");
+      document.getElementById("refresh")?.classList.remove("hidden");
+
+      // Update DataTable
+      if (mainTable) {
+        mainTable
+          .clear()
+          .rows.add(response.data || [])
+          .draw();
+      }
+
+      API.loadDashboardStats();
+    } catch (err) {
+      alert("Failed to load table data.");
+    } finally {
+      hideSpinner();
+    }
   },
 
-  loadDashboardStats() {
+  async loadDashboardStats() {
     if (!state.semester_id || !state.school_year_id) return;
 
-    $.get(
-      `/api/transaction/stats/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`,
-    )
-      .done((response) => {
-        if (response.success && response.data) {
-          const stats = response.data;
-          $("#totalTransactions").text(stats[0].TotalStudents || 0);
-          $("#TransactionsAccomplished").text(stats[0].FullyRatedCount || 0);
-          $("#transactionsToAccomplish").text(stats[0].IncompleteCount || 0);
-        }
-      })
-      .fail((err) => console.error("Dashboard Stat Error:", err));
+    try {
+      const res = await fetch(
+        `/api/transaction/stats/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`,
+      );
+      const response = await res.json();
+
+      if (response.success && response.data && response.data.length > 0) {
+        const stats = response.data[0];
+        const totalEl = document.getElementById("totalTransactions");
+        const accEl = document.getElementById("TransactionsAccomplished");
+        const toAccEl = document.getElementById("transactionsToAccomplish");
+
+        if (totalEl) totalEl.textContent = stats.TotalStudents || 0;
+        if (accEl) accEl.textContent = stats.FullyRatedCount || 0;
+        if (toAccEl) toAccEl.textContent = stats.IncompleteCount || 0;
+      }
+    } catch (err) {
+      console.error("Dashboard Stat Error:", err);
+    }
   },
 };
 
-// 4. MODAL LOGIC
-let subjectGridInstance = null;
+// 3. DATATABLES INITIALIZATION
+let mainTable;
+let modalTable;
 
-async function showSubjectModal(studentId) {
-  const { school_year_id: sy, semester_id: sem } = state;
-  if (!sy || !sem) return alert("Please select filters first.");
+$(document).ready(function () {
+  mainTable = $("#mainTable").DataTable({
+    autoWidth: false, // Forces the table to follow the 100% CSS rule
+    responsive: true,
 
-  document.getElementById("subjectModal").classList.remove("hidden");
-  const wrapper = document.getElementById("modalTableWrapper");
-
-  if (subjectGridInstance) subjectGridInstance.destroy();
-  wrapper.innerHTML = "";
-
-  subjectGridInstance = new gridjs.Grid({
     columns: [
-      { name: "Code", id: "subject_code" },
-      { name: "Subject", id: "subject_name" },
-      { name: "Instructor", id: "teachers_name" },
+      { data: "IDNumber", title: "ID Number", width: "15%" },
+      { data: "FullName", title: "Student Name", width: "35%" },
       {
-        name: "Status",
-        width: "120px",
-        formatter: (cell) =>
-          gridjs.html(`
-      <div class="flex justify-center items-center w-full">
-        ${
-          cell == 1
-            ? '<span class="text-green-600 font-bold">RATED</span>'
-            : '<span class="text-red-500 font-bold">PENDING</span>'
-        }
-      </div>
-    `),
+        data: "Course",
+        title: "Course",
+        width: "30%",
+        className: "text-wrap-column",
+      },
+      {
+        data: "TotalSubjects",
+        title: "Total Subjects",
+        className: "text-center font-bold",
+        width: "10%",
+      },
+      {
+        data: "PendingStatusCount",
+        title: "Status",
+        className: "text-center",
+        width: "15%",
+        render: function (data, type, row) {
+          const total = parseInt(row.TotalSubjects);
+          const pending = parseInt(data);
+          const isComplete = pending === 0 && total > 0;
+          const color = isComplete ? "text-green-600" : "text-red-500";
+          const icon = isComplete ? "bi-check-circle-fill" : "bi-x-circle-fill";
+
+          return `
+                        <div class="flex flex-col items-center justify-center gap-1 group cursor-pointer" onclick="showSubjectModal('${row.IDNumber}')">
+                            <i class="bi ${icon} ${color} text-2xl transition-transform group-hover:scale-110"></i>
+                            <span class="text-[10px] font-black uppercase ${color}">
+                                ${total - pending} / ${total}
+                            </span>
+                        </div>`;
+        },
       },
     ],
-    server: {
-      url: `/api/transaction/student/subjects/school_year_id=${sy}&semester_id=${sem}&student_id=${studentId}`,
-      then: (res) =>
-        res.data.map((item) => [
-          item.subject_code,
-          item.subject_name,
-          item.teachers_name,
-          item.status,
-        ]),
+
+    dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+    pageLength: 10,
+    responsive: true,
+    autoWidth: false, // CRITICAL: Allows CSS to dictate width
+    language: {
+      search: "",
+      searchPlaceholder: "Type a keyword...",
+      paginate: {
+        previous: "Previous",
+        next: "Next",
+      },
     },
-    pagination: { limit: 10 },
-    style: { table: { width: "100%" } },
-  }).render(wrapper);
+  });
+});
+
+// 4. MODAL LOGIC
+async function showSubjectModal(studentId) {
+  showSpinner();
+  const modal = document.getElementById("subjectModal");
+  modal.classList.remove("hidden");
+
+  const url = `/api/transaction/student/subjects/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}&student_id=${studentId}`;
+
+  if ($.fn.DataTable.isDataTable("#modalTable")) {
+    modalTable.ajax.url(url).load(() => hideSpinner());
+  } else {
+    modalTable = $("#modalTable").DataTable({
+      ajax: { url: url, dataSrc: "data" },
+      columns: [
+        { data: "subject_code", title: "CODE" },
+        {
+          data: "subject_name",
+          title: "SUBJECT",
+          width: "45%",
+          className: "text-wrap-column",
+        },
+        { data: "teachers_name", title: "INSTRUCTOR" },
+        {
+          data: "status",
+          title: "STATUS",
+          className: "text-center",
+          render: (data) =>
+            data == 1
+              ? '<span class="text-green-600 font-bold">RATED</span>'
+              : '<span class="text-red-500 font-bold">PENDING</span>',
+        },
+      ],
+      lengthChange: false,
+      paging: true,
+      searching: false,
+      info: false,
+      responsive: true,
+      autoWidth: false,
+    });
+    setTimeout(() => hideSpinner(), 600);
+  }
 }
 
 function closeModal() {
   document.getElementById("subjectModal").classList.add("hidden");
-  if (subjectGridInstance) subjectGridInstance.destroy();
 }
 
-// 5. EVENT LISTENERS & INITIALIZATION
-$(document).ready(() => {
-  API.fetchOptions("schoolyear", "loadSchoolYear");
-  API.fetchOptions("semester", "loadSemester");
-  updateUserUI();
-
-  // Dropdown Changes - Only Update State
-  $("#loadSchoolYear, #loadSemester").on("change", function () {
-    state.school_year_id = $("#loadSchoolYear").val();
-    state.semester_id = $("#loadSemester").val();
-
-    // Show the refresh button if both are selected
-    if (state.school_year_id && state.semester_id) {
-      $("#filterRefresh").removeClass("hidden").addClass("flex");
-    }
-  });
-
-  // SEARCH BUTTON CLICK
-  $("#btnSearch").on("click", function () {
-    const $icon = $(this).find("i");
-    $icon.addClass("animate-spin");
-
-    API.loadData();
-
-    setTimeout(() => $icon.removeClass("animate-spin"), 600);
-  });
-
-  // Refresh & Limit Handlers
-  $("#filterRefresh, #refresh").on("click", function () {
-    $(this).find("i").addClass("animate-spin");
-    API.loadData();
-    setTimeout(() => $(this).find("i").removeClass("animate-spin"), 800);
-  });
-
-  $("#gridLimit").on("change", function () {
-    grid
-      .updateConfig({ pagination: { limit: parseInt($(this).val()) } })
-      .forceRender();
-  });
-
-  // Excel Export
-  $("#generateList").on("click", async (e) => {
-    e.preventDefault();
-    showSpinner();
-    try {
-      const res = await fetch(`/api/transaction/notrated`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          school_year_id: state.school_year_id,
-          semester_id: state.semester_id,
-        }),
-      });
-      const response = await res.json();
-      if (!response.data?.length) return alert("No data found.");
-
-      const ws = XLSX.utils.json_to_sheet(response.data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Unrated");
-      XLSX.writeFile(wb, `Unrated_List_${new Date().getTime()}.xlsx`);
-    } catch (err) {
-      alert("Export failed.");
-    } finally {
-      hideSpinner();
-    }
-  });
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeModal();
 });
 
-// 6. UI UTILITIES
-function updateUserUI() {
-  $("#userName").text(state.fullname || "User Not Found");
-  $(".userName").text(state.fullname || "Guest");
-  $("#year").text(new Date().getFullYear());
-}
-
+// 5. EVENT LISTENERS & INITIALIZATION
 function toggleNav() {
   const isOpen = $("#mySidenav").width() > 0;
   $("#mySidenav").width(isOpen ? 0 : 280);
   $("#main").css("margin-left", isOpen ? 0 : 280);
 }
 
-$("#signout").on("click", () => {
-  localStorage.clear();
-  window.location.href = "../index.html";
-});
-
 const showSpinner = () => $("#overlay").css("display", "flex");
 const hideSpinner = () => $("#overlay").hide();
 
-$(document).ready(function () {
-  $(".menu-toggle").on("click", function () {
-    const targetId = $(this).data("target");
-    const $targetMenu = $("#" + targetId);
-    const $chevron = $(this).find(".bi-chevron-down");
+function setupSidebarInteractions() {
+  const nameEl = document.getElementById("sidebar-fullname");
+  if (nameEl) nameEl.textContent = state.fullname || state.username || "User";
 
-    $targetMenu.toggleClass("hidden");
+  document.querySelectorAll(".menu-toggle").forEach((toggle) => {
+    toggle.addEventListener("click", function () {
+      const targetId = this.getAttribute("data-target");
+      const targetMenu = document.getElementById(targetId);
+      const chevron = this.querySelector(".bi-chevron-down");
 
-    if ($targetMenu.hasClass("hidden")) {
-      $chevron.css("transform", "rotate(0deg)");
-    } else {
-      $chevron.css("transform", "rotate(180deg)");
-    }
+      if (targetMenu) {
+        targetMenu.classList.toggle("hidden");
+        const isHidden = targetMenu.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!isHidden));
+        if (chevron) {
+          chevron.style.transform = isHidden
+            ? "rotate(0deg)"
+            : "rotate(180deg)";
+        }
+      }
+    });
   });
+
+  document.getElementById("signout")?.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../../index.html";
+  });
+}
+
+async function loadSidebar() {
+  const container = document.getElementById("sidebar-container");
+  if (!container) return;
+
+  try {
+    const response = await fetch("/sidebar.html");
+    const html = await response.text();
+    container.innerHTML = html;
+
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll("#mySidenav a");
+
+    navLinks.forEach((link) => {
+      const href = link.getAttribute("href");
+      if (href && currentPath.includes(href.replace(/\.\.\//g, ""))) {
+        const parentDropdown = link.closest("ul[id^='dropdown-']");
+        if (parentDropdown) {
+          link.classList.add("sub-active");
+          parentDropdown.classList.remove("hidden");
+          const toggleBtn = document.querySelector(
+            `[data-target="${parentDropdown.id}"]`,
+          );
+          if (toggleBtn) {
+            toggleBtn.classList.add("text-gold", "font-bold");
+            toggleBtn.setAttribute("aria-expanded", "true");
+            const chevron = toggleBtn.querySelector(".bi-chevron-down");
+            if (chevron) chevron.style.transform = "rotate(180deg)";
+          }
+        } else {
+          link.classList.add("nav-active");
+        }
+      }
+    });
+    setupSidebarInteractions();
+  } catch (err) {
+    console.error("Sidebar failed to load:", err);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  showSpinner();
+  try {
+    await Promise.all([
+      loadSidebar(),
+      API.fetchOptions("schoolyear", "loadSchoolYear"),
+      API.fetchOptions("semester", "loadSemester"),
+    ]);
+
+    const loadSchoolYear = document.getElementById("loadSchoolYear");
+    const loadSemester = document.getElementById("loadSemester");
+    const filterRefresh = document.getElementById("filterRefresh");
+
+    const handleDropdownChange = () => {
+      state.school_year_id = loadSchoolYear.value;
+      state.semester_id = loadSemester.value;
+      if (state.school_year_id && state.semester_id) {
+        filterRefresh?.classList.replace("hidden", "flex");
+      }
+    };
+
+    loadSchoolYear?.addEventListener("change", handleDropdownChange);
+    loadSemester?.addEventListener("change", handleDropdownChange);
+
+    document
+      .getElementById("btnSearch")
+      ?.addEventListener("click", function () {
+        const icon = this.querySelector("i");
+        icon?.classList.add("animate-spin");
+        API.loadData();
+        setTimeout(() => icon?.classList.remove("animate-spin"), 600);
+      });
+
+    ["#filterRefresh", "#refresh"].forEach((selector) => {
+      document.querySelector(selector)?.addEventListener("click", function () {
+        const icon = this.querySelector("i");
+        icon?.classList.add("animate-spin");
+        API.loadData();
+        setTimeout(() => icon?.classList.remove("animate-spin"), 800);
+      });
+    });
+
+    document
+      .getElementById("gridLimit")
+      ?.addEventListener("change", function () {
+        mainTable.page.len(parseInt(this.value)).draw();
+      });
+
+    document
+      .getElementById("generateList")
+      ?.addEventListener("click", async (e) => {
+        e.preventDefault();
+        showSpinner();
+        try {
+          const res = await fetch(`/api/transaction/notrated`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              school_year_id: state.school_year_id,
+              semester_id: state.semester_id,
+            }),
+          });
+          const response = await res.json();
+          if (!response.data || response.data.length === 0)
+            return alert("No data found.");
+
+          const ws = XLSX.utils.json_to_sheet(response.data);
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, "Unrated");
+          XLSX.writeFile(wb, `Unrated_List_${new Date().getTime()}.xlsx`);
+        } catch (err) {
+          alert("Export failed.");
+        } finally {
+          hideSpinner();
+        }
+      });
+  } catch (error) {
+    console.error("Error during initial load:", error);
+  } finally {
+    hideSpinner();
+  }
 });

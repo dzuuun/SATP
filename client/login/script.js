@@ -27,7 +27,7 @@ const ICONS = {
 /** * Helper: Update Status Message
  */
 const updateStatus = (text = "&nbsp;", colorClass = "") => {
-  messageEl.innerHTML = text;
+  messageEl.textContent = text === "&nbsp;" ? "" : text;
   messageEl.classList.remove("text-red-600", "text-green-600");
   if (colorClass) messageEl.classList.add(colorClass);
 };
@@ -38,6 +38,11 @@ showPasswordBtn.addEventListener("click", () => {
   const isHidden = passwordInput.type === "password";
   passwordInput.type = isHidden ? "text" : "password";
   eyeIconContainer.innerHTML = isHidden ? ICONS.eyeSlash : ICONS.eye;
+  showPasswordBtn.setAttribute("aria-pressed", String(isHidden));
+  showPasswordBtn.setAttribute(
+    "aria-label",
+    isHidden ? "Hide password" : "Show password",
+  );
 });
 
 /** * Event: Forgot Password Click
@@ -53,7 +58,7 @@ form.addEventListener("submit", async (e) => {
 
   // Reset UI
   loginButton.disabled = true;
-  loginButton.textContent = "Signing in...";
+  loginButton.innerHTML = "<span>Signing in…</span>";
   updateStatus(); // Clear previous messages
 
   try {
@@ -71,7 +76,7 @@ form.addEventListener("submit", async (e) => {
     if (!response.success) {
       updateStatus(response.message, "text-red-600");
       loginButton.disabled = false;
-      loginButton.textContent = "Sign In";
+      loginButton.innerHTML = "<span>Sign in</span>";
       return;
     }
 
@@ -113,6 +118,6 @@ form.addEventListener("submit", async (e) => {
   } catch (err) {
     updateStatus("Server error. Please try again.", "text-red-600");
     loginButton.disabled = false;
-    loginButton.textContent = "Sign In";
+    loginButton.innerHTML = "<span>Sign in</span>";
   }
 });

@@ -1,246 +1,293 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var maintenanceAccess = localStorage.getItem("maintenanceAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+const state = {
+  userId: localStorage.getItem("user_id"),
+  maintenanceAccess: localStorage.getItem("maintenanceAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+};
 
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
   window.location.href = "../../index.html";
-}
-
-if (maintenanceAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+} else if (state.maintenanceAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-let data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/category`,
-    cache: true,
-  },
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { data: "name" },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
-      },
+let table;
+let rowIdToUpdate;
+
+$(document).ready(() => {
+  table = $("#table").DataTable({
+    ajax: {
+      type: "GET",
+      url: "/api/category",
+      dataSrc: "data",
+      cache: true,
     },
-    {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
-              </div>
-            </td> `;
+    columns: [
+      { data: "name", title: "Category" },
+      {
+        data: "is_active",
+        title: "Status",
+        width: "15%",
+        className: "dt-center",
+        render: (value) =>
+          value
+            ? '<span class="status-badge active">Active</span>'
+            : '<span class="status-badge inactive">Inactive</span>',
       },
+      {
+        data: "id",
+        title: "Actions",
+        width: "10%",
+        orderable: false,
+        className: "dt-center",
+        render: (id) => `
+          <button class="table-edit-button" type="button" onclick="editFormCall(${id})" title="Edit category" aria-label="Edit category">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg>
+          </button>`,
+      },
+    ],
+    pageLength: 10,
+    dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+    language: {
+      search: "",
+      searchPlaceholder: "Search categories...",
+      paginate: { previous: "Previous", next: "Next" },
     },
-  ],
+  });
 });
 
-// post school year to API
-const formAddCategory = document.querySelector("#newCategoryForm");
-formAddCategory.addEventListener("submit", async (event) => {
-  event.preventDefault();
+document
+  .getElementById("newCategoryForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Create this category?")) return;
 
-  const formData = new FormData(formAddCategory);
-  const isActive = document.getElementById("isCategoryActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
+    const payload = {
+      ...Object.fromEntries(new FormData(event.currentTarget)),
+      is_active: document.getElementById("isCategoryActive").checked ? 1 : 0,
+      user_id: state.userId,
+    };
 
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    fetch(`/api/category/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
+    try {
+      const response = await requestJson("/api/category/add", {
+        method: "POST",
+        body: JSON.stringify(payload),
       });
-  }
-});
 
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
+      if (!response.success) {
+        setErrorMessage(response.message);
+        return;
+      }
+
+      setSuccessMessage(response.message);
+      toggleModal("addNewModal", false);
+      table.ajax.reload(null, false);
+    } catch (error) {
+      console.error("Category creation failed:", error);
+      setErrorMessage("Unable to create the category.");
+    }
+  });
+
+async function editFormCall(id) {
+  try {
+    const response = await requestJson(`/api/category/${id}`);
+    const category = response.data;
+
+    rowIdToUpdate = category.id;
+    document.getElementById("editCategory").value = category.name;
+    document.getElementById("isCategoryActiveEdit").checked =
+      category.is_active == 1;
+    toggleModal("editModal", true);
+  } catch (error) {
+    console.error("Category load failed:", error);
+    setErrorMessage("Unable to load the category.");
+  }
+}
+
+document
+  .getElementById("editCategoryForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Save these category changes?")) return;
+
+    const payload = {
+      ...Object.fromEntries(new FormData(event.currentTarget)),
+      id: rowIdToUpdate,
+      is_active: document.getElementById("isCategoryActiveEdit").checked
+        ? 1
+        : 0,
+      user_id: state.userId,
+    };
+
+    try {
+      const response = await requestJson("/api/category/update", {
+        method: "PUT",
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.success) {
+        setErrorMessage(response.message);
+        return;
+      }
+
+      setSuccessMessage(response.message);
+      toggleModal("editModal", false);
+      table.ajax.reload(null, false);
+    } catch (error) {
+      console.error("Category update failed:", error);
+      setErrorMessage("Unable to update the category.");
+    }
+  });
+
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+  });
+  return response.json();
+}
+
+function toggleModal(modalId, show = true) {
+  const modal = document.getElementById(modalId);
+  const card = document.getElementById(`${modalId}Card`);
+  if (!modal) return;
+
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.remove("scale-95");
+      card?.classList.add("scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
+    return;
+  }
+
+  modal.classList.remove("opacity-100");
+  card?.classList.remove("scale-100");
+  card?.classList.add("scale-95");
+  setTimeout(() => {
+    modal.classList.add("invisible");
+    modal.querySelectorAll("form").forEach((form) => form.reset());
+  }, 250);
+  document.body.classList.remove("overflow-hidden");
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  ["addNewModal", "editModal"].forEach((modalId) => {
+    const modal = document.getElementById(modalId);
+    if (modal && !modal.classList.contains("invisible")) {
+      toggleModal(modalId, false);
+    }
+  });
 });
 
 function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+  showToast(message, "success");
 }
 
 function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+  showToast(message, "error");
 }
 
-// update data on the API
-var rowIdToUpdate;
-async function editFormCall(id) {
-  await fetch(`/api/category/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      document.getElementById("editCategory").value = data.name;
-      rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("isCategoryActiveEdit").checked = false;
-      } else {
-        document.getElementById("isCategoryActiveEdit").checked = true;
-      }
-      $("#editModal").modal("show");
-    });
-}
-const formEditCategory = document.querySelector("#editCategoryForm");
-formEditCategory.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditCategory);
+function showToast(message, type) {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  const icon = document.createElement("span");
+  const text = document.createElement("span");
 
-  const isActive = document.getElementById("isCategoryActiveEdit").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/category/update`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-// delete function
-var rowIdToDelete;
-function deleteRow(id) {
-  rowIdToDelete = id;
-  $("#deleteModal").modal("show");
+  toast.className = "category-toast";
+  toast.setAttribute("role", "status");
+  icon.className = "toast-symbol";
+  icon.innerHTML =
+    type === "success"
+      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 4.6 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"/></svg>';
+  text.textContent = message;
+  toast.append(icon, text);
+  container.replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 
-async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`/api/category/delete`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#deleteModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-      }
-    });
-}
-
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
-}
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
-}
 function toggleNav() {
-  nav ? closeNav() : openNav();
+  const sidenav = document.getElementById("mySidenav");
+  const main = document.getElementById("main");
+  if (!sidenav) return;
+
+  const isOpen = sidenav.style.width === "280px";
+  sidenav.style.width = isOpen ? "0" : "280px";
+  if (main) {
+    main.style.marginLeft =
+      window.innerWidth <= 760 || isOpen ? "0" : "280px";
+  }
 }
 
-let signOutButton = document.getElementById("signout");
+function setupSidebarInteractions() {
+  const name = document.getElementById("sidebar-fullname");
+  if (name) name.textContent = state.fullname || state.username || "User";
 
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+  document.querySelectorAll(".menu-toggle").forEach((toggle) => {
+    toggle.addEventListener("click", function () {
+      const menu = document.getElementById(this.dataset.target);
+      if (!menu) return;
+      menu.classList.toggle("hidden");
+      const hidden = menu.classList.contains("hidden");
+      this.setAttribute("aria-expanded", String(!hidden));
+      const chevron = this.querySelector(".chevron");
+      if (chevron) {
+        chevron.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }
+    });
+  });
+
+  document.getElementById("signout")?.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../../index.html";
+  });
+}
+
+async function loadSidebar() {
+  const container = document.getElementById("sidebar-container");
+  if (!container) return;
+
+  try {
+    const response = await fetch("/sidebar.html");
+    container.innerHTML = await response.text();
+
+    document.querySelectorAll("#mySidenav a").forEach((link) => {
+      const href = link.getAttribute("href");
+      if (!href || !window.location.pathname.includes(href)) return;
+
+      const dropdown = link.closest("ul[id^='dropdown-']");
+      if (dropdown) {
+        link.classList.add("sub-active");
+        dropdown.classList.remove("hidden");
+        const toggle = document.querySelector(
+          `[data-target="${dropdown.id}"]`,
+        );
+        toggle?.setAttribute("aria-expanded", "true");
+        const chevron = toggle?.querySelector(".chevron");
+        if (chevron) chevron.style.transform = "rotate(180deg)";
+      } else {
+        link.classList.add("nav-active");
+      }
+    });
+
+    setupSidebarInteractions();
+  } catch (error) {
+    console.error("Sidebar failed to load:", error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
 });

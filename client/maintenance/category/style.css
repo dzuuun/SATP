@@ -1,141 +1,64 @@
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+@import url("../room/style.css");
+
+.menu-button svg,
+.primary-button svg,
+.modal-close svg,
+.page-heading nav svg,
+.table-edit-button svg,
+.toast-symbol svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
 }
 
-.form-switch .form-check-input:focus {
-  border-color: rgba(0, 0, 0, 0.25);
-  outline: 0;
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
-  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(0,0,0,0.25)'/></svg>");
+.menu-button svg { width: 22px; height: 22px; }
+.primary-button svg { width: 17px; height: 17px; }
+.modal-close svg { width: 18px; height: 18px; }
+.page-heading nav svg { width: 11px; height: 11px; color: #9ba7a1; }
+
+.table-edit-button {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    color: var(--green-800);
+    background: var(--green-100);
+    border: 0;
+    border-radius: 7px;
 }
 
-.form-switch .form-check-input:checked {
-  background-color: darkgreen;
-  border-color: darkgreen;
-  border: none;
-  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='rgba(255,255,255,1.0)'/></svg>");
-}
+.table-edit-button:hover { color: #fff; background: var(--green-800); }
+.table-edit-button svg { width: 16px; height: 16px; }
 
-.btn:active {
-  transform: translateY(2px);
+.status-badge {
+    padding: 5px 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 20px;
+    font-size: .65rem;
+    font-weight: 800;
 }
+.status-badge::before { content: ""; width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
+.status-badge.active { color: var(--green-800); background: var(--green-100); }
+.status-badge.inactive { color: #8a5551; background: #fff0ef; }
 
-.pagination > li > a {
-  background-color: white;
-  color: darkgreen;
+.category-toast {
+    min-height: 48px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #fff;
+    background: var(--green-950);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 11px;
+    box-shadow: 0 10px 24px rgba(4,59,42,.2);
+    font-size: .68rem;
+    font-weight: 700;
 }
-
-.pagination > li > a:focus,
-.pagination > li > a:hover,
-.pagination > li > span:focus,
-.pagination > li > span:hover {
-  color: #5a5a5a;
-  background-color: #eee;
-  border-color: #ddd;
-}
-
-.pagination > .active > a {
-  color: white;
-  background-color: darkgreen !important;
-  border: solid 1px darkgreen !important;
-}
-
-.pagination > .active > a:hover {
-  background-color: darkgreen !important;
-  border: solid 1px darkgreen;
-}
-
-footer {
-  background-color: darkgreen;
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  z-index: 0;
-  transition: margin-left 0.3s;
-}
-
-.sidenav {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
-
-  overflow-x: hidden;
-  transition: 0.3s;
-}
-
-.sidenav a {
-  padding: 8px 8px 8px 8px;
-  text-decoration: none;
-  font-size: 18px;
-  color: black;
-  display: block;
-  transition: 0.3s;
-}
-
-#main {
-  transition: margin-left 0.3s;
-}
-
-@media screen and (max-height: 450px) {
-  .sidenav {
-    padding-top: 15px;
-  }
-  .sidenav a {
-    font-size: 18px;
-  }
-}
-
-.dropdown-toggle {
-  outline: 0;
-}
-
-.btn-toggle {
-  padding: 0.25rem 0.5rem;
-  font-weight: 600;
-  color: var(--bs-emphasis-color);
-  background-color: transparent;
-}
-.btn-toggle:hover,
-.btn-toggle:focus {
-  color: rgba(var(--bs-emphasis-color-rgb), 0.85);
-  background-color: var(--bs-tertiary-bg);
-}
-
-.btn-toggle::before {
-  width: 1.25em;
-  line-height: 0;
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
-  transition: transform 0.35s ease;
-  transform-origin: 0.5em 50%;
-}
-
-[data-bs-theme="dark"] .btn-toggle::before {
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%28255,255,255,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
-}
-
-.btn-toggle[aria-expanded="true"] {
-  color: rgba(var(--bs-emphasis-color-rgb), 0.85);
-}
-.btn-toggle[aria-expanded="true"]::before {
-  transform: rotate(90deg);
-}
-
-.btn-toggle-nav a {
-  padding: 0.1875rem 0.5rem;
-  margin-top: 0.125rem;
-  margin-left: 1.25rem;
-}
-.btn-toggle-nav a:hover,
-.btn-toggle-nav a:focus {
-  background-color: var(--bs-tertiary-bg);
-}
-
-.scrollarea {
-  overflow-y: auto;
-}
+.toast-symbol { width: 26px; height: 26px; display: grid; place-items: center; flex: 0 0 auto; background: rgba(255,255,255,.14); border-radius: 7px; }
+.toast-symbol svg { width: 16px; height: 16px; stroke-width: 2.5; }

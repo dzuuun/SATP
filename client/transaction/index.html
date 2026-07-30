@@ -1,284 +1,178 @@
-<!DOCTYPE html>
-<html lang="en" class="h-full">
-
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SATP | Transaction Management</title>
-    <link rel="icon" type="image/x-icon" href="../images/NDMU-Logo.png" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Manage and review NDMU student assessment transactions.">
+    <meta name="theme-color" content="#075c3b">
+    <title>SATP | Transactions</title>
+    <link rel="icon" href="../images/NDMU-Logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="./style.css">
 </head>
-
-<body class="bg-gray-100 font-sans text-gray-900 text-base">
-
-    <div id="overlay">
-        <div class="flex flex-col items-center">
-            <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-green-700"></div>
-            <p class="mt-4 font-semibold text-green-800 text-sm">Loading Data...</p>
+<body>
+    <div id="overlay" role="status" aria-live="polite" aria-label="Loading data">
+        <div class="loader">
+            <span class="spinner" aria-hidden="true"></span>
+            <strong>Loading records</strong>
+            <small>Please wait a moment</small>
         </div>
     </div>
 
-    <div id="mySidenav" class="bg-green-800 sidenav shadow-2xl text-white flex flex-col overflow-y-auto">
-        <div class="p-6 flex items-center justify-between border-b border-green-700">
-            <div class="flex items-center gap-3">
-                <img src="../images/NDMU-Logo.png" class="w-10 h-10 bg-white rounded-full p-1">
-                <span class="font-black tracking-tighter text-lg">SATP <span class="text-yellow-400">|</span>
-                    Menu</span>
-            </div>
-            <button onclick="toggleNav()" class="text-3xl text-green-200 hover:text-white">&times;</button>
-        </div>
-        <nav class="flex-grow py-4 px-2 space-y-1 overflow-y-auto custom-scrollbar">
-            <a href="../../transaction/index.html"
-                class="flex items-center px-6 py-3  hover:bg-green-700 transition group font-bold text-white rounded-xl bg-green-700/50 border-r-4 border-yellow-400 px-4">
-                <i class="bi bi-speedometer2 me-3 text-green-300 group-hover:text-white"></i>
-                <span class="font-semibold text-sm ">Transactions</span>
-            </a>
+    <div id="sidebar-container"></div>
 
-            <div class="group">
-                <button
-                    class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition"
-                    data-target="report-menu">
-                    <div class="flex items-center">
-                        <i class="bi bi-file-earmark-bar-graph me-3 text-green-300"></i>
-                        <span class="font-semibold text-sm">Report</span>
-                    </div>
-                    <i class="bi bi-chevron-down text-[10px] transition-transform"></i>
+    <div id="main">
+        <header class="site-header">
+            <div class="header-brand">
+                <button type="button" class="menu-button" onclick="toggleNav()" aria-label="Open navigation">
+                    <i class="bi bi-list" aria-hidden="true"></i>
                 </button>
-                <div id="report-menu" class="hidden ml-12 mt-1 space-y-1">
-                    <a href="../../report/ranking/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white">Ranking</a>
-                    <a href="../../report/rating/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white">Rating</a>
-                </div>
+                <a href="../" aria-label="SATP home">
+                    <img src="../images/NDMU-Logo.png" alt="" width="44" height="44">
+                    <span>
+                        <strong>Notre Dame of Marbel University</strong>
+                        <small>Student Assessment of Teacher's Performance</small>
+                    </span>
+                </a>
             </div>
-            <div class="group">
-                <button
-                    class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition text-left"
-                    data-target="maintenance-menu">
-                    <div class="flex items-center">
-                        <i class="bi bi-gear me-3 text-green-300"></i>
-                        <span class="font-semibold text-sm">System Maintenance</span>
-                    </div>
-                    <i class="bi bi-chevron-down text-[10px] transition-transform duration-200"></i>
-                </button>
-
-                <div id="maintenance-menu"
-                    class="hidden ml-12 mt-1 space-y-1 overflow-hidden border-l border-green-700/50">
-                    <a href="../maintenance/admin/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Admin</a>
-                    <a href="../maintenance/category/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Category</a>
-                    <a href="../maintenance/college/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">College</a>
-                    <a href="../maintenance/course/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Course</a>
-                    <a href="../maintenance/departments/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Department</a>
-                    <a href="../maintenance/items/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Items</a>
-                    <a href="../maintenance/room/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Room</a>
-                    <a href="../maintenance/school_year/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">School Year</a>
-                    <a href="../semester/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Semester</a>
-                    <a href="../maintenance/student/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Student</a>
-                    <a href="../maintenance/student_subject/index.html"
-                        class="block py-2 text-xs  text-green-200 hover:text-white px-4 transition">Student Subject</a>
-                    <a href="../maintenance/subject/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Subject</a>
-                    <a href="../maintenance/teacher/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white px-4 transition">Teacher</a>
-                </div>
-            </div>
-
-            <div class="group">
-                <button
-                    class="menu-toggle w-full flex items-center justify-between px-6 py-3 rounded-xl hover:bg-green-700 transition"
-                    data-target="user-menu">
-                    <div class="flex items-center">
-                        <i class="bi bi-people me-3 text-green-300"></i>
-                        <span class="font-semibold text-sm">User Management</span>
-                    </div>
-                    <i class="bi bi-chevron-down text-[10px] transition-transform"></i>
-                </button>
-                <div id="user-menu" class="hidden ml-12 mt-1 space-y-1">
-                    <a href="../../user/activity_log/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white">Activity Log</a>
-                    <a href="../../user/permission/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white">Permission</a>
-                    <a href="../../user/user_management/index.html"
-                        class="block py-2 text-xs text-green-200 hover:text-white">Management</a>
-                </div>
-            </div>
-        </nav>
-
-        <div class="p-4 bg-green-900/50 border-t border-green-700">
-            <div class="flex items-center gap-3 px-2">
-                <img src="../images/blank-profile-picture-973460_1280.png"
-                    class="w-10 h-10 rounded-full border-2 border-green-600">
-                <div class="overflow-hidden">
-                    <p id="userName" class="text-sm font-bold truncate">Loading...</p>
-                    <button id="signout"
-                        class="text-[10px] font-black text-red-400 uppercase tracking-tighter hover:text-red-300">Sign
-                        Out</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="main" class="transition-all duration-500 flex flex-col grow">
-
-        <header class="bg-green-800 text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
-            <div class="flex items-center">
-                <button onclick="toggleNav()" class="text-2xl mr-4 hover:text-yellow-400">
-                    <i class="bi bi-list"></i>
-                </button>
-                <img src="../images/NDMU-Logo.png" class="h-8 mr-3">
-                <h1 class="font-bold text-sm md:text-base">Notre Dame of Marbel University</h1>
-            </div>
-            <div class="text-right hidden md:block">
-                <p class=" font-bold text-sm md:text-base"> Student Assessment of Teacher's Performance</p>
+            <div class="header-context">
+                <span>Administration</span>
+                <strong>Transactions</strong>
             </div>
         </header>
-        <div class="px-3 md:px-5 pt-10 max-w-7xl mx-auto w-full">
-            <div class="flex flex-col md:flex-row md:items-end justify-between border-b border-gray-200 pb-6">
+
+        <main class="workspace">
+            <section class="page-heading">
                 <div>
-                    <h2 class="text-5xl font-light text-gray-800 tracking-tight">Transactions</h2>
+                    <p class="eyebrow">Assessment monitoring</p>
+                    <h1>Transactions</h1>
+                    <p>Track student participation and review assessment completion by term.</p>
                 </div>
-
-                <nav class="flex items-center text-sm font-medium text-gray-500 mb-2 md:mb-1">
-                    <span class="hover:text-green-700 cursor-pointer transition-colors">Maintenance</span>
-                    <span class="mx-2 text-gray-300">/</span>
-                    <span class="text-gray-400 font-normal">Transactions</span>
+                <nav aria-label="Breadcrumb">
+                    <a href="../">SATP</a>
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                    <span aria-current="page">Transactions</span>
                 </nav>
-            </div>
-        </div>
-        <div class="p-4 md:p-6 max-w-7xl mx-auto w-full grow">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                <div
-                    class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-gray-300 relative overflow-hidden group hover:shadow-lg transition">
-                    <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Students</p>
-                    <h2 id="totalTransactions" class="text-4xl font-black text-gray-800">0</h2>
-                    <i class="bi bi-collection absolute -right-2 -bottom-2 text-6xl opacity-5"></i>
-                </div>
-                <div
-                    class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-green-600 relative overflow-hidden group hover:shadow-lg transition">
-                    <p class="text-xs font-bold text-green-700 uppercase tracking-widest mb-1">Students Complete Rating
-                    </p>
-                    <h2 id="TransactionsAccomplished" class="text-4xl font-black text-green-700">0</h2>
-                    <i class="bi bi-check-circle absolute -right-2 -bottom-2 text-6xl opacity-5"></i>
-                </div>
-                <div
-                    class="bg-white p-6 rounded-3xl shadow-sm border-l-8 border-red-500 relative overflow-hidden group hover:shadow-lg transition">
-                    <p class="text-xs font-bold text-red-500 uppercase tracking-widest mb-1">Students Incomplete Rating
-                    </p>
-                    <h2 id="transactionsToAccomplish" class="text-4xl font-black text-red-500">0</h2>
-                    <i class="bi bi-exclamation-triangle absolute -right-2 -bottom-2 text-6xl opacity-5"></i>
-                </div>
-            </div>
+            </section>
 
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 mb-6">
-                <div id="loaddata" class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-
-                    <div class="relative group">
-                        <label class="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2 px-1">
-                            School Year
-                        </label>
-                        <div class="relative">
-                            <select id="loadSchoolYear"
-                                class="w-full bg-gray-200 border-2 border-gray-50 p-3.5 px-5 rounded-2xl text-gray-700 font-semibold text-sm focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 transition-all outline-none appearance-none cursor-pointer">
-                                <option value="">Select School Year</option>
-                            </select>
-                            <div
-                                class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400 group-hover:text-green-600 transition-colors">
-                                <i class="bi bi-chevron-down text-xs"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="relative group">
-                        <label class="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2 px-1">
-                            Semester
-                        </label>
-                        <div class="relative">
-                            <select id="loadSemester"
-                                class="w-full bg-gray-200 border-2 border-gray-50 p-3.5 px-5 rounded-2xl text-gray-700 font-semibold text-sm focus:bg-white focus:border-green-600 focus:ring-4 focus:ring-green-50 transition-all outline-none appearance-none cursor-pointer">
-                                <option value="">Select Semester</option>
-                            </select>
-                            <div
-                                class="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-400 group-hover:text-green-600 transition-colors">
-                                <i class="bi bi-chevron-down text-xs"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="relative">
-                        <button id="btnSearch"
-                            class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 px-6 rounded-2xl shadow-lg shadow-green-100 transition-all transform active:scale-95 flex items-center justify-center gap-2">
-                            <i class="bi bi-search text-sm"></i>
-                            <span>Search Records</span>
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-4xl shadow-xl border border-gray-100 mb-6">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h3 class="font-black text-xl text-gray-800">Transaction Records</h3>
-                    <div class="flex gap-2">
-                        <button id="refresh"
-                            class="hidden px-6 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold text-xs uppercase hover:bg-gray-200 transition">
-                            <i class="bi bi-arrow-clockwise me-2"></i> Refresh
-                        </button>
-                        <button id="generateList"
-                            class="hidden px-6 py-3 bg-green-700 text-white rounded-xl font-bold text-xs uppercase hover:bg-green-800 shadow-lg shadow-green-200 transition">
-                            <i class="bi bi-file-earmark-excel me-2"></i> Export Unrated (XLSX)
-                        </button>
-                    </div>
-                </div>
-                <div id="table-container"></div>
-            </div>
-        </div>
-        <div id="subjectModal"
-            class="hidden fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-y-auto p-6 md:p-8">
-
-                <div class="flex justify-between items-center mb-6 border-b pb-4">
+            <section class="summary-grid" aria-label="Transaction summary">
+                <article class="summary-card total">
+                    <div class="summary-icon"><i class="bi bi-people" aria-hidden="true"></i></div>
                     <div>
-                        <h3 class="text-2xl font-bold text-gray-800">Student Subject Details</h3>
-
+                        <p>Total students</p>
+                        <strong id="totalTransactions">0</strong>
+                        <small>Students in selected term</small>
                     </div>
-                    <button onclick="closeModal()"
-                        class="text-gray-400 hover:text-red-500 transition-colors text-3xl">&times;</button>
+                </article>
+                <article class="summary-card complete">
+                    <div class="summary-icon"><i class="bi bi-check2-circle" aria-hidden="true"></i></div>
+                    <div>
+                        <p>Completed</p>
+                        <strong id="TransactionsAccomplished">0</strong>
+                        <small>Finished all ratings</small>
+                    </div>
+                </article>
+                <article class="summary-card pending">
+                    <div class="summary-icon"><i class="bi bi-hourglass-split" aria-hidden="true"></i></div>
+                    <div>
+                        <p>Incomplete</p>
+                        <strong id="transactionsToAccomplish">0</strong>
+                        <small>Ratings still pending</small>
+                    </div>
+                </article>
+            </section>
+
+            <section class="filter-card" aria-labelledby="filter-title">
+                <div class="filter-heading">
+                    <div class="section-icon"><i class="bi bi-sliders" aria-hidden="true"></i></div>
+                    <div>
+                        <h2 id="filter-title">Filter records</h2>
+                        <p>Choose an academic term to load its transactions.</p>
+                    </div>
                 </div>
-
-                <div id="modalTableWrapper" class="min-h-[300px]"></div>
-
-                <div class="mt-8 flex justify-end">
-                    <button onclick="closeModal()"
-                        class="px-8 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-lg transition-all border border-gray-200">
-                        Close
+                <div class="filter-fields">
+                    <div class="field">
+                        <label for="loadSchoolYear">School year</label>
+                        <div class="select-wrap">
+                            <select id="loadSchoolYear">
+                                <option value="">Select school year</option>
+                            </select>
+                            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="loadSemester">Semester</label>
+                        <div class="select-wrap">
+                            <select id="loadSemester">
+                                <option value="">Select semester</option>
+                            </select>
+                            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                        </div>
+                    </div>
+                    <button type="button" id="btnSearch" class="primary-button">
+                        <i class="bi bi-search" aria-hidden="true"></i>
+                        <span>Load records</span>
                     </button>
                 </div>
-            </div>
-        </div>
-        <footer class="bg-green-800 text-white text-center py-4 text-sm border-t border-green-900 w-full mt-auto">
-            <p>NDMU © <span id="year">2026</span> | Developed by MIS Department</p>
+            </section>
+
+            <section class="records-card" aria-labelledby="records-title">
+                <div class="records-heading">
+                    <div>
+                        <p class="eyebrow">Student progress</p>
+                        <h2 id="records-title">Transaction records</h2>
+                    </div>
+                    <div class="record-actions">
+                        <button type="button" id="refresh" class="secondary-button hidden">
+                            <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+                            Refresh
+                        </button>
+                        <button type="button" id="generateList" class="export-button hidden">
+                            <i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i>
+                            Export unrated
+                        </button>
+                    </div>
+                </div>
+                <div class="table-shell">
+                    <table id="mainTable" class="display nowrap" aria-label="Student transaction records"></table>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+            <span aria-hidden="true"></span>
+            <p>Developed by the MIS Department</p>
         </footer>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.7.0.js"></script>
-    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <div id="subjectModal" class="subject-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-panel">
+            <header class="modal-header">
+                <div>
+                    <p class="eyebrow">Assessment detail</p>
+                    <h2 id="modal-title">Student subjects</h2>
+                </div>
+                <button type="button" onclick="closeModal()" class="modal-close" aria-label="Close subject details">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+            </header>
+            <div class="modal-body">
+                <div id="modalTableWrapper" class="table-shell modal-table-shell">
+                    <table id="modalTable" class="display nowrap" aria-label="Student subject details"></table>
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button type="button" onclick="closeModal()" class="secondary-button">Close</button>
+            </footer>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    <script src="script.js"></script>
-
+    <script src="./script.js"></script>
 </body>
-
 </html>

@@ -1,105 +1,127 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SATP | Log In</title>
-  <link rel="icon" href="../images/NDMU-Logo.png" />
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Sign in to the NDMU Student Assessment of Teacher's Performance portal.">
+    <meta name="theme-color" content="#075c3b">
+    <title>SATP | Log In</title>
+    <link rel="icon" href="../images/NDMU-Logo.png">
+    <link rel="preload" href="../images/DSC_0716-75.png" as="image">
+    <link rel="stylesheet" href="./style.css">
 </head>
+<body>
+    <header class="site-header">
+        <a class="university" href="../" aria-label="Back to SATP home">
+            <img src="../images/NDMU-Logo.png" alt="" width="48" height="48">
+            <span>
+                <strong>Notre Dame of Marbel University</strong>
+                <small>Excellence through service</small>
+            </span>
+        </a>
+        <p>Student Assessment of Teacher's Performance</p>
+    </header>
 
-<body class="min-h-screen flex flex-col bg-gray-200 font-sans antialiased">
+    <main>
+        <article class="portal-card">
+            <section class="hero" aria-labelledby="welcome-title">
+                <div class="hero-content">
+                    <img src="../images/satp branding white.png" alt="SATP" width="220" height="108">
+                    <p class="eyebrow">Assessment Portal</p>
+                    <h1 id="welcome-title">Welcome back.</h1>
+                    <p>
+                        Sign in to share thoughtful feedback and help strengthen the learning experience at NDMU.
+                    </p>
+                    <a class="back-link" href="../">
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                            <path d="m11 5-7 7 7 7M4 12h16"/>
+                        </svg>
+                        Back to home
+                    </a>
+                </div>
+            </section>
 
-        <header class="bg-green-800 text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
-            <div class="flex items-center">
-                <!-- <button onclick="toggleNav()" class="text-2xl mr-4 hover:text-yellow-400"> -->
-                    <i class="bi bi-list"></i>
-                </button>
-                <img src="../images/NDMU-Logo.png" class="h-8 mr-3">
-                <h1 class="font-bold text-sm md:text-base">Notre Dame of Marbel University</h1>
-            </div>
-            <div class="text-right hidden md:block">
-                <p class=" font-bold text-sm md:text-base"> Student Assessment of Teacher's Performance</p>
-                
-            </div>
-        </header>
+            <section class="sign-in" aria-labelledby="sign-in-title">
+                <div class="sign-in-content">
+                    <div class="icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="26" height="26">
+                            <path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-7 17c.6-4 3-6 7-6s6.4 2 7 6H5Z"/>
+                        </svg>
+                    </div>
 
-  <main class="flex-1 flex items-center justify-center p-4 md:p-10">
-    <div class="flex w-full max-w-6xl bg-white shadow-2xl rounded-3xl overflow-hidden min-h-150">
+                    <p class="eyebrow green">Student portal</p>
+                    <h2 id="sign-in-title">Sign in to SATP</h2>
+                    <p class="intro">Enter your account details to continue.</p>
 
-      <section class="hidden md:flex w-1/2 text-white items-center justify-center relative"
-        style="background: linear-gradient(rgba(0, 102, 51, 0.75), rgba(0, 102, 51, 0.75)), url('../images/DSC_0716-75.png') center/cover no-repeat;">
-        <div class="text-center px-12 relative z-10">
-          <img src="../images/satp-branding.png" alt="SATP Branding" class="mx-auto w-48 mb-8" />
-          <h1 class="text-4xl font-bold mb-3">Welcome to SATP</h1>
-          <p class="text-base opacity-90 leading-relaxed">
-            Student Assessment of Teacher's Performance system.
-          </p>
-        </div>
-      </section>
+                    <div id="message" class="message" role="status" aria-live="polite"></div>
 
-      <section class="w-full md:w-1/2 flex items-center justify-center bg-gray-100 p-6">
-        <div class="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl md:shadow-none">
+                    <form id="loginForm">
+                        <div class="field">
+                            <label for="username">Username</label>
+                            <input
+                                id="username"
+                                name="username"
+                                type="text"
+                                required
+                                autocomplete="username"
+                                autocapitalize="none"
+                                spellcheck="false"
+                                placeholder="Enter your username">
+                        </div>
 
-          <header class="text-center mb-6">
-            <h2 class="text-3xl font-bold text-gray-800">Sign In</h2>
-            <div id="message"
-              class="mt-4 text-sm min-h-6 flex items-center justify-center transition-all duration-300">
-              &nbsp;
-            </div>
-          </header>
+                        <div class="field">
+                            <div class="label-row">
+                                <label for="password">Password</label>
+                                <button type="button" id="forgotPassword" class="forgot-button">
+                                    Forgot password?
+                                </button>
+                            </div>
+                            <div class="password-field">
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    required
+                                    autocomplete="current-password"
+                                    placeholder="Enter your password">
+                                <button
+                                    type="button"
+                                    id="showPassword"
+                                    class="password-toggle"
+                                    aria-label="Show password"
+                                    aria-pressed="false">
+                                    <span id="eyeIcon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" width="20" height="20">
+                                            <path d="M2.04 12.32a1 1 0 0 1 0-.64C3.42 7.51 7.36 4.5 12 4.5s8.57 3.01 9.96 7.18c.07.21.07.43 0 .64C20.58 16.49 16.64 19.5 12 19.5S3.43 16.49 2.04 12.32Z"/>
+                                            <path d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </div>
+                        </div>
 
-          <form id="loginForm" class="space-y-5">
-            <div>
-              <label for="username" class="block text-sm font-semibold text-gray-700 mb-1.5">Username</label>
-              <input type="text" id="username" name="username" required autocomplete="username"
-                class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-700 focus:border-transparent transition-all"
-                placeholder="Enter your username" />
-            </div>
+                        <button type="submit" id="loginButton" class="login-button">
+                            <span>Sign in</span>
+                            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                                <path d="m13 5 7 7-7 7M20 12H4"/>
+                            </svg>
+                        </button>
+                    </form>
 
-            <div>
-              <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
-              <div class="relative flex">
-                <input type="password" id="password" name="password" required autocomplete="current-password"
-                  class="w-full border border-gray-300 rounded-l-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-700 focus:border-transparent transition-all"
-                  placeholder="••••••••" />
-                <button type="button" id="showPassword" aria-label="Toggle password visibility"
-                  class="px-4 border border-l-0 border-gray-300 rounded-r-lg bg-gray-50 text-gray-500 hover:text-green-800 hover:bg-gray-100 transition-all">
-                  <span id="eyeIcon">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
-                      stroke="currentColor" class="w-5 h-5">
-                      <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                  </span>
-                </button>
-              </div>
-              <div class="mt-2 text-right">
-                <span id="forgotPassword"
-                  class="text-xs text-green-700 hover:text-green-500 hover:underline font-medium transition-all duration-200 cursor-pointer">
-                  Forgot Password?
-                </span>
-              </div>
+                    <p class="support">
+                        Need help? Visit the <strong>MIS Department</strong> for technical assistance.
+                    </p>
+                </div>
+            </section>
+        </article>
+    </main>
 
-              <button type="submit" id="loginButton"
-                class="w-full bg-green-800 text-white font-semibold py-3 rounded-lg hover:bg-green-900 active:transform active:scale-[0.98] transition-all shadow-md">
-                Sign In
-              </button>
-          </form>
+    <footer>
+        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+        <span aria-hidden="true"></span>
+        <p>Developed by the MIS Department</p>
+    </footer>
 
-        </div>
-      </section>
-
-    </div>
-  </main>
-
-  <footer class="bg-green-800 text-white text-center py-4 text-sm border-t border-green-900">
-    <p>NDMU © <span id="year"></span> | Developed by MIS Department</p>
-  </footer>
-
-  <script src="./script.js"></script>
+    <script src="./script.js" defer></script>
 </body>
-
 </html>

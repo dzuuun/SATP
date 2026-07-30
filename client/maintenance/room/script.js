@@ -1,361 +1,856 @@
+// Auth and Sidebar Initialization
 
-var user = localStorage.getItem("user_id");
-var maintenanceAccess = localStorage.getItem("maintenanceAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+const state = {
+  user: localStorage.getItem("user_id"),
+  transactionAccess: localStorage.getItem("transactionAccess"),
+  maintenanceAccess: localStorage.getItem("maintenanceAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+  semester_id: "",
+  school_year_id: "",
+};
 
-if (user === null) {
+if (state.user === null) {
   alert("Log in to continue.");
   window.location.href = "../../index.html";
 }
 
-if (maintenanceAccess == 0) {
+if (state.maintenanceAccess == 0) {
   alert("You don't have permission to access this page. Redirecting...");
   history.back();
 }
 
-let data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/room`,
-    cache: true,
-  },
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { data: "name" },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
+// --- DATATABLES INITIALIZATION ---
+let table;
+
+$(document).ready(function () {
+  table = $("#roomTable").DataTable({
+    ajax: {
+      url: "/api/room",
+      dataSrc: "data",
+    },
+    columns: [
+      { data: "name", title: "ROOM NAME" },
+      {
+        data: "is_active",
+        title: "STATUS",
+        render: function (data) {
+          const isActive = data == 1;
+          return `
+                    <div class="flex justify-center">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}">
+                            ${isActive ? "Active" : "Inactive"}
+                        </span>
+                    </div>`;
+        },
+      },
+      {
+        data: "id",
+        title: "ACTIONS",
+        orderable: false,
+        render: (data) => `
+                <div class="flex justify-center">
+                    <button onclick="editFormCall(${data})" class="p-2 text-gray-400 hover:text-green-800 transition-colors">
+                        <i class="bi bi-pencil-square text-lg"></i>
+                    </button>
+                </div>`,
+      },
+    ],
+    responsive: true,
+    pageLength: 10,
+    dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+    language: {
+      search: "",
+      searchPlaceholder: "Search rooms...",
+      paginate: {
+        next: '<i class="bi bi-chevron-right"></i>',
+        previous: '<i class="bi bi-chevron-left"></i>',
       },
     },
-    {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
-               
-              </div>
-            </td> `;
-      },
-    },
-  ],
+  });
 });
 
-// post room to API
+// Replace Grid.js refresh with DataTables reload
+function refreshGrid() {
+  if (table) {
+    table.ajax.reload(null, false);
+  } else {
+    console.error("DataTable instance not found.");
+  }
+}
+
+function toggleModal(modalId, show = true) {
+  const modal = document.getElementById(modalId);
+  const card = document.getElementById(modalId + "Card");
+
+  if (!modal) return;
+
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      if (card) {
+        card.classList.remove("scale-95");
+        card.classList.add("scale-100");
+      }
+    }, 10);
+    document.body.classList.add("overflow-hidden");
+  } else {
+    // --- 1. START THE CLOSE ANIMATION ---
+    modal.classList.remove("opacity-100");
+    if (card) {
+      card.classList.remove("scale-100");
+      card.classList.add("scale-95");
+    }
+
+    // --- 2. RESET THE UI DATA (New Logic) ---
+    if (modalId === "importFileModal") {
+      const form = document.getElementById("uploadFileForm");
+      const dropZone = document.getElementById("dropZone");
+      const dropZoneText = dropZone.querySelector("p");
+
+      if (form) form.reset(); // Clears the hidden file input
+
+      // Revert the styles back to default gray
+      if (dropZoneText) {
+        dropZoneText.innerText = "Click to upload or drag Excel (XLSX) here";
+        dropZoneText.classList.add("text-gray-400");
+        dropZoneText.classList.remove("text-[#1a5f35]");
+      }
+      dropZone.classList.remove("border-[#1a5f35]", "bg-green-50/50");
+    }
+
+    // --- 3. FINISH HIDING THE MODAL ---
+    setTimeout(() => {
+      modal.classList.add("invisible");
+    }, 300);
+    document.body.classList.remove("overflow-hidden");
+  }
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+
+  [
+    "addNewModal",
+    "editModal",
+    "importFileModal",
+    "importPreviewModal",
+  ].forEach((modalId) => {
+    const modal = document.getElementById(modalId);
+    if (modal && !modal.classList.contains("invisible")) {
+      toggleModal(modalId, false);
+    }
+  });
+});
+// --- ADD ROOM ---
 const formAddRoom = document.querySelector("#newRoomForm");
+
 formAddRoom.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const formData = new FormData(formAddRoom);
-  const isActive = document.getElementById("isRoomActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
+  const isActiveInput = document.getElementById("isRoomActive");
 
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/room/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
+  formData.append(
+    "is_active",
+    isActiveInput && isActiveInput.checked ? "1" : "0",
+  );
+  formData.append("user_id", state.user);
+
+  const payload = Object.fromEntries(formData);
+
+  if (confirm("Create this new room?")) {
+    try {
+      const response = await fetch(`/api/room/add`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+
+      const result = await response.json();
+
+      if (result.success == 0) {
+        setErrorMessage(result.message);
+      } else {
+        // 1. Show the success notification
+        setSuccessMessage(result.message);
+
+        // 2. CLOSE THE MODAL (Tailwind Replacement)
+        toggleModal("addNewModal", false);
+
+        // 3. Reset the form fields for next time
+        formAddRoom.reset();
+
+        // 4. Refresh your table/grid
+        refreshGrid();
+      }
+    } catch (error) {
+      console.error("Submission error:", error);
+      setErrorMessage("An error occurred. Please try again.");
+    }
   }
 });
-
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-});
-
-function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
-
-function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
-
-// update data on the API
-var rowIdToUpdate;
+// --- EDIT ROOM ---
+let rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`/api/room/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      document.getElementById("editRoom").value = data.name;
-      rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("isRoomActiveEdit").checked = false;
-      } else {
-        document.getElementById("isRoomActiveEdit").checked = true;
-      }
-      $("#editModal").modal("show");
-    });
+  // 1. Fetch data from your API
+  const res = await fetch(`/api/room/${id}`);
+  const result = await res.json();
+  const data = result.data;
+
+  // 2. Set the global ID for the update payload
+  rowIdToUpdate = data.id;
+
+  // 3. Fill the Tailwind Modal inputs
+  document.getElementById("editRoom").value = data.name;
+  document.getElementById("isRoomActiveEdit").checked = data.is_active == 1;
+
+  // 4. Open the Modal (Tailwind style)
+  toggleModal("editModal", true);
 }
+
 const formEditRoom = document.querySelector("#editRoomForm");
 formEditRoom.addEventListener("submit", async (event) => {
   event.preventDefault();
   const formData = new FormData(formEditRoom);
-
-  const isActive = document.getElementById("isRoomActiveEdit").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-
+  formData.append(
+    "is_active",
+    document.getElementById("isRoomActiveEdit").checked ? "1" : "0",
+  );
   formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/room/update`, {
+  formData.append("user_id", state.user);
+
+  if (confirm("Save changes to this room?")) {
+    const response = await fetch(`/api/room/update`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-// delete function
-var rowIdToDelete;
-function deleteRow(id) {
-  rowIdToDelete = id;
-  $("#deleteModal").modal("show");
-}
-
-async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`/api/room/delete`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#deleteModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-      }
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(formData)),
     });
-}
-const uploadFileForm = document.querySelector("#uploadFileForm");
-uploadFileForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (confirm("This action cannot be undone.")) {
-    $("#importFileModal").modal("hide");
-    $("#spinnerStatusModal").modal("show");
-    const file = csvInput.files[0];
+    const result = await response.json();
 
-    if (file) {
-      try {
-        const results = await parseCSV(file);
-
-        const headers = results.data[0];
-        const data = [];
-
-        for (let i = 1; i < results.data.length; i++) {
-          const values = results.data[i];
-          if (
-            values.length === headers.length &&
-            values.some((value) => value.trim() !== "")
-          ) {
-            const rowObject = {};
-            for (let j = 0; j < headers.length; j++) {
-              rowObject[headers[j]] = values[j];
-            }
-            rowObject["user_id"] = user;
-            rowObject["is_active"] = 1;
-            data.push(rowObject);
-          }
-        }
-        const failedData = [];
-        let counter = 0;
-        for (let i = 0; i < data.length; i++) {
-          try {
-            const response = await postData(`/api/room/add`, data[i]);
-
-            document.getElementById("statusMessage").innerHTML =
-              ((i / data.length) * 100).toFixed(0) + "%";
-            if (response.success === 0) {
-              failedData.push(data[i].name);
-            } else {
-              counter++;
-            }
-          } catch (error) {
-            console.error(error);
-          }
-        }
-
-        // Show the failed data in the modal
-        if (failedData.length > 0) {
-          document.getElementById("totalFailedData").innerHTML =
-            `Total: ` + failedData.length;
-          const failedDataList = document.getElementById("failedDataList");
-          failedDataList.innerHTML = "";
-
-          for (const item of failedData) {
-            const listItem = document.createElement("li");
-            listItem.textContent = JSON.stringify(item);
-            failedDataList.appendChild(listItem);
-          }
-          $("#failedDataModal").modal("show");
-        }
-        $("#spinnerStatusModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-        setSuccessMessage(
-          `${counter} of ${data.length} entries were imported successfully.`
-        );
-      } catch (error) {
-        console.error(error);
-      }
+    if (result.success == 0) {
+      setErrorMessage(result.message);
+    } else {
+      setSuccessMessage(result.message);
+      toggleModal("editModal", false);
+      refreshGrid();
     }
   }
 });
 
-async function parseCSV(file) {
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("downloadLink").addEventListener("click", (e) => {
+    e.preventDefault();
+
+    // 1. Create data array (Headers + Example Row)
+    const data = [{ name: "Room 101" }, { name: "Room 102" }];
+
+    // 2. Create a new workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(data);
+
+    // 3. Append worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Rooms");
+
+    // 4. Trigger Download
+    XLSX.writeFile(wb, "Room_Import_Template.xlsx");
+  });
+});
+
+async function exportToExcel() {
+  try {
+    showSpinner(); // Show the loading overlay
+
+    // 1. Fetch the data from the server
+    const response = await fetch("/api/room");
+    const result = await response.json();
+
+    if (!result.data || result.data.length === 0) {
+      setErrorMessage("No data available to export.");
+      hideSpinner();
+      return;
+    }
+
+    // 2. Map the data to user-friendly headers
+    const exportData = result.data.map((room) => ({
+      name: room.name,
+      Status: room.is_active == 1 ? "Active" : "Inactive",
+    }));
+
+    // 3. Generate Workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    // 4. Style: Set column widths for a cleaner look
+    const colWidths = [{ wch: 30 }, { wch: 15 }];
+    ws["!cols"] = colWidths;
+
+    // 5. Append and Download
+    XLSX.utils.book_append_sheet(wb, ws, "Room List");
+
+    // Generates filename like: NDMU_Rooms_2026-04-06.xlsx
+    const fileName = `NDMU_Rooms_${new Date().toISOString().split("T")[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+
+    setSuccessMessage("Data exported successfully!");
+  } catch (error) {
+    console.error("Export Error:", error);
+    setErrorMessage("Failed to export. Please try again.");
+  } finally {
+    hideSpinner(); // Hide the loading overlay
+  }
+}
+/// --- XLSX IMPORT DRAG AND DROP LOGIC ---
+
+const fileInput = document.getElementById("xlsxInput");
+const dropZone = document.getElementById("dropZone");
+const dropZoneText = dropZone.querySelector("p");
+const dropZoneIcon = dropZone.querySelector("i");
+
+// --- NEW: Sync UI when a file is selected or changed ---
+fileInput.addEventListener("change", function () {
+  if (this.files && this.files[0]) {
+    const fileName = this.files[0].name;
+
+    // Update the UI to show the selected file
+    dropZoneText.innerText = `Selected: ${fileName}`;
+    dropZoneText.classList.remove("text-gray-400");
+    dropZoneText.classList.add("text-[#1a5f35]");
+
+    // Change icon color to green to show success
+    dropZoneIcon.classList.remove("text-gray-300");
+    dropZoneIcon.classList.add("text-[#1a5f35]");
+
+    // Optional: Add a slight pulse effect to show it was accepted
+    dropZone.classList.add("border-[#1a5f35]", "bg-green-50/20");
+  }
+});
+
+// 1. Prevent default behaviors for all drag events
+["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+  dropZone.addEventListener(
+    eventName,
+    (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    },
+    false,
+  );
+});
+
+// 2. Add visual feedback when dragging over
+["dragenter", "dragover"].forEach((eventName) => {
+  dropZone.addEventListener(
+    eventName,
+    () => {
+      dropZone.classList.add("border-[#1a5f35]", "bg-green-50/50");
+    },
+    false,
+  );
+});
+
+["dragleave", "drop"].forEach((eventName) => {
+  dropZone.addEventListener(
+    eventName,
+    () => {
+      dropZone.classList.remove("border-[#1a5f35]", "bg-green-50/50");
+    },
+    false,
+  );
+});
+
+// 3. Handle the dropped files
+dropZone.addEventListener("drop", (e) => {
+  const droppedFiles = e.dataTransfer.files;
+
+  if (droppedFiles.length > 0) {
+    // Assign the dropped file to the actual hidden input
+    fileInput.files = droppedFiles;
+
+    // Optional: Trigger a visual cue that the file was received
+    const fileName = droppedFiles[0].name;
+    dropZone.querySelector("p").innerText = `Selected: ${fileName}`;
+    dropZone.querySelector("p").classList.add("text-[#1a5f35]");
+  }
+});
+
+// --- XLSX IMPORT PREVIEW & EXECUTION ---
+const uploadFileForm = document.querySelector("#uploadFileForm");
+const runImportButton = document.getElementById("runImportButton");
+let pendingImport = { created: [], updated: [], errors: [] };
+
+uploadFileForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  showSpinner();
+  try {
+    const rows = await readRoomWorkbook(file);
+    const roomsResponse = await fetch("/api/room");
+    const roomsResult = await roomsResponse.json();
+
+    pendingImport = classifyRoomRows(rows, roomsResult.data || []);
+    renderImportPreview(pendingImport);
+
+    toggleModal("importFileModal", false);
+    setTimeout(() => toggleModal("importPreviewModal", true), 300);
+  } catch (error) {
+    console.error("Import preview error:", error);
+    setErrorMessage("Unable to validate the file. Check its format.");
+  } finally {
+    hideSpinner();
+  }
+});
+
+function readRoomWorkbook(file) {
   return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      complete: function (results) {
-        resolve(results);
-      },
-      error: function (error) {
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      try {
+        const data = new Uint8Array(event.target.result);
+        const workbook = XLSX.read(data, { type: "array" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(worksheet, {
+          defval: "",
+          raw: false,
+        });
+        resolve(rows);
+      } catch (error) {
         reject(error);
-      },
-    });
+      }
+    };
+
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
   });
 }
 
-async function postData(url, data) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
+function normalizeRoomName(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function classifyRoomRows(rows, existingRooms) {
+  const existingByName = new Map(
+    existingRooms.map((room) => [normalizeRoomName(room.name), room]),
+  );
+  const seenFileNames = new Set();
+  const result = { created: [], updated: [], errors: [] };
+
+  rows.slice(0, 500).forEach((row, index) => {
+    const rowNumber = index + 2;
+    const nameKey = Object.keys(row).find(
+      (key) => key.trim().toLowerCase() === "name",
+    );
+    const name = String(nameKey ? row[nameKey] : "")
+      .trim()
+      .replace(/\s+/g, " ");
+    const normalizedName = normalizeRoomName(name);
+
+    if (!normalizedName) {
+      result.errors.push({
+        rowNumber,
+        name: "Unnamed room",
+        reason: "Room name is required",
+        originalRow: row,
+      });
+      return;
+    }
+
+    if (seenFileNames.has(normalizedName)) {
+      result.errors.push({
+        rowNumber,
+        name,
+        reason: "Duplicate row in file",
+        originalRow: row,
+      });
+      return;
+    }
+
+    seenFileNames.add(normalizedName);
+    const existing = existingByName.get(normalizedName);
+
+    if (existing) {
+      result.updated.push({
+        rowNumber,
+        id: existing.id,
+        name,
+        is_active: 1,
+        originalRow: row,
+      });
+    } else {
+      result.created.push({
+        rowNumber,
+        name,
+        is_active: 1,
+        originalRow: row,
+      });
+    }
+  });
+
+  if (rows.length > 500) {
+    rows.slice(500).forEach((row, index) => {
+      const nameKey = Object.keys(row).find(
+        (key) => key.trim().toLowerCase() === "name",
+      );
+      result.errors.push({
+        rowNumber: index + 502,
+        name: String(nameKey ? row[nameKey] : "Unnamed room"),
+        reason: "Import is limited to the first 500 rows",
+        originalRow: row,
+      });
+    });
+  }
+
+  return result;
+}
+
+function renderImportPreview(result) {
+  const groups = [
+    ["created", "createdPreview", "createdCount", "Will be created"],
+    ["updated", "updatedPreview", "updatedCount", "Existing room"],
+    ["errors", "errorPreview", "errorCount", ""],
+  ];
+
+  groups.forEach(([key, containerId, countId, defaultDetail]) => {
+    const items = result[key];
+    const container = document.getElementById(containerId);
+    document.getElementById(countId).textContent = items.length;
+    container.replaceChildren();
+
+    if (items.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "preview-empty";
+      empty.textContent = `No ${key} found`;
+      container.appendChild(empty);
+      return;
+    }
+
+    items.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "preview-row";
+
+      const rowNumber = document.createElement("span");
+      rowNumber.className = "row-number";
+      rowNumber.textContent = `Row ${item.rowNumber}`;
+
+      const roomName = document.createElement("span");
+      roomName.className = "room-name";
+      roomName.textContent = item.name;
+
+      const detail = document.createElement("span");
+      detail.className = "row-detail";
+      detail.textContent = item.reason || defaultDetail;
+
+      row.append(rowNumber, roomName, detail);
+      container.appendChild(row);
+    });
+  });
+
+  const actionableCount = result.created.length + result.updated.length;
+  const hasErrors = result.errors.length > 0;
+  runImportButton.disabled = actionableCount === 0 && !hasErrors;
+  runImportButton.title =
+    actionableCount === 0 && !hasErrors ? "There are no rows to process" : "";
+}
+
+runImportButton.addEventListener("click", async () => {
+  const actions = [
+    ...pendingImport.created.map((room) => ({ type: "created", room })),
+    ...pendingImport.updated.map((room) => ({ type: "updated", room })),
+  ];
+
+  const errorRows = pendingImport.errors.map((item) => ({
+    ...item.originalRow,
+    Error: item.reason,
+  }));
+
+  if (actions.length === 0) {
+    downloadImportErrors(errorRows);
+    toggleModal("importPreviewModal", false);
+    setErrorMessage(`${errorRows.length} invalid rows exported.`);
+    return;
+  }
+
+  toggleModal("importPreviewModal", false);
+  setTimeout(() => toggleModal("spinnerStatusModal", true), 300);
+
+  const completed = { created: 0, updated: 0, errors: 0 };
+
+  for (let index = 0; index < actions.length; index++) {
+    const { type, room } = actions[index];
+    const payload = { ...room, user_id: state.user };
+    delete payload.rowNumber;
+    delete payload.originalRow;
+
+    try {
+      const response =
+        type === "created"
+          ? await postData("/api/room/add", payload)
+          : await updateRoomFromImport(payload);
+
+      if (response.success == 1 || response.success === true) {
+        completed[type]++;
+      } else {
+        completed.errors++;
+        errorRows.push({
+          ...room.originalRow,
+          Error: response.message || `Unable to process ${room.name}`,
+        });
+      }
+    } catch (error) {
+      console.error(`Room ${type} import error:`, error);
+      completed.errors++;
+      errorRows.push({
+        ...room.originalRow,
+        Error: `Request failed while processing ${room.name}`,
+      });
+    }
+
+    const progress = Math.round(((index + 1) / actions.length) * 100);
+    document.getElementById("statusMessage").textContent = `${progress}%`;
+  }
+
+  toggleModal("spinnerStatusModal", false);
+  uploadFileForm.reset();
+  pendingImport = { created: [], updated: [], errors: [] };
+  refreshGrid();
+
+  if (errorRows.length > 0) {
+    downloadImportErrors(errorRows);
+  }
+
+  setTimeout(() => {
+    const errorTotal = errorRows.length;
+    const message = `${completed.created} created, ${completed.updated} updated${errorTotal ? `, ${errorTotal} errors exported` : ""}.`;
+    if (errorTotal) {
+      setErrorMessage(message);
+    } else {
+      setSuccessMessage(message);
+    }
+  }, 400);
+});
+
+function downloadImportErrors(errorRows) {
+  if (!errorRows.length) return;
+
+  const worksheet = XLSX.utils.json_to_sheet(errorRows);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Import Errors");
+
+  const date = new Date().toISOString().split("T")[0];
+  XLSX.writeFile(workbook, `Room_Import_Errors_${date}.xlsx`);
+}
+
+async function updateRoomFromImport(payload) {
+  const response = await fetch("/api/room/update", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
   });
   return response.json();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const downloadLink = document.getElementById("downloadLink");
-
-  downloadLink.addEventListener("click", function () {
-    const csvContent = "name";
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "room_template.csv";
-    a.click();
-
-    URL.revokeObjectURL(url);
+// Utility Functions
+async function postData(url, data) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
   });
-});
-
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
+  return res.json();
 }
 
-var nav = false;
+function setSuccessMessage(message) {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
 
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
+  const id = "toast-" + Date.now();
+
+  // Injecting a Tailwind-styled toast
+  container.insertAdjacentHTML(
+    "beforeend",
+    `
+    <div id="${id}" class="room-toast room-toast-success flex items-center w-full max-w-xs p-4 mb-4 text-white rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 border border-white/10">
+        <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-green-100 bg-white/20 rounded-lg">
+            <i class="bi bi-check-lg text-lg"></i>
+        </div>
+        <div class="ms-3 text-[11px] font-black uppercase tracking-wider">${message}</div>
+    </div>
+  `,
+  );
+
+  // Animate In
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("translate-y-10", "opacity-0");
+  }, 10);
+
+  // Auto-remove after 4 seconds
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add("opacity-0", "translate-y-2");
+      setTimeout(() => el.remove(), 500);
+    }
+  }, 4000);
 }
+
+function setErrorMessage(message) {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+
+  const id = "toast-" + Date.now();
+  container.insertAdjacentHTML(
+    "beforeend",
+    `
+    <div id="${id}" class="room-toast room-toast-error flex items-center w-full max-w-xs p-4 mb-4 text-white rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 border border-white/10">
+        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-100 bg-white/20 rounded-lg">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <div class="ms-3 text-[11px] font-black uppercase tracking-wider">${message}</div>
+    </div>
+  `,
+  );
+
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("translate-y-10", "opacity-0");
+  }, 10);
+
+  setTimeout(() => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.add("opacity-0", "translate-y-2");
+      setTimeout(() => el.remove(), 500);
+    }
+  }, 5000);
+}
+
 function toggleNav() {
-  nav ? closeNav() : openNav();
+  const sidenav = document.getElementById("mySidenav");
+  const main = document.getElementById("main");
+
+  if (!sidenav) return; // Guard clause if sidebar hasn't loaded yet
+
+  // Check if it's currently open (280px) or closed (0 or empty)
+  const isOpen = sidenav.style.width === "280px";
+
+  if (isOpen) {
+    sidenav.style.width = "0";
+    if (main) main.style.marginLeft = "0";
+  } else {
+    sidenav.style.width = "280px";
+    if (main) main.style.marginLeft = "280px";
+  }
 }
 
-let signOutButton = document.getElementById("signout");
+// --- SPINNER LOGIC ---
+// Targeting the #overlay element directly
+const overlay = document.getElementById("overlay");
 
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+const showSpinner = () => {
+  if (overlay) overlay.style.display = "flex";
+};
+
+const hideSpinner = () => {
+  if (overlay) overlay.style.display = "none";
+};
+
+function setupSidebarInteractions() {
+  // 1. Set the Fullname (Moved here from DOMContentLoaded)
+  const nameEl = document.getElementById("sidebar-fullname");
+  if (nameEl) {
+    nameEl.textContent = state.fullname || state.username || "User";
+  }
+
+  // 2. Re-attach Menu Toggles (Dropdowns)
+  const menuToggles = document.querySelectorAll(".menu-toggle");
+  menuToggles.forEach((toggle) => {
+    toggle.addEventListener("click", function () {
+      const targetId = this.getAttribute("data-target");
+      const targetMenu = document.getElementById(targetId);
+      const chevron = this.querySelector(".bi-chevron-down");
+
+      if (targetMenu) {
+        targetMenu.classList.toggle("hidden");
+        const isHidden = targetMenu.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!isHidden));
+        if (chevron) {
+          chevron.style.transform = isHidden
+            ? "rotate(0deg)"
+            : "rotate(180deg)";
+        }
+      }
+    });
+  });
+
+  // 3. Set Signout listener
+  document.getElementById("signout")?.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../../index.html";
+  });
+}
+
+async function loadSidebar() {
+  // document.getElementById("fullname").innerHTML = state.fullname;
+  const container = document.getElementById("sidebar-container");
+  if (!container) return; // Prevents errors if a page doesn't need a sidebar
+
+  try {
+    const response = await fetch("/sidebar.html"); // Fetches your single source file
+    const html = await response.text();
+    container.innerHTML = html;
+
+    // 1. Get the current filename (e.g., 'room/index.html')
+    const currentPath = window.location.pathname;
+
+    // 2. Find all links in the sidebar
+    const navLinks = document.querySelectorAll("#mySidenav a");
+
+    navLinks.forEach((link) => {
+      const href = link.getAttribute("href");
+
+      // 3. If the link's href is part of the current URL
+      if (href && currentPath.includes(href.replace(/\.\.\//g, ""))) {
+        // Check if this link is inside a dropdown
+        const parentDropdown = link.closest("ul[id^='dropdown-']");
+
+        if (parentDropdown) {
+          // HIGHLIGHT SUB-ITEM
+          link.classList.add("sub-active");
+
+          // AUTO-OPEN DROPDOWN
+          parentDropdown.classList.remove("hidden");
+
+          // ROTATE CHEVRON
+          const toggleBtn = document.querySelector(
+            `[data-target="${parentDropdown.id}"]`,
+          );
+          if (toggleBtn) {
+            toggleBtn.classList.add("text-gold", "font-bold");
+            toggleBtn.setAttribute("aria-expanded", "true");
+            const chevron = toggleBtn.querySelector(".bi-chevron-down");
+            if (chevron) chevron.style.transform = "rotate(180deg)";
+          }
+        } else {
+          // HIGHLIGHT MAIN TAB
+          link.classList.add("nav-active");
+        }
+      }
+    });
+
+    setupSidebarInteractions();
+  } catch (err) {
+    console.error("Sidebar failed to load:", err);
+  }
+}
+
+// Call the loader when the page opens
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
 });

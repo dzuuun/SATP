@@ -1,80 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Notre Dame of Marbel University Student Assessment of Teacher's Performance portal.">
+    <meta name="theme-color" content="#075c3b">
     <title>SATP | NDMU</title>
-    <link rel="icon" type="image/x-icon" href="./images/NDMU-Logo.png" />
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="./images/NDMU-Logo.png">
+    <link rel="preload" href="./images/DSC_0716-75.png" as="image">
+    <link rel="stylesheet" href="./style.css">
 </head>
-
-<body class="min-h-screen flex flex-col bg-gray-200 font-sans antialiased">
-
-    <header class="bg-green-800 text-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-md">
-        <div class="flex items-center">
-            <!-- <button onclick="toggleNav()" class="text-2xl mr-4 hover:text-yellow-400"> -->
-                <i class="bi bi-list"></i>
-            </button>
-            <img src="../images/NDMU-Logo.png" class="h-8 mr-3">
-            <h1 class="font-bold text-sm md:text-base">Notre Dame of Marbel University</h1>
-        </div>
-        <div class="text-right hidden md:block">
-            <p class=" font-bold text-sm md:text-base"> Student Assessment of Teacher's Performance</p>
-
-        </div>
+<body>
+    <header class="site-header">
+        <a class="university" href="./" aria-label="SATP home">
+            <img src="./images/NDMU-Logo.png" alt="" width="48" height="48">
+            <span>
+                <strong>Notre Dame of Marbel University</strong>
+                <small>Excellence through service</small>
+            </span>
+        </a>
+        <p>Student Assessment of Teacher's Performance</p>
     </header>
 
-    <main class="flex-1 flex items-center justify-center p-4 md:p-10">
-        <div class="flex w-full max-w-6xl bg-white shadow-2xl rounded-3xl overflow-hidden min-h-150">
+    <main>
+        <article class="portal-card">
+            <section class="hero" aria-labelledby="welcome-title">
+                <div class="hero-content">
+                    <img src="./images/satp branding white.png" alt="SATP" width="220" height="108">
+                    <p class="eyebrow">Assessment Portal</p>
+                    <h1 id="welcome-title">Your feedback helps great teaching grow.</h1>
+                    <p class="hero-copy">
+                        A secure and straightforward way for NDMU students to assess their learning experience.
+                    </p>
+                    <ul class="benefits" aria-label="Portal benefits">
+                        <li>Confidential</li>
+                        <li>Student-focused</li>
+                        <li>Easy to complete</li>
+                    </ul>
+                </div>
+            </section>
 
-            <section class="hidden md:flex w-1/2 text-white items-center justify-center relative"
-                style="background: linear-gradient(rgba(0, 102, 51, 0.75), rgba(0, 102, 51, 0.75)), url('./images/DSC_0716-75.png') center/cover no-repeat;">
-                <div class="text-center px-12 relative z-10">
-                    <img src="./images/satp-branding.png" alt="SATP Branding" class="mx-auto w-48 mb-8" />
-                    <h1 class="text-4xl font-bold mb-3">Welcome to SATP</h1>
-                    <p class="text-base opacity-90 leading-relaxed">
-                        Student Assessment of Teacher's Performance system.
+            <section class="sign-in" aria-labelledby="sign-in-title">
+                <div class="sign-in-content">
+                    <div class="icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="26" height="26">
+                            <path d="M12 3a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-7 17c.6-4 3-6 7-6s6.4 2 7 6H5Z"/>
+                        </svg>
+                    </div>
+                    <p class="eyebrow green">Student portal</p>
+                    <h2 id="sign-in-title">Ready to begin?</h2>
+                    <p>Sign in with your student account to access your available assessments.</p>
+                    <a class="login-button" href="./login/">
+                        <span>Log in to SATP</span>
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path d="m13 5 7 7-7 7M20 12H4"/>
+                        </svg>
+                    </a>
+                    <p class="support">
+                        Need help? Visit the <strong>MIS Department</strong> for technical assistance.
                     </p>
                 </div>
             </section>
-
-            <section class="w-full md:w-1/2 flex items-center justify-center bg-gray-100 p-6">
-                <div class="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl md:shadow-none text-center">
-
-                    <img src="./images/NDMU-Logo.png" alt="NDMU Logo" class="w-20 h-20 mx-auto mb-6 md:hidden" />
-
-                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Get Started</h2>
-                    <p class="text-gray-500 mb-8">Please sign in to your account to begin the assessment process.</p>
-
-                    <div class="space-y-4">
-                        <button onclick="window.location.href='login/index.html'"
-                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-green-800 hover:bg-green-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-700 transition-all active:scale-95 shadow-lg">
-                            Log In
-                        </button>
-
-                    </div>
-
-                    <div class="mt-8 pt-8 border-t border-gray-100">
-                        <p class="text-xs text-gray-400">
-                            For technical assistance, please visit the MIS Department.
-                        </p>
-                    </div>
-
-                </div>
-            </section>
-
-        </div>
+        </article>
     </main>
 
-    <footer class="bg-green-800 text-white text-center py-4 text-sm border-t border-green-900">
-        <p>NDMU © <span id="year"></span> | Developed by MIS Department</p>
+    <footer>
+        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+        <span aria-hidden="true"></span>
+        <p>Developed by the MIS Department</p>
     </footer>
 
-    <script>
-        // Set the current year in the footer
-        document.getElementById("year").textContent = new Date().getFullYear();
-    </script>
+    <script src="./script.js" defer></script>
 </body>
-
 </html>

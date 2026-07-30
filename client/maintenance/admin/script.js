@@ -2,7 +2,7 @@
 var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+var fullname = localStorage.getItem("fullname");
 
 if (user === null) {
   alert("Log in to continue.");
@@ -43,7 +43,9 @@ let data = $("#table").DataTable({
       render: function (data, type, row) {
         return `<td  class="text-center">
         <div class="text-nowrap">              
-          <button class='btn bi fs-5 bi-pencil' type="button"onclick="edit(${row.id})" title="Edit"></button>
+          <button class="table-edit-button" type="button" onclick="edit(${row.id})" title="Edit administrator" aria-label="Edit administrator">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg>
+          </button>
         </div>
       </td> `;
       },
@@ -72,7 +74,6 @@ const getPermission = async () => {
   result.forEach((row) => {
     permissionList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
-  $(".form-control").selectpicker("refresh");
 };
 
 getPermission();
@@ -119,63 +120,41 @@ formAddAdmin.addEventListener("submit", async (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
+          toggleModal("addNewModal", false);
           $("#table").DataTable().ajax.reload();
         }
       });
   }
 });
 
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-  $(".form-control").selectpicker("refresh");
-});
-
 function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+  showToast(message, "success");
 }
 
 function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
+  showToast(message, "error");
+}
+
+function showToast(message, type) {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  const icon = document.createElement("span");
+  const text = document.createElement("span");
+
+  toast.className = "admin-toast";
+  toast.setAttribute("role", "status");
+  icon.className = "toast-symbol";
+  icon.innerHTML =
+    type === "success"
+      ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>'
+      : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5m0 3h.01M10.3 4.6 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"/></svg>';
+  text.textContent = message;
+  toast.append(icon, text);
+  container.replaceChildren(toast);
+
   setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+    toast.remove();
+  }, 4000);
 }
 
 // update information on the API
@@ -197,7 +176,8 @@ async function edit(id) {
         document.getElementById("editIsAdminStatusActive").checked = true;
       }
       rowIdToUpdate = data.id;
-      $("#editModal").modal("show");
+      switchAdminTab("personalInformation");
+      toggleModal("editModal", true);
     });
 }
 const formEditAdmin = document.querySelector("#editAdminInfoForm");
@@ -222,7 +202,7 @@ formEditAdmin.addEventListener("submit", async (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
+          toggleModal("editModal", false);
           $("#table").DataTable().ajax.reload();
         }
       });
@@ -255,7 +235,7 @@ formEditAdminStatus.addEventListener("submit", async (event) => {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
+          toggleModal("editModal", false);
           $("#table").DataTable().ajax.reload();
         }
       });
@@ -266,7 +246,7 @@ formEditAdminStatus.addEventListener("submit", async (event) => {
 var rowIdToDelete;
 function deleteRow(id) {
   rowIdToDelete = id;
-  $("#deleteModal").modal("show");
+  toggleModal("deleteModal", true);
 }
 
 async function confirmDelete() {
@@ -285,35 +265,134 @@ async function confirmDelete() {
           setErrorMessage(response.message);
         } else {
           setSuccessMessage(response.message);
-          $("#deleteModal").modal("hide");
+          toggleModal("deleteModal", false);
           $("#table").DataTable().ajax.reload();
         }
       });
   }
 }
 
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
-}
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
-}
 function toggleNav() {
-  nav ? closeNav() : openNav();
+  const sidenav = document.getElementById("mySidenav");
+  const main = document.getElementById("main");
+  if (!sidenav) return;
+
+  const isOpen = sidenav.style.width === "280px";
+  sidenav.style.width = isOpen ? "0" : "280px";
+  if (main) {
+    main.style.marginLeft =
+      window.innerWidth <= 760 || isOpen ? "0" : "280px";
+  }
 }
 
-let signOutButton = document.getElementById("signout");
+function toggleModal(modalId, show = true) {
+  const modal = document.getElementById(modalId);
+  const card = document.getElementById(`${modalId}Card`);
+  if (!modal) return;
 
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.remove("scale-95");
+      card?.classList.add("scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
+    return;
+  }
+
+  modal.classList.remove("opacity-100");
+  card?.classList.remove("scale-100");
+  card?.classList.add("scale-95");
+
+  setTimeout(() => {
+    modal.classList.add("invisible");
+    modal.querySelectorAll("form").forEach((form) => form.reset());
+  }, 250);
+  document.body.classList.remove("overflow-hidden");
+}
+
+function switchAdminTab(tabId) {
+  document.querySelectorAll(".admin-tab-panel").forEach((panel) => {
+    panel.classList.toggle("hidden", panel.id !== tabId);
+  });
+  document.querySelectorAll(".modal-tabs button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.tab === tabId);
+  });
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  ["addNewModal", "editModal"].forEach((modalId) => {
+    const modal = document.getElementById(modalId);
+    if (modal && !modal.classList.contains("invisible")) {
+      toggleModal(modalId, false);
+    }
+  });
+});
+
+function setupSidebarInteractions() {
+  const nameEl = document.getElementById("sidebar-fullname");
+  if (nameEl) nameEl.textContent = fullname || username || "User";
+
+  document.querySelectorAll(".menu-toggle").forEach((toggle) => {
+    toggle.addEventListener("click", function () {
+      const targetMenu = document.getElementById(this.dataset.target);
+      if (!targetMenu) return;
+      targetMenu.classList.toggle("hidden");
+      const isHidden = targetMenu.classList.contains("hidden");
+      this.setAttribute("aria-expanded", String(!isHidden));
+      const chevron = this.querySelector(".chevron");
+      if (chevron) {
+        chevron.style.transform = isHidden
+          ? "rotate(0deg)"
+          : "rotate(180deg)";
+      }
+    });
+  });
+
+  document.getElementById("signout")?.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../../index.html";
+  });
+}
+
+async function loadSidebar() {
+  const container = document.getElementById("sidebar-container");
+  if (!container) return;
+
+  try {
+    const response = await fetch("/sidebar.html");
+    container.innerHTML = await response.text();
+
+    document.querySelectorAll("#mySidenav a").forEach((link) => {
+      const href = link.getAttribute("href");
+      if (!href || !window.location.pathname.includes(href)) return;
+
+      const parentDropdown = link.closest("ul[id^='dropdown-']");
+      if (parentDropdown) {
+        link.classList.add("sub-active");
+        parentDropdown.classList.remove("hidden");
+        const toggle = document.querySelector(
+          `[data-target="${parentDropdown.id}"]`,
+        );
+        if (toggle) {
+          toggle.setAttribute("aria-expanded", "true");
+          const chevron = toggle.querySelector(".chevron");
+          if (chevron) chevron.style.transform = "rotate(180deg)";
+        }
+      } else {
+        link.classList.add("nav-active");
+      }
+    });
+
+    setupSidebarInteractions();
+  } catch (error) {
+    console.error("Sidebar failed to load:", error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
 });
