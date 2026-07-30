@@ -1,133 +1,171 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#075c3b" />
+    <title>SATP | Update Password</title>
+    <link rel="icon" href="../../images/NDMU-Logo.png" />
+    <link rel="stylesheet" href="../../tailwind.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="sidebar-container"></div>
+    <div id="main">
+      <header class="site-header">
+        <div class="header-brand">
+          <button
+            class="menu-button"
+            type="button"
+            onclick="toggleNav()"
+            aria-label="Open navigation"
+          >
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
+          <a href="../../">
+            <img
+              src="../../images/NDMU-Logo.png"
+              alt=""
+              width="44"
+              height="44"
+            />
+            <span
+              ><strong>Notre Dame of Marbel University</strong
+              ><small>Student Assessment of Teacher's Performance</small></span
+            >
+          </a>
+        </div>
+        <div class="header-context">
+          <span>Account settings</span><strong>Update password</strong>
+        </div>
+      </header>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SATP | Update Password</title>
-  <link rel="icon" type="image/x-icon" href="../../images/NDMU-Logo.png" />
-  <link rel="stylesheet" href="style.css" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
-  <link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.css" rel="stylesheet" />
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css" />
-</head>
+      <main class="workspace">
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">Account security</p>
+            <h1>Update password</h1>
+            <p>Replace your current password with a new secure password.</p>
+          </div>
+          <nav aria-label="Breadcrumb">
+            <a href="../../">SATP</a
+            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
+            ><span>Account settings</span
+            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
+            ><span>Update password</span>
+          </nav>
+        </section>
 
-<body style="min-height: 400px; margin-bottom: 100px; clear: both">
-  <div id="main">
-    <nav class="navbar sticky-top" style="background-color: darkgreen">
-      <div class="container-fluid">
-        <a class="navbar-brand fs-7 text-white">
-          <i class="bi bi-list"></i>
-          <img src="../../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
-            class="d-inline-block align-text-top" />
-          Notre Dame of Marbel University
-        </a>
-        <span class="navbar-text text-nowrap text-white">
-          Student Assessment of Teacher's Performance
-        </span>
-      </div>
-    </nav>
-
-    <div class="container-fluid">
-
-      <div class="row">
-        <div class="col-md">
-          <div class="container-fluid mt-3">
-            <div class="row align-items-center border-bottom mb-2">
-              <div class="col-md">
-                <div class="container-fluid mb-3">
-                  <h1 class="display-5">Update Password</h1>
-                </div>
-              </div>
-              <div class="col-md">
-                <nav aria-label="breadcrumb">
-                  <ol class="breadcrumb float-end">
-                    <li class="breadcrumb-item">Update</li>
-                    <li class="breadcrumb-item active" aria-current="page">
-                      Password
-                    </li>
-                  </ol>
-                </nav>
+        <section class="password-layout">
+          <article class="password-card">
+            <div class="card-heading">
+              <span class="security-icon"
+                ><svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 3 5 6v5c0 4.6 2.8 8.3 7 10 4.2-1.7 7-5.4 7-10V6l-7-3Zm-3 9 2 2 4-5"
+                  /></svg
+              ></span>
+              <div>
+                <p class="eyebrow">Security check</p>
+                <h2>Choose a new password</h2>
+                <p>Confirm your current password before making this change.</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div class="mt-5">
-          <div class="row">
-            <div class="col"></div>
-            <div class="col-4 mt-3">
-              <div class="row mb-3">
-
-                <div class="col-md">
-                  <label class="form-label fw-bold">Current Password:</label>
-                  <input class="form-control" type="password" name="password" id="currentPassword" />
+            <form id="passwordForm">
+              <div class="form-body">
+                <div class="field">
+                  <label for="currentPassword">Current password</label
+                  ><input
+                    id="currentPassword"
+                    name="currentPassword"
+                    type="password"
+                    autocomplete="current-password"
+                    required
+                  />
                 </div>
+                <div class="field">
+                  <label for="newPassword">New password</label
+                  ><input
+                    id="newPassword"
+                    name="newPassword"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                  /><small>Use at least 8 characters.</small>
+                </div>
+                <div class="field">
+                  <div class="field-label">
+                    <label for="confirmNewPassword">Confirm new password</label
+                    ><span id="passwordMatchField" aria-live="polite"></span>
+                  </div>
+                  <input
+                    id="confirmNewPassword"
+                    name="confirmNewPassword"
+                    type="password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                  />
+                </div>
+                <label class="inline-check"
+                  ><input id="showPassword" type="checkbox" />Show
+                  passwords</label
+                >
               </div>
-              <div class="row mb-3">
-                <div class="col-md">
-                  <label class="form-label fw-bold">New Password:</label>
-                  <input class="form-control" type="password" name="password" id="newPassword" />
-                </div>
-              </div>
-              <div class="row mb-3">
+              <footer class="form-footer">
+                <button
+                  class="secondary-button"
+                  type="button"
+                  onclick="history.back()"
+                >
+                  Cancel</button
+                ><button id="submit" class="primary-button" type="submit">
+                  <svg viewBox="0 0 24 24"><path d="M5 12.5 9 16l10-10" /></svg
+                  ><span id="submitLabel">Update password</span>
+                </button>
+              </footer>
+            </form>
+          </article>
 
-                <div class="col-md">
-                  <label class="form-label fw-bold">Confirm New Password: </label>
-                  <span id="passwordMatchField" style="color: red;"></span>
-                  <input class="form-control" type="password" name="password" id="confirmNewPassword"
-                    onkeyup="change()" />
-                </div>
-              </div>
-              <div class="row ">
-                <div class="col mt-3">
-                  <button type="button" id="showPassword" class="btn btn-default border-0 fs-5"
-                    title="Toggle Visibility">
-                    <i class="bi bi-eye"></i>
-                  </button>
-                </div>
-                <div class="col mt-3 text-end">
-                  <button type="button" class="btn btn-default" onclick="history.back()">
-                    Cancel
-                  </button>
-                  <button id="submit" style="background-color: darkgreen"
-                    class="btn btn-default border text-white text-nowrap">
-                    Submit
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div class="col"></div>
-          </div>
-        </div>
+          <aside class="security-notes">
+            <p class="eyebrow">Password guidance</p>
+            <h2>Keep your account secure</h2>
+            <ul>
+              <li>
+                <span
+                  ><svg viewBox="0 0 24 24">
+                    <path d="m5 12 4 4L19 6" /></svg></span
+                >Use a password unique to SATP.
+              </li>
+              <li>
+                <span
+                  ><svg viewBox="0 0 24 24">
+                    <path d="m5 12 4 4L19 6" /></svg></span
+                >Avoid names and predictable sequences.
+              </li>
+              <li>
+                <span
+                  ><svg viewBox="0 0 24 24">
+                    <path d="m5 12 4 4L19 6" /></svg></span
+                >Do not share your password with anyone.
+              </li>
+            </ul>
+            <p class="support-copy">
+              If you cannot remember your current password, contact the MIS
+              Department for assistance.
+            </p>
+          </aside>
+        </section>
+      </main>
 
-      </div>
+      <footer class="site-footer">
+        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+        <span></span>
+        <p>Developed by the MIS Department</p>
+      </footer>
     </div>
-    <!-- Toast container -->
-    <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
-  </div>
-</body>
-
-<footer>
-  <div class="container-fluid text-center">
-    <span class="text-white">
-       NDMU © <span id="year"></span> | Developed by MIS Department
-    </span>
-  </div>
-</footer>
-
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-  integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
-  crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
-<script src="./script.js"></script>
-<script> document.getElementById("year").textContent = new Date().getFullYear();</script>
-
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+    <script src="./script.js"></script>
+  </body>
 </html>

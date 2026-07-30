@@ -380,7 +380,13 @@ async function loadSidebar() {
       }),
     );
     document.querySelectorAll("#mySidenav a").forEach((link) => {
-      if (!location.pathname.includes(link.getAttribute("href"))) return;
+      const currentPath = location.pathname
+        .replace(/\/index\.html$/, "")
+        .replace(/\/$/, "");
+      const linkPath = new URL(link.href, location.origin).pathname
+        .replace(/\/index\.html$/, "")
+        .replace(/\/$/, "");
+      if (linkPath !== currentPath) return;
       const list = link.closest("ul[id^='dropdown-']");
       link.classList.add(list ? "sub-active" : "nav-active");
       if (list) {

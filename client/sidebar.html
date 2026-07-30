@@ -11,12 +11,23 @@
     overflow: hidden;
     color: #fff;
     background:
-      radial-gradient(circle at 20% 0, rgba(255, 255, 255, .08), transparent 15rem),
+      radial-gradient(
+        circle at 20% 0,
+        rgba(255, 255, 255, 0.08),
+        transparent 15rem
+      ),
       var(--side-green);
-    border-right: 1px solid rgba(255, 255, 255, .1);
-    box-shadow: 20px 0 50px rgba(3, 31, 22, .18);
-    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    transition: width .3s ease;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 20px 0 50px rgba(3, 31, 22, 0.18);
+    font-family:
+      Inter,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+    transition: width 0.3s ease;
   }
 
   .satp-sidebar * {
@@ -37,7 +48,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   .satp-sidebar .sidebar-brand {
@@ -64,14 +75,14 @@
     font-family: Georgia, "Times New Roman", serif;
     font-size: 1.08rem;
     font-weight: 500;
-    letter-spacing: -.02em;
+    letter-spacing: -0.02em;
   }
 
   .satp-sidebar .sidebar-brand small {
-    color: rgba(255, 255, 255, .52);
-    font-size: .58rem;
+    color: rgba(255, 255, 255, 0.52);
+    font-size: 0.58rem;
     font-weight: 800;
-    letter-spacing: .12em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
@@ -81,17 +92,19 @@
     display: grid;
     place-items: center;
     flex: 0 0 auto;
-    color: rgba(255, 255, 255, .65);
-    background: rgba(255, 255, 255, .06);
-    border: 1px solid rgba(255, 255, 255, .09);
+    color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.09);
     border-radius: 9px;
     cursor: pointer;
-    transition: color .2s ease, background-color .2s ease;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
   }
 
   .satp-sidebar .sidebar-close:hover {
     color: var(--side-gold);
-    background: rgba(255, 255, 255, .12);
+    background: rgba(255, 255, 255, 0.12);
   }
 
   .satp-sidebar .sidebar-close svg,
@@ -107,15 +120,15 @@
     padding: 22px 14px;
     overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, .16) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
   }
 
   .satp-sidebar .nav-label {
     margin: 0 10px 10px;
-    color: rgba(255, 255, 255, .38);
-    font-size: .59rem;
+    color: rgba(255, 255, 255, 0.38);
+    font-size: 0.59rem;
     font-weight: 850;
-    letter-spacing: .15em;
+    letter-spacing: 0.15em;
     text-transform: uppercase;
   }
 
@@ -140,23 +153,26 @@
     align-items: center;
     gap: 11px;
     position: relative;
-    color: rgba(255, 255, 255, .76);
+    color: rgba(255, 255, 255, 0.76);
     background: transparent;
     border: 1px solid transparent;
     border-radius: 11px;
-    font-size: .77rem;
+    font-size: 0.77rem;
     font-weight: 680;
     text-align: left;
     text-decoration: none;
     cursor: pointer;
-    transition: color .2s ease, background-color .2s ease, border-color .2s ease;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .satp-sidebar .nav-link:hover,
   .satp-sidebar .menu-toggle:hover {
     color: #fff;
-    background: rgba(255, 255, 255, .07);
-    border-color: rgba(255, 255, 255, .06);
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.06);
   }
 
   .satp-sidebar .nav-icon {
@@ -173,9 +189,9 @@
   .satp-sidebar .chevron {
     width: 14px;
     height: 14px;
-    color: rgba(255, 255, 255, .4);
+    color: rgba(255, 255, 255, 0.4);
     stroke-width: 2;
-    transition: transform .2s ease;
+    transition: transform 0.2s ease;
   }
 
   .satp-sidebar .submenu {
@@ -183,23 +199,25 @@
     padding: 4px 0 4px 18px;
     display: grid;
     gap: 2px;
-    border-left: 1px solid rgba(255, 255, 255, .12);
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .satp-sidebar .submenu a {
     padding: 7px 9px;
     display: block;
-    color: rgba(255, 255, 255, .55);
+    color: rgba(255, 255, 255, 0.55);
     border-radius: 7px;
-    font-size: .68rem;
+    font-size: 0.68rem;
     font-weight: 620;
     text-decoration: none;
-    transition: color .2s ease, background-color .2s ease;
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
   }
 
   .satp-sidebar .submenu a:hover {
     color: #fff;
-    background: rgba(255, 255, 255, .06);
+    background: rgba(255, 255, 255, 0.06);
   }
 
   .satp-sidebar .hidden {
@@ -209,7 +227,7 @@
   .satp-sidebar .nav-active {
     color: #fff !important;
     background: var(--side-green-light) !important;
-    border-color: rgba(255, 255, 255, .08) !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
     box-shadow: inset 3px 0 0 var(--side-gold);
   }
 
@@ -219,7 +237,7 @@
 
   .satp-sidebar .sub-active {
     color: var(--side-gold) !important;
-    background: rgba(255, 255, 255, .06);
+    background: rgba(255, 255, 255, 0.06);
     font-weight: 800 !important;
   }
 
@@ -228,17 +246,18 @@
     display: block;
     min-height: auto;
     color: #fff;
-    border-top: 1px solid rgba(255, 255, 255, .1);
-    background: rgba(0, 0, 0, .1);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.1);
   }
 
   .satp-sidebar .profile-card {
     padding: 11px;
-    display: flex;
+    display: grid;
+    grid-template-columns: 38px minmax(0, 1fr);
     align-items: center;
     gap: 11px;
-    background: rgba(255, 255, 255, .055);
-    border: 1px solid rgba(255, 255, 255, .07);
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.07);
     border-radius: 12px;
   }
 
@@ -247,39 +266,84 @@
     height: 38px;
     flex: 0 0 auto;
     object-fit: cover;
-    border: 2px solid rgba(243, 201, 77, .65);
+    border: 2px solid rgba(243, 201, 77, 0.65);
     border-radius: 50%;
   }
 
   .satp-sidebar .profile-info {
     min-width: 0;
-    flex: 1;
   }
 
   .satp-sidebar .profile-info p {
     margin: 0 0 3px;
     overflow: hidden;
     color: #fff;
-    font-size: .72rem;
+    font-size: 0.72rem;
     font-weight: 750;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  .satp-sidebar #signout {
-    padding: 0;
-    color: rgba(255, 255, 255, .48);
-    background: none;
-    border: 0;
-    font-size: .59rem;
+  .satp-sidebar .profile-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 1px;
+  }
+
+  .satp-sidebar .profile-action {
+    min-width: 0;
+    min-height: 31px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex: 1;
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.055);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    font-size: 0.55rem;
     font-weight: 800;
-    letter-spacing: .08em;
+    letter-spacing: 0.045em;
     text-transform: uppercase;
     cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    transition:
+      color 0.18s ease,
+      background-color 0.18s ease,
+      border-color 0.18s ease;
+  }
+
+  .satp-sidebar .profile-action svg {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.9;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .satp-sidebar .profile-action:hover {
+    color: var(--side-gold);
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(243, 201, 77, 0.26);
+  }
+
+  .satp-sidebar .profile-action.profile-current {
+    color: var(--side-gold);
+    background: rgba(243, 201, 77, 0.1);
+    border-color: rgba(243, 201, 77, 0.3);
   }
 
   .satp-sidebar #signout:hover {
     color: #ff9c95;
+    border-color: rgba(255, 156, 149, 0.24);
   }
 
   .satp-sidebar button:focus-visible,
@@ -291,24 +355,39 @@
   @media (prefers-reduced-motion: reduce) {
     .satp-sidebar,
     .satp-sidebar * {
-      transition-duration: .01ms !important;
+      transition-duration: 0.01ms !important;
     }
   }
 </style>
 
-<aside id="mySidenav" class="sidenav satp-sidebar" aria-label="Primary navigation">
+<aside
+  id="mySidenav"
+  class="sidenav satp-sidebar"
+  aria-label="Primary navigation"
+>
   <div class="sidebar-inner">
     <header class="sidebar-header">
       <div class="sidebar-brand">
-        <img src="/images/NDMU-Logo.png" alt="" width="42" height="42">
+        <img src="/images/NDMU-Logo.png" alt="" width="42" height="42" />
         <span>
           <strong>SATP</strong>
           <small>Admin portal</small>
         </span>
       </div>
-      <button type="button" class="sidebar-close" onclick="toggleNav()" aria-label="Close navigation">
-        <svg viewBox="0 0 24 24" width="18" height="18" stroke-width="2.2" aria-hidden="true">
-          <path d="M6 6l12 12M18 6 6 18"/>
+      <button
+        type="button"
+        class="sidebar-close"
+        onclick="toggleNav()"
+        aria-label="Close navigation"
+      >
+        <svg
+          viewBox="0 0 24 24"
+          width="18"
+          height="18"
+          stroke-width="2.2"
+          aria-hidden="true"
+        >
+          <path d="M6 6l12 12M18 6 6 18" />
         </svg>
       </button>
     </header>
@@ -319,19 +398,33 @@
         <li>
           <a href="/transaction/index.html" class="nav-link">
             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
+              <path
+                d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"
+              />
             </svg>
             <span>Transactions</span>
           </a>
         </li>
 
         <li>
-          <button type="button" class="menu-toggle" data-target="dropdown-rating" aria-controls="dropdown-rating" aria-expanded="false">
+          <button
+            type="button"
+            class="menu-toggle"
+            data-target="dropdown-rating"
+            aria-controls="dropdown-rating"
+            aria-expanded="false"
+          >
             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M4 20V10m6 10V4m6 16v-7m5 7H1"/>
+              <path d="M4 20V10m6 10V4m6 16v-7m5 7H1" />
             </svg>
             <span>Reports</span>
-            <svg class="chevron bi-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            <svg
+              class="chevron bi-chevron-down"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </button>
           <ul id="dropdown-rating" class="submenu hidden">
             <li><a href="/report/ranking/index.html">Ranking</a></li>
@@ -340,43 +433,81 @@
         </li>
 
         <li>
-          <button type="button" class="menu-toggle" data-target="dropdown-maintenance" aria-controls="dropdown-maintenance" aria-expanded="false">
+          <button
+            type="button"
+            class="menu-toggle"
+            data-target="dropdown-maintenance"
+            aria-controls="dropdown-maintenance"
+            aria-expanded="false"
+          >
             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/>
-              <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.95 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.58 15 1.7 1.7 0 0 0 3 14H3v-4h.08A1.7 1.7 0 0 0 4.6 8.95a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.58 1.7 1.7 0 0 0 10 3V3h4v.08A1.7 1.7 0 0 0 15.05 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.42 9 1.7 1.7 0 0 0 21 10v4h-.08A1.7 1.7 0 0 0 19.4 15Z"/>
+              <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" />
+              <path
+                d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.95 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.58 15 1.7 1.7 0 0 0 3 14H3v-4h.08A1.7 1.7 0 0 0 4.6 8.95a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.58 1.7 1.7 0 0 0 10 3V3h4v.08A1.7 1.7 0 0 0 15.05 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.42 9 1.7 1.7 0 0 0 21 10v4h-.08A1.7 1.7 0 0 0 19.4 15Z"
+              />
             </svg>
             <span>Maintenance</span>
-            <svg class="chevron bi-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            <svg
+              class="chevron bi-chevron-down"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </button>
           <ul id="dropdown-maintenance" class="submenu hidden">
             <li><a href="/maintenance/admin/index.html">Admin</a></li>
             <li><a href="/maintenance/category/index.html">Category</a></li>
             <li><a href="/maintenance/college/index.html">College</a></li>
             <li><a href="/maintenance/course/index.html">Course</a></li>
-            <li><a href="/maintenance/departments/index.html">Department</a></li>
+            <li>
+              <a href="/maintenance/departments/index.html">Department</a>
+            </li>
             <li><a href="/maintenance/items/index.html">Items</a></li>
             <li><a href="/maintenance/room/index.html">Room</a></li>
-            <li><a href="/maintenance/school_year/index.html">School year</a></li>
+            <li>
+              <a href="/maintenance/school_year/index.html">School year</a>
+            </li>
             <li><a href="/maintenance/semester/index.html">Semester</a></li>
             <li><a href="/maintenance/student/index.html">Student</a></li>
-            <li><a href="/maintenance/student_subject/index.html">Student subject</a></li>
+            <li>
+              <a href="/maintenance/student_subject/index.html"
+                >Student subject</a
+              >
+            </li>
             <li><a href="/maintenance/subject/index.html">Subject</a></li>
             <li><a href="/maintenance/teacher/index.html">Teacher</a></li>
           </ul>
         </li>
 
         <li>
-          <button type="button" class="menu-toggle" data-target="dropdown-user" aria-controls="dropdown-user" aria-expanded="false">
+          <button
+            type="button"
+            class="menu-toggle"
+            data-target="dropdown-user"
+            aria-controls="dropdown-user"
+            aria-expanded="false"
+          >
             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+              <path
+                d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm13 10v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+              />
             </svg>
             <span>Users & access</span>
-            <svg class="chevron bi-chevron-down" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            <svg
+              class="chevron bi-chevron-down"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
           </button>
           <ul id="dropdown-user" class="submenu hidden">
             <li><a href="/user/activity_log/index.html">Activity log</a></li>
             <li><a href="/user/permission/index.html">Permissions</a></li>
-            <li><a href="/user/user_management/index.html">User management</a></li>
+            <li>
+              <a href="/user/user_management/index.html">User management</a>
+            </li>
           </ul>
         </li>
       </ul>
@@ -384,10 +515,38 @@
 
     <footer class="sidebar-profile">
       <div class="profile-card">
-        <img src="/images/blank-profile-picture-973460_1280.png" alt="" width="38" height="38">
+        <img
+          src="/images/blank-profile-picture-973460_1280.png"
+          alt=""
+          width="38"
+          height="38"
+          onload="document.getElementById('update-password-action').style.display = localStorage.getItem('is_student_rater') === '0' ? 'inline-flex' : 'none'"
+        />
         <div class="profile-info">
           <p id="sidebar-fullname">User</p>
-          <button type="button" id="signout">Sign out</button>
+        </div>
+        <div class="profile-actions">
+          <a
+            class="profile-action"
+            id="update-password-action"
+            href="/update/password/index.html"
+            style="display: none"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M15 7a4 4 0 1 1-2.8-3.82M14 6l7-3v6M13 11l8 8M18 14l-4 4"
+              />
+            </svg>
+            Password
+          </a>
+          <button class="profile-action" type="button" id="signout">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M10 17l5-5-5-5M15 12H3M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"
+              />
+            </svg>
+            Sign out
+          </button>
         </div>
       </div>
     </footer>

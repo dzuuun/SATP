@@ -119,7 +119,11 @@ async function editFormCall(id) {
           s.surname,
         ][i]),
     );
-    document.getElementById("editGenderSelect").value = s.gender;
+    document.getElementById("editGenderSelect").value = String(
+      s.gender || "",
+    )
+      .trim()
+      .toUpperCase();
     document.getElementById("editCourseSelect").value = s.course_id;
     document.getElementById("editYearLevel").value = s.year_level;
     document.getElementById("editIsStudentStatusActive").checked =
@@ -147,17 +151,26 @@ document
           : 0,
       };
     try {
-      const first = await requestJson("/api/student/update/info", {
-        method: "PUT",
-        body: JSON.stringify(info),
-      });
-      if (!first.success) return setErrorMessage(first.message);
-      const second = await requestJson("/api/student/update/status", {
-        method: "PUT",
-        body: JSON.stringify(status),
-      });
-      if (!second.success) return setErrorMessage(second.message);
-      setSuccessMessage(second.message || first.message);
+      const [first, second] = await Promise.all([
+        requestJson("/api/student/update/info", {
+          method: "PUT",
+          body: JSON.stringify(info),
+        }),
+        requestJson("/api/student/update/status", {
+          method: "PUT",
+          body: JSON.stringify(status),
+        }),
+      ]);
+      if (!first.success && !second.success) {
+        return setErrorMessage("No student information or status changed.");
+      }
+      setSuccessMessage(
+        first.success && second.success
+          ? "Student information and status updated successfully."
+          : first.success
+            ? first.message
+            : second.message,
+      );
       toggleModal("editModal", false);
       table.ajax.reload(null, false);
     } catch (error) {
@@ -245,7 +258,9 @@ function classifyRows(rows, existing) {
       givenname = String(raw.givenname || "").trim(),
       middlename = String(raw.middlename || "").trim(),
       year_level = String(raw.year_level || "").trim(),
-      gender = String(raw.gender || "").trim(),
+      gender = String(raw.gender || "")
+        .trim()
+        .toUpperCase(),
       courseCode = String(raw.course_code || "")
         .trim()
         .toUpperCase(),
@@ -464,8 +479,32 @@ async function loadSidebar() {
       t.addEventListener("click", function () {
         const m = document.getElementById(this.dataset.target);
         m?.classList.toggle("hidden");
+        const hidden = m?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow) {
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+        }
       }),
     );
+    const currentPath = location.pathname
+      .replace(/\/index\.html$/, "")
+      .replace(/\/$/, "");
+    document.querySelectorAll("#mySidenav a[href]").forEach((link) => {
+      const linkPath = new URL(link.href, location.origin).pathname
+        .replace(/\/index\.html$/, "")
+        .replace(/\/$/, "");
+      if (linkPath !== currentPath) return;
+      const list = link.closest("ul[id^='dropdown-']");
+      link.classList.add(list ? "sub-active" : "nav-active");
+      if (list) {
+        list.classList.remove("hidden");
+        const toggle = document.querySelector(`[data-target="${list.id}"]`);
+        toggle?.setAttribute("aria-expanded", "true");
+        const arrow = toggle?.querySelector(".chevron");
+        if (arrow) arrow.style.transform = "rotate(180deg)";
+      }
+    });
     document.getElementById("signout")?.addEventListener("click", () => {
       localStorage.clear();
       location.href = "../../index.html";

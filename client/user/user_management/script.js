@@ -1,667 +1,585 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var usersAccess = localStorage.getItem("usersAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+const state = {
+  userId: localStorage.getItem("user_id"),
+  usersAccess: localStorage.getItem("usersAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+  editId: null,
+  importMode: null,
+  validRows: [],
+  errorRows: [],
+};
 
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (usersAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.usersAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-var data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/user`,
-  },
-  columnDefs: [{ className: "dt-center", targets: "" }],
+const yesNo = (value) =>
+  `<span class="boolean-badge ${Number(value) ? "" : "off"}">${Number(value) ? "Yes" : "No"}</span>`;
+const table = $("#table").DataTable({
+  ajax: { url: "/api/user", dataSrc: "data", cache: true },
   columns: [
-    { width: "10%", data: "username" },
-    { data: "Name" },
-    { width: "10%", data: "permission" },
+    { data: "username", title: "Username", width: "10%" },
+    { data: "Name", title: "Name" },
+    { data: "permission", title: "Permission", width: "13%" },
     {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_temp_pass
-            ? '<span  style="color: red">Yes</span>'
-            : "<span>No</span>"
-        }
-                  </td>`;
-      },
+      data: "is_temp_pass",
+      title: "Temporary",
+      className: "dt-center",
+      render: yesNo,
     },
     {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_student_rater ? "<span>Yes</span>" : "<span>No</span>"
-        }
-                  </td>`;
-      },
+      data: "is_student_rater",
+      title: "Student",
+      className: "dt-center",
+      render: yesNo,
     },
     {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_admin_rater ? "<span>Yes</span>" : "<span>No</span>"
-        }
-                  </td>`;
-      },
+      data: "is_admin_rater",
+      title: "Admin",
+      className: "dt-center",
+      render: yesNo,
     },
     {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
-      },
+      data: "is_active",
+      title: "Status",
+      className: "dt-center",
+      render: (value) =>
+        Number(value)
+          ? '<span class="status-badge active">Active</span>'
+          : '<span class="status-badge inactive">Inactive</span>',
     },
     {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">
-              <div class="dropdown">
-              <button class='btn bi fs-5 bi-pencil border-0' onclick="edit(${row.id})")'></button>
-                <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" onclick="edit(${row.id})">Edit User Info</a></li>
-                  <li><a class="delete dropdown-item" >Edit User Control</a></li>
-                  <li><a class="delete dropdown-item" >Edit User Log In Credentials</a></li>
-                </ul>
-               <!-- <button class='btn bi fs-5 bi-trash' onclick="deleteRow(${row.id})")' title="Delete"></button> -->
-                </div>
-              </div>
-            </td> `;
-      },
+      data: "id",
+      title: "Actions",
+      width: "7%",
+      orderable: false,
+      className: "dt-center",
+      render: (id) =>
+        `<button class="table-edit-button" type="button" onclick="editUser(${id})" aria-label="Edit user"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
     },
   ],
+  pageLength: 10,
+  language: {
+    search: "",
+    searchPlaceholder: "Search users...",
+    paginate: { previous: "Previous", next: "Next" },
+  },
 });
-
-function showPassword() {
-  var addPassword = document.getElementById("addPassword");
-  if (addPassword.type === "password") {
-    addPassword.type = "text";
-  } else {
-    addPassword.type = "password";
-  }
-
-  var editPassword = document.getElementById("editPassword");
-  if (editPassword.type === "password") {
-    editPassword.type = "text";
-  } else {
-    editPassword.type = "password";
-  }
-}
 
 function generatePassword() {
-  let result = "";
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const charactersLength = characters.length;
-  let counter = 0;
-  while (counter < 10) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
-  }
-  document.getElementById("addPassword").value = result;
-  $(".form-control").selectpicker("refresh");
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+  document.getElementById("addPassword").value = Array.from(
+    { length: 10 },
+    () => chars[Math.floor(Math.random() * chars.length)],
+  ).join("");
 }
 
-// Get permission from API
-const getCourse = async () => {
-  const courseList = document.querySelector("#addCourse");
-  const courseList2 = document.querySelector("#editCourse");
-  const endpoint = `/api/course`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    course = data.data;
+function openAddModal() {
+  document.getElementById("newUserForm").reset();
+  document.getElementById("isUserActive").checked = true;
+  document.getElementById("showAddPassword").checked = true;
+  document.getElementById("addPassword").type = "text";
+  document.getElementById("studentFields").classList.add("hidden");
+  generatePassword();
+  toggleModal("addNewModal", true);
+}
 
-  course.forEach((row) => {
-    courseList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
-    courseList2.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
+document
+  .getElementById("showAddPassword")
+  .addEventListener("change", (event) => {
+    document.getElementById("addPassword").type = event.target.checked
+      ? "text"
+      : "password";
   });
-};
-
-// Get course from API
-const getPermission = async () => {
-  const permissionList = document.querySelector("#permissionSelect");
-  const permissionList2 = document.querySelector("#editPermissionSelect");
-  const endpoint = `/api/permission`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    permission = data.data;
-
-  permission.forEach((row) => {
-    permissionList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-    permissionList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
+document
+  .getElementById("showEditPassword")
+  .addEventListener("change", (event) => {
+    document.getElementById("editPassword").type = event.target.checked
+      ? "text"
+      : "password";
   });
-};
-
-// post user to API
-const formAddUser = document.querySelector("#newUserForm");
-formAddUser.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const formData = new FormData(formAddUser);
-  const role = document.querySelector(
-    "input[type='radio'][name=role]:checked"
-  ).value;
-  if (role == "student") {
-    formData.append("is_student_rater", "1");
-    formData.append("is_admin_rater", "0");
-  } else if (role == "admin") {
-    formData.append("is_student_rater", "0");
-    formData.append("is_admin_rater", "1");
-  }
-
-  if (document.getElementById("addCourse").value === "null") {
-    formData.delete("course_id");
-  }
-
-  if (document.getElementById("addYearLevel").value === "null") {
-    formData.delete("year_level");
-  }
-
-  const isActive = document.getElementById("isUserActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-
-  formData.append("is_temp_pass", "1"); // automatic mark password as temporary after generating a password
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/user/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
+document.getElementById("addRole").addEventListener("change", (event) => {
+  const student = event.target.value === "student";
+  document.getElementById("studentFields").classList.toggle("hidden", !student);
+  document.getElementById("addCourse").required = student;
+  document.getElementById("addYearLevel").required = student;
 });
 
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-});
-
-function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+async function loadOptions() {
+  try {
+    const [courseResponse, permissionResponse] = await Promise.all([
+      requestJson("/api/course"),
+      requestJson("/api/permission/all/active"),
+    ]);
+    const courseOptions = (courseResponse.data || [])
+      .map(
+        (row) =>
+          `<option value="${row.id}">${escapeHtml(row.code)} — ${escapeHtml(row.name)}</option>`,
+      )
+      .join("");
+    document
+      .getElementById("addCourse")
+      .insertAdjacentHTML("beforeend", courseOptions);
+    document
+      .getElementById("editCourse")
+      .insertAdjacentHTML("beforeend", courseOptions);
+    const permissionOptions = (permissionResponse.data || [])
+      .map(
+        (row) => `<option value="${row.id}">${escapeHtml(row.name)}</option>`,
+      )
+      .join("");
+    document
+      .getElementById("permissionSelect")
+      .insertAdjacentHTML("beforeend", permissionOptions);
+    document
+      .getElementById("editPermissionSelect")
+      .insertAdjacentHTML("beforeend", permissionOptions);
+  } catch {
+    showToast("Unable to load course or permission options.");
+  }
 }
 
-function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
-
-// update data on the API
-var rowIdToUpdate;
-async function edit(id) {
-  await fetch(`/api/user/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      rowIdToUpdate = data.id;
-      document.getElementById("editGivenName").value = data.givenname;
-      document.getElementById("editMiddleName").value = data.middlename;
-      document.getElementById("editLastName").value = data.surname;
-      document.getElementById("editGender").value = data.gender;
-      document.getElementById("editCourse").value = data.course_id;
-      document.getElementById("editYearLevel").value = data.year_level;
-      document.getElementById("editUsername").value = data.username;
-      // document.getElementById("editPassword").value = data.password;
-      document.getElementById("editPermissionSelect").value =
-        data.permission_id;
-
-      if (data.is_temp_pass == 0) {
-        document.getElementById("editTemporaryPassword").checked = false;
-      } else {
-        document.getElementById("editTemporaryPassword").checked = true;
-      }
-
-      if (data.is_student_rater == 0) {
-        document.getElementById("admin").checked = true;
-      } else {
-        document.getElementById("student").checked = true;
-      }
-
-      if (data.is_active == 0) {
-        document.getElementById("editIsUserActive").checked = false;
-      } else {
-        document.getElementById("editIsUserActive").checked = true;
-      }
-
-      $(".form-control").selectpicker("refresh");
-      $("#editModal").modal("show");
+document
+  .getElementById("newUserForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Create this user?")) return;
+    const payload = Object.fromEntries(new FormData(event.currentTarget));
+    const student = document.getElementById("addRole").value === "student";
+    Object.assign(payload, {
+      is_student_rater: student ? 1 : 0,
+      is_admin_rater: student ? 0 : 1,
+      is_active: document.getElementById("isUserActive").checked ? 1 : 0,
+      is_temp_pass: 1,
+      user_id: state.userId,
     });
+    if (!student) {
+      payload.course_id = null;
+      payload.year_level = null;
+    }
+    await save("/api/user/add", "POST", payload, "addNewModal");
+  });
+
+async function editUser(id) {
+  try {
+    const response = await requestJson(`/api/user/${id}`);
+    if (!response.success) throw new Error(response.message);
+    const row = response.data;
+    state.editId = row.id;
+    setValue("editGivenName", row.givenname);
+    setValue("editMiddleName", row.middlename);
+    setValue("editLastName", row.surname);
+    setValue("editGender", String(row.gender || "").toUpperCase());
+    setValue("editCourse", row.course_id ?? "");
+    setValue("editYearLevel", row.year_level ?? "");
+    setValue("editUsername", row.username);
+    setValue("editPassword", "");
+    setValue("editPermissionSelect", row.permission_id);
+    setValue("editRole", Number(row.is_student_rater) ? "student" : "admin");
+    document.getElementById("editTemporaryPassword").checked =
+      Number(row.is_temp_pass) === 1;
+    document.getElementById("editIsUserActive").checked =
+      Number(row.is_active) === 1;
+    toggleModal("editModal", true);
+  } catch {
+    showToast("Unable to load this user.");
+  }
 }
 
-const formEditUserInfo = document.querySelector("#editUserInfoForm");
-formEditUserInfo.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditUserInfo);
+document
+  .getElementById("editUserForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const payload = Object.fromEntries(new FormData(event.currentTarget));
+    const student = payload.role === "student";
+    Object.assign(payload, {
+      id: state.editId,
+      user_id: state.userId,
+      course_id: payload.course_id || null,
+      year_level: payload.year_level || null,
+      is_student_rater: student ? 1 : 0,
+      is_admin_rater: student ? 0 : 1,
+      is_temp_pass: document.getElementById("editTemporaryPassword").checked
+        ? 1
+        : 0,
+      is_active: document.getElementById("editIsUserActive").checked ? 1 : 0,
+    });
+    if (!student) {
+      payload.course_id = null;
+      payload.year_level = null;
+    }
+    await save("/api/user/update", "PUT", payload, "editModal");
+  });
 
-  if (document.getElementById("editCourse").value === "null") {
-    formData.delete("course_id");
+async function save(url, method, payload, modalId) {
+  if (!confirm("Save these changes?")) return;
+  try {
+    const response = await requestJson(url, {
+      method,
+      body: JSON.stringify(payload),
+    });
+    showToast(response.message);
+    if (!response.success) return;
+    toggleModal(modalId, false);
+    table.ajax.reload(null, false);
+  } catch {
+    showToast("Unable to save the user.");
   }
-
-  if (document.getElementById("editYearLevel").value === "null") {
-    formData.delete("year_level");
-  }
-
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/user/update/info`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-const formEditUserCredentials = document.querySelector(
-  "#editUserCredentialsForm"
-);
-formEditUserCredentials.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditUserCredentials);
-
-  const isPassTemp = document.getElementById("editTemporaryPassword").checked;
-  if (isPassTemp == false) {
-    formData.append("is_temp_pass", "0");
-  } else {
-    formData.append("is_temp_pass", "1");
-  }
-
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/user/update/credentials`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-const formEditPermission = document.querySelector("#editPermissionForm");
-formEditPermission.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditPermission);
-
-  const role = document.querySelector(
-    "input[type='radio'][name=role]:checked"
-  ).value;
-  if (role == "student") {
-    formData.append("is_student_rater", "1");
-    formData.append("is_admin_rater", "0");
-  } else if (role == "admin") {
-    formData.append("is_student_rater", "0");
-    formData.append("is_admin_rater", "1");
-  }
-  formData.delete("role");
-
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/user/update/control`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-const formEditStatus = document.querySelector("#editStatusForm");
-formEditStatus.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const isActive = document.getElementById("editIsUserActive").checked;
-  let status;
-  if (isActive == false) {
-    status = { is_active: 0, id: rowIdToUpdate, user_id: user };
-  } else {
-    status = { is_active: 1, id: rowIdToUpdate, user_id: user };
-  }
-
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/user/update/status`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(status),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-$(document).ready(function () {
-  getCourse();
-  getPermission();
-});
-
-$("input[name='role']").change(function () {
-  if ($(this).val() == "student") {
-    $("#course").show();
-    $("#addCourse").prop("required", true);
-    $("#yearLevel").show();
-    $("#addYearLevel").prop("required", true);
-  } else {
-    $("#course").hide();
-    $("#addCourse").prop("required", false);
-    $("#yearLevel").hide();
-    $("#addYearLevel").prop("required", false);
-  }
-});
-
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
 }
 
-var nav = false;
+function openUserImport() {
+  toggleModal("addNewModal", false);
+  setTimeout(() => toggleModal("userImportModal", true), 260);
+}
+document
+  .getElementById("userImportForm")
+  .addEventListener("submit", (event) => prepareImport(event, "users"));
+document
+  .getElementById("passwordImportForm")
+  .addEventListener("submit", (event) => prepareImport(event, "passwords"));
 
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
+[
+  ["userXlsxInput", "userDropZone"],
+  ["passwordXlsxInput", "passwordDropZone"],
+].forEach(([inputId, zoneId]) => {
+  const input = document.getElementById(inputId);
+  input.addEventListener("change", () => {
+    const text = document.querySelector(`#${zoneId} p`);
+    if (input.files[0]) text.textContent = `Selected: ${input.files[0].name}`;
+  });
+});
+
+document
+  .getElementById("downloadUserTemplate")
+  .addEventListener("click", (event) => {
+    event.preventDefault();
+    downloadTemplate(
+      [
+        {
+          username: "2026-00001",
+          password: "Temporary123",
+          givenname: "Juan",
+          middlename: "",
+          surname: "Dela Cruz",
+          gender: "MALE",
+          role: "student",
+          permission_id: 1,
+          course_id: 1,
+          year_level: 1,
+          is_active: 1,
+        },
+      ],
+      "user_import_template.xlsx",
+      "Users",
+    );
+  });
+
+document
+  .getElementById("downloadPasswordTemplate")
+  .addEventListener("click", (event) => {
+    event.preventDefault();
+    downloadTemplate(
+      [{ username: "2026-00001", password: "NewPassword123" }],
+      "password_update_template.xlsx",
+      "Passwords",
+    );
+  });
+
+async function prepareImport(event, mode) {
+  event.preventDefault();
+  const input = document.getElementById(
+    mode === "users" ? "userXlsxInput" : "passwordXlsxInput",
+  );
+  try {
+    const rows = await readXlsx(input.files[0]);
+    const required =
+      mode === "users"
+        ? [
+            "username",
+            "password",
+            "givenname",
+            "surname",
+            "gender",
+            "role",
+            "permission_id",
+          ]
+        : ["username", "password"];
+    state.importMode = mode;
+    state.validRows = [];
+    state.errorRows = [];
+    rows.forEach((original, index) => {
+      const row = normalizeRow(original);
+      const missing = required.filter((key) => !String(row[key] ?? "").trim());
+      const role = String(row.role || "").toLowerCase();
+      if (
+        mode === "users" &&
+        role === "student" &&
+        (!row.course_id || !row.year_level)
+      ) {
+        missing.push("course_id", "year_level");
+      }
+      const invalidRole =
+        mode === "users" && !["student", "admin"].includes(role);
+      const error = missing.length
+        ? `Missing: ${[...new Set(missing)].join(", ")}`
+        : invalidRole
+          ? "Role must be Student or Admin"
+          : "";
+      if (error)
+        state.errorRows.push({ ...original, Error: error, __row: index + 2 });
+      else state.validRows.push({ ...row, __row: index + 2 });
+    });
+    renderPreview();
+    toggleModal(
+      mode === "users" ? "userImportModal" : "passwordImportModal",
+      false,
+    );
+    setTimeout(() => toggleModal("importPreviewModal", true), 260);
+  } catch (error) {
+    showToast(error.message || "Unable to read the XLSX file.");
+  }
+}
+
+function renderPreview() {
+  const action = state.importMode === "users" ? "created" : "updated";
+  document.getElementById("successPreviewTitle").textContent =
+    action[0].toUpperCase() + action.slice(1);
+  document.getElementById("previewSummary").textContent =
+    `${state.validRows.length + state.errorRows.length} rows checked: ${state.validRows.length} ready and ${state.errorRows.length} with errors.`;
+  document.getElementById("successPreview").innerHTML = previewTable(
+    state.validRows,
+  );
+  document.getElementById("errorPreview").innerHTML = previewTable(
+    state.errorRows,
+  );
+  document.getElementById("runImportButton").disabled =
+    state.validRows.length === 0;
+}
+
+document
+  .getElementById("runImportButton")
+  .addEventListener("click", async () => {
+    toggleModal("importPreviewModal", false);
+    await delay(260);
+    toggleModal("loadingModal", true);
+    await delay(30);
+    let completed = 0;
+    for (const row of state.validRows) {
+      try {
+        let response;
+        if (state.importMode === "users") {
+          const student = String(row.role).toLowerCase() === "student";
+          response = await requestJson("/api/user/add", {
+            method: "POST",
+            body: JSON.stringify({
+              ...row,
+              is_student_rater: student ? 1 : 0,
+              is_admin_rater: student ? 0 : 1,
+              is_active: row.is_active ?? 1,
+              is_temp_pass: 1,
+              course_id: student ? row.course_id : null,
+              year_level: student ? row.year_level : null,
+              user_id: state.userId,
+            }),
+          });
+        } else {
+          const found = await requestJson("/api/user/get", {
+            method: "POST",
+            body: JSON.stringify({ username: row.username }),
+          });
+          if (!found.success)
+            throw new Error(found.message || "User not found");
+          response = await requestJson("/api/user/update/password", {
+            method: "PUT",
+            body: JSON.stringify({
+              username: row.username,
+              password: row.password,
+              id: found.data.id,
+              user_id: state.userId,
+            }),
+          });
+        }
+        if (!response.success)
+          throw new Error(response.message || "Import failed");
+        completed++;
+      } catch (error) {
+        const clean = { ...row };
+        delete clean.__row;
+        state.errorRows.push({ ...clean, Error: error.message });
+      }
+      document.getElementById("loadingMessage").textContent =
+        `Processing ${completed + state.errorRows.length} of ${state.validRows.length + state.errorRows.length}...`;
+    }
+    toggleModal("loadingModal", false);
+    if (state.errorRows.length) downloadFailedRows(state.errorRows);
+    table.ajax.reload(null, false);
+    showToast(
+      `${completed} rows processed successfully. ${state.errorRows.length} failed.`,
+    );
+  });
+
+function readXlsx(file) {
+  if (!file) return Promise.reject(new Error("Select an XLSX file."));
+  return file.arrayBuffer().then((buffer) => {
+    const workbook = XLSX.read(buffer, { type: "array" });
+    return XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {
+      defval: "",
+    });
+  });
+}
+function normalizeRow(row) {
+  return Object.fromEntries(
+    Object.entries(row).map(([key, value]) => [
+      String(key).trim().toLowerCase().replace(/\s+/g, "_"),
+      value,
+    ]),
+  );
+}
+function previewTable(rows) {
+  if (!rows.length)
+    return '<p class="preview-empty">No rows in this section.</p>';
+  const keys = Object.keys(rows[0])
+    .filter((key) => key !== "__row")
+    .slice(0, 8);
+  return `<table class="preview-table"><thead><tr>${keys.map((key) => `<th>${escapeHtml(key)}</th>`).join("")}</tr></thead><tbody>${rows
+    .slice(0, 100)
+    .map(
+      (row) =>
+        `<tr>${keys.map((key) => `<td>${escapeHtml(row[key])}</td>`).join("")}</tr>`,
+    )
+    .join("")}</tbody></table>`;
+}
+function downloadFailedRows(rows) {
+  const clean = rows.map((row) =>
+    Object.fromEntries(Object.entries(row).filter(([key]) => key !== "__row")),
+  );
+  const sheet = XLSX.utils.json_to_sheet(clean);
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Failed Rows");
+  XLSX.writeFile(
+    book,
+    `failed_user_import_${new Date().toISOString().slice(0, 10)}.xlsx`,
+  );
+}
+function downloadTemplate(rows, filename, sheetName) {
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, sheetName);
+  XLSX.writeFile(book, filename);
+}
+
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+  });
+  return response.json();
+}
+function setValue(id, value) {
+  document.getElementById(id).value = value ?? "";
+}
+function delay(milliseconds) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+function escapeHtml(value) {
+  const span = document.createElement("span");
+  span.textContent = value ?? "";
+  return span.innerHTML;
+}
+
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (!modal) return;
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
+  } else {
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
+  }
+}
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML =
+    '<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span><span></span>';
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 function toggleNav() {
-  nav ? closeNav() : openNav();
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
 }
-
-let signOutButton = document.getElementById("signout");
-
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
-});
-
-
-const csvInput = document.getElementById("updatePasswordcsv");
-const uploadFileForm = document.querySelector("#updatePasswordForm");
-uploadFileForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (confirm("This action cannot be undone.")) {
-    $("#updatePasswordModal").modal("hide");
-    $("#spinnerStatusModal").modal("show");
-    const file = csvInput.files[0];
-    if (file) {
-      try {
-        const results = await parseCSV(file);
-
-        const headers = results.data[0];
-        const data = [];
-        const failedData = []; // To store failed rows
-
-        for (let i = 1; i < results.data.length; i++) {
-          const values = results.data[i];
-          if (
-            values.length === headers.length &&
-            values.some((value) => value.trim() !== "")
-          ) {
-            const rowObject = {};
-            for (let j = 0; j < headers.length; j++) {
-              rowObject[headers[j]] = values[j];
-            }
-            rowObject["user_id"] = user;
-
-
-            document.getElementById("statusMessage").innerHTML =
-              ((i / results.data.length) * 100).toFixed(0) + "%";
-
-            console.log(((i / results.data.length) * 100).toFixed(0) + "%");
-            document.getElementById(
-              "spinnerMessage"
-            ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
-
-            try {
-              // Fetch course_id from API
-              const response = await postData(`/api/user/get`, {
-                username: rowObject.username,
-              });
-              if (!response.data || !response.data.id) {
-                throw new Error("Student not found");
-              }
-              rowObject["id"] = response.data.id;
-console.log(rowObject)
-              // Add row to data if everything is valid
-              data.push(rowObject);
-            } catch (error) {
-              console.error("Failed to process row:", error);
-              failedData.push({ ...rowObject, error: error.message }); // Add row to failed data with error message
-              continue; // Skip to the next iteration if this one fails
-            }
-          }
-        }
-
-        let counter = 0;
-        for (let i = 0; i < data.length; i++) {
-          try {
-            const response = await putData(`/api/user/update/password`, data[i]);
-
-            document.getElementById("statusMessage").innerHTML =
-              ((i / data.length) * 100).toFixed(0) + "%";
-            document.getElementById(
-              "spinnerMessage"
-            ).innerHTML = `Import in progress. Do not refresh the page...`;
-
-            if (response.success === 0) {
-              failedData.push(data[i]); // Capture failed row on error
-            } else {
-              counter++;
-            }
-          } catch (error) {
-            console.error(error);
-            failedData.push(data[i]); // Capture failed row on error
-          }
-        }
-
-        // Show the failed data in the modal
-        if (failedData.length > 0) {
-          document.getElementById("totalFailedData").innerHTML =
-            `Total: ` + failedData.length;
-          const failedDataList = document.getElementById("failedDataList");
-          failedDataList.innerHTML = "";
-
-          for (const item of failedData) {
-            const listItem = document.createElement("li");
-            listItem.textContent = JSON.stringify(item);
-            failedDataList.appendChild(listItem);
-          }
-          $("#failedDataModal").modal("show");
-
-          // Optionally, export failed rows to CSV
-          console.log(failedData)
-          exportFailedDataToCSV(failedData);
-        }
-
-        $("#spinnerStatusModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-        setSuccessMessage(
-          `${counter} of ${data.length} entries were imported successfully.`
-        );
-      } catch (error) {
-        console.error(error);
+async function loadSidebar() {
+  try {
+    const container = document.getElementById("sidebar-container");
+    container.innerHTML = await (await fetch("/sidebar.html")).text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    const normalize = (path) =>
+      path.replace(/\/index\.html$/, "").replace(/\/$/, "");
+    const currentPath = normalize(location.pathname);
+    document.querySelectorAll("#mySidenav a[href]").forEach((link) => {
+      if (
+        normalize(new URL(link.href, location.origin).pathname) !== currentPath
+      )
+        return;
+      const list = link.closest("ul[id^='dropdown-']");
+      link.classList.add(list ? "sub-active" : "nav-active");
+      if (list) {
+        list.classList.remove("hidden");
+        const toggle = document.querySelector(`[data-target="${list.id}"]`);
+        toggle?.setAttribute("aria-expanded", "true");
+        const arrow = toggle?.querySelector(".chevron");
+        if (arrow) arrow.style.transform = "rotate(180deg)";
       }
-    }
-  }
-});
-
-// Function to export failed rows to CSV
-function exportFailedDataToCSV(failedData) {
-  const csvHeaders = Object.keys(failedData[0]);
-  const csvRows = [
-    csvHeaders.join(","), // Header row
-    ...failedData.map(row =>
-      csvHeaders.map(header => `"${row[header] || ''}"`).join(",")
-    )
-  ].join("\n");
-
-  // Create a Blob from the CSV data
-  const csvBlob = new Blob([csvRows], { type: "text/csv" });
-
-  // Create a link element to download the CSV file
-  const downloadLink = document.createElement("a");
-  downloadLink.href = URL.createObjectURL(csvBlob);
-  downloadLink.download = "failed_data.csv";
-
-  // Append the link to the body, trigger click, and remove the link
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
-
-async function parseCSV(file) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      complete: function (results) {
-        resolve(results);
-      },
-      error: function (error) {
-        reject(error);
-      },
     });
-  });
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
+  }
 }
 
-async function postData(url, data) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  return response.json();
-}
-
-async function putData(url, data) {
-  const response = await fetch(url, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
-  return response.json();
-}
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  document
+    .querySelectorAll(".room-modal:not(.invisible)")
+    .forEach((modal) => toggleModal(modal.id, false));
+});
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
+  loadOptions();
+});

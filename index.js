@@ -108,9 +108,9 @@ app.use('/register', (req, res) => {
 const clientPath = path.join(__dirname, "client");
 app.use(express.static(clientPath));
 
-// Optional: fallback for SPA routing (if needed)
+// Return the branded error page for every unknown frontend route.
 app.get("*", (req, res) => {
-  res.sendFile(path.join(clientPath, "index.html"));
+  res.status(404).sendFile(path.join(clientPath, "404.html"));
 });
 
 // --- Start Server ---

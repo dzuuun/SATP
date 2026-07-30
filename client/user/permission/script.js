@@ -1,382 +1,261 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var usersAccess = localStorage.getItem("usersAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+const state = {
+  userId: localStorage.getItem("user_id"),
+  usersAccess: localStorage.getItem("usersAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+};
 
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (usersAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.usersAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-var data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/permission`,
-    cache: true,
-  },
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { data: "name" },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.transaction_access
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                  </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.maintenance_access
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                  </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.reports_access
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                  </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.users_access
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                  </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
+let rowIdToUpdate;
+const accessFields = [
+  "transaction_access",
+  "maintenance_access",
+  "reports_access",
+  "users_access",
+];
+const badge = (value) =>
+  `<span class="access-badge ${Number(value) ? "" : "off"}">${Number(value) ? "Yes" : "No"}</span>`;
 
-              </div>
-            </td> `;
-      },
+const table = $("#table").DataTable({
+  ajax: { url: "/api/permission", dataSrc: "data", cache: true },
+  columns: [
+    { data: "name", title: "Description" },
+    {
+      data: "transaction_access",
+      title: "Transactions",
+      className: "dt-center",
+      render: badge,
+    },
+    {
+      data: "maintenance_access",
+      title: "Maintenance",
+      className: "dt-center",
+      render: badge,
+    },
+    {
+      data: "reports_access",
+      title: "Reports",
+      className: "dt-center",
+      render: badge,
+    },
+    {
+      data: "users_access",
+      title: "Users",
+      className: "dt-center",
+      render: badge,
+    },
+    {
+      data: "is_active",
+      title: "Status",
+      className: "dt-center",
+      render: (value) =>
+        Number(value)
+          ? '<span class="status-badge active">Active</span>'
+          : '<span class="status-badge inactive">Inactive</span>',
+    },
+    {
+      data: "id",
+      title: "Actions",
+      width: "8%",
+      orderable: false,
+      className: "dt-center",
+      render: (id) =>
+        `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit permission"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
     },
   ],
+  pageLength: 10,
+  language: {
+    search: "",
+    searchPlaceholder: "Search permissions...",
+    paginate: { previous: "Previous", next: "Next" },
+  },
 });
 
-// post permission to API
-const formAddPermission = document.querySelector("#newPermissionForm");
-formAddPermission.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const formData = new FormData(formAddPermission);
-
-  const transaction_access =
-    document.getElementById("transaction_access").checked;
-  if (transaction_access == false) {
-    formData.append("transaction_access", "0");
-  } else {
-    formData.append("transaction_access", "1");
-  }
-
-  const maintenance_access =
-    document.getElementById("maintenance_access").checked;
-  if (maintenance_access == false) {
-    formData.append("maintenance_access", "0");
-  } else {
-    formData.append("maintenance_access", "1");
-  }
-
-  const reports_access = document.getElementById("reports_access").checked;
-  if (reports_access == false) {
-    formData.append("reports_access", "0");
-  } else {
-    formData.append("reports_access", "1");
-  }
-
-  const users_access = document.getElementById("users_access").checked;
-  if (users_access == false) {
-    formData.append("users_access", "0");
-  } else {
-    formData.append("users_access", "1");
-  }
-
-  const isActive = document.getElementById("isPermissionActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/permission/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-});
-
-function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+function permissionPayload(form, suffix = "") {
+  const payload = {
+    ...Object.fromEntries(new FormData(form)),
+    user_id: state.userId,
+  };
+  accessFields.forEach((field) => {
+    payload[field] = document.getElementById(`${field}${suffix}`).checked
+      ? 1
+      : 0;
+  });
+  payload.is_active = document.getElementById(`isPermissionActive${suffix}`)
+    .checked
+    ? 1
+    : 0;
+  return payload;
 }
 
-function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
+document
+  .getElementById("newPermissionForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Create this permission?")) return;
+    await savePermission(
+      "/api/permission/add",
+      "POST",
+      permissionPayload(event.currentTarget),
+      "addNewModal",
+    );
+  });
 
-// update data on the API
-var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`/api/permission/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      rowIdToUpdate = data.id;
-      document.getElementById("editDescription").value = data.name;
-      if (data.transaction_access == 0) {
-        document.getElementById("transaction_accessEdit").checked = false;
-      } else {
-        document.getElementById("transaction_accessEdit").checked = true;
-      }
-
-      if (data.maintenance_access == 0) {
-        document.getElementById("maintenance_accessEdit").checked = false;
-      } else {
-        document.getElementById("maintenance_accessEdit").checked = true;
-      }
-
-      if (data.reports_access == 0) {
-        document.getElementById("reports_accessEdit").checked = false;
-      } else {
-        document.getElementById("reports_accessEdit").checked = true;
-      }
-
-      if (data.users_access == 0) {
-        document.getElementById("users_accessEdit").checked = false;
-      } else {
-        document.getElementById("users_accessEdit").checked = true;
-      }
-
-      if (data.is_active == 0) {
-        document.getElementById("isPermissionActiveEdit").checked = false;
-      } else {
-        document.getElementById("isPermissionActiveEdit").checked = true;
-      }
-      $("#editModal").modal("show");
+  try {
+    const response = await requestJson(`/api/permission/${id}`);
+    if (!response.success) throw new Error(response.message);
+    const permission = response.data;
+    rowIdToUpdate = permission.id;
+    document.getElementById("editDescription").value = permission.name;
+    accessFields.forEach((field) => {
+      document.getElementById(`${field}Edit`).checked =
+        Number(permission[field]) === 1;
     });
+    document.getElementById("isPermissionActiveEdit").checked =
+      Number(permission.is_active) === 1;
+    toggleModal("editModal", true);
+  } catch (error) {
+    setErrorMessage("Unable to load the permission.");
+  }
 }
-const formEditPermission = document.querySelector("#editPermissionForm");
-formEditPermission.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditPermission);
 
-  const transaction_access = document.getElementById(
-    "transaction_accessEdit"
-  ).checked;
-  if (transaction_access == false) {
-    formData.append("transaction_access", "0");
+document
+  .getElementById("editPermissionForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Save these permission changes?")) return;
+    const payload = permissionPayload(event.currentTarget, "Edit");
+    payload.id = rowIdToUpdate;
+    await savePermission("/api/permission/update", "PUT", payload, "editModal");
+  });
+
+async function savePermission(url, method, payload, modalId) {
+  try {
+    const response = await requestJson(url, {
+      method,
+      body: JSON.stringify(payload),
+    });
+    if (!response.success) return setErrorMessage(response.message);
+    setSuccessMessage(response.message);
+    toggleModal(modalId, false);
+    table.ajax.reload(null, false);
+  } catch (error) {
+    setErrorMessage("Unable to save the permission.");
+  }
+}
+
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+  });
+  return response.json();
+}
+
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (!modal) return;
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
   } else {
-    formData.append("transaction_access", "1");
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
   }
+}
 
-  const maintenance_access = document.getElementById(
-    "maintenance_accessEdit"
-  ).checked;
-  if (maintenance_access == false) {
-    formData.append("maintenance_access", "0");
-  } else {
-    formData.append("maintenance_access", "1");
-  }
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML =
+    '<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span><span></span>';
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+const setSuccessMessage = showToast;
+const setErrorMessage = showToast;
 
-  const reports_access = document.getElementById("reports_accessEdit").checked;
-  if (reports_access == false) {
-    formData.append("reports_access", "0");
-  } else {
-    formData.append("reports_access", "1");
-  }
+function toggleNav() {
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
+}
 
-  const users_access = document.getElementById("users_accessEdit").checked;
-  if (users_access == false) {
-    formData.append("users_access", "0");
-  } else {
-    formData.append("users_access", "1");
+async function loadSidebar() {
+  try {
+    const container = document.getElementById("sidebar-container");
+    const response = await fetch("/sidebar.html");
+    container.innerHTML = await response.text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    const currentPath = location.pathname
+      .replace(/\/index\.html$/, "")
+      .replace(/\/$/, "");
+    document.querySelectorAll("#mySidenav a[href]").forEach((link) => {
+      const linkPath = new URL(link.href, location.origin).pathname
+        .replace(/\/index\.html$/, "")
+        .replace(/\/$/, "");
+      if (linkPath !== currentPath) return;
+      const list = link.closest("ul[id^='dropdown-']");
+      link.classList.add(list ? "sub-active" : "nav-active");
+      if (list) {
+        list.classList.remove("hidden");
+        const toggle = document.querySelector(`[data-target="${list.id}"]`);
+        toggle?.setAttribute("aria-expanded", "true");
+        const arrow = toggle?.querySelector(".chevron");
+        if (arrow) arrow.style.transform = "rotate(180deg)";
+      }
+    });
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
   }
+}
 
-  const isActive = document.getElementById("isPermissionActiveEdit").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/permission/update`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape")
+    ["addNewModal", "editModal"].forEach((id) => {
+      if (!document.getElementById(id).classList.contains("invisible"))
+        toggleModal(id, false);
+    });
 });
 
-// delete function
-var rowIdToDelete;
-function deleteRow(id) {
-  rowIdToDelete = id;
-  $("#deleteModal").modal("show");
-}
-
-async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`/api/permission/delete`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#deleteModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-      }
-    });
-}
-
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
-}
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
-}
-function toggleNav() {
-  nav ? closeNav() : openNav();
-}
-
-let signOutButton = document.getElementById("signout");
-
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
 });

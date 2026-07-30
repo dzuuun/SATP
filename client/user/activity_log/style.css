@@ -1,117 +1,46 @@
-.sidenav {
-  height: 100%;
-  width: 0;
-  position: fixed;
-  z-index: 1;
-  top: 0;
-  left: 0;
+@import url("../../maintenance/course/style.css");
 
-  overflow-x: hidden;
-  transition: 0.3s;
+.year-filter {
+  min-width: 190px;
+  display: grid;
+  gap: 7px;
 }
 
-.sidenav a {
-  padding: 8px 8px 8px 8px;
-  text-decoration: none;
-  font-size: 18px;
-  color: black;
-  display: block;
-  transition: 0.3s;
+.year-filter label {
+  color: #536159;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-#main {
-  transition: margin-left 0.3s;
+.year-filter select {
+  min-height: 44px;
+  padding: 0 38px 0 13px;
+  color: var(--ink);
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, #718078 50%)
+      calc(100% - 17px) 19px / 5px 5px no-repeat,
+    linear-gradient(135deg, #718078 50%, transparent 50%)
+      calc(100% - 12px) 19px / 5px 5px no-repeat,
+    #fafcfb;
+  border: 1px solid var(--line);
+  border-radius: 10px;
 }
 
-@media screen and (max-height: 450px) {
-  .sidenav {
-    padding-top: 15px;
+#table td:last-child {
+  min-width: 360px;
+  white-space: normal;
+  line-height: 1.55;
+}
+
+#table td:first-child {
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  #table td:last-child {
+    min-width: 260px;
   }
-  .sidenav a {
-    font-size: 18px;
-  }
-}
-
-.pagination > li > a {
-  background-color: white;
-  color: darkgreen;
-}
-
-.pagination > li > a:focus,
-.pagination > li > a:hover,
-.pagination > li > span:focus,
-.pagination > li > span:hover {
-  color: #f9c11a;
-  background-color: #eee;
-  border-color: #ddd;
-}
-
-.pagination > .active > a {
-  color: white;
-  background-color: darkgreen !important;
-  border: solid 1px darkgreen !important;
-}
-
-.pagination > .active > a:hover {
-  background-color: darkgreen !important;
-  border: solid 1px darkgreen;
-}
-
-footer {
-  background-color: darkgreen;
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  z-index: 0;
-  transition: margin-left 0.3s;
-}
-
-.dropdown-toggle {
-  outline: 0;
-}
-
-.btn-toggle {
-  padding: 0.25rem 0.5rem;
-  font-weight: 600;
-  color: var(--bs-emphasis-color);
-  background-color: transparent;
-}
-.btn-toggle:hover,
-.btn-toggle:focus {
-  color: rgba(var(--bs-emphasis-color-rgb), 0.85);
-  background-color: var(--bs-tertiary-bg);
-}
-
-.btn-toggle::before {
-  width: 1.25em;
-  line-height: 0;
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
-  transition: transform 0.35s ease;
-  transform-origin: 0.5em 50%;
-}
-
-[data-bs-theme="dark"] .btn-toggle::before {
-  content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%28255,255,255,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
-}
-
-.btn-toggle[aria-expanded="true"] {
-  color: rgba(var(--bs-emphasis-color-rgb), 0.85);
-}
-.btn-toggle[aria-expanded="true"]::before {
-  transform: rotate(90deg);
-}
-
-.btn-toggle-nav a {
-  padding: 0.1875rem 0.5rem;
-  margin-top: 0.125rem;
-  margin-left: 1.25rem;
-}
-.btn-toggle-nav a:hover,
-.btn-toggle-nav a:focus {
-  background-color: var(--bs-tertiary-bg);
-}
-
-.scrollarea {
-  overflow-y: auto;
 }

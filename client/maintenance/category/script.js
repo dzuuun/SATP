@@ -263,7 +263,14 @@ async function loadSidebar() {
 
     document.querySelectorAll("#mySidenav a").forEach((link) => {
       const href = link.getAttribute("href");
-      if (!href || !window.location.pathname.includes(href)) return;
+      if (!href) return;
+      const currentPath = location.pathname
+        .replace(/\/index\.html$/, "")
+        .replace(/\/$/, "");
+      const linkPath = new URL(link.href, location.origin).pathname
+        .replace(/\/index\.html$/, "")
+        .replace(/\/$/, "");
+      if (linkPath !== currentPath) return;
 
       const dropdown = link.closest("ul[id^='dropdown-']");
       if (dropdown) {
