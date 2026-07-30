@@ -1,399 +1,475 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var maintenanceAccess = localStorage.getItem("maintenanceAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+const state = {
+  userId: localStorage.getItem("user_id"),
+  maintenanceAccess: localStorage.getItem("maintenanceAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+};
 
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (maintenanceAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.maintenanceAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-let data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/course`,
-    cache: true,
-  },
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { width: "10%", data: "code" },
-    { data: "name" },
-    { width: "5%", data: "department_code" },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
-              </div>
-            </td> `;
-      },
-    },
-  ],
-});
+let table;
+let rowIdToUpdate;
+let pendingImport = { created: [], updated: [], errors: [] };
+let departmentsByCode = new Map();
 
-// Get department from API
-const getDepartment = async () => {
-  const departmentList = document.querySelector("#selectDepartment");
-  const departmentList2 = document.querySelector("#selectDepartmentEdit");
-  // const departmentList3 = document.querySelector("#selectImportDepartment");
-  const endpoint = `/api/department/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  rows.forEach((row) => {
-    departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
-    departmentList2.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
-    // departmentList3.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
+$(document).ready(() => {
+  table = $("#table").DataTable({
+    ajax: { url: "/api/course", dataSrc: "data", cache: true },
+    columns: [
+      { data: "code", title: "Course code", width: "18%" },
+      { data: "name", title: "Course name" },
+      { data: "department_code", title: "Department", width: "16%" },
+      {
+        data: "is_active",
+        title: "Status",
+        width: "14%",
+        className: "dt-center",
+        render: (value) =>
+          value
+            ? '<span class="status-badge active">Active</span>'
+            : '<span class="status-badge inactive">Inactive</span>',
+      },
+      {
+        data: "id",
+        title: "Actions",
+        width: "10%",
+        orderable: false,
+        className: "dt-center",
+        render: (id) =>
+          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit course"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
+      },
+    ],
+    pageLength: 10,
+    dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+    language: { search: "", searchPlaceholder: "Search courses..." },
   });
-  $(".form-control").selectpicker("refresh");
-};
-
-getDepartment();
-
-// post course to API
-const formAddCourse = document.querySelector("#newCourseForm");
-formAddCourse.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const formData = new FormData(formAddCourse);
-  const isActive = document.getElementById("isCourseActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/course/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
 });
 
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-  $(".form-control").selectpicker("refresh");
-});
+document
+  .getElementById("newCourseForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Create this course?")) return;
+    const payload = formPayload(event.currentTarget, "isCourseActive");
+    await saveCourse("/api/course/add", "POST", payload, "addNewModal");
+  });
 
-function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
-
-function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
-
-// update data on the API
-var rowIdToUpdate;
 async function editFormCall(id) {
-  await fetch(`/api/course/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      document.getElementById("editCode").value = data.code;
-      document.getElementById("selectDepartmentEdit").value =
-        data.department_id;
-      document.getElementById("editName").value = data.name;
-      rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("isCourseActiveEdit").checked = false;
-      } else {
-        document.getElementById("isCourseActiveEdit").checked = true;
-      }
-      $("#editModal").modal("show");
-      $(".form-control").selectpicker("refresh");
-    });
-}
-const formEditCourse = document.querySelector("#editCourseForm");
-formEditCourse.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditCourse);
-  const isActive = document.getElementById("isCourseActiveEdit").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
+  try {
+    const response = await requestJson(`/api/course/${id}`);
+    const course = response.data;
+    rowIdToUpdate = course.id;
+    document.getElementById("editCourseCode").value = course.code;
+    document.getElementById("editCourseName").value = course.name;
+    document.getElementById("selectDepartmentEdit").value =
+      course.department_id;
+    document.getElementById("isCourseActiveEdit").checked =
+      course.is_active == 1;
+    toggleModal("editModal", true);
+  } catch (error) {
+    setErrorMessage("Unable to load the course.");
   }
+}
 
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/course/update`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
+document
+  .getElementById("editCourseForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Save these course changes?")) return;
+    const payload = formPayload(event.currentTarget, "isCourseActiveEdit");
+    payload.id = rowIdToUpdate;
+    await saveCourse("/api/course/update", "PUT", payload, "editModal");
+  });
+
+function formPayload(form, checkboxId) {
+  return {
+    ...Object.fromEntries(new FormData(form)),
+    is_active: document.getElementById(checkboxId).checked ? 1 : 0,
+    user_id: state.userId,
+  };
+}
+
+async function saveCourse(url, method, payload, modalId) {
+  try {
+    const response = await requestJson(url, {
+      method,
+      body: JSON.stringify(payload),
+    });
+    if (!response.success) return setErrorMessage(response.message);
+    setSuccessMessage(response.message);
+    toggleModal(modalId, false);
+    table.ajax.reload(null, false);
+  } catch (error) {
+    setErrorMessage("Unable to save the course.");
+  }
+}
+
+const xlsxInput = document.getElementById("xlsxInput");
+xlsxInput.addEventListener("change", () => {
+  const text = document.querySelector("#dropZone p");
+  if (xlsxInput.files[0]) {
+    text.textContent = `Selected: ${xlsxInput.files[0].name}`;
   }
 });
 
-// delete function
-var rowIdToDelete;
-function deleteRow(id) {
-  rowIdToDelete = id;
-  $("#deleteModal").modal("show");
-}
-
-async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`/api/course/delete`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#deleteModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-      }
-    });
-}
-
-const csvInput = document.getElementById("csvInput");
-const uploadFileForm = document.querySelector("#uploadFileForm");
-uploadFileForm.addEventListener("submit", async (event) => {
+document.getElementById("downloadLink").addEventListener("click", (event) => {
   event.preventDefault();
+  const worksheet = XLSX.utils.json_to_sheet([
+    {
+      code: "BSIT",
+      name: "Bachelor of Science in Information Technology",
+      department_code: "CCS",
+    },
+  ]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Courses");
+  XLSX.writeFile(workbook, "course_import_template.xlsx");
+});
 
-  if (confirm("This action cannot be undone.")) {
-    $("#importFileModal").modal("hide");
-    $("#spinnerStatusModal").modal("show");
-    const file = csvInput.files[0];
+document
+  .getElementById("uploadFileForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = xlsxInput.files[0];
+    if (!file) return;
 
-    if (file) {
+    try {
+      const [rows, existingResponse] = await Promise.all([
+        parseWorkbook(file),
+        requestJson("/api/course"),
+      ]);
+      pendingImport = classifyRows(rows, existingResponse.data || []);
+      renderPreview();
+      toggleModal("importFileModal", false);
+      setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    } catch (error) {
+      setErrorMessage("Unable to validate the Excel file.");
+    }
+  });
+
+function parseWorkbook(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
       try {
-        const results = await parseCSV(file);
-
-        const headers = results.data[0];
-        const data = [];
-
-        for (let i = 1; i < results.data.length; i++) {
-          const values = results.data[i];
-          if (
-            values.length === headers.length &&
-            values.some((value) => value.trim() !== "")
-          ) {
-            const rowObject = {};
-            for (let j = 0; j < headers.length; j++) {
-              rowObject[headers[j]] = values[j];
-            }
-            rowObject["user_id"] = user;
-            rowObject["is_active"] = 1;
-
-            const response = await postData(`/api/department/get`, {
-              department_code: rowObject.department_code,
-            });
-            rowObject["department_id"] = response.data.id;
-            data.push(rowObject);
-          }
-        }
-
-        const failedData = [];
-        let counter = 0;
-
-        for (let i = 0; i < data.length; i++) {
-          try {
-            const response = await postData(
-              `/api/course/add`,
-              data[i]
-            );
-            document.getElementById("statusMessage").innerHTML =
-              ((i / data.length) * 100).toFixed(0) + "%";
-            if (response.success === 0) {
-              failedData.push(data[i].code);
-            } else {
-              counter++;
-            }
-          } catch (error) {
-            console.error(error);
-          }
-        }
-
-        // Show the failed data in the modal
-        if (failedData.length > 0) {
-          document.getElementById("totalFailedData").innerHTML =
-            `Total: ` + failedData.length;
-          const failedDataList = document.getElementById("failedDataList");
-          failedDataList.innerHTML = "";
-
-          for (const item of failedData) {
-            const listItem = document.createElement("li");
-            listItem.textContent = JSON.stringify(item);
-            failedDataList.appendChild(listItem);
-          }
-          $("#failedDataModal").modal("show");
-        }
-
-        $("#spinnerStatusModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-        setSuccessMessage(
-          `${counter} of ${data.length} entries were imported successfully.`
+        const workbook = XLSX.read(new Uint8Array(event.target.result), {
+          type: "array",
+        });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        resolve(
+          XLSX.utils.sheet_to_json(worksheet, {
+            defval: "",
+            raw: false,
+          }),
         );
       } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-});
-
-async function parseCSV(file) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      complete: function (results) {
-        resolve(results);
-      },
-      error: function (error) {
         reject(error);
-      },
-    });
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
   });
 }
 
-async function postData(url, data) {
+const normalize = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+function classifyRows(rows, existing) {
+  const byCode = new Map(existing.map((item) => [normalize(item.code), item]));
+  const seen = new Set();
+  const result = { created: [], updated: [], errors: [] };
+
+  rows.forEach((raw, index) => {
+    const rowNumber = index + 2;
+    const code = String(raw.code || "")
+      .trim()
+      .toUpperCase();
+    const name = String(raw.name || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    const departmentCode = String(raw.department_code || "")
+      .trim()
+      .toUpperCase();
+    const department = departmentsByCode.get(normalize(departmentCode));
+    const key = normalize(code);
+    const base = {
+      rowNumber,
+      code,
+      name,
+      departmentCode,
+      department_id: department?.id,
+      is_active: 1,
+      originalRow: raw,
+    };
+    if (!code || !name || !departmentCode) {
+      result.errors.push({
+        ...base,
+        reason: "Code, name, and department_code are required",
+      });
+    } else if (!department) {
+      result.errors.push({
+        ...base,
+        reason: `Department ${departmentCode} was not found`,
+      });
+    } else if (seen.has(key)) {
+      result.errors.push({ ...base, reason: "Duplicate course code in file" });
+    } else {
+      seen.add(key);
+      const current = byCode.get(key);
+      current
+        ? result.updated.push({ ...base, id: current.id })
+        : result.created.push(base);
+    }
+  });
+  return result;
+}
+
+function renderPreview() {
+  const groups = [
+    ["created", "createdPreview", "createdCount", "Will be created"],
+    ["updated", "updatedPreview", "updatedCount", "Existing code"],
+    ["errors", "errorPreview", "errorCount", ""],
+  ];
+  groups.forEach(([key, listId, countId, detail]) => {
+    const items = pendingImport[key];
+    const list = document.getElementById(listId);
+    document.getElementById(countId).textContent = items.length;
+    list.replaceChildren();
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "preview-empty";
+      empty.textContent = `No ${key} found`;
+      return list.appendChild(empty);
+    }
+    items.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "preview-row";
+      row.innerHTML = `<span class="row-number"></span><span class="room-name"></span><span class="row-detail"></span>`;
+      row.children[0].textContent = `Row ${item.rowNumber}`;
+      row.children[1].textContent = `${item.code} — ${item.name} (${item.departmentCode || "No department"})`;
+      row.children[2].textContent = item.reason || detail;
+      list.appendChild(row);
+    });
+  });
+  document.getElementById("runImportButton").disabled =
+    !pendingImport.created.length &&
+    !pendingImport.updated.length &&
+    !pendingImport.errors.length;
+}
+
+document
+  .getElementById("runImportButton")
+  .addEventListener("click", async () => {
+    const actions = [
+      ...pendingImport.created.map((item) => ({ type: "created", item })),
+      ...pendingImport.updated.map((item) => ({ type: "updated", item })),
+    ];
+    const errors = pendingImport.errors.map((item) => ({
+      ...item.originalRow,
+      Error: item.reason,
+    }));
+    if (!actions.length) {
+      downloadErrors(errors);
+      toggleModal("importPreviewModal", false);
+      return setErrorMessage(`${errors.length} invalid rows exported.`);
+    }
+
+    toggleModal("importPreviewModal", false);
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+    const totals = { created: 0, updated: 0 };
+    for (let index = 0; index < actions.length; index++) {
+      const { type, item } = actions[index];
+      const payload = {
+        code: item.code,
+        name: item.name,
+        department_id: item.department_id,
+        is_active: 1,
+        user_id: state.userId,
+      };
+      if (item.id) payload.id = item.id;
+      try {
+        const response = await requestJson(
+          type === "created" ? "/api/course/add" : "/api/course/update",
+          {
+            method: type === "created" ? "POST" : "PUT",
+            body: JSON.stringify(payload),
+          },
+        );
+        response.success
+          ? totals[type]++
+          : errors.push({
+              ...item.originalRow,
+              Error: response.message || "Server rejected row",
+            });
+      } catch (error) {
+        errors.push({ ...item.originalRow, Error: "Request failed" });
+      }
+      document.getElementById("statusMessage").textContent =
+        `${Math.round(((index + 1) / actions.length) * 100)}%`;
+    }
+    toggleModal("spinnerStatusModal", false);
+    if (errors.length) downloadErrors(errors);
+    table.ajax.reload(null, false);
+    setTimeout(() => {
+      const message = `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`;
+      errors.length ? setErrorMessage(message) : setSuccessMessage(message);
+    }, 350);
+  });
+
+function downloadErrors(rows) {
+  if (!rows.length) return;
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Import Errors");
+  XLSX.writeFile(
+    book,
+    `Course_Import_Errors_${new Date().toISOString().split("T")[0]}.xlsx`,
+  );
+}
+
+async function requestJson(url, options = {}) {
   const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
   });
   return response.json();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const downloadLink = document.getElementById("downloadLink");
+async function loadDepartments() {
+  try {
+    const response = await requestJson("/api/department/all/active");
+    const departments = response.data || [];
+    departmentsByCode = new Map(
+      departments.map((department) => [
+        normalize(department.department_code),
+        department,
+      ]),
+    );
 
-  downloadLink.addEventListener("click", function () {
-    const csvContent = "code,name";
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+    ["selectDepartment", "selectDepartmentEdit"].forEach((selectId) => {
+      const select = document.getElementById(selectId);
+      departments.forEach((department) => {
+        const option = document.createElement("option");
+        option.value = department.id;
+        option.textContent = `${department.department_code} — ${department.name}`;
+        select.appendChild(option);
+      });
+    });
+  } catch (error) {
+    console.error("Departments failed to load:", error);
+    setErrorMessage("Unable to load departments.");
+  }
+}
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "course_template.csv";
-    a.click();
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (!modal) return;
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
+  } else {
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
+  }
+}
 
-    URL.revokeObjectURL(url);
-  });
+function setSuccessMessage(message) {
+  showToast(message, true);
+}
+function setErrorMessage(message) {
+  showToast(message, false);
+}
+function showToast(message, success) {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML = `<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="${success ? "m5 12 4 4L19 6" : "M12 8v5m0 3h.01M10.3 4.6 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"}"/></svg></span><span></span>`;
+  toast.lastElementChild.textContent = message;
+  container.replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+function toggleNav() {
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
+}
+
+async function loadSidebar() {
+  const container = document.getElementById("sidebar-container");
+  try {
+    const response = await fetch("/sidebar.html");
+    container.innerHTML = await response.text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    document.querySelectorAll("#mySidenav a").forEach((link) => {
+      if (!location.pathname.includes(link.getAttribute("href"))) return;
+      const list = link.closest("ul[id^='dropdown-']");
+      link.classList.add(list ? "sub-active" : "nav-active");
+      if (list) {
+        list.classList.remove("hidden");
+        document
+          .querySelector(`[data-target="${list.id}"]`)
+          ?.setAttribute("aria-expanded", "true");
+      }
+    });
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
+  }
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape")
+    [
+      "addNewModal",
+      "editModal",
+      "importFileModal",
+      "importPreviewModal",
+    ].forEach((id) => {
+      const modal = document.getElementById(id);
+      if (modal && !modal.classList.contains("invisible"))
+        toggleModal(id, false);
+    });
 });
 
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
-}
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
-}
-function toggleNav() {
-  nav ? closeNav() : openNav();
-}
-
-let signOutButton = document.getElementById("signout");
-
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadDepartments();
+  loadSidebar();
 });

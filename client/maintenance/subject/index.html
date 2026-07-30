@@ -1,472 +1,376 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SATP | Manage Subjects</title>
-    <link rel="icon" type="image/x-icon" href="../../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="style.css" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.4/font/bootstrap-icons.css" />
-    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.css" rel="stylesheet" />
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.14.0-beta2/dist/css/bootstrap-select.min.css">
-</head>
-
-<body style="min-height: 400px; margin-bottom: 100px; clear: both">
-    <div id="mySidenav" class="sidenav">
-        <div class="d-flex flex-column flex-shrink-0 p-3 bg-body-tertiary h-100" style="width: 280px">
-            <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none">
-                <img class="bi pe-none me-2" width="30" height="30" src="../../images/NDMU-Logo.png" />
-
-                <span>SATP | Menu</span>
-            </a>
-            <hr />
-            <ul class="nav nav-pills flex-column mb-auto">
-                <li class="mb-1">
-                    <button onclick="window.location.href= `../../transaction/index.html`"
-                        class="btn fs-4 d-inline-flex align-items-center rounded border-0 collapsed">
-                        <span class="me-2"><i class="bi bi-list-task"></i></span>
-                        Transaction
-                    </button>
-                </li>
-                <li class="mb-1">
-                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed"
-                        data-bs-toggle="collapse" data-bs-target="#report-collapse" aria-expanded="false">
-                        Report
-                    </button>
-                    <div class="collapse" id="report-collapse">
-                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                            <li>
-                                <a href="../../report/ranking/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded-0 ms-5 fs-6">Ranking</a>
-                            </li>
-                            <li>
-                                <a href="../../report/rating/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Rating</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-                <li class="mb-1">
-                    <button
-                        class="btn btn-toggle fs-4 d-inline-flex align-items-center border-0 collapsed rounded-0 border-start border-5"
-                        style="--bs-border-color: darkgreen;" data-bs-toggle="collapse"
-                        data-bs-target="#maintenance-collapse" aria-expanded="true">
-                        Maintenance
-                    </button>
-                    <div class="collapse show" id="maintenance-collapse">
-                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                            <li>
-                                <a href="../admin/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Admin</a>
-                            </li>
-                            <li>
-                                <a href="../category/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Category</a>
-                            </li>
-                            <li>
-                                <a href="../college/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">College</a>
-                            </li>
-                            <li>
-                                <a href="../course/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Course</a>
-                            </li>
-                            <li>
-                                <a href="../departments/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Department</a>
-                            </li>
-                            <li>
-                                <a href="../items/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Items</a>
-                            </li>
-                            <li>
-                                <a href="../room/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Room</a>
-                            </li>
-                            <li>
-                                <a href="../school_year/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">School
-                                    Year</a>
-                            </li>
-                            <li>
-                                <a href="../semester/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Semester</a>
-                            </li>
-                            <li>
-                                <a href="../student/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Student</a>
-                            </li>
-                            <li>
-                                <a href="../student_subject/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Student
-                                    Subject</a>
-                            </li>
-                            <li>
-                                <a href="./index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded-0 ms-5 fs-6 border-start border-5"
-                                    style="--bs-border-color: darkgreen;">Subject</a>
-                            </li>
-                            <li>
-                                <a href="../teacher/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Teacher</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-
-                <li class="mb-1">
-                    <button class="btn btn-toggle fs-4 d-inline-flex align-items-center rounded border-0 collapsed"
-                        data-bs-toggle="collapse" data-bs-target="#user-collapse" aria-expanded="false">
-                        User
-                    </button>
-                    <div class="collapse" id="user-collapse">
-                        <ul class="btn-toggle-nav list-unstyled fw-normal pb-1 small">
-                            <li>
-                                <a href="../../user/activity_log/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Activity
-                                    Log</a>
-                            </li>
-                            <li>
-                                <a href="../../user/permission/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">Permission</a>
-                            </li>
-                            <li>
-                                <a href="../../user/user_management/index.html"
-                                    class="link-body-emphasis d-inline-flex text-decoration-none rounded ms-5 fs-6">User
-                                    Management</a>
-                            </li>
-                        </ul>
-                    </div>
-                </li>
-            </ul>
-            <hr />
-            <div class="dropdown">
-                <a href="#" class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle"
-                    data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="../../images/blank-profile-picture-973460_1280.png" alt="" width="32" height="32"
-                        class="rounded-circle me-2">
-                    <strong id="userName"></strong>
-                </a>
-                <ul class="dropdown-menu text-small shadow">
-                    <li><a class="dropdown-item" href="../../update/password/index.html">Update Password</a></li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li><a class="dropdown-item" id="signout">Sign out</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Manage subjects in the NDMU SATP system."
+    />
+    <meta name="theme-color" content="#075c3b" />
+    <title>SATP | Subject Maintenance</title>
+    <link rel="icon" href="../../images/NDMU-Logo.png" />
+    <link rel="stylesheet" href="../../tailwind.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="sidebar-container"></div>
     <div id="main">
-        <!-- Header -->
-        <nav class="navbar sticky-top" style="background-color: darkgreen">
-            <div class="container-fluid">
-                <a class="navbar-brand fs-7 text-white">
-                    <i onclick="toggleNav()" class="bi bi-list"></i>
-                    <img src="../../images/NDMU-Logo.png" alt="Logo" width="30" height="30"
-                        class="d-inline-block align-text-top" />
-                    Notre Dame of Marbel University
-                </a>
-                <span class="navbar-text text-white">
-                    Student Assessment of Teacher's Performance
-                </span>
-            </div>
-        </nav>
-
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md">
-                    <div class="container-fluid mt-3">
-                        <div class="row align-items-center border-bottom mb-3">
-                            <div class="col-md">
-                                <div class="container-fluid">
-                                    <h1 class="display-5">Subject</h1>
-                                </div>
-                            </div>
-                            <div class="col-md">
-                                <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb float-end">
-                                        <li class="breadcrumb-item">Maintenance</li>
-                                        <li class="breadcrumb-item active" aria-current="page">
-                                            Subject
-                                        </li>
-                                    </ol>
-                                </nav>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md mb-3">
-                                <button type="button" class="btn text-white text-nowrap fw-medium"
-                                    data-bs-toggle="modal" data-bs-target="#addNewModal"
-                                    style="background-color: darkgreen" title="Add New">
-                                    <i class="bi bi-plus"></i> Add New
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="table-responsive">
-                    <table id="table" class="table table-striped table-hover fw-medium" cellspacing="0" width="100%">
-                        <thead>
-                            <th class="text-left">Subject Code</th>
-                            <th class="text-left">Subject Name</th>
-                            <th>Active</th>
-                            <th>Manage</th>
-                        </thead>
-                    </table>
-                </div>
-            </div>
+      <header class="site-header">
+        <div class="header-brand">
+          <button
+            type="button"
+            class="menu-button"
+            onclick="toggleNav()"
+            aria-label="Open navigation"
+          >
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          </button>
+          <a href="../../"
+            ><img
+              src="../../images/NDMU-Logo.png"
+              alt=""
+              width="44"
+              height="44"
+            /><span
+              ><strong>Notre Dame of Marbel University</strong
+              ><small>Student Assessment of Teacher's Performance</small></span
+            ></a
+          >
         </div>
-
-        <!-- Delete Modal -->
-        <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <div class="container text-center mb-3">
-                            <div class="">
-                                <i class="bi bi-exclamation-triangle" style="font-size: 3rem; color: red"></i>
-                            </div>
-                            <strong class="fs-4">Are you sure?</strong>
-                            <br />
-                            <label class="mt-3">Do you really want to delete this entry? <br />
-                                This action cannot be undone.</label>
-                        </div>
-                        <div class="text-center mt-3 mb-3">
-                            <button type="button" class="cancel btn btn-default border-0 text-nowrap"
-                                data-bs-dismiss="modal">
-                                Cancel
-                            </button>
-                            <button type="button" class="btn btn-danger border-0 text-nowrap" onclick="confirmDelete()"
-                                id="deleteRow">
-                                Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="header-context">
+          <span>Maintenance</span><strong>Subject</strong>
         </div>
+      </header>
 
-        <!-- Add Modal -->
-        <div class="modal fade" data-bs-backdrop="static" id="addNewModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header border-0">
-                        <h1 class="modal-title fs-5" id="exampleModalLabel">
-                            Add New Subject
-                        </h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form class="form" id="newSubjectForm">
-                            <div class="container-fluid">
-                                <div class="row">
-                                    <div class="col-md mb-3">
-                                        <label class="form-label fw-bold">Subject Code</label>
-                                        <input class="form-control" id="addSubjectCode" name="code"
-                                            placeholder="Example: MAT051" required />
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md mb-3">
-                                        <label class="form-label fw-bold">Subject Name</label>
-                                        <input class="form-control" id="addSubjectName" name="name"
-                                            placeholder="Example: Calculus 1" required />
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col">
-                                        <label class="form-label fw-bold">Active Subject</label>
-                                    </div>
-                                    <div class="col">
-                                        <div class="form-check float-end form-switch">
-                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                id="isSubjectActive" checked />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <div class="col">
-                            <button type="button" class="btn btn-default border text-nowrap" data-bs-toggle="modal"
-                                data-bs-target="#importFileModal">
-                                Import Multiple
-                            </button>
-                        </div>
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap" form="newSubjectForm">
-                            Submit
-                        </button>
-                    </div>
-                </div>
+      <main class="workspace">
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">System maintenance</p>
+            <h1>Subject</h1>
+            <p>Manage the academic subjects available throughout SATP.</p>
+          </div>
+          <nav aria-label="Breadcrumb">
+            <a href="../../">SATP</a
+            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
+            ><span>Maintenance</span
+            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
+            ><span>Subjects</span>
+          </nav>
+        </section>
+        <section class="records-card">
+          <div class="records-heading">
+            <div>
+              <p class="eyebrow">Academic structure</p>
+              <h2>All subjects</h2>
+              <p>Search and maintain subject codes, names, and status.</p>
             </div>
-        </div>
-
-        <!-- Edit Modal -->
-        <div class="modal fade" data-bs-backdrop="static" id="editModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header border-0">
-                        <h1 class="modal-title fs-5">Edit Subject</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form class="form" id="editSubjectForm">
-                            <div class="container-fluid">
-                                <div class="row">
-                                    <div class="col-md mb-3">
-                                        <label class="form-label fw-bold">Subject Code</label>
-                                        <input class="form-control" id="editSubjectCode" name="code"
-                                            placeholder="Example: MAT051" required />
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md mb-3">
-                                        <label class="form-label fw-bold">Subject</label>
-                                        <input class="form-control" id="editSubjectName" name="name"
-                                            placeholder="Example: Calculus 1" required />
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col">
-                                        <label class="form-label fw-bold">Active Subject</label>
-                                    </div>
-                                    <div class="col">
-                                        <div class="form-check float-end form-switch">
-                                            <input class="form-check-input" type="checkbox" role="switch"
-                                                id="isSubjectActiveEdit" checked />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap" form="editSubjectForm">
-                            Save Changes
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- import CSV Modal -->
-        <div class="modal fade" data-bs-backdrop="static" id="importFileModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header border-0">
-                        <h1 class="modal-title fs-5">Import Multiple Entries</h1>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <form class="form" id="uploadFileForm">
-                            <div class="container-fluid">
-                                <p>This feature allows user to import multiple
-                                    entries
-                                    into the
-                                    database. Use this <a id="downloadLink" class="link-underline-primary">template</a>
-                                    to import the necessary data.
-                                </p>
-                                <p>Populate the Subject Code on the "code" column, and
-                                    the Subject Name on the "name" column.</p>
-                                <div class="row">
-                                    <div class="mt-2 mb-3">
-                                        <label for="formFile" class="form-label">Select a .csv file to upload</label>
-                                        <input class="form-control" type="file" id="csvInput" accept=".csv" required />
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Cancel
-                        </button>
-                        <button type="submit" style="background-color: darkgreen"
-                            class="btn btn-default border text-white text-nowrap" form="uploadFileForm">
-                            Upload
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Spinner Status Modal -->
-        <div class="modal fade" data-bs-backdrop="static" id="spinnerStatusModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <div class="loader"></div>
-                        <p id="statusMessage" class="text-center mt-3 fs-4">0%</p>
-                        <p class="text-center mt-3">Import in progress. Do not refresh the page...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Modal for displaying failed data -->
-        <div class="modal fade" data-bs-backdrop="static" id="failedDataModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="failedDataModalLabel">Failed Data</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </button>
-                    </div>
-                    <div class="modal-body">
-                        <p>The following data wasn't successfully imported.</p>
-                        <p id="totalFailedData"></p>
-                        <ul id="failedDataList"></ul>
-                    </div>
-                    <div class="modal-footer border-0">
-                        <button type="button" class="btn btn-default" data-bs-dismiss="modal">
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-        <!-- Toast container -->
-        <div id="toast-container" class="toast-container position-fixed bottom-0 start-0 pb-4 ps-3"></div>
+            <button
+              type="button"
+              class="primary-button"
+              onclick="toggleModal('addNewModal', true)"
+            >
+              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>Add
+              subject
+            </button>
+          </div>
+          <div class="table-shell">
+            <table
+              id="table"
+              class="display nowrap"
+              aria-label="Subjects"
+            ></table>
+          </div>
+        </section>
+      </main>
+      <footer class="site-footer">
+        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+        <span></span>
+        <p>Developed by the MIS Department</p>
+      </footer>
     </div>
-</body>
 
-<footer>
-    <div class="container-fluid text-center">
-        <span class="text-white">
-             NDMU © <span id="year"></span> | Developed by MIS Department
-        </span>
+    <div
+      id="addNewModal"
+      class="room-modal invisible"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-title"
+    >
+      <div id="addNewModalCard" class="modal-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">New record</p>
+            <h2 id="add-title">Add subject</h2>
+          </div>
+          <button
+            class="modal-close"
+            type="button"
+            onclick="toggleModal('addNewModal', false)"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </header>
+        <form id="newSubjectForm">
+          <div class="modal-body">
+            <div class="field-row">
+              <div class="field">
+                <label for="addSubjectCode">Subject code</label
+                ><input
+                  id="addSubjectCode"
+                  name="code"
+                  placeholder="Example: ENG 101"
+                  required
+                />
+              </div>
+              <div class="field">
+                <label for="addSubjectName">Subject name</label
+                ><input
+                  id="addSubjectName"
+                  name="name"
+                  placeholder="Example: English Communication"
+                  required
+                />
+              </div>
+            </div>
+            <label class="status-control" for="isSubjectActive"
+              ><span
+                ><strong>Active subject</strong
+                ><small>Available throughout the system</small></span
+              ><input type="checkbox" id="isSubjectActive" checked /><span
+                class="switch"
+              ></span
+            ></label>
+          </div>
+          <footer class="modal-footer split">
+            <button
+              type="button"
+              class="text-button"
+              onclick="toggleModal('addNewModal', false); setTimeout(() => toggleModal('importFileModal', true), 250);"
+            >
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+              </svg>
+              Import multiple
+            </button>
+            <div>
+              <button
+                type="button"
+                class="secondary-button"
+                onclick="toggleModal('addNewModal', false)"
+              >
+                Cancel
+              </button>
+              <button class="primary-button" type="submit">
+                Create subject
+              </button>
+            </div>
+          </footer>
+        </form>
+      </div>
     </div>
-</footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe"
-    crossorigin="anonymous"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM="
-    crossorigin="anonymous"></script>
-<script src="https://cdn.datatables.net/v/bs5/dt-1.13.4/r-2.4.1/datatables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta2/js/bootstrap-select.min.js"></script>
-<script src="./script.js"></script>
-<script> document.getElementById("year").textContent = new Date().getFullYear();</script>
+    <div
+      id="editModal"
+      class="room-modal invisible"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-title"
+    >
+      <div id="editModalCard" class="modal-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Subject record</p>
+            <h2 id="edit-title">Edit subject</h2>
+          </div>
+          <button
+            class="modal-close"
+            type="button"
+            onclick="toggleModal('editModal', false)"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </header>
+        <form id="editSubjectForm">
+          <div class="modal-body">
+            <div class="field-row">
+              <div class="field">
+                <label for="editSubjectCode">Subject code</label
+                ><input id="editSubjectCode" name="code" required />
+              </div>
+              <div class="field">
+                <label for="editSubjectName">Subject name</label
+                ><input id="editSubjectName" name="name" required />
+              </div>
+            </div>
+            <label class="status-control" for="isSubjectActiveEdit"
+              ><span
+                ><strong>Active subject</strong
+                ><small>Available throughout the system</small></span
+              ><input type="checkbox" id="isSubjectActiveEdit" /><span
+                class="switch"
+              ></span
+            ></label>
+          </div>
+          <footer class="modal-footer">
+            <button
+              type="button"
+              class="secondary-button"
+              onclick="toggleModal('editModal', false)"
+            >
+              Cancel</button
+            ><button class="primary-button" type="submit">Save changes</button>
+          </footer>
+        </form>
+      </div>
+    </div>
 
+    <div
+      id="importFileModal"
+      class="room-modal invisible"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="import-title"
+    >
+      <div id="importFileModalCard" class="modal-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Bulk action</p>
+            <h2 id="import-title">Import subjects</h2>
+          </div>
+          <button
+            class="modal-close"
+            type="button"
+            onclick="toggleModal('importFileModal', false)"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </header>
+        <form id="uploadFileForm">
+          <div class="modal-body">
+            <label for="xlsxInput" id="dropZone" class="drop-zone"
+              ><span class="upload-icon"
+                ><svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7"
+                  /></svg></span
+              ><strong>Choose an Excel file</strong>
+              <p>Required columns: code and name</p></label
+            >
+            <input
+              type="file"
+              id="xlsxInput"
+              accept=".xlsx,.xls"
+              class="hidden"
+              required
+            />
+            <p class="template-copy">
+              Need the format?
+              <a id="downloadLink" href="#">Download template</a>
+            </p>
+          </div>
+          <footer class="modal-footer">
+            <button
+              type="button"
+              class="secondary-button"
+              onclick="toggleModal('importFileModal', false)"
+            >
+              Cancel</button
+            ><button class="primary-button" type="submit">Validate file</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="importPreviewModal"
+      class="room-modal invisible"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="preview-title"
+    >
+      <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Validation complete</p>
+            <h2 id="preview-title">Review subject import</h2>
+          </div>
+          <button
+            class="modal-close"
+            type="button"
+            onclick="toggleModal('importPreviewModal', false)"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </header>
+        <div class="preview-intro">
+          Review all detected changes before updating subject records.
+        </div>
+        <div class="preview-body">
+          <section class="preview-group created">
+            <header>
+              <span class="preview-dot"></span><strong>Created subjects</strong
+              ><span id="createdCount" class="count-badge">0</span>
+            </header>
+            <div id="createdPreview" class="preview-list"></div>
+          </section>
+          <section class="preview-group updated">
+            <header>
+              <span class="preview-dot"></span><strong>Updated subjects</strong
+              ><span id="updatedCount" class="count-badge">0</span>
+            </header>
+            <div id="updatedPreview" class="preview-list"></div>
+          </section>
+          <section class="preview-group errors">
+            <header>
+              <span class="preview-dot"></span><strong>Errors</strong
+              ><span id="errorCount" class="count-badge">0</span>
+            </header>
+            <div id="errorPreview" class="preview-list"></div>
+          </section>
+        </div>
+        <footer class="modal-footer">
+          <button
+            class="secondary-button"
+            type="button"
+            onclick="toggleModal('importPreviewModal', false)"
+          >
+            Cancel</button
+          ><button id="runImportButton" class="primary-button" type="button">
+            Run import
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <div
+      id="spinnerStatusModal"
+      class="room-modal progress-modal invisible"
+      role="status"
+    >
+      <div
+        id="spinnerStatusModalCard"
+        class="modal-card progress-card scale-95"
+      >
+        <span class="progress-spinner"></span>
+        <p class="eyebrow">Import in progress</p>
+        <h2 id="statusMessage">0%</h2>
+        <p>Please keep this page open while subject records are processed.</p>
+      </div>
+    </div>
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="./script.js"></script>
+  </body>
 </html>

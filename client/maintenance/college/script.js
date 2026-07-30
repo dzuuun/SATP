@@ -41,7 +41,8 @@ $(document).ready(() => {
         width: "10%",
         orderable: false,
         className: "dt-center",
-        render: (id) => `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit college"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
+        render: (id) =>
+          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit college"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
       },
     ],
     pageLength: 10,
@@ -50,12 +51,14 @@ $(document).ready(() => {
   });
 });
 
-document.getElementById("newCollegeForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!confirm("Create this college?")) return;
-  const payload = formPayload(event.currentTarget, "isCollegeActive");
-  await saveCollege("/api/college/add", "POST", payload, "addNewModal");
-});
+document
+  .getElementById("newCollegeForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Create this college?")) return;
+    const payload = formPayload(event.currentTarget, "isCollegeActive");
+    await saveCollege("/api/college/add", "POST", payload, "addNewModal");
+  });
 
 async function editFormCall(id) {
   try {
@@ -64,20 +67,23 @@ async function editFormCall(id) {
     rowIdToUpdate = college.id;
     document.getElementById("editCollegeCode").value = college.code;
     document.getElementById("editCollegeName").value = college.name;
-    document.getElementById("isCollegeActiveEdit").checked = college.is_active == 1;
+    document.getElementById("isCollegeActiveEdit").checked =
+      college.is_active == 1;
     toggleModal("editModal", true);
   } catch (error) {
     setErrorMessage("Unable to load the college.");
   }
 }
 
-document.getElementById("editCollegeForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (!confirm("Save these college changes?")) return;
-  const payload = formPayload(event.currentTarget, "isCollegeActiveEdit");
-  payload.id = rowIdToUpdate;
-  await saveCollege("/api/college/update", "PUT", payload, "editModal");
-});
+document
+  .getElementById("editCollegeForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Save these college changes?")) return;
+    const payload = formPayload(event.currentTarget, "isCollegeActiveEdit");
+    payload.id = rowIdToUpdate;
+    await saveCollege("/api/college/update", "PUT", payload, "editModal");
+  });
 
 function formPayload(form, checkboxId) {
   return {
@@ -89,7 +95,10 @@ function formPayload(form, checkboxId) {
 
 async function saveCollege(url, method, payload, modalId) {
   try {
-    const response = await requestJson(url, { method, body: JSON.stringify(payload) });
+    const response = await requestJson(url, {
+      method,
+      body: JSON.stringify(payload),
+    });
     if (!response.success) return setErrorMessage(response.message);
     setSuccessMessage(response.message);
     toggleModal(modalId, false);
@@ -117,24 +126,26 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
   XLSX.writeFile(workbook, "college_import_template.xlsx");
 });
 
-document.getElementById("uploadFileForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const file = xlsxInput.files[0];
-  if (!file) return;
+document
+  .getElementById("uploadFileForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = xlsxInput.files[0];
+    if (!file) return;
 
-  try {
-    const [rows, existingResponse] = await Promise.all([
-      parseWorkbook(file),
-      requestJson("/api/college"),
-    ]);
-    pendingImport = classifyRows(rows, existingResponse.data || []);
-    renderPreview();
-    toggleModal("importFileModal", false);
-    setTimeout(() => toggleModal("importPreviewModal", true), 250);
-  } catch (error) {
-    setErrorMessage("Unable to validate the Excel file.");
-  }
-});
+    try {
+      const [rows, existingResponse] = await Promise.all([
+        parseWorkbook(file),
+        requestJson("/api/college"),
+      ]);
+      pendingImport = classifyRows(rows, existingResponse.data || []);
+      renderPreview();
+      toggleModal("importFileModal", false);
+      setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    } catch (error) {
+      setErrorMessage("Unable to validate the Excel file.");
+    }
+  });
 
 function parseWorkbook(file) {
   return new Promise((resolve, reject) => {
@@ -160,7 +171,11 @@ function parseWorkbook(file) {
   });
 }
 
-const normalize = (value) => String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+const normalize = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 
 function classifyRows(rows, existing) {
   const byCode = new Map(existing.map((item) => [normalize(item.code), item]));
@@ -169,8 +184,12 @@ function classifyRows(rows, existing) {
 
   rows.forEach((raw, index) => {
     const rowNumber = index + 2;
-    const code = String(raw.code || "").trim().toUpperCase();
-    const name = String(raw.name || "").trim().replace(/\s+/g, " ");
+    const code = String(raw.code || "")
+      .trim()
+      .toUpperCase();
+    const name = String(raw.name || "")
+      .trim()
+      .replace(/\s+/g, " ");
     const key = normalize(code);
     const base = { rowNumber, code, name, is_active: 1, originalRow: raw };
     if (!code || !name) {
@@ -216,57 +235,78 @@ function renderPreview() {
     });
   });
   document.getElementById("runImportButton").disabled =
-    !pendingImport.created.length && !pendingImport.updated.length && !pendingImport.errors.length;
+    !pendingImport.created.length &&
+    !pendingImport.updated.length &&
+    !pendingImport.errors.length;
 }
 
-document.getElementById("runImportButton").addEventListener("click", async () => {
-  const actions = [
-    ...pendingImport.created.map((item) => ({ type: "created", item })),
-    ...pendingImport.updated.map((item) => ({ type: "updated", item })),
-  ];
-  const errors = pendingImport.errors.map((item) => ({ ...item.originalRow, Error: item.reason }));
-  if (!actions.length) {
-    downloadErrors(errors);
-    toggleModal("importPreviewModal", false);
-    return setErrorMessage(`${errors.length} invalid rows exported.`);
-  }
-
-  toggleModal("importPreviewModal", false);
-  setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-  const totals = { created: 0, updated: 0 };
-  for (let index = 0; index < actions.length; index++) {
-    const { type, item } = actions[index];
-    const payload = { code: item.code, name: item.name, is_active: 1, user_id: state.userId };
-    if (item.id) payload.id = item.id;
-    try {
-      const response = await requestJson(
-        type === "created" ? "/api/college/add" : "/api/college/update",
-        { method: type === "created" ? "POST" : "PUT", body: JSON.stringify(payload) },
-      );
-      response.success
-        ? totals[type]++
-        : errors.push({ ...item.originalRow, Error: response.message || "Server rejected row" });
-    } catch (error) {
-      errors.push({ ...item.originalRow, Error: "Request failed" });
+document
+  .getElementById("runImportButton")
+  .addEventListener("click", async () => {
+    const actions = [
+      ...pendingImport.created.map((item) => ({ type: "created", item })),
+      ...pendingImport.updated.map((item) => ({ type: "updated", item })),
+    ];
+    const errors = pendingImport.errors.map((item) => ({
+      ...item.originalRow,
+      Error: item.reason,
+    }));
+    if (!actions.length) {
+      downloadErrors(errors);
+      toggleModal("importPreviewModal", false);
+      return setErrorMessage(`${errors.length} invalid rows exported.`);
     }
-    document.getElementById("statusMessage").textContent =
-      `${Math.round(((index + 1) / actions.length) * 100)}%`;
-  }
-  toggleModal("spinnerStatusModal", false);
-  if (errors.length) downloadErrors(errors);
-  table.ajax.reload(null, false);
-  setTimeout(() => {
-    const message = `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`;
-    errors.length ? setErrorMessage(message) : setSuccessMessage(message);
-  }, 350);
-});
+
+    toggleModal("importPreviewModal", false);
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+    const totals = { created: 0, updated: 0 };
+    for (let index = 0; index < actions.length; index++) {
+      const { type, item } = actions[index];
+      const payload = {
+        code: item.code,
+        name: item.name,
+        is_active: 1,
+        user_id: state.userId,
+      };
+      if (item.id) payload.id = item.id;
+      try {
+        const response = await requestJson(
+          type === "created" ? "/api/college/add" : "/api/college/update",
+          {
+            method: type === "created" ? "POST" : "PUT",
+            body: JSON.stringify(payload),
+          },
+        );
+        response.success
+          ? totals[type]++
+          : errors.push({
+              ...item.originalRow,
+              Error: response.message || "Server rejected row",
+            });
+      } catch (error) {
+        errors.push({ ...item.originalRow, Error: "Request failed" });
+      }
+      document.getElementById("statusMessage").textContent =
+        `${Math.round(((index + 1) / actions.length) * 100)}%`;
+    }
+    toggleModal("spinnerStatusModal", false);
+    if (errors.length) downloadErrors(errors);
+    table.ajax.reload(null, false);
+    setTimeout(() => {
+      const message = `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`;
+      errors.length ? setErrorMessage(message) : setSuccessMessage(message);
+    }, 350);
+  });
 
 function downloadErrors(rows) {
   if (!rows.length) return;
   const sheet = XLSX.utils.json_to_sheet(rows);
   const book = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(book, sheet, "Import Errors");
-  XLSX.writeFile(book, `College_Import_Errors_${new Date().toISOString().split("T")[0]}.xlsx`);
+  XLSX.writeFile(
+    book,
+    `College_Import_Errors_${new Date().toISOString().split("T")[0]}.xlsx`,
+  );
 }
 
 async function requestJson(url, options = {}) {
@@ -296,8 +336,12 @@ function toggleModal(id, show = true) {
   }
 }
 
-function setSuccessMessage(message) { showToast(message, true); }
-function setErrorMessage(message) { showToast(message, false); }
+function setSuccessMessage(message) {
+  showToast(message, true);
+}
+function setErrorMessage(message) {
+  showToast(message, false);
+}
 function showToast(message, success) {
   const container = document.getElementById("toast-container");
   const toast = document.createElement("div");
@@ -313,7 +357,8 @@ function toggleNav() {
   if (!side) return;
   const open = side.style.width === "280px";
   side.style.width = open ? "0" : "280px";
-  document.getElementById("main").style.marginLeft = innerWidth <= 760 || open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
 }
 
 async function loadSidebar() {
@@ -323,21 +368,26 @@ async function loadSidebar() {
     container.innerHTML = await response.text();
     const name = document.getElementById("sidebar-fullname");
     if (name) name.textContent = state.fullname || state.username || "User";
-    document.querySelectorAll(".menu-toggle").forEach((toggle) => toggle.addEventListener("click", function () {
-      const menu = document.getElementById(this.dataset.target);
-      menu?.classList.toggle("hidden");
-      const hidden = menu?.classList.contains("hidden");
-      this.setAttribute("aria-expanded", String(!hidden));
-      const arrow = this.querySelector(".chevron");
-      if (arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
-    }));
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
     document.querySelectorAll("#mySidenav a").forEach((link) => {
       if (!location.pathname.includes(link.getAttribute("href"))) return;
       const list = link.closest("ul[id^='dropdown-']");
       link.classList.add(list ? "sub-active" : "nav-active");
       if (list) {
         list.classList.remove("hidden");
-        document.querySelector(`[data-target="${list.id}"]`)?.setAttribute("aria-expanded", "true");
+        document
+          .querySelector(`[data-target="${list.id}"]`)
+          ?.setAttribute("aria-expanded", "true");
       }
     });
     document.getElementById("signout")?.addEventListener("click", () => {
@@ -350,10 +400,17 @@ async function loadSidebar() {
 }
 
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") ["addNewModal", "editModal", "importFileModal", "importPreviewModal"].forEach((id) => {
-    const modal = document.getElementById(id);
-    if (modal && !modal.classList.contains("invisible")) toggleModal(id, false);
-  });
+  if (event.key === "Escape")
+    [
+      "addNewModal",
+      "editModal",
+      "importFileModal",
+      "importPreviewModal",
+    ].forEach((id) => {
+      const modal = document.getElementById(id);
+      if (modal && !modal.classList.contains("invisible"))
+        toggleModal(id, false);
+    });
 });
 
 document.addEventListener("DOMContentLoaded", () => {

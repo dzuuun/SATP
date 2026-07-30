@@ -1,15 +1,15 @@
 @import url("../room/style.css");
 
 body {
-    margin: 0 !important;
+  margin: 0 !important;
 }
 
 .records-heading > .primary-button {
-    flex: 0 0 auto;
+  flex: 0 0 auto;
 }
 
 .admin-modal-card {
-    width: min(620px, 100%);
+  width: min(620px, 100%);
 }
 
 .menu-button svg,
@@ -18,206 +18,218 @@ body {
 .page-heading nav svg,
 .table-edit-button svg,
 .toast-symbol svg {
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 
-.menu-button svg { width: 22px; height: 22px; }
-.primary-button svg { width: 17px; height: 17px; }
-.modal-close svg { width: 18px; height: 18px; }
-.page-heading nav svg { width: 11px; height: 11px; color: #9ba7a1; }
+.menu-button svg {
+  width: 22px;
+  height: 22px;
+}
+.primary-button svg {
+  width: 17px;
+  height: 17px;
+}
+.modal-close svg {
+  width: 18px;
+  height: 18px;
+}
+.page-heading nav svg {
+  width: 11px;
+  height: 11px;
+  color: #9ba7a1;
+}
 
 .modal-header {
-    padding: 22px 24px;
-    border-bottom: 1px solid var(--line);
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--line);
 }
 
 .modal-header h2 {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 1.55rem;
-    font-weight: 500;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.55rem;
+  font-weight: 500;
 }
 
 .modal-close {
-    width: 40px;
-    height: 40px;
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    color: var(--muted);
-    background: #f5f8f6;
-    border: 0;
-    border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--muted);
+  background: #f5f8f6;
+  border: 0;
+  border-radius: 50%;
 }
 
 .modal-close:hover {
-    color: var(--danger);
-    background: #fff0ef;
+  color: var(--danger);
+  background: #fff0ef;
 }
 
 .modal-body {
-    padding: 24px;
+  padding: 24px;
 }
 
 .modal-footer {
-    min-height: 74px;
-    padding: 14px 24px;
-    background: #fafcfb;
-    border-top: 1px solid var(--line);
+  min-height: 74px;
+  padding: 14px 24px;
+  background: #fafcfb;
+  border-top: 1px solid var(--line);
 }
 
 .form-grid {
-    display: grid;
-    gap: 18px;
+  display: grid;
+  gap: 18px;
 }
 
 .form-grid h3 {
-    margin: 4px 0 -4px;
-    color: var(--green-800);
-    font-size: .68rem;
-    font-weight: 850;
-    letter-spacing: .12em;
-    text-transform: uppercase;
+  margin: 4px 0 -4px;
+  color: var(--green-800);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .field-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 
 .credentials-row {
-    align-items: start;
+  align-items: start;
 }
 
 .credentials-row .field {
-    align-content: start;
+  align-content: start;
 }
 
 .field input,
 .field select {
-    width: 100%;
-    min-height: 48px;
-    padding: 0 13px;
-    color: var(--ink);
-    background: #fafcfb;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    outline: 0;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 13px;
+  color: var(--ink);
+  background: #fafcfb;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  outline: 0;
 }
 
 .field input:focus,
 .field select:focus {
-    background: #fff;
-    border-color: var(--green-800);
-    box-shadow: 0 0 0 3px rgba(8,114,71,.11);
+  background: #fff;
+  border-color: var(--green-800);
+  box-shadow: 0 0 0 3px rgba(8, 114, 71, 0.11);
 }
 
 .inline-check {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    color: var(--muted);
-    font-size: .68rem;
-    cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  cursor: pointer;
 }
 
 .inline-check input {
-    width: 14px;
-    min-height: 14px;
+  width: 14px;
+  min-height: 14px;
 }
 
 .modal-tabs {
-    padding: 0 24px;
-    display: flex;
-    gap: 20px;
-    border-bottom: 1px solid var(--line);
+  padding: 0 24px;
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
 }
 
 .modal-tabs button {
-    padding: 14px 0 11px;
-    color: var(--muted);
-    background: none;
-    border: 0;
-    border-bottom: 3px solid transparent;
-    font-size: .72rem;
-    font-weight: 800;
+  padding: 14px 0 11px;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
 .modal-tabs button.active {
-    color: var(--green-800);
-    border-bottom-color: var(--green-800);
+  color: var(--green-800);
+  border-bottom-color: var(--green-800);
 }
 
 .toast-container {
-    width: min(290px, calc(100% - 30px));
-    position: fixed;
-    right: 16px;
-    bottom: 16px;
-    z-index: 9999;
+  width: min(290px, calc(100% - 30px));
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 9999;
 }
 
 .admin-toast {
-    min-height: 48px;
-    padding: 10px 12px;
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    color: #fff;
-    background: var(--green-950);
-    border: 1px solid rgba(255,255,255,.12);
-    border-radius: 11px;
-    box-shadow: 0 10px 24px rgba(4,59,42,.2);
-    font-size: .68rem;
-    font-weight: 700;
+  min-height: 48px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #fff;
+  background: var(--green-950);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 11px;
+  box-shadow: 0 10px 24px rgba(4, 59, 42, 0.2);
+  font-size: 0.68rem;
+  font-weight: 700;
 }
 
 .admin-toast .toast-symbol {
-    width: 26px;
-    height: 26px;
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    background: rgba(255,255,255,.14);
-    border-radius: 7px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 7px;
 }
 
 .toast-symbol svg {
-    width: 16px;
-    height: 16px;
-    stroke-width: 2.5;
+  width: 16px;
+  height: 16px;
+  stroke-width: 2.5;
 }
 
 .table-edit-button {
-    width: 34px;
-    height: 34px;
-    padding: 0;
-    display: grid;
-    place-items: center;
-    color: var(--green-800);
-    background: var(--green-100);
-    border: 0;
-    border-radius: 7px;
-    font-size: .68rem;
-    font-weight: 800;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  color: var(--green-800);
+  background: var(--green-100);
+  border: 0;
+  border-radius: 7px;
+  font-size: 0.68rem;
+  font-weight: 800;
 }
 
 .table-edit-button svg {
-    width: 16px;
-    height: 16px;
+  width: 16px;
+  height: 16px;
 }
 
 .table-edit-button:hover {
-    color: #fff;
-    background: var(--green-800);
+  color: #fff;
+  background: var(--green-800);
 }
 
 @media (max-width: 620px) {
-    .field-row {
-        grid-template-columns: 1fr;
-    }
-
+  .field-row {
+    grid-template-columns: 1fr;
+  }
 }

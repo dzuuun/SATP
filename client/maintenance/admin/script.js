@@ -1,4 +1,3 @@
-
 var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
@@ -280,8 +279,7 @@ function toggleNav() {
   const isOpen = sidenav.style.width === "280px";
   sidenav.style.width = isOpen ? "0" : "280px";
   if (main) {
-    main.style.marginLeft =
-      window.innerWidth <= 760 || isOpen ? "0" : "280px";
+    main.style.marginLeft = window.innerWidth <= 760 || isOpen ? "0" : "280px";
   }
 }
 
@@ -344,9 +342,7 @@ function setupSidebarInteractions() {
       this.setAttribute("aria-expanded", String(!isHidden));
       const chevron = this.querySelector(".chevron");
       if (chevron) {
-        chevron.style.transform = isHidden
-          ? "rotate(0deg)"
-          : "rotate(180deg)";
+        chevron.style.transform = isHidden ? "rotate(0deg)" : "rotate(180deg)";
       }
     });
   });

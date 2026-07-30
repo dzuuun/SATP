@@ -1,25 +1,30 @@
 @import url("../category/style.css");
 
 .field-row {
-    display: grid;
-    grid-template-columns: minmax(130px, .7fr) minmax(220px, 1.5fr);
-    gap: 14px;
+  display: grid;
+  grid-template-columns: minmax(130px, 0.7fr) minmax(220px, 1.5fr);
+  gap: 14px;
 }
 
 .secondary-button svg,
 .text-button svg,
 .upload-icon svg {
-    width: 17px;
-    height: 17px;
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
 }
 
-.upload-icon svg { width: 24px; height: 24px; }
+.upload-icon svg {
+  width: 24px;
+  height: 24px;
+}
 
 @media (max-width: 620px) {
-    .field-row { grid-template-columns: 1fr; }
+  .field-row {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,151 +1,329 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Manage SATP administrator accounts and permissions.">
-    <meta name="theme-color" content="#075c3b">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Manage SATP administrator accounts and permissions."
+    />
+    <meta name="theme-color" content="#075c3b" />
     <title>SATP | Admin Maintenance</title>
-    <link rel="icon" href="../../images/NDMU-Logo.png">
-    <link rel="stylesheet" href="../../tailwind.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="./style.css">
-</head>
-<body>
+    <link rel="icon" href="../../images/NDMU-Logo.png" />
+    <link rel="stylesheet" href="../../tailwind.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
     <div id="sidebar-container"></div>
 
     <div id="main">
-        <header class="site-header">
-            <div class="header-brand">
-                <button type="button" class="menu-button" onclick="toggleNav()" aria-label="Open navigation">
-                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-                </button>
-                <a href="../../" aria-label="SATP home">
-                    <img src="../../images/NDMU-Logo.png" alt="" width="44" height="44">
-                    <span>
-                        <strong>Notre Dame of Marbel University</strong>
-                        <small>Student Assessment of Teacher's Performance</small>
-                    </span>
-                </a>
+      <header class="site-header">
+        <div class="header-brand">
+          <button
+            type="button"
+            class="menu-button"
+            onclick="toggleNav()"
+            aria-label="Open navigation"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+          <a href="../../" aria-label="SATP home">
+            <img
+              src="../../images/NDMU-Logo.png"
+              alt=""
+              width="44"
+              height="44"
+            />
+            <span>
+              <strong>Notre Dame of Marbel University</strong>
+              <small>Student Assessment of Teacher's Performance</small>
+            </span>
+          </a>
+        </div>
+        <div class="header-context">
+          <span>Maintenance</span><strong>Admin</strong>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">System maintenance</p>
+            <h1>Admin</h1>
+            <p>
+              Manage administrator identities, permissions, and account status.
+            </p>
+          </div>
+          <nav aria-label="Breadcrumb">
+            <a href="../../">SATP</a
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span>Maintenance</span
+            ><svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span aria-current="page">Admin</span>
+          </nav>
+        </section>
+
+        <section class="records-card" aria-labelledby="admin-list-title">
+          <div class="records-heading">
+            <div>
+              <p class="eyebrow">Account directory</p>
+              <h2 id="admin-list-title">Admin accounts</h2>
+              <p>Search and maintain users with administrative access.</p>
             </div>
-            <div class="header-context"><span>Maintenance</span><strong>Administrators</strong></div>
+            <button
+              type="button"
+              class="primary-button"
+              onclick="generatePassword(); toggleModal('addNewModal', true)"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M15 19a6 6 0 0 0-12 0m6-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10-3v6m3-3h-6"
+                />
+              </svg>
+              Add admin
+            </button>
+          </div>
+          <div class="table-shell">
+            <table
+              id="table"
+              class="display nowrap"
+              aria-label="Administrator accounts"
+            ></table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+        <span aria-hidden="true"></span>
+        <p>Developed by the MIS Department</p>
+      </footer>
+    </div>
+
+    <div
+      class="room-modal invisible"
+      id="addNewModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-title"
+    >
+      <div class="modal-card admin-modal-card scale-95" id="addNewModalCard">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">New account</p>
+            <h2 id="add-title">Add administrator</h2>
+          </div>
+          <button
+            type="button"
+            class="modal-close"
+            onclick="toggleModal('addNewModal', false)"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
         </header>
-
-        <main class="workspace">
-            <section class="page-heading">
-                <div>
-                    <p class="eyebrow">System maintenance</p>
-                    <h1>Administrators</h1>
-                    <p>Manage administrator identities, permissions, and account status.</p>
-                </div>
-                <nav aria-label="Breadcrumb">
-                    <a href="../../">SATP</a><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                    <span>Maintenance</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
-                    <span aria-current="page">Admin</span>
-                </nav>
-            </section>
-
-            <section class="records-card" aria-labelledby="admin-list-title">
-                <div class="records-heading">
-                    <div>
-                        <p class="eyebrow">Account directory</p>
-                        <h2 id="admin-list-title">Admin accounts</h2>
-                        <p>Search and maintain users with administrative access.</p>
-                    </div>
-                    <button type="button" class="primary-button" onclick="generatePassword(); toggleModal('addNewModal', true)">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 19a6 6 0 0 0-12 0m6-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10-3v6m3-3h-6"/></svg>
-                        Add admin
-                    </button>
-                </div>
-                <div class="table-shell">
-                    <table id="table" class="display nowrap" aria-label="Administrator accounts"></table>
-                </div>
-            </section>
-        </main>
-
-        <footer class="site-footer">
-            <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-            <span aria-hidden="true"></span>
-            <p>Developed by the MIS Department</p>
-        </footer>
+        <form id="newAdminForm">
+          <div class="modal-body form-grid">
+            <h3>User credentials</h3>
+            <div class="field-row credentials-row">
+              <div class="field">
+                <label for="addUsername">Username</label
+                ><input
+                  id="addUsername"
+                  name="username"
+                  required
+                  autocomplete="off"
+                  placeholder="ID number"
+                />
+              </div>
+              <div class="field">
+                <label for="addPassword">Temporary password</label>
+                <input id="addPassword" name="password" type="text" required />
+                <label class="inline-check"
+                  ><input type="checkbox" onclick="showPassword()" checked />
+                  Show password</label
+                >
+              </div>
+            </div>
+            <h3>Personal information</h3>
+            <div class="field-row">
+              <div class="field">
+                <label for="addGivenName">Given name</label
+                ><input id="addGivenName" name="givenname" required />
+              </div>
+              <div class="field">
+                <label for="addMiddleName">Middle name</label
+                ><input id="addMiddleName" name="middlename" />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="addLastName">Last name</label
+                ><input id="addLastName" name="surname" required />
+              </div>
+              <div class="field">
+                <label for="genderSelect">Gender</label
+                ><select id="genderSelect" name="gender" required>
+                  <option value="" selected disabled>Select gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label for="permissionSelect">Permission</label
+              ><select id="permissionSelect" name="permission_id" required>
+                <option value="" selected disabled>Select permission</option>
+              </select>
+            </div>
+            <label class="status-control" for="isAdminActive">
+              <span
+                ><strong>Active administrator</strong
+                ><small>Can sign in and use assigned permissions</small></span
+              >
+              <input type="checkbox" id="isAdminActive" checked /><span
+                class="switch"
+              ></span>
+            </label>
+          </div>
+          <footer class="modal-footer">
+            <button
+              type="button"
+              class="secondary-button"
+              onclick="toggleModal('addNewModal', false)"
+            >
+              Cancel</button
+            ><button type="submit" class="primary-button">Create admin</button>
+          </footer>
+        </form>
+      </div>
     </div>
 
-    <div class="room-modal invisible" id="addNewModal" role="dialog" aria-modal="true" aria-labelledby="add-title">
-        <div class="modal-card admin-modal-card scale-95" id="addNewModalCard">
-                <header class="modal-header">
-                    <div><p class="eyebrow">New account</p><h2 id="add-title">Add administrator</h2></div>
-                    <button type="button" class="modal-close" onclick="toggleModal('addNewModal', false)" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-                </header>
-                <form id="newAdminForm">
-                    <div class="modal-body form-grid">
-                        <h3>User credentials</h3>
-                        <div class="field-row credentials-row">
-                            <div class="field"><label for="addUsername">Username</label><input id="addUsername" name="username" required autocomplete="off" placeholder="ID number"></div>
-                            <div class="field">
-                                <label for="addPassword">Temporary password</label>
-                                <input id="addPassword" name="password" type="text" required>
-                                <label class="inline-check"><input type="checkbox" onclick="showPassword()" checked> Show password</label>
-                            </div>
-                        </div>
-                        <h3>Personal information</h3>
-                        <div class="field-row">
-                            <div class="field"><label for="addGivenName">Given name</label><input id="addGivenName" name="givenname" required></div>
-                            <div class="field"><label for="addMiddleName">Middle name</label><input id="addMiddleName" name="middlename"></div>
-                        </div>
-                        <div class="field-row">
-                            <div class="field"><label for="addLastName">Last name</label><input id="addLastName" name="surname" required></div>
-                            <div class="field"><label for="genderSelect">Gender</label><select id="genderSelect" name="gender" required><option value="" selected disabled>Select gender</option><option value="Male">Male</option><option value="Female">Female</option></select></div>
-                        </div>
-                        <div class="field"><label for="permissionSelect">Permission</label><select id="permissionSelect" name="permission_id" required><option value="" selected disabled>Select permission</option></select></div>
-                        <label class="status-control" for="isAdminActive">
-                            <span><strong>Active administrator</strong><small>Can sign in and use assigned permissions</small></span>
-                            <input type="checkbox" id="isAdminActive" checked><span class="switch"></span>
-                        </label>
-                    </div>
-                    <footer class="modal-footer"><button type="button" class="secondary-button" onclick="toggleModal('addNewModal', false)">Cancel</button><button type="submit" class="primary-button">Create admin</button></footer>
-                </form>
+    <div
+      class="room-modal invisible"
+      id="editModal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-title"
+    >
+      <div class="modal-card admin-modal-card scale-95" id="editModalCard">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Admin account</p>
+            <h2 id="edit-title">Edit administrator</h2>
+          </div>
+          <button
+            type="button"
+            class="modal-close"
+            onclick="toggleModal('editModal', false)"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </header>
+        <div class="modal-tabs" role="tablist">
+          <button
+            class="active"
+            type="button"
+            data-tab="personalInformation"
+            onclick="switchAdminTab('personalInformation')"
+          >
+            Personal information
+          </button>
+          <button
+            type="button"
+            data-tab="editStatus"
+            onclick="switchAdminTab('editStatus')"
+          >
+            Status
+          </button>
         </div>
-    </div>
-
-    <div class="room-modal invisible" id="editModal" role="dialog" aria-modal="true" aria-labelledby="edit-title">
-        <div class="modal-card admin-modal-card scale-95" id="editModalCard">
-                <header class="modal-header">
-                    <div><p class="eyebrow">Admin account</p><h2 id="edit-title">Edit administrator</h2></div>
-                    <button type="button" class="modal-close" onclick="toggleModal('editModal', false)" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-                </header>
-                <div class="modal-tabs" role="tablist">
-                    <button class="active" type="button" data-tab="personalInformation" onclick="switchAdminTab('personalInformation')">Personal information</button>
-                    <button type="button" data-tab="editStatus" onclick="switchAdminTab('editStatus')">Status</button>
+        <div>
+          <div class="admin-tab-panel" id="personalInformation">
+            <form id="editAdminInfoForm">
+              <div class="modal-body form-grid">
+                <div class="field-row">
+                  <div class="field">
+                    <label for="editGivenName">Given name</label
+                    ><input id="editGivenName" name="givenname" required />
+                  </div>
+                  <div class="field">
+                    <label for="editMiddleName">Middle name</label
+                    ><input id="editMiddleName" name="middlename" />
+                  </div>
                 </div>
-                <div>
-                    <div class="admin-tab-panel" id="personalInformation">
-                        <form id="editAdminInfoForm">
-                            <div class="modal-body form-grid">
-                                <div class="field-row">
-                                    <div class="field"><label for="editGivenName">Given name</label><input id="editGivenName" name="givenname" required></div>
-                                    <div class="field"><label for="editMiddleName">Middle name</label><input id="editMiddleName" name="middlename"></div>
-                                </div>
-                                <div class="field-row">
-                                    <div class="field"><label for="editLastName">Last name</label><input id="editLastName" name="surname" required></div>
-                                    <div class="field"><label for="editGenderSelect">Gender</label><select id="editGenderSelect" name="gender" required><option value="" disabled>Select gender</option><option value="MALE">Male</option><option value="FEMALE">Female</option></select></div>
-                                </div>
-                            </div>
-                            <footer class="modal-footer"><button type="button" class="secondary-button" onclick="toggleModal('editModal', false)">Cancel</button><button type="submit" class="primary-button">Save changes</button></footer>
-                        </form>
-                    </div>
-                    <div class="admin-tab-panel hidden" id="editStatus">
-                        <form id="editAdminStatusForm">
-                            <div class="modal-body">
-                                <label class="status-control" for="editIsAdminStatusActive">
-                                    <span><strong>Active administrator</strong><small>Can sign in and use assigned permissions</small></span>
-                                    <input type="checkbox" id="editIsAdminStatusActive"><span class="switch"></span>
-                                </label>
-                            </div>
-                            <footer class="modal-footer"><button type="button" class="secondary-button" onclick="toggleModal('editModal', false)">Cancel</button><button type="submit" class="primary-button">Save status</button></footer>
-                        </form>
-                    </div>
+                <div class="field-row">
+                  <div class="field">
+                    <label for="editLastName">Last name</label
+                    ><input id="editLastName" name="surname" required />
+                  </div>
+                  <div class="field">
+                    <label for="editGenderSelect">Gender</label
+                    ><select id="editGenderSelect" name="gender" required>
+                      <option value="" disabled>Select gender</option>
+                      <option value="MALE">Male</option>
+                      <option value="FEMALE">Female</option>
+                    </select>
+                  </div>
                 </div>
+              </div>
+              <footer class="modal-footer">
+                <button
+                  type="button"
+                  class="secondary-button"
+                  onclick="toggleModal('editModal', false)"
+                >
+                  Cancel</button
+                ><button type="submit" class="primary-button">
+                  Save changes
+                </button>
+              </footer>
+            </form>
+          </div>
+          <div class="admin-tab-panel hidden" id="editStatus">
+            <form id="editAdminStatusForm">
+              <div class="modal-body">
+                <label class="status-control" for="editIsAdminStatusActive">
+                  <span
+                    ><strong>Active administrator</strong
+                    ><small
+                      >Can sign in and use assigned permissions</small
+                    ></span
+                  >
+                  <input type="checkbox" id="editIsAdminStatusActive" /><span
+                    class="switch"
+                  ></span>
+                </label>
+              </div>
+              <footer class="modal-footer">
+                <button
+                  type="button"
+                  class="secondary-button"
+                  onclick="toggleModal('editModal', false)"
+                >
+                  Cancel</button
+                ><button type="submit" class="primary-button">
+                  Save status
+                </button>
+              </footer>
+            </form>
+          </div>
         </div>
+      </div>
     </div>
 
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
@@ -153,5 +331,5 @@
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="./script.js"></script>
-</body>
+  </body>
 </html>

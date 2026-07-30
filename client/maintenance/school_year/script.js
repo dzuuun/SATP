@@ -1,272 +1,228 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var maintenanceAccess = localStorage.getItem("maintenanceAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+const state = {
+  userId: localStorage.getItem("user_id"),
+  maintenanceAccess: localStorage.getItem("maintenanceAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+};
 
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (maintenanceAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.maintenanceAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-let data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/schoolyear`,
-    cache: true,
-  },
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { data: "name" },
-    {
-      width: "8%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.in_use ? "<span>Yes</span>" : '<span style="color: red">No</span>'
-        }
-                  </td>`;
+let table;
+let rowIdToUpdate;
+
+$(document).ready(() => {
+  table = $("#table").DataTable({
+    ajax: { url: "/api/schoolyear", dataSrc: "data", cache: true },
+    columns: [
+      { data: "name", title: "School year" },
+      {
+        data: "in_use",
+        title: "In use",
+        width: "14%",
+        className: "dt-center",
+        render: (value) =>
+          value
+            ? '<span class="status-badge active">In use</span>'
+            : '<span class="status-badge inactive">Not in use</span>',
       },
-    },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
+      {
+        data: "is_active",
+        title: "Status",
+        width: "14%",
+        className: "dt-center",
+        render: (value) =>
+          value
+            ? '<span class="status-badge active">Active</span>'
+            : '<span class="status-badge inactive">Inactive</span>',
       },
-    },
-    {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
-              </div>
-            </td> `;
+      {
+        data: "id",
+        title: "Actions",
+        width: "10%",
+        orderable: false,
+        className: "dt-center",
+        render: (id) =>
+          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit school year"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
       },
-    },
-  ],
+    ],
+    pageLength: 10,
+    dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+    language: { search: "", searchPlaceholder: "Search school years..." },
+  });
 });
 
-// post school year to API
-const formAddSchoolYear = document.querySelector("#newSchoolYearForm");
-formAddSchoolYear.addEventListener("submit", async (event) => {
-  event.preventDefault();
+document
+  .getElementById("newSchoolYearForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Create this school year?")) return;
+    await saveSchoolYear(
+      "/api/schoolyear/add",
+      "POST",
+      formPayload(
+        event.currentTarget,
+        "isSchoolYearInUse",
+        "isSchoolYearActive",
+      ),
+      "addNewModal",
+    );
+  });
 
-  const formData = new FormData(formAddSchoolYear);
-  const inUse = document.getElementById("isSchoolYearInUse").checked;
-  if (inUse == false) {
-    formData.append("in_use", "0");
+document
+  .getElementById("editSchoolYearForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Save these school year changes?")) return;
+    const payload = formPayload(
+      event.currentTarget,
+      "isSchoolYearInUseEdit",
+      "isSchoolYearActiveEdit",
+    );
+    payload.id = rowIdToUpdate;
+    await saveSchoolYear("/api/schoolyear/update", "PUT", payload, "editModal");
+  });
+
+function formPayload(form, inUseId, activeId) {
+  return {
+    ...Object.fromEntries(new FormData(form)),
+    in_use: document.getElementById(inUseId).checked ? 1 : 0,
+    is_active: document.getElementById(activeId).checked ? 1 : 0,
+    user_id: state.userId,
+  };
+}
+
+async function editFormCall(id) {
+  try {
+    const response = await requestJson(`/api/schoolyear/${id}`);
+    const schoolYear = response.data;
+    rowIdToUpdate = schoolYear.id;
+    document.getElementById("editSchoolYear").value = schoolYear.name;
+    document.getElementById("isSchoolYearInUseEdit").checked =
+      schoolYear.in_use == 1;
+    document.getElementById("isSchoolYearActiveEdit").checked =
+      schoolYear.is_active == 1;
+    toggleModal("editModal", true);
+  } catch (error) {
+    setErrorMessage("Unable to load the school year.");
+  }
+}
+
+async function saveSchoolYear(url, method, payload, modalId) {
+  try {
+    const response = await requestJson(url, {
+      method,
+      body: JSON.stringify(payload),
+    });
+    if (!response.success) return setErrorMessage(response.message);
+    setSuccessMessage(response.message);
+    toggleModal(modalId, false);
+    table.ajax.reload(null, false);
+  } catch (error) {
+    setErrorMessage("Unable to save the school year.");
+  }
+}
+
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+  });
+  return response.json();
+}
+
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (!modal) return;
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
   } else {
-    formData.append("in_use", "1");
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
   }
-  const isActive = document.getElementById("isSchoolYearActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/schoolyear/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-});
+}
 
 function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+  showToast(message, true);
 }
-
 function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+  showToast(message, false);
+}
+function showToast(message, success) {
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML = `<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="${success ? "m5 12 4 4L19 6" : "M12 8v5m0 3h.01M10.3 4.6 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"}"/></svg></span><span></span>`;
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 
-// update data on the API
-var rowIdToUpdate;
-async function editFormCall(id) {
-  await fetch(`/api/schoolyear/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      document.getElementById("editSchoolYear").value = data.name;
-      rowIdToUpdate = data.id;
-      if (data.in_use == 0) {
-        document.getElementById("isSchoolYearInUseEdit").checked = false;
-      } else {
-        document.getElementById("isSchoolYearInUseEdit").checked = true;
-      }
-      if (data.is_active == 0) {
-        document.getElementById("isSchoolYearActiveEdit").checked = false;
-      } else {
-        document.getElementById("isSchoolYearActiveEdit").checked = true;
-      }
-      $("#editModal").modal("show");
+function toggleNav() {
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
+}
+
+async function loadSidebar() {
+  try {
+    const container = document.getElementById("sidebar-container");
+    const response = await fetch("/sidebar.html");
+    container.innerHTML = await response.text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    document.querySelectorAll("#mySidenav a").forEach((link) => {
+      if (!location.pathname.includes(link.getAttribute("href"))) return;
+      const list = link.closest("ul[id^='dropdown-']");
+      link.classList.add(list ? "sub-active" : "nav-active");
+      if (list) list.classList.remove("hidden");
     });
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
+  }
 }
-const formEditSchoolYear = document.querySelector("#editSchoolYearForm");
-formEditSchoolYear.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditSchoolYear);
-  const inUse = document.getElementById("isSchoolYearInUseEdit").checked;
-  if (inUse == false) {
-    formData.append("in_use", "0");
-  } else {
-    formData.append("in_use", "1");
-  }
-  const isActive = document.getElementById("isSchoolYearActiveEdit").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
 
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/schoolyear/update`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape")
+    ["addNewModal", "editModal"].forEach((id) => {
+      if (!document.getElementById(id)?.classList.contains("invisible"))
+        toggleModal(id, false);
+    });
 });
 
-// delete function
-var rowIdToDelete;
-function deleteRow(id) {
-  rowIdToDelete = id;
-  $("#deleteModal").modal("show");
-}
-
-async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: user };
-  await fetch(`/api/schoolyear/delete`, {
-    method: "DELETE",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      if (response.success == 0) {
-        setErrorMessage(response.message);
-      } else {
-        setSuccessMessage(response.message);
-        $("#deleteModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-      }
-    });
-}
-
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
-}
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
-}
-function toggleNav() {
-  nav ? closeNav() : openNav();
-}
-
-let signOutButton = document.getElementById("signout");
-
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
 });

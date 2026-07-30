@@ -225,8 +225,7 @@ function toggleNav() {
   const isOpen = sidenav.style.width === "280px";
   sidenav.style.width = isOpen ? "0" : "280px";
   if (main) {
-    main.style.marginLeft =
-      window.innerWidth <= 760 || isOpen ? "0" : "280px";
+    main.style.marginLeft = window.innerWidth <= 760 || isOpen ? "0" : "280px";
   }
 }
 
@@ -270,9 +269,7 @@ async function loadSidebar() {
       if (dropdown) {
         link.classList.add("sub-active");
         dropdown.classList.remove("hidden");
-        const toggle = document.querySelector(
-          `[data-target="${dropdown.id}"]`,
-        );
+        const toggle = document.querySelector(`[data-target="${dropdown.id}"]`);
         toggle?.setAttribute("aria-expanded", "true");
         const chevron = toggle?.querySelector(".chevron");
         if (chevron) chevron.style.transform = "rotate(180deg)";

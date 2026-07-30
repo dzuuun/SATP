@@ -1,506 +1,484 @@
-
-var user = localStorage.getItem("user_id");
-var maintenanceAccess = localStorage.getItem("maintenanceAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
-
-if (user === null) {
+"use strict";
+const state = {
+  userId: localStorage.getItem("user_id"),
+  maintenanceAccess: localStorage.getItem("maintenanceAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+};
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (maintenanceAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.maintenanceAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
-
-let data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/student`,
-    cache: true,
-  },
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { width: "5%", data: "username" },
-    { data: "name" },
-    { width: "10%", data: "course" },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
+let table,
+  rowIdToUpdate,
+  coursesByCode = new Map(),
+  pendingImport = { created: [], updated: [], errors: [] };
+const normalize = (v) =>
+  String(v || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+$(document).ready(() => {
+  table = $("#table").DataTable({
+    ajax: { url: "/api/student", dataSrc: "data", cache: true },
+    columns: [
+      {
+        data: "username",
+        title: "Username",
+        width: "10%",
+        className: "student-username-cell",
       },
-    },
-    {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">              
-                <button class='btn bi fs-5 bi-pencil'" type="button" onclick="edit(${row.id})" title="Edit"></button>
-              </div>
-            </td> `;
+      { data: "name", title: "Student name" },
+      { data: "course", title: "Course", width: "14%" },
+      {
+        data: "is_active",
+        title: "Status",
+        width: "12%",
+        className: "dt-center",
+        render: (v) =>
+          v
+            ? '<span class="status-badge active">Active</span>'
+            : '<span class="status-badge inactive">Inactive</span>',
       },
-    },
-  ],
-  order: [[1, "asc"]],
-});
-
-function showPassword() {
-  var x = document.getElementById("addPassword");
-  if (x.type === "password") {
-    x.type = "text";
-  } else {
-    x.type = "password";
-  }
-}
-
-// Get course from API
-const getCourse = async () => {
-  const courseList = document.querySelector("#courseSelect");
-  const courseList2 = document.querySelector("#editCourseSelect");
-  // const courseList3 = document.querySelector("#selectImportCourse");
-  const endpoint = `/api/course/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    course = data.data;
-
-  course.forEach((row) => {
-    courseList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
-    courseList2.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
-    // courseList3.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
+      {
+        data: "id",
+        title: "Actions",
+        width: "10%",
+        orderable: false,
+        className: "dt-center",
+        render: (id) =>
+          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit student"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
+      },
+    ],
+    pageLength: 10,
+    dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+    language: { search: "", searchPlaceholder: "Search students..." },
   });
-  $(".form-control").selectpicker("refresh");
-};
+});
 
-getCourse();
-
-function generatePassword() {
-  let result = "";
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const charactersLength = characters.length;
-  let counter = 0;
-  while (counter < 10) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    counter += 1;
-  }
-  document.getElementById("addPassword").value = result;
-  return result;
-}
-
-// post school year to API
-const formAddStudent = document.querySelector("#newStudentForm");
-formAddStudent.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const formData = new FormData(formAddStudent);
-  const isActive = document.getElementById("isStudentActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-  formData.append("permission_id", "5");
-  formData.append("is_temp_pass", "0");
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/student/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
+async function loadCourses() {
+  try {
+    const r = await requestJson("/api/course/all/active"),
+      courses = r.data || [];
+    coursesByCode = new Map(
+      courses.map((c) => [normalize(c.code || c.course_code), c]),
+    );
+    ["courseSelect", "editCourseSelect"].forEach((id) => {
+      const select = document.getElementById(id);
+      courses.forEach((c) => {
+        const option = document.createElement("option");
+        option.value = c.id;
+        option.textContent = `${c.code || c.course_code} — ${c.name}`;
+        select.appendChild(option);
       });
-  }
-});
-
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-  $(".form-control").selectpicker("refresh");
-});
-
-function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
-
-function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
-
-// update data on the API
-var rowIdToUpdate;
-async function edit(id) {
-  await fetch(`/api/student/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      document.getElementById("editGivenName").value = data.givenname;
-      document.getElementById("editMiddleName").value = data.middlename;
-      document.getElementById("editLastName").value = data.surname;
-      document.getElementById("editGenderSelect").value = data.gender;
-      document.getElementById("editCourseSelect").value = data.course_id;
-      document.getElementById("editYearLevel").value = data.year_level;
-      if (data.is_active == 0) {
-        document.getElementById("editIsStudentStatusActive").checked = false;
-      } else {
-        document.getElementById("editIsStudentStatusActive").checked = true;
-      }
-      rowIdToUpdate = data.id;
-      $("#editModal").modal("show");
-      $(".form-control").selectpicker("refresh");
     });
-}
-const formEditStudent = document.querySelector("#editStudentInfoForm");
-formEditStudent.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditStudent);
-
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/student/update/info`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
+  } catch (e) {
+    setErrorMessage("Unable to load courses.");
   }
+}
+function addPayload(form) {
+  return {
+    ...Object.fromEntries(new FormData(form)),
+    is_active: document.getElementById("isStudentActive").checked ? 1 : 0,
+    permission_id: 5,
+    is_temp_pass: 0,
+    user_id: state.userId,
+  };
+}
+document
+  .getElementById("newStudentForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!confirm("Create this student?")) return;
+    try {
+      const r = await requestJson("/api/student/add", {
+        method: "POST",
+        body: JSON.stringify(addPayload(e.currentTarget)),
+      });
+      if (!r.success) return setErrorMessage(r.message);
+      setSuccessMessage(r.message);
+      toggleModal("addNewModal", false);
+      table.ajax.reload(null, false);
+    } catch (error) {
+      setErrorMessage("Unable to create the student.");
+    }
+  });
+async function editFormCall(id) {
+  try {
+    const r = await requestJson(`/api/student/${id}`),
+      s = r.data;
+    rowIdToUpdate = s.id;
+    ["GivenName", "MiddleName", "LastName"].forEach(
+      (key, i) =>
+        (document.getElementById(`edit${key}`).value = [
+          s.givenname,
+          s.middlename || "",
+          s.surname,
+        ][i]),
+    );
+    document.getElementById("editGenderSelect").value = s.gender;
+    document.getElementById("editCourseSelect").value = s.course_id;
+    document.getElementById("editYearLevel").value = s.year_level;
+    document.getElementById("editIsStudentStatusActive").checked =
+      s.is_active == 1;
+    toggleModal("editModal", true);
+  } catch (e) {
+    setErrorMessage("Unable to load the student.");
+  }
+}
+document
+  .getElementById("editStudentForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!confirm("Save these student changes?")) return;
+    const info = {
+        ...Object.fromEntries(new FormData(e.currentTarget)),
+        id: rowIdToUpdate,
+        user_id: state.userId,
+      },
+      status = {
+        id: rowIdToUpdate,
+        user_id: state.userId,
+        is_active: document.getElementById("editIsStudentStatusActive").checked
+          ? 1
+          : 0,
+      };
+    try {
+      const first = await requestJson("/api/student/update/info", {
+        method: "PUT",
+        body: JSON.stringify(info),
+      });
+      if (!first.success) return setErrorMessage(first.message);
+      const second = await requestJson("/api/student/update/status", {
+        method: "PUT",
+        body: JSON.stringify(status),
+      });
+      if (!second.success) return setErrorMessage(second.message);
+      setSuccessMessage(second.message || first.message);
+      toggleModal("editModal", false);
+      table.ajax.reload(null, false);
+    } catch (error) {
+      setErrorMessage("Unable to save the student.");
+    }
+  });
+function togglePassword() {
+  const input = document.getElementById("addPassword");
+  input.type = input.type === "password" ? "text" : "password";
+}
+
+const xlsxInput = document.getElementById("xlsxInput");
+xlsxInput.addEventListener("change", () => {
+  if (xlsxInput.files[0])
+    document.querySelector("#dropZone p").textContent =
+      `Selected: ${xlsxInput.files[0].name}`;
 });
-
-const formEditStudentStatus = document.querySelector("#editStudentStatusForm");
-formEditStudentStatus.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const isActive = document.getElementById("editIsStudentStatusActive").checked;
-  let status;
-  if (isActive == false) {
-    status = { is_active: 0, id: rowIdToUpdate, user_id: user };
-  } else {
-    status = { is_active: 1, id: rowIdToUpdate, user_id: user };
-  }
-
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/student/update/status`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
+document.getElementById("downloadLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  const sheet = XLSX.utils.json_to_sheet([
+      {
+        username: "2026-00001",
+        password: "Temp1234",
+        surname: "Dela Cruz",
+        givenname: "Juan",
+        middlename: "Santos",
+        year_level: 1,
+        gender: "Male",
+        course_code: "BSIT",
       },
-      body: JSON.stringify(status),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
+    ]),
+    book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Students");
+  XLSX.writeFile(book, "student_import_template.xlsx");
 });
-
-// delete function
-var rowIdToDelete;
-function deleteRow(id) {
-  rowIdToDelete = id;
-  $("#deleteModal").modal("show");
-}
-
-async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: user };
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/student/delete`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#deleteModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-}
-const csvInput = document.getElementById("csvInput");
-const uploadFileForm = document.querySelector("#uploadFileForm");
-uploadFileForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  if (confirm("This action cannot be undone.")) {
-    $("#importFileModal").modal("hide");
-    $("#spinnerStatusModal").modal("show");
-    const file = csvInput.files[0];
-
-    if (file) {
+function parseWorkbook(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
       try {
-        const results = await parseCSV(file);
-
-        const headers = results.data[0];
-        const data = [];
-        const failedData = []; // To store failed rows
-
-        for (let i = 1; i < results.data.length; i++) {
-          const values = results.data[i];
-          if (
-            values.length === headers.length &&
-            values.some((value) => value.trim() !== "")
-          ) {
-            const rowObject = {};
-            for (let j = 0; j < headers.length; j++) {
-              rowObject[headers[j]] = values[j];
-            }
-            rowObject["user_id"] = user;
-            rowObject["is_active"] = 1;
-            rowObject["permission_id"] = 5;
-            rowObject["is_temp_pass"] = 1;
-
-            document.getElementById("statusMessage").innerHTML =
-              ((i / results.data.length) * 100).toFixed(0) + "%";
-
-            console.log(((i / results.data.length) * 100).toFixed(0) + "%");
-            document.getElementById(
-              "spinnerMessage"
-            ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
-
-            try {
-              // Fetch course_id from API
-              const response = await postData(`/api/course/get`, {
-                course_code: rowObject.course_code,
-              });
-              if (!response.data || !response.data.id) {
-                throw new Error("Course not found");
-              }
-              rowObject["course_id"] = response.data.id;
-
-              // Add row to data if everything is valid
-              data.push(rowObject);
-            } catch (error) {
-              console.error("Failed to process row:", error);
-              failedData.push({ ...rowObject, error: error.message }); // Add row to failed data with error message
-              continue; // Skip to the next iteration if this one fails
-            }
-          }
-        }
-
-        let counter = 0;
-        for (let i = 0; i < data.length; i++) {
-          try {
-            const response = await postData(`/api/student/add`, data[i]);
-
-            document.getElementById("statusMessage").innerHTML =
-              ((i / data.length) * 100).toFixed(0) + "%";
-            document.getElementById(
-              "spinnerMessage"
-            ).innerHTML = `Import in progress. Do not refresh the page...`;
-
-            if (response.success === 0) {
-              failedData.push(data[i]); // Capture failed row on error
-            } else {
-              counter++;
-            }
-          } catch (error) {
-            console.error(error);
-            failedData.push(data[i]); // Capture failed row on error
-          }
-        }
-
-        // Show the failed data in the modal
-        if (failedData.length > 0) {
-          document.getElementById("totalFailedData").innerHTML =
-            `Total: ` + failedData.length;
-          const failedDataList = document.getElementById("failedDataList");
-          failedDataList.innerHTML = "";
-
-          for (const item of failedData) {
-            const listItem = document.createElement("li");
-            listItem.textContent = JSON.stringify(item);
-            failedDataList.appendChild(listItem);
-          }
-          $("#failedDataModal").modal("show");
-
-          // Optionally, export failed rows to CSV
-          exportFailedDataToCSV(failedData);
-        }
-
-        $("#spinnerStatusModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-        setSuccessMessage(
-          `${counter} of ${data.length} entries were imported successfully.`
+        const book = XLSX.read(new Uint8Array(e.target.result), {
+          type: "array",
+        });
+        resolve(
+          XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]], {
+            defval: "",
+            raw: false,
+          }),
         );
       } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-});
-
-// Function to export failed rows to CSV
-function exportFailedDataToCSV(failedData) {
-  const csvHeaders = Object.keys(failedData[0]);
-  const csvRows = [
-    csvHeaders.join(","), // Header row
-    ...failedData.map(row =>
-      csvHeaders.map(header => `"${row[header] || ''}"`).join(",")
-    )
-  ].join("\n");
-
-  // Create a Blob from the CSV data
-  const csvBlob = new Blob([csvRows], { type: "text/csv" });
-
-  // Create a link element to download the CSV file
-  const downloadLink = document.createElement("a");
-  downloadLink.href = URL.createObjectURL(csvBlob);
-  downloadLink.download = "failed_data.csv";
-
-  // Append the link to the body, trigger click, and remove the link
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
-
-async function parseCSV(file) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      complete: function (results) {
-        resolve(results);
-      },
-      error: function (error) {
         reject(error);
-      },
-    });
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
   });
 }
-
-async function postData(url, data) {
+document
+  .getElementById("uploadFileForm")
+  .addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!xlsxInput.files[0]) return;
+    try {
+      const [rows, current] = await Promise.all([
+        parseWorkbook(xlsxInput.files[0]),
+        requestJson("/api/student"),
+      ]);
+      pendingImport = classifyRows(rows, current.data || []);
+      renderPreview();
+      toggleModal("importFileModal", false);
+      setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    } catch (error) {
+      setErrorMessage("Unable to validate the Excel file.");
+    }
+  });
+function classifyRows(rows, existing) {
+  const byUsername = new Map(existing.map((s) => [normalize(s.username), s])),
+    seen = new Set(),
+    result = { created: [], updated: [], errors: [] },
+    allowedYears = ["1", "2", "3", "4", "5", "6", "grade 11", "grade 12"];
+  rows.forEach((raw, index) => {
+    const username = String(raw.username || "").trim(),
+      password = String(raw.password || "").trim(),
+      surname = String(raw.surname || "").trim(),
+      givenname = String(raw.givenname || "").trim(),
+      middlename = String(raw.middlename || "").trim(),
+      year_level = String(raw.year_level || "").trim(),
+      gender = String(raw.gender || "").trim(),
+      courseCode = String(raw.course_code || "")
+        .trim()
+        .toUpperCase(),
+      course = coursesByCode.get(normalize(courseCode)),
+      key = normalize(username),
+      base = {
+        rowNumber: index + 2,
+        username,
+        password,
+        surname,
+        givenname,
+        middlename,
+        year_level,
+        gender,
+        courseCode,
+        course_id: course?.id,
+        is_active: 1,
+        originalRow: raw,
+      };
+    if (
+      !username ||
+      !password ||
+      !surname ||
+      !givenname ||
+      !year_level ||
+      !gender ||
+      !courseCode
+    )
+      result.errors.push({
+        ...base,
+        reason: "Required student fields are incomplete",
+      });
+    else if (!allowedYears.includes(normalize(year_level)))
+      result.errors.push({
+        ...base,
+        reason: "Year level must be 1–6, Grade 11, or Grade 12",
+      });
+    else if (!["male", "female"].includes(normalize(gender)))
+      result.errors.push({ ...base, reason: "Gender must be Male or Female" });
+    else if (!course)
+      result.errors.push({
+        ...base,
+        reason: `Course ${courseCode} was not found`,
+      });
+    else if (seen.has(key))
+      result.errors.push({ ...base, reason: "Duplicate username in file" });
+    else {
+      seen.add(key);
+      const current = byUsername.get(key);
+      current
+        ? result.updated.push({ ...base, id: current.id })
+        : result.created.push(base);
+    }
+  });
+  return result;
+}
+function renderPreview() {
+  [
+    ["created", "createdPreview", "createdCount", "Will be created"],
+    ["updated", "updatedPreview", "updatedCount", "Existing username"],
+    ["errors", "errorPreview", "errorCount", ""],
+  ].forEach(([key, listId, countId, detail]) => {
+    const items = pendingImport[key],
+      list = document.getElementById(listId);
+    document.getElementById(countId).textContent = items.length;
+    list.replaceChildren();
+    if (!items.length) {
+      const p = document.createElement("p");
+      p.className = "preview-empty";
+      p.textContent = `No ${key} found`;
+      return list.appendChild(p);
+    }
+    items.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "preview-row";
+      row.innerHTML =
+        '<span class="row-number"></span><span class="room-name"></span><span class="row-detail"></span>';
+      row.children[0].textContent = `Row ${item.rowNumber}`;
+      row.children[1].textContent = `${item.username} — ${item.givenname} ${item.surname}`;
+      row.children[2].textContent = item.reason || detail;
+      list.appendChild(row);
+    });
+  });
+  document.getElementById("runImportButton").disabled =
+    !pendingImport.created.length &&
+    !pendingImport.updated.length &&
+    !pendingImport.errors.length;
+}
+document
+  .getElementById("runImportButton")
+  .addEventListener("click", async () => {
+    const actions = [
+        ...pendingImport.created.map((item) => ({ type: "created", item })),
+        ...pendingImport.updated.map((item) => ({ type: "updated", item })),
+      ],
+      errors = pendingImport.errors.map((x) => ({
+        ...x.originalRow,
+        Error: x.reason,
+      }));
+    if (!actions.length) {
+      downloadErrors(errors);
+      toggleModal("importPreviewModal", false);
+      return setErrorMessage(`${errors.length} invalid rows exported.`);
+    }
+    toggleModal("importPreviewModal", false);
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+    const totals = { created: 0, updated: 0 };
+    for (let i = 0; i < actions.length; i++) {
+      const { type, item } = actions[i];
+      try {
+        let r;
+        if (type === "created") {
+          r = await requestJson("/api/student/add", {
+            method: "POST",
+            body: JSON.stringify({
+              ...item,
+              permission_id: 5,
+              is_temp_pass: 0,
+              user_id: state.userId,
+            }),
+          });
+        } else {
+          r = await requestJson("/api/student/update/info", {
+            method: "PUT",
+            body: JSON.stringify({ ...item, user_id: state.userId }),
+          });
+        }
+        r.success
+          ? totals[type]++
+          : errors.push({
+              ...item.originalRow,
+              Error: r.message || "Server rejected row",
+            });
+      } catch (e) {
+        errors.push({ ...item.originalRow, Error: "Request failed" });
+      }
+      document.getElementById("statusMessage").textContent =
+        `${Math.round(((i + 1) / actions.length) * 100)}%`;
+    }
+    toggleModal("spinnerStatusModal", false);
+    if (errors.length) downloadErrors(errors);
+    table.ajax.reload(null, false);
+    setTimeout(
+      () =>
+        setSuccessMessage(
+          `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`,
+        ),
+      350,
+    );
+  });
+function downloadErrors(rows) {
+  if (!rows.length) return;
+  const sheet = XLSX.utils.json_to_sheet(rows),
+    book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Import Errors");
+  XLSX.writeFile(
+    book,
+    `Student_Import_Errors_${new Date().toISOString().split("T")[0]}.xlsx`,
+  );
+}
+async function requestJson(url, options = {}) {
   const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
   });
   return response.json();
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  const downloadLink = document.getElementById("downloadLink");
-
-  downloadLink.addEventListener("click", function () {
-    const csvContent =
-      "username,password,surname,givenname,middlename,year_level,gender,course_code";
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "student_template.csv";
-    a.click();
-
-    URL.revokeObjectURL(url);
-  });
-});
-
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id),
+    card = document.getElementById(`${id}Card`);
+  if (!modal) return;
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
+  } else {
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
+  }
 }
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
+function setSuccessMessage(m) {
+  showToast(m, true);
+}
+function setErrorMessage(m) {
+  showToast(m, false);
+}
+function showToast(message, success) {
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML = `<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="${success ? "m5 12 4 4L19 6" : "M12 8v5m0 3h.01M10.3 4.6 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"}"/></svg></span><span></span>`;
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 function toggleNav() {
-  nav ? closeNav() : openNav();
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
 }
-
-let signOutButton = document.getElementById("signout");
-
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+async function loadSidebar() {
+  try {
+    const c = document.getElementById("sidebar-container"),
+      r = await fetch("/sidebar.html");
+    c.innerHTML = await r.text();
+    const n = document.getElementById("sidebar-fullname");
+    if (n) n.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((t) =>
+      t.addEventListener("click", function () {
+        const m = document.getElementById(this.dataset.target);
+        m?.classList.toggle("hidden");
+      }),
+    );
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  document.getElementById("addPassword").value = Math.random()
+    .toString(36)
+    .slice(-8);
+  loadCourses();
+  loadSidebar();
 });

@@ -1,363 +1,481 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var maintenanceAccess = localStorage.getItem("maintenanceAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+const state = {
+  userId: localStorage.getItem("user_id"),
+  maintenanceAccess: localStorage.getItem("maintenanceAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+};
 
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (maintenanceAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.maintenanceAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-let data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/item`,
-    cache: true,
-  },
-  ordering: false,
-  paging: false,
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { data: "category" },
-    { width: "5%", data: "number" },
-    { data: "question" },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editFormCall(${row.id})")' title="Edit"></button>
-              </div>
-            </td> `;
-      },
-    },
-  ],
-});
+let table;
+let rowIdToUpdate;
+let categoriesByName = new Map();
+let pendingImport = { created: [], updated: [], errors: [] };
+const normalize = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 
-// Get category from API
-const getCategory = async () => {
-  const categoryList = document.querySelector("#categorySelect");
-  const categoryList2 = document.querySelector("#categorySelectEdit");
-  const categoryList3 = document.querySelector("#selectImportCategory");
-  const endpoint = `/api/category/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    category = data.data;
-
-  category.forEach((row) => {
-    categoryList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-    categoryList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-    categoryList3.innerHTML += `<option value="${row.id}">${row.name}</option>`;
+$(document).ready(() => {
+  table = $("#table").DataTable({
+    ajax: { url: "/api/item", dataSrc: "data", cache: true },
+    columns: [
+      { data: "category", title: "Category", width: "20%" },
+      { data: "number", title: "Number", width: "10%", className: "dt-center" },
+      { data: "question", title: "Question", className: "item-question-cell" },
+      {
+        data: "is_active",
+        title: "Status",
+        width: "12%",
+        className: "dt-center",
+        render: (value) =>
+          value
+            ? '<span class="status-badge active">Active</span>'
+            : '<span class="status-badge inactive">Inactive</span>',
+      },
+      {
+        data: "id",
+        title: "Actions",
+        width: "10%",
+        orderable: false,
+        className: "dt-center",
+        render: (id) =>
+          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit item"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
+      },
+    ],
+    pageLength: 10,
+    order: [
+      [0, "asc"],
+      [1, "asc"],
+    ],
+    dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+    language: { search: "", searchPlaceholder: "Search items..." },
   });
-  $(".form-control").selectpicker("refresh");
-};
+});
 
-getCategory();
+document
+  .getElementById("newItemForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Create this item?")) return;
+    await saveItem(
+      "/api/item/add",
+      "POST",
+      formPayload(event.currentTarget, "isQuestionActive"),
+      "addNewModal",
+    );
+  });
 
-// post item to API
-const formAddItem = document.querySelector("#newItemForm");
-formAddItem.addEventListener("submit", async (event) => {
-  event.preventDefault();
+document
+  .getElementById("editItemForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Save these item changes?")) return;
+    const payload = formPayload(event.currentTarget, "isQuestionActiveEdit");
+    payload.id = rowIdToUpdate;
+    await saveItem("/api/item/update", "PUT", payload, "editModal");
+  });
 
-  const formData = new FormData(formAddItem);
-  const isActive = document.getElementById("isQuestionActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
+function formPayload(form, checkboxId) {
+  return {
+    ...Object.fromEntries(new FormData(form)),
+    is_active: document.getElementById(checkboxId).checked ? 1 : 0,
+    user_id: state.userId,
+  };
+}
+
+async function editFormCall(id) {
+  try {
+    const response = await requestJson(`/api/item/${id}`);
+    const item = response.data;
+    rowIdToUpdate = item.id;
+    document.getElementById("itemNumberEditForm").value = item.number;
+    document.getElementById("categorySelectEdit").value = item.category_id;
+    document.getElementById("itemQuestionEdit").value = item.question;
+    document.getElementById("isQuestionActiveEdit").checked =
+      item.is_active == 1;
+    toggleModal("editModal", true);
+  } catch (error) {
+    setErrorMessage("Unable to load the item.");
   }
+}
 
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/item/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
+async function saveItem(url, method, payload, modalId) {
+  try {
+    const response = await requestJson(url, {
+      method,
+      body: JSON.stringify(payload),
+    });
+    if (!response.success) return setErrorMessage(response.message);
+    setSuccessMessage(response.message);
+    toggleModal(modalId, false);
+    table.ajax.reload(null, false);
+  } catch (error) {
+    setErrorMessage("Unable to save the item.");
+  }
+}
+
+async function loadCategories() {
+  try {
+    const response = await requestJson("/api/category/all/active");
+    const categories = response.data || [];
+    categoriesByName = new Map(
+      categories.map((category) => [normalize(category.name), category]),
+    );
+    ["categorySelect", "categorySelectEdit"].forEach((selectId) => {
+      const select = document.getElementById(selectId);
+      categories.forEach((category) => {
+        const option = document.createElement("option");
+        option.value = category.id;
+        option.textContent = category.name;
+        select.appendChild(option);
       });
+    });
+  } catch (error) {
+    setErrorMessage("Unable to load categories.");
   }
+}
+
+const xlsxInput = document.getElementById("xlsxInput");
+xlsxInput.addEventListener("change", () => {
+  if (xlsxInput.files[0])
+    document.querySelector("#dropZone p").textContent =
+      `Selected: ${xlsxInput.files[0].name}`;
 });
 
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-  $(".form-control").selectpicker("refresh");
+document.getElementById("downloadLink").addEventListener("click", (event) => {
+  event.preventDefault();
+  const sheet = XLSX.utils.json_to_sheet([
+    {
+      category: "Teacher",
+      number: 1,
+      question: "Demonstrates mastery of the subject matter.",
+    },
+  ]);
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Items");
+  XLSX.writeFile(book, "item_import_template.xlsx");
 });
+
+document
+  .getElementById("uploadFileForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!xlsxInput.files[0]) return;
+    try {
+      const [rows, existingResponse] = await Promise.all([
+        parseWorkbook(xlsxInput.files[0]),
+        requestJson("/api/item"),
+      ]);
+      pendingImport = classifyRows(rows, existingResponse.data || []);
+      renderPreview();
+      toggleModal("importFileModal", false);
+      setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    } catch (error) {
+      setErrorMessage("Unable to validate the Excel file.");
+    }
+  });
+
+function parseWorkbook(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const book = XLSX.read(new Uint8Array(event.target.result), {
+          type: "array",
+        });
+        resolve(
+          XLSX.utils.sheet_to_json(book.Sheets[book.SheetNames[0]], {
+            defval: "",
+            raw: false,
+          }),
+        );
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function classifyRows(rows, existing) {
+  const existingByKey = new Map(
+    existing.map((item) => [
+      `${normalize(item.category)}|${normalize(item.number)}`,
+      item,
+    ]),
+  );
+  const seen = new Set();
+  const result = { created: [], updated: [], errors: [] };
+  rows.forEach((raw, index) => {
+    const categoryName = String(raw.category || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    const number = Number(String(raw.number || "").trim());
+    const question = String(raw.question || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    const category = categoriesByName.get(normalize(categoryName));
+    const key = `${normalize(categoryName)}|${number}`;
+    const base = {
+      rowNumber: index + 2,
+      categoryName,
+      category_id: category?.id,
+      number,
+      question,
+      is_active: 1,
+      originalRow: raw,
+    };
+    if (!categoryName || !number || !question) {
+      result.errors.push({
+        ...base,
+        reason: "Category, number, and question are required",
+      });
+    } else if (!Number.isInteger(number) || number < 1) {
+      result.errors.push({
+        ...base,
+        reason: "Number must be a positive whole number",
+      });
+    } else if (!category) {
+      result.errors.push({
+        ...base,
+        reason: `Category ${categoryName} was not found`,
+      });
+    } else if (seen.has(key)) {
+      result.errors.push({
+        ...base,
+        reason: "Duplicate category and number in file",
+      });
+    } else {
+      seen.add(key);
+      const current = existingByKey.get(key);
+      current
+        ? result.updated.push({ ...base, id: current.id })
+        : result.created.push(base);
+    }
+  });
+  return result;
+}
+
+function renderPreview() {
+  [
+    ["created", "createdPreview", "createdCount", "Will be created"],
+    [
+      "updated",
+      "updatedPreview",
+      "updatedCount",
+      "Existing category and number",
+    ],
+    ["errors", "errorPreview", "errorCount", ""],
+  ].forEach(([key, listId, countId, detail]) => {
+    const items = pendingImport[key];
+    const list = document.getElementById(listId);
+    document.getElementById(countId).textContent = items.length;
+    list.replaceChildren();
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "preview-empty";
+      empty.textContent = `No ${key} found`;
+      return list.appendChild(empty);
+    }
+    items.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "preview-row";
+      row.innerHTML =
+        '<span class="row-number"></span><span class="item-question"></span><span class="row-detail"></span>';
+      row.children[0].textContent = `Row ${item.rowNumber}`;
+      row.children[1].textContent = `${item.categoryName} #${item.number} — ${item.question}`;
+      row.children[2].textContent = item.reason || detail;
+      list.appendChild(row);
+    });
+  });
+  document.getElementById("runImportButton").disabled =
+    !pendingImport.created.length &&
+    !pendingImport.updated.length &&
+    !pendingImport.errors.length;
+}
+
+document
+  .getElementById("runImportButton")
+  .addEventListener("click", async () => {
+    const actions = [
+      ...pendingImport.created.map((item) => ({ type: "created", item })),
+      ...pendingImport.updated.map((item) => ({ type: "updated", item })),
+    ];
+    const errors = pendingImport.errors.map((item) => ({
+      ...item.originalRow,
+      Error: item.reason,
+    }));
+    if (!actions.length) {
+      downloadErrors(errors);
+      toggleModal("importPreviewModal", false);
+      return setErrorMessage(`${errors.length} invalid rows exported.`);
+    }
+    toggleModal("importPreviewModal", false);
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+    const totals = { created: 0, updated: 0 };
+    for (let index = 0; index < actions.length; index++) {
+      const { type, item } = actions[index];
+      const payload = {
+        number: item.number,
+        question: item.question,
+        category_id: item.category_id,
+        is_active: 1,
+        user_id: state.userId,
+      };
+      if (item.id) payload.id = item.id;
+      try {
+        const response = await requestJson(
+          type === "created" ? "/api/item/add" : "/api/item/update",
+          {
+            method: type === "created" ? "POST" : "PUT",
+            body: JSON.stringify(payload),
+          },
+        );
+        response.success
+          ? totals[type]++
+          : errors.push({
+              ...item.originalRow,
+              Error: response.message || "Server rejected row",
+            });
+      } catch (error) {
+        errors.push({ ...item.originalRow, Error: "Request failed" });
+      }
+      document.getElementById("statusMessage").textContent =
+        `${Math.round(((index + 1) / actions.length) * 100)}%`;
+    }
+    toggleModal("spinnerStatusModal", false);
+    if (errors.length) downloadErrors(errors);
+    table.ajax.reload(null, false);
+    setTimeout(
+      () =>
+        setSuccessMessage(
+          `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`,
+        ),
+      350,
+    );
+  });
+
+function downloadErrors(rows) {
+  if (!rows.length) return;
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Import Errors");
+  XLSX.writeFile(
+    book,
+    `Item_Import_Errors_${new Date().toISOString().split("T")[0]}.xlsx`,
+  );
+}
+
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+  });
+  return response.json();
+}
+
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (!modal) return;
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
+  } else {
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
+  }
+}
 
 function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+  showToast(message, true);
 }
-
 function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+  showToast(message, false);
+}
+function showToast(message, success) {
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML = `<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="${success ? "m5 12 4 4L19 6" : "M12 8v5m0 3h.01M10.3 4.6 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"}"/></svg></span><span></span>`;
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
 
-function initializeTable() {
-  table1.innerHTML = '<td colspan="5"> <strong>TEACHER</strong> </td>';
-  table2.innerHTML =
-    '<td colspan="5"> <strong>TEACHING PROCEDURES</strong> </td>';
-  table3.innerHTML = '<td colspan="5"> <strong>STUDENTS</strong> </td>';
-  table4.innerHTML = '<td colspan="5"> <strong>METHODOLOGY</strong> </td>';
-  table5.innerHTML =
-    '<td colspan="5"> <strong>GENERAL OBSERVATION</strong> </td>';
-}
-
-// update data on the API
-var rowIdToUpdate;
-async function editFormCall(id) {
-  await fetch(`/api/item/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-      document.getElementById("itemNumberEditForm").value = data.number;
-      document.getElementById("categorySelectEdit").value = data.category_id;
-      document.getElementById("itemQuestionEdit").value = data.question;
-      rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("isQuestionActiveEdit").checked = false;
-      } else {
-        document.getElementById("isQuestionActiveEdit").checked = true;
-      }
-      $("#editModal").modal("show");
-      $(".form-control").selectpicker("refresh");
-    });
-}
-const formEditItem = document.querySelector("#editItemForm");
-formEditItem.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  const formData = new FormData(formEditItem);
-
-  const isActive = document.getElementById("isQuestionActiveEdit").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/item/update`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-});
-
-// delete function
-var rowIdToDelete;
-function deleteRow(id) {
-  rowIdToDelete = id;
-  $("#deleteModal").modal("show");
-}
-
-async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: user };
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/item/delete`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#deleteModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-}
-
-const csvInput = document.getElementById("csvInput");
-
-const uploadFileForm = document.querySelector("#uploadFileForm");
-uploadFileForm.addEventListener("submit", (event) => {
-  event.preventDefault();
-  var category = document.getElementById("selectImportCategory").value;
-
-  const file = csvInput.files[0];
-  if (file) {
-    Papa.parse(file, {
-      complete: function (results) {
-        const headers = results.data[0];
-        const data = [];
-
-        for (let i = 1; i < results.data.length; i++) {
-          const values = results.data[i];
-          if (
-            values.length === headers.length &&
-            values.some((value) => value.trim() !== "")
-          ) {
-            const rowObject = {};
-            for (let j = 0; j < headers.length; j++) {
-              rowObject[headers[j]] = values[j];
-            }
-            rowObject["user_id"] = user;
-            rowObject["is_active"] = 1;
-            rowObject["category_id"] = category;
-            data.push(rowObject);
-          }
-        }
-
-        if (confirm("This action cannot be undone.") == true) {
-          for (let i = 0; i < data.length; i++) {
-            fetch(`/api/item/add`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(data[i]),
-            })
-              .then((res) => res.json())
-              .then((response) => {
-                if (response.success == 0) {
-                  setErrorMessage(response.message);
-                } else {
-                  $("#table").DataTable().ajax.reload();
-                }
-              });
-            $("#importFileModal").modal("hide");
-            setSuccessMessage(
-              `${data.length} entries were imported successfully.`
-            );
-          }
-        }
-      },
-    });
-  }
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const downloadLink = document.getElementById("downloadLink");
-
-  downloadLink.addEventListener("click", function () {
-    const csvContent = "number,question";
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "item_template.csv";
-    a.click();
-
-    URL.revokeObjectURL(url);
-  });
-});
-
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
-}
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
-}
 function toggleNav() {
-  nav ? closeNav() : openNav();
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
 }
 
-let signOutButton = document.getElementById("signout");
+async function loadSidebar() {
+  try {
+    const container = document.getElementById("sidebar-container");
+    const response = await fetch("/sidebar.html");
+    container.innerHTML = await response.text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    document.querySelectorAll("#mySidenav a").forEach((link) => {
+      if (!location.pathname.includes(link.getAttribute("href"))) return;
+      const list = link.closest("ul[id^='dropdown-']");
+      link.classList.add(list ? "sub-active" : "nav-active");
+      if (list) list.classList.remove("hidden");
+    });
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
+  }
+}
 
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape")
+    [
+      "addNewModal",
+      "editModal",
+      "importFileModal",
+      "importPreviewModal",
+    ].forEach((id) => {
+      if (!document.getElementById(id)?.classList.contains("invisible"))
+        toggleModal(id, false);
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadCategories();
+  loadSidebar();
 });

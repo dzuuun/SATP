@@ -30,10 +30,12 @@ $(document).ready(function () {
       dataSrc: "data",
     },
     columns: [
-      { data: "name", title: "ROOM NAME" },
+      { data: "name", title: "ROOM NAME", width: "76%" },
       {
         data: "is_active",
         title: "STATUS",
+        width: "16%",
+        className: "dt-center",
         render: function (data) {
           const isActive = data == 1;
           return `
@@ -47,25 +49,25 @@ $(document).ready(function () {
       {
         data: "id",
         title: "ACTIONS",
+        width: "8%",
         orderable: false,
+        className: "dt-center",
         render: (data) => `
-                <div class="flex justify-center">
-                    <button onclick="editFormCall(${data})" class="p-2 text-gray-400 hover:text-green-800 transition-colors">
-                        <i class="bi bi-pencil-square text-lg"></i>
-                    </button>
-                </div>`,
+          <button type="button" onclick="editFormCall(${data})" class="table-edit-button" aria-label="Edit room">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"></path>
+            </svg>
+          </button>`,
       },
     ],
+    autoWidth: false,
     responsive: true,
     pageLength: 10,
     dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
     language: {
       search: "",
       searchPlaceholder: "Search rooms...",
-      paginate: {
-        next: '<i class="bi bi-chevron-right"></i>',
-        previous: '<i class="bi bi-chevron-left"></i>',
-      },
+      paginate: { next: "Next", previous: "Previous" },
     },
   });
 });
@@ -131,17 +133,14 @@ function toggleModal(modalId, show = true) {
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
 
-  [
-    "addNewModal",
-    "editModal",
-    "importFileModal",
-    "importPreviewModal",
-  ].forEach((modalId) => {
-    const modal = document.getElementById(modalId);
-    if (modal && !modal.classList.contains("invisible")) {
-      toggleModal(modalId, false);
-    }
-  });
+  ["addNewModal", "editModal", "importFileModal", "importPreviewModal"].forEach(
+    (modalId) => {
+      const modal = document.getElementById(modalId);
+      if (modal && !modal.classList.contains("invisible")) {
+        toggleModal(modalId, false);
+      }
+    },
+  );
 });
 // --- ADD ROOM ---
 const formAddRoom = document.querySelector("#newRoomForm");
@@ -430,7 +429,10 @@ function readRoomWorkbook(file) {
 }
 
 function normalizeRoomName(value) {
-  return String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 }
 
 function classifyRoomRows(rows, existingRooms) {
@@ -676,7 +678,7 @@ function setSuccessMessage(message) {
     `
     <div id="${id}" class="room-toast room-toast-success flex items-center w-full max-w-xs p-4 mb-4 text-white rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 border border-white/10">
         <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-green-100 bg-white/20 rounded-lg">
-            <i class="bi bi-check-lg text-lg"></i>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"></path></svg>
         </div>
         <div class="ms-3 text-[11px] font-black uppercase tracking-wider">${message}</div>
     </div>
@@ -709,7 +711,7 @@ function setErrorMessage(message) {
     `
     <div id="${id}" class="room-toast room-toast-error flex items-center w-full max-w-xs p-4 mb-4 text-white rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 border border-white/10">
         <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-100 bg-white/20 rounded-lg">
-            <i class="bi bi-exclamation-triangle-fill"></i>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3 20h18L12 4Zm0 5v5m0 3h.01"></path></svg>
         </div>
         <div class="ms-3 text-[11px] font-black uppercase tracking-wider">${message}</div>
     </div>
@@ -773,7 +775,7 @@ function setupSidebarInteractions() {
     toggle.addEventListener("click", function () {
       const targetId = this.getAttribute("data-target");
       const targetMenu = document.getElementById(targetId);
-      const chevron = this.querySelector(".bi-chevron-down");
+      const chevron = this.querySelector(".chevron");
 
       if (targetMenu) {
         targetMenu.classList.toggle("hidden");
@@ -833,7 +835,7 @@ async function loadSidebar() {
           if (toggleBtn) {
             toggleBtn.classList.add("text-gold", "font-bold");
             toggleBtn.setAttribute("aria-expanded", "true");
-            const chevron = toggleBtn.querySelector(".bi-chevron-down");
+            const chevron = toggleBtn.querySelector(".chevron");
             if (chevron) chevron.style.transform = "rotate(180deg)";
           }
         } else {

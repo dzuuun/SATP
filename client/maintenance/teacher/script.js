@@ -1,546 +1,506 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var maintenanceAccess = localStorage.getItem("maintenanceAccess");
-var username = localStorage.getItem("username");
-document.getElementById("userName").innerHTML = username;
+const state = {
+  userId: localStorage.getItem("user_id"),
+  maintenanceAccess: localStorage.getItem("maintenanceAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+};
 
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (maintenanceAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.maintenanceAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-let data = $("#table").DataTable({
-  ajax: {
-    type: "GET",
-    url: `/api/teacher`,
-    cache: true,
-  },
-  columnDefs: [{ className: "dt-center", targets: "" }],
-  columns: [
-    { data: "name" },
-    { width: "10%", data: "department_code" },
-    {
-      width: "15%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_part_time === 0
-            ? "<span>Full Time</span>"
-            : row.is_part_time === 1
-            ? "<span>Part Time</span>"
-            : row.is_part_time === 2
-            ? "<span>NTPO & Admin</span>"
-            : ""
-        }
-                  </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: "null",
-      render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
-      },
-    },
-    {
-      width: "5%",
-      data: null,
-      render: function (data, type, row) {
-        return `<td  class="text-center">
-              <div class="text-nowrap">
-                <button class='btn bi fs-5 bi-pencil' onclick="editTeacherInfo(${row.id})")' title="Edit"></button>
-              </div>
-            </td> `;
-      },
-    },
-  ],
-});
+let table;
+let rowIdToUpdate;
+let pendingImport = { created: [], updated: [], errors: [] };
+const departmentsByCode = new Map();
 
-// Get department from API
-const getDepartment = async () => {
-  const departmentList = document.querySelector("#departmentSelect");
-  const departmentList2 = document.querySelector("#editDepartmentSelect");
-  const endpoint = `/api/department/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    department = data.data;
-
-  department.forEach((row) => {
-    departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
-    departmentList2.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
+$(document).ready(() => {
+  table = $("#table").DataTable({
+    ajax: { url: "/api/teacher", dataSrc: "data", cache: true },
+    columns: [
+      { data: "name", title: "Teacher name" },
+      {
+        data: "department_code",
+        title: "Department",
+        width: "16%",
+        className: "dt-center",
+      },
+      {
+        data: "is_part_time",
+        title: "Teaching status",
+        width: "18%",
+        className: "dt-center",
+        render: (value) =>
+          Number(value) === 0
+            ? "Full Time"
+            : Number(value) === 1
+              ? "Part Time"
+              : "NTPO & Admin",
+      },
+      {
+        data: "is_active",
+        title: "Status",
+        width: "14%",
+        className: "dt-center",
+        render: (value) =>
+          value
+            ? '<span class="status-badge active">Active</span>'
+            : '<span class="status-badge inactive">Inactive</span>',
+      },
+      {
+        data: "id",
+        title: "Actions",
+        width: "10%",
+        orderable: false,
+        className: "dt-center",
+        render: (id) =>
+          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit teacher"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
+      },
+    ],
+    pageLength: 10,
+    dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+    language: { search: "", searchPlaceholder: "Search teachers..." },
   });
-  $(".form-control").selectpicker("refresh");
-};
-
-getDepartment();
-
-const formAddTeacher = document.querySelector("#newTeacherForm");
-formAddTeacher.addEventListener("submit", async (event) => {
-  var teacher;
-  event.preventDefault();
-
-  const formData = new FormData(formAddTeacher);
-  // const isPartTime = document.getElementById("isTeacherPartTime").checked;
-  // if (isPartTime == false) {
-  //   formData.append("is_part_time", "0");
-  // } else {
-  //   formData.append("is_part_time", "1");
-  // }
-  const isActive = document.getElementById("isTeacherActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
-  }
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/teacher/add`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        // teacher = response.data.insertId;
-        // uploadImage(teacher);
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#addNewModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
 });
 
-async function uploadImage(teacher_id) {
-  const image = imageInput.files[0];
-  const imageFormData = new FormData();
-  imageFormData.append("image", image);
-
-  await fetch(`${baseURL}/upload`, {
-    method: "POST",
-    body: imageFormData,
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      imageData = {
-        teacher_id: teacher_id,
-        name: response.fileName,
-        path: response.imagePath,
-      };
-
-      fetch(`/api/teacher/image/upload`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(imageData),
-      })
-        .then((res) => res.json())
-        .then((response) => {
-          if (response.success == 0) {
-            setErrorMessage(response.message);
-          } else {
-            setSuccessMessage(response.message);
-          }
-        });
+async function loadDepartments() {
+  try {
+    const response = await requestJson("/api/department/all/active");
+    const addSelect = document.getElementById("departmentSelect");
+    const editSelect = document.getElementById("editDepartmentSelect");
+    (response.data || []).forEach((department) => {
+      const code = department.department_code || department.code;
+      departmentsByCode.set(normalize(code), department);
+      [addSelect, editSelect].forEach((select) => {
+        const option = document.createElement("option");
+        option.value = department.id;
+        option.textContent = `${code} — ${department.name}`;
+        select.appendChild(option);
+      });
     });
+  } catch (error) {
+    setErrorMessage("Unable to load departments.");
+  }
 }
 
-// clear modal form upon closing
-$(".modal").on("hidden.bs.modal", function () {
-  $(this).find("form").trigger("reset");
-  $(".form-control").selectpicker("refresh");
-  $("#imageInput").val("");
-  $("#preview").empty();
-  $("#preview").css("display", "none");
-});
+document
+  .getElementById("newTeacherForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Create this teacher?")) return;
+    const payload = formPayload(event.currentTarget, "isTeacherActive");
+    await saveTeacher("/api/teacher/add", "POST", payload, "addNewModal");
+  });
 
-function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-success text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Success</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+async function editFormCall(id) {
+  try {
+    const response = await requestJson(`/api/teacher/${id}`);
+    const teacher = response.data;
+    rowIdToUpdate = teacher.id;
+    document.getElementById("editGivenName").value = teacher.givenname || "";
+    document.getElementById("editMiddleName").value = teacher.middlename || "";
+    document.getElementById("editLastName").value = teacher.surname || "";
+    document.getElementById("editDepartmentSelect").value =
+      teacher.department_id;
+    document.getElementById("editTeachingStatusSelect").value =
+      teacher.is_part_time;
+    document.getElementById("isTeacherActiveEdit").checked =
+      teacher.is_active == 1;
+    toggleModal("editModal", true);
+  } catch (error) {
+    setErrorMessage("Unable to load the teacher.");
+  }
 }
 
-function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-                
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
+document
+  .getElementById("editTeacherForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!confirm("Save these teacher changes?")) return;
+    const payload = formPayload(event.currentTarget, "isTeacherActiveEdit");
+    payload.id = rowIdToUpdate;
+    await saveTeacher("/api/teacher/update", "PUT", payload, "editModal");
+  });
+
+function formPayload(form, checkboxId) {
+  return {
+    ...Object.fromEntries(new FormData(form)),
+    is_active: document.getElementById(checkboxId).checked ? 1 : 0,
+    user_id: state.userId,
+  };
 }
 
-// update data on the API
-var rowIdToUpdate;
-async function editTeacherInfo(id) {
-  await fetch(`/api/teacher/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      data = response.data;
-
-      // document.getElementById("updatePreview").src = `/${data.path}`;
-      document.getElementById("editGivenName").value = data.givenname;
-      document.getElementById("editMiddleName").value = data.middlename;
-      document.getElementById("editLastName").value = data.surname;
-      document.getElementById("editDepartmentSelect").value =
-        data.department_id;
-      // if (data.is_part_time == 0) {
-      //   document.getElementById("editIsTeacherPartTime").checked = false;
-      // } else {
-      //   document.getElementById("editIsTeacherPartTime").checked = true;
-      // }
-      document.getElementById("editTeachingStatusSelect").value =
-        data.is_part_time;
-
-      rowIdToUpdate = data.id;
-      if (data.is_active == 0) {
-        document.getElementById("editIsTeacherActive").checked = false;
-      } else {
-        document.getElementById("editIsTeacherActive").checked = true;
-      }
-      $("#editTeacherInfoModal").modal("show");
-      $(".form-control").selectpicker("refresh");
+async function saveTeacher(url, method, payload, modalId) {
+  try {
+    const response = await requestJson(url, {
+      method,
+      body: JSON.stringify(payload),
     });
-}
-const formEditStudent = document.querySelector("#editTeacherInfoForm");
-formEditStudent.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const formData = new FormData(formEditStudent);
-  // const isPartTime = document.getElementById("editIsTeacherPartTime").checked;
-  // if (isPartTime == false) {
-  //   formData.append("is_part_time", "0");
-  // } else {
-  //   formData.append("is_part_time", "1");
-  // }
-  const isActive = document.getElementById("editIsTeacherActive").checked;
-  if (isActive == false) {
-    formData.append("is_active", "0");
-  } else {
-    formData.append("is_active", "1");
+    if (!response.success) return setErrorMessage(response.message);
+    setSuccessMessage(response.message);
+    toggleModal(modalId, false);
+    table.ajax.reload(null, false);
+  } catch (error) {
+    setErrorMessage("Unable to save the teacher.");
   }
+}
 
-  formData.append("id", rowIdToUpdate);
-  formData.append("user_id", user);
-  const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/teacher/update`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#editTeacherInfoModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
+const xlsxInput = document.getElementById("xlsxInput");
+xlsxInput.addEventListener("change", () => {
+  const text = document.querySelector("#dropZone p");
+  if (xlsxInput.files[0]) {
+    text.textContent = `Selected: ${xlsxInput.files[0].name}`;
   }
 });
 
-// delete function
-var rowIdToDelete;
-function deleteRow(id) {
-  rowIdToDelete = id;
-  $("#deleteModal").modal("show");
-}
-
-async function confirmDelete() {
-  const data = { id: rowIdToDelete, user_id: user };
-  if (confirm("This action cannot be undone.") == true) {
-    await fetch(`/api/teacher/delete`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          setSuccessMessage(response.message);
-          $("#deleteModal").modal("hide");
-          $("#table").DataTable().ajax.reload();
-        }
-      });
-  }
-}
-
-// document.addEventListener("DOMContentLoaded", function () {
-//   const imageInput = document.getElementById("imageInput");
-//   const preview = document.getElementById("preview");
-
-//   imageInput.addEventListener("change", function () {
-//     const file = this.files[0];
-
-//     const reader = new FileReader();
-
-//     reader.onload = function (e) {
-//       const img = document.createElement("img");
-//       img.src = e.target.result;
-//       preview.innerHTML = "";
-//       preview.appendChild(img);
-//       preview.style.display = "flex";
-//     };
-
-//     reader.readAsDataURL(file);
-//   });
-// });
-
-const csvInput = document.getElementById("csvInput");
-const uploadFileForm = document.querySelector("#uploadFileForm");
-
-uploadFileForm.addEventListener("submit", async (event) => {
+document.getElementById("downloadLink").addEventListener("click", (event) => {
   event.preventDefault();
-  if (confirm("This action cannot be undone.")) {
-    $("#importFileModal").modal("hide");
-    $("#spinnerStatusModal").modal("show");
-    const file = csvInput.files[0];
+  const worksheet = XLSX.utils.json_to_sheet([
+    {
+      surname: "Santos",
+      givenname: "Juan",
+      middlename: "Reyes",
+      department_code: "ENG",
+      is_part_time: 0,
+    },
+  ]);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Teachers");
+  XLSX.writeFile(workbook, "teacher_import_template.xlsx");
+});
 
-    if (file) {
+document
+  .getElementById("uploadFileForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const file = xlsxInput.files[0];
+    if (!file) return;
+
+    try {
+      const [rows, existingResponse] = await Promise.all([
+        parseWorkbook(file),
+        requestJson("/api/teacher"),
+      ]);
+      pendingImport = classifyRows(rows, existingResponse.data || []);
+      renderPreview();
+      toggleModal("importFileModal", false);
+      setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    } catch (error) {
+      setErrorMessage("Unable to validate the Excel file.");
+    }
+  });
+
+function parseWorkbook(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
       try {
-        const results = await parseCSV(file);
-
-        const headers = results.data[0];
-        const data = [];
-        const failedData = []; // To store failed rows
-
-        for (let i = 1; i < results.data.length; i++) {
-          const values = results.data[i];
-          if (
-            values.length === headers.length &&
-            values.some((value) => value.trim() !== "")
-          ) {
-            const rowObject = {};
-            for (let j = 0; j < headers.length; j++) {
-              rowObject[headers[j]] = values[j];
-            }
-            rowObject["user_id"] = user;
-            rowObject["is_active"] = 1;
-
-            document.getElementById("statusMessage").innerHTML =
-              ((i / results.data.length) * 100).toFixed(0) + "%";
-            document.getElementById(
-              "spinnerMessage"
-            ).innerHTML = `Preparing the data. Import will begin soon. Do not refresh the page...`;
-
-            try {
-              // Fetch department_id from API
-              const response = await postData(`/api/department/get`, {
-                department_code: rowObject.department_code,
-              });
-              if (!response.data || !response.data.id) {
-                throw new Error("Department not found");
-              }
-              rowObject["department_id"] = response.data.id;
-
-              // Add row to data if everything is valid
-              data.push(rowObject);
-            } catch (error) {
-              console.error("Failed to process row:", error);
-              failedData.push({ ...rowObject, error: error.message }); // Add row to failed data with error message
-              continue; // Skip to the next iteration if this one fails
-            }
-          }
-        }
-
-        let counter = 0;
-        for (let i = 0; i < data.length; i++) {
-          try {
-            const response = await postData(`/api/teacher/add`, data[i]);
-
-            document.getElementById("statusMessage").innerHTML =
-              ((i / data.length) * 100).toFixed(0) + "%";
-            document.getElementById(
-              "spinnerMessage"
-            ).innerHTML = `Import in progress. Do not refresh the page...`;
-
-            if (response.success === 0) {
-              failedData.push(data[i]); // Capture failed row on error
-            } else {
-              counter++;
-            }
-          } catch (error) {
-            console.error(error);
-            failedData.push(data[i]); // Capture failed row on error
-          }
-        }
-
-        // Show the failed data in the modal
-        if (failedData.length > 0) {
-          document.getElementById("totalFailedData").innerHTML =
-            `Total: ` + failedData.length;
-          const failedDataList = document.getElementById("failedDataList");
-          failedDataList.innerHTML = "";
-
-          for (const item of failedData) {
-            const listItem = document.createElement("li");
-            listItem.textContent = JSON.stringify(item);
-            failedDataList.appendChild(listItem);
-          }
-          $("#failedDataModal").modal("show");
-
-          // Optionally, export failed rows to CSV
-          exportFailedDataToCSV(failedData);
-        }
-
-        $("#spinnerStatusModal").modal("hide");
-        $("#table").DataTable().ajax.reload();
-        setSuccessMessage(
-          `${counter} of ${data.length} entries were imported successfully.`
+        const workbook = XLSX.read(new Uint8Array(event.target.result), {
+          type: "array",
+        });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        resolve(
+          XLSX.utils.sheet_to_json(worksheet, {
+            defval: "",
+            raw: false,
+          }),
         );
       } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-});
-
-// Function to export failed rows to CSV
-function exportFailedDataToCSV(failedData) {
-  const csvHeaders = Object.keys(failedData[0]);
-  const csvRows = [
-    csvHeaders.join(","), // Header row
-    ...failedData.map(row =>
-      csvHeaders.map(header => `"${row[header] || ''}"`).join(",")
-    )
-  ].join("\n");
-
-  // Create a Blob from the CSV data
-  const csvBlob = new Blob([csvRows], { type: "text/csv" });
-
-  // Create a link element to download the CSV file
-  const downloadLink = document.createElement("a");
-  downloadLink.href = URL.createObjectURL(csvBlob);
-  downloadLink.download = "failed_data.csv";
-
-  // Append the link to the body, trigger click, and remove the link
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
-}
-
-
-async function parseCSV(file) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      complete: function (results) {
-        resolve(results);
-      },
-      error: function (error) {
         reject(error);
-      },
-    });
+      }
+    };
+    reader.onerror = () => reject(reader.error);
+    reader.readAsArrayBuffer(file);
   });
 }
 
-async function postData(url, data) {
+const normalize = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
+
+function classifyRows(rows, existing) {
+  const existingByName = new Map(
+    existing.map((item) => [normalize(item.name), item]),
+  );
+  const seen = new Set();
+  const result = { created: [], updated: [], errors: [] };
+
+  rows.forEach((raw, index) => {
+    const rowNumber = index + 2;
+    const surname = String(raw.surname || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    const givenname = String(raw.givenname || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    const middlename = String(raw.middlename || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    const departmentCode = String(raw.department_code || "")
+      .trim()
+      .toUpperCase();
+    const department = departmentsByCode.get(normalize(departmentCode));
+    const teachingStatusValue = String(raw.is_part_time ?? "").trim();
+    const isPartTime = Number(teachingStatusValue);
+    const key = normalize(`${givenname} ${surname}`);
+    const base = {
+      rowNumber,
+      surname,
+      givenname,
+      middlename,
+      departmentCode,
+      department_id: department?.id,
+      is_part_time: isPartTime,
+      is_active: 1,
+      originalRow: raw,
+    };
+    if (!surname || !givenname || !departmentCode) {
+      result.errors.push({
+        ...base,
+        reason: "Surname, given name, and department code are required",
+      });
+    } else if (!department) {
+      result.errors.push({
+        ...base,
+        reason: `Department ${departmentCode} was not found`,
+      });
+    } else if (teachingStatusValue === "" || ![0, 1, 2].includes(isPartTime)) {
+      result.errors.push({
+        ...base,
+        reason: "is_part_time must be 0, 1, or 2",
+      });
+    } else if (seen.has(key)) {
+      result.errors.push({ ...base, reason: "Duplicate teacher in file" });
+    } else {
+      seen.add(key);
+      const current = existingByName.get(key);
+      current
+        ? result.updated.push({ ...base, id: current.id })
+        : result.created.push(base);
+    }
+  });
+  return result;
+}
+
+function renderPreview() {
+  const groups = [
+    ["created", "createdPreview", "createdCount", "Will be created"],
+    ["updated", "updatedPreview", "updatedCount", "Existing teacher"],
+    ["errors", "errorPreview", "errorCount", ""],
+  ];
+  groups.forEach(([key, listId, countId, detail]) => {
+    const items = pendingImport[key];
+    const list = document.getElementById(listId);
+    document.getElementById(countId).textContent = items.length;
+    list.replaceChildren();
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "preview-empty";
+      empty.textContent = `No ${key} found`;
+      return list.appendChild(empty);
+    }
+    items.forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "preview-row";
+      row.innerHTML = `<span class="row-number"></span><span class="room-name"></span><span class="row-detail"></span>`;
+      row.children[0].textContent = `Row ${item.rowNumber}`;
+      row.children[1].textContent = `${item.givenname} ${item.surname} — ${item.departmentCode}`;
+      row.children[2].textContent = item.reason || detail;
+      list.appendChild(row);
+    });
+  });
+  document.getElementById("runImportButton").disabled =
+    !pendingImport.created.length &&
+    !pendingImport.updated.length &&
+    !pendingImport.errors.length;
+}
+
+document
+  .getElementById("runImportButton")
+  .addEventListener("click", async () => {
+    const actions = [
+      ...pendingImport.created.map((item) => ({ type: "created", item })),
+      ...pendingImport.updated.map((item) => ({ type: "updated", item })),
+    ];
+    const errors = pendingImport.errors.map((item) => ({
+      ...item.originalRow,
+      Error: item.reason,
+    }));
+    if (!actions.length) {
+      downloadErrors(errors);
+      toggleModal("importPreviewModal", false);
+      return setErrorMessage(`${errors.length} invalid rows exported.`);
+    }
+
+    toggleModal("importPreviewModal", false);
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+    const totals = { created: 0, updated: 0 };
+    for (let index = 0; index < actions.length; index++) {
+      const { type, item } = actions[index];
+      const payload = {
+        surname: item.surname,
+        givenname: item.givenname,
+        middlename: item.middlename,
+        department_id: item.department_id,
+        is_part_time: item.is_part_time,
+        is_active: 1,
+        user_id: state.userId,
+      };
+      if (item.id) payload.id = item.id;
+      try {
+        const response = await requestJson(
+          type === "created" ? "/api/teacher/add" : "/api/teacher/update",
+          {
+            method: type === "created" ? "POST" : "PUT",
+            body: JSON.stringify(payload),
+          },
+        );
+        response.success
+          ? totals[type]++
+          : errors.push({
+              ...item.originalRow,
+              Error: response.message || "Server rejected row",
+            });
+      } catch (error) {
+        errors.push({ ...item.originalRow, Error: "Request failed" });
+      }
+      document.getElementById("statusMessage").textContent =
+        `${Math.round(((index + 1) / actions.length) * 100)}%`;
+    }
+    toggleModal("spinnerStatusModal", false);
+    if (errors.length) downloadErrors(errors);
+    table.ajax.reload(null, false);
+    setTimeout(() => {
+      const message = `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`;
+      errors.length ? setErrorMessage(message) : setSuccessMessage(message);
+    }, 350);
+  });
+
+function downloadErrors(rows) {
+  if (!rows.length) return;
+  const sheet = XLSX.utils.json_to_sheet(rows);
+  const book = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(book, sheet, "Import Errors");
+  XLSX.writeFile(
+    book,
+    `Teacher_Import_Errors_${new Date().toISOString().split("T")[0]}.xlsx`,
+  );
+}
+
+async function requestJson(url, options = {}) {
   const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
   });
   return response.json();
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  const downloadLink = document.getElementById("downloadLink");
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (!modal) return;
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    }, 10);
+    document.body.classList.add("overflow-hidden");
+  } else {
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
+  }
+}
 
-  downloadLink.addEventListener("click", function () {
-    const csvContent = "surname,givenname,middlename,department_code,is_part_time";
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+function setSuccessMessage(message) {
+  showToast(message, true);
+}
+function setErrorMessage(message) {
+  showToast(message, false);
+}
+function showToast(message, success) {
+  const container = document.getElementById("toast-container");
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML = `<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="${success ? "m5 12 4 4L19 6" : "M12 8v5m0 3h.01M10.3 4.6 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.6a2 2 0 0 0-3.4 0Z"}"/></svg></span><span></span>`;
+  toast.lastElementChild.textContent = message;
+  container.replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "teacher_template.csv";
-    a.click();
+function toggleNav() {
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
+}
 
-    URL.revokeObjectURL(url);
-  });
+async function loadSidebar() {
+  const container = document.getElementById("sidebar-container");
+  try {
+    const response = await fetch("/sidebar.html");
+    container.innerHTML = await response.text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    document.querySelectorAll("#mySidenav a").forEach((link) => {
+      if (!location.pathname.includes(link.getAttribute("href"))) return;
+      const list = link.closest("ul[id^='dropdown-']");
+      link.classList.add(list ? "sub-active" : "nav-active");
+      if (list) {
+        list.classList.remove("hidden");
+        document
+          .querySelector(`[data-target="${list.id}"]`)
+          ?.setAttribute("aria-expanded", "true");
+      }
+    });
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
+  }
+}
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape")
+    [
+      "addNewModal",
+      "editModal",
+      "importFileModal",
+      "importPreviewModal",
+    ].forEach((id) => {
+      const modal = document.getElementById(id);
+      if (modal && !modal.classList.contains("invisible"))
+        toggleModal(id, false);
+    });
 });
 
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
-  nav = true;
-}
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
-  nav = false;
-}
-function toggleNav() {
-  nav ? closeNav() : openNav();
-}
-
-let signOutButton = document.getElementById("signout");
-
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
+  loadDepartments();
 });

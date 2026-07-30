@@ -1,273 +1,441 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Manage rooms used throughout the NDMU SATP system.">
-    <meta name="theme-color" content="#075c3b">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Manage rooms used throughout the NDMU SATP system."
+    />
+    <meta name="theme-color" content="#075c3b" />
     <title>SATP | Room Maintenance</title>
-    <link rel="icon" href="../../images/NDMU-Logo.png">
-    <link rel="stylesheet" href="../../tailwind.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="./style.css">
-</head>
-<body>
-    <div id="overlay" role="status" aria-live="polite" aria-label="Loading data">
-        <div class="loader">
-            <span class="loader-spinner" aria-hidden="true"></span>
-            <strong>Loading rooms</strong>
-            <small>Please wait a moment</small>
-        </div>
+    <link rel="icon" href="../../images/NDMU-Logo.png" />
+    <link rel="stylesheet" href="../../tailwind.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
+    />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div
+      id="overlay"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading data"
+    >
+      <div class="loader">
+        <span class="loader-spinner" aria-hidden="true"></span>
+        <strong>Loading rooms</strong>
+        <small>Please wait a moment</small>
+      </div>
     </div>
 
     <div id="sidebar-container"></div>
 
     <div id="main">
-        <header class="site-header">
-            <div class="header-brand">
-                <button type="button" class="menu-button" onclick="toggleNav()" aria-label="Open navigation">
-                    <i class="bi bi-list" aria-hidden="true"></i>
-                </button>
-                <a href="../../" aria-label="SATP home">
-                    <img src="../../images/NDMU-Logo.png" alt="" width="44" height="44">
-                    <span>
-                        <strong>Notre Dame of Marbel University</strong>
-                        <small>Student Assessment of Teacher's Performance</small>
-                    </span>
-                </a>
+      <header class="site-header">
+        <div class="header-brand">
+          <button
+            type="button"
+            class="menu-button"
+            onclick="toggleNav()"
+            aria-label="Open navigation"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
+          <a href="../../" aria-label="SATP home">
+            <img
+              src="../../images/NDMU-Logo.png"
+              alt=""
+              width="44"
+              height="44"
+            />
+            <span>
+              <strong>Notre Dame of Marbel University</strong>
+              <small>Student Assessment of Teacher's Performance</small>
+            </span>
+          </a>
+        </div>
+        <div class="header-context">
+          <span>Maintenance</span>
+          <strong>Room</strong>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="page-heading">
+          <div>
+            <p class="eyebrow">System maintenance</p>
+            <h1>Room</h1>
+            <p>
+              Create, update, import, and manage the rooms available throughout
+              SATP.
+            </p>
+          </div>
+          <nav aria-label="Breadcrumb">
+            <a href="../../">SATP</a>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span>Maintenance</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+            <span aria-current="page">Rooms</span>
+          </nav>
+        </section>
+
+        <section class="records-card" aria-labelledby="room-list-title">
+          <div class="records-heading">
+            <div>
+              <p class="eyebrow">Room directory</p>
+              <h2 id="room-list-title">All rooms</h2>
+              <p>Search and maintain the institution's room records.</p>
             </div>
-            <div class="header-context">
-                <span>Maintenance</span>
-                <strong>Rooms</strong>
+            <div class="record-actions">
+              <button
+                type="button"
+                onclick="exportToExcel()"
+                class="secondary-button"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 3v12m0 0 5-5m-5 5-5-5M5 20h14" />
+                </svg>
+                Export
+              </button>
+              <button
+                type="button"
+                onclick="toggleModal('addNewModal', true)"
+                class="primary-button"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Add room
+              </button>
             </div>
+          </div>
+
+          <div class="table-shell">
+            <table
+              id="roomTable"
+              class="display nowrap"
+              aria-label="Room directory"
+            ></table>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+        <span aria-hidden="true"></span>
+        <p>Developed by the MIS Department</p>
+      </footer>
+    </div>
+
+    <div
+      id="addNewModal"
+      class="room-modal invisible"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-modal-title"
+    >
+      <div id="addNewModalCard" class="modal-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">New record</p>
+            <h2 id="add-modal-title">Add a room</h2>
+          </div>
+          <button
+            type="button"
+            onclick="toggleModal('addNewModal', false)"
+            class="modal-close"
+            aria-label="Close add room dialog"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
         </header>
+        <form id="newRoomForm">
+          <div class="modal-body">
+            <div class="field">
+              <label for="addRoom">Room name</label>
+              <input
+                type="text"
+                id="addRoom"
+                name="name"
+                placeholder="Example: TESTON 1001"
+                required
+                autocomplete="off"
+              />
+              <small>Use the official room name or number.</small>
+            </div>
+            <label class="status-control" for="isRoomActive">
+              <span>
+                <strong>Active room</strong>
+                <small>Available for use across the system</small>
+              </span>
+              <input type="checkbox" id="isRoomActive" checked />
+              <span class="switch" aria-hidden="true"></span>
+            </label>
+          </div>
+          <footer class="modal-footer split">
+            <button
+              type="button"
+              onclick="toggleModal('addNewModal', false); setTimeout(() => toggleModal('importFileModal', true), 300);"
+              class="text-button"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+              </svg>
+              Import multiple
+            </button>
+            <div>
+              <button
+                type="button"
+                onclick="toggleModal('addNewModal', false)"
+                class="secondary-button"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="primary-button">Create room</button>
+            </div>
+          </footer>
+        </form>
+      </div>
+    </div>
 
-        <main class="workspace">
-            <section class="page-heading">
-                <div>
-                    <p class="eyebrow">System maintenance</p>
-                    <h1>Rooms</h1>
-                    <p>Create, update, import, and manage the rooms available throughout SATP.</p>
-                </div>
-                <nav aria-label="Breadcrumb">
-                    <a href="../../">SATP</a>
-                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                    <span>Maintenance</span>
-                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
-                    <span aria-current="page">Rooms</span>
-                </nav>
-            </section>
+    <div
+      id="editModal"
+      class="room-modal invisible"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-modal-title"
+    >
+      <div id="editModalCard" class="modal-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Room record</p>
+            <h2 id="edit-modal-title">Edit room</h2>
+          </div>
+          <button
+            type="button"
+            onclick="toggleModal('editModal', false)"
+            class="modal-close"
+            aria-label="Close edit room dialog"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </header>
+        <form id="editRoomForm">
+          <div class="modal-body">
+            <div class="field">
+              <label for="editRoom">Room name</label>
+              <input
+                type="text"
+                id="editRoom"
+                name="name"
+                placeholder="Example: TESTON 1001"
+                required
+                autocomplete="off"
+              />
+              <small>Update the official room name or number.</small>
+            </div>
+            <label class="status-control" for="isRoomActiveEdit">
+              <span>
+                <strong>Active room</strong>
+                <small>Available for use across the system</small>
+              </span>
+              <input type="checkbox" id="isRoomActiveEdit" />
+              <span class="switch" aria-hidden="true"></span>
+            </label>
+          </div>
+          <footer class="modal-footer">
+            <button
+              type="button"
+              onclick="toggleModal('editModal', false)"
+              class="secondary-button"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="primary-button">Save changes</button>
+          </footer>
+        </form>
+      </div>
+    </div>
 
-            <section class="records-card" aria-labelledby="room-list-title">
-                <div class="records-heading">
-                    <div>
-                        <p class="eyebrow">Room directory</p>
-                        <h2 id="room-list-title">All rooms</h2>
-                        <p>Search and maintain the institution's room records.</p>
-                    </div>
-                    <div class="record-actions">
-                        <button type="button" onclick="exportToExcel()" class="secondary-button">
-                            <i class="bi bi-download" aria-hidden="true"></i>
-                            Export
-                        </button>
-                        <button type="button" onclick="toggleModal('addNewModal', true)" class="primary-button">
-                            <i class="bi bi-plus-lg" aria-hidden="true"></i>
-                            Add room
-                        </button>
-                    </div>
-                </div>
+    <div
+      id="importFileModal"
+      class="room-modal invisible"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="import-modal-title"
+    >
+      <div id="importFileModalCard" class="modal-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Bulk action</p>
+            <h2 id="import-modal-title">Import rooms</h2>
+          </div>
+          <button
+            type="button"
+            onclick="toggleModal('importFileModal', false)"
+            class="modal-close"
+            aria-label="Close import dialog"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </header>
+        <form id="uploadFileForm">
+          <div class="modal-body">
+            <label for="xlsxInput" id="dropZone" class="drop-zone">
+              <span class="upload-icon"
+                ><svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M6 2h9l4 4v16H6zM14 2v5h5M9 12h7M9 16h7" /></svg
+              ></span>
+              <strong>Choose or drop an Excel file</strong>
+              <p>Click to upload or drag Excel (XLSX) here</p>
+            </label>
+            <input
+              type="file"
+              id="xlsxInput"
+              accept=".xlsx,.xls"
+              class="hidden"
+              required
+            />
+            <p class="template-copy">
+              Need the correct format?
+              <a id="downloadLink" href="#">Download the room template</a>
+            </p>
+          </div>
+          <footer class="modal-footer">
+            <button
+              type="button"
+              onclick="toggleModal('importFileModal', false)"
+              class="secondary-button"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="primary-button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M8 18H6a4 4 0 0 1-.5-8A6 6 0 0 1 17 8a5 5 0 0 1 1 10h-2M12 20V10m0 0-4 4m4-4 4 4"
+                />
+              </svg>
+              Start import
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
 
-                <div class="table-shell">
-                    <table id="roomTable" class="display nowrap" aria-label="Room directory"></table>
-                </div>
-            </section>
-        </main>
+    <div
+      id="spinnerStatusModal"
+      class="room-modal progress-modal invisible"
+      role="status"
+      aria-live="polite"
+    >
+      <div
+        id="spinnerStatusModalCard"
+        class="modal-card progress-card scale-95"
+      >
+        <span class="progress-spinner" aria-hidden="true"></span>
+        <p class="eyebrow">Import in progress</p>
+        <h2 id="statusMessage">0%</h2>
+        <p>Please keep this page open while room records are added.</p>
+      </div>
+    </div>
 
-        <footer class="site-footer">
-            <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-            <span aria-hidden="true"></span>
-            <p>Developed by the MIS Department</p>
+    <div
+      id="importPreviewModal"
+      class="room-modal invisible"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="preview-modal-title"
+    >
+      <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Validation complete</p>
+            <h2 id="preview-modal-title">Review room import</h2>
+          </div>
+          <button
+            type="button"
+            onclick="toggleModal('importPreviewModal', false)"
+            class="modal-close"
+            aria-label="Close import preview"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </header>
+        <div class="preview-intro">
+          Review the changes detected in the spreadsheet before updating room
+          records.
+        </div>
+        <div class="preview-body">
+          <section class="preview-group created">
+            <header>
+              <span class="preview-dot" aria-hidden="true"></span>
+              <strong>Created rooms</strong>
+              <span id="createdCount" class="count-badge">0</span>
+            </header>
+            <div id="createdPreview" class="preview-list"></div>
+          </section>
+          <section class="preview-group updated">
+            <header>
+              <span class="preview-dot" aria-hidden="true"></span>
+              <strong>Updated rooms</strong>
+              <span id="updatedCount" class="count-badge">0</span>
+            </header>
+            <div id="updatedPreview" class="preview-list"></div>
+          </section>
+          <section class="preview-group errors">
+            <header>
+              <span class="preview-dot" aria-hidden="true"></span>
+              <strong>Errors</strong>
+              <span id="errorCount" class="count-badge">0</span>
+            </header>
+            <div id="errorPreview" class="preview-list"></div>
+          </section>
+        </div>
+        <footer class="modal-footer">
+          <button
+            type="button"
+            onclick="toggleModal('importPreviewModal', false)"
+            class="secondary-button"
+          >
+            Cancel
+          </button>
+          <button type="button" id="runImportButton" class="primary-button">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="m8 5 11 7-11 7z" />
+            </svg>
+            Run import
+          </button>
         </footer>
+      </div>
     </div>
 
-    <div id="addNewModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="add-modal-title">
-        <div id="addNewModalCard" class="modal-card scale-95">
-            <header class="modal-header">
-                <div>
-                    <p class="eyebrow">New record</p>
-                    <h2 id="add-modal-title">Add a room</h2>
-                </div>
-                <button type="button" onclick="toggleModal('addNewModal', false)" class="modal-close" aria-label="Close add room dialog">
-                    <i class="bi bi-x-lg" aria-hidden="true"></i>
-                </button>
-            </header>
-            <form id="newRoomForm">
-                <div class="modal-body">
-                    <div class="field">
-                        <label for="addRoom">Room name</label>
-                        <input type="text" id="addRoom" name="name" placeholder="Example: TESTON 1001" required autocomplete="off">
-                        <small>Use the official room name or number.</small>
-                    </div>
-                    <label class="status-control" for="isRoomActive">
-                        <span>
-                            <strong>Active room</strong>
-                            <small>Available for use across the system</small>
-                        </span>
-                        <input type="checkbox" id="isRoomActive" checked>
-                        <span class="switch" aria-hidden="true"></span>
-                    </label>
-                </div>
-                <footer class="modal-footer split">
-                    <button type="button"
-                        onclick="toggleModal('addNewModal', false); setTimeout(() => toggleModal('importFileModal', true), 300);"
-                        class="text-button">
-                        <i class="bi bi-file-earmark-arrow-up" aria-hidden="true"></i>
-                        Import multiple
-                    </button>
-                    <div>
-                        <button type="button" onclick="toggleModal('addNewModal', false)" class="secondary-button">Cancel</button>
-                        <button type="submit" class="primary-button">Create room</button>
-                    </div>
-                </footer>
-            </form>
-        </div>
-    </div>
-
-    <div id="editModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="edit-modal-title">
-        <div id="editModalCard" class="modal-card scale-95">
-            <header class="modal-header">
-                <div>
-                    <p class="eyebrow">Room record</p>
-                    <h2 id="edit-modal-title">Edit room</h2>
-                </div>
-                <button type="button" onclick="toggleModal('editModal', false)" class="modal-close" aria-label="Close edit room dialog">
-                    <i class="bi bi-x-lg" aria-hidden="true"></i>
-                </button>
-            </header>
-            <form id="editRoomForm">
-                <div class="modal-body">
-                    <div class="field">
-                        <label for="editRoom">Room name</label>
-                        <input type="text" id="editRoom" name="name" placeholder="Example: TESTON 1001" required autocomplete="off">
-                        <small>Update the official room name or number.</small>
-                    </div>
-                    <label class="status-control" for="isRoomActiveEdit">
-                        <span>
-                            <strong>Active room</strong>
-                            <small>Available for use across the system</small>
-                        </span>
-                        <input type="checkbox" id="isRoomActiveEdit">
-                        <span class="switch" aria-hidden="true"></span>
-                    </label>
-                </div>
-                <footer class="modal-footer">
-                    <button type="button" onclick="toggleModal('editModal', false)" class="secondary-button">Cancel</button>
-                    <button type="submit" class="primary-button">Save changes</button>
-                </footer>
-            </form>
-        </div>
-    </div>
-
-    <div id="importFileModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="import-modal-title">
-        <div id="importFileModalCard" class="modal-card scale-95">
-            <header class="modal-header">
-                <div>
-                    <p class="eyebrow">Bulk action</p>
-                    <h2 id="import-modal-title">Import rooms</h2>
-                </div>
-                <button type="button" onclick="toggleModal('importFileModal', false)" class="modal-close" aria-label="Close import dialog">
-                    <i class="bi bi-x-lg" aria-hidden="true"></i>
-                </button>
-            </header>
-            <form id="uploadFileForm">
-                <div class="modal-body">
-                    <label for="xlsxInput" id="dropZone" class="drop-zone">
-                        <span class="upload-icon"><i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i></span>
-                        <strong>Choose or drop an Excel file</strong>
-                        <p>Click to upload or drag Excel (XLSX) here</p>
-                    </label>
-                    <input type="file" id="xlsxInput" accept=".xlsx,.xls" class="hidden" required>
-                    <p class="template-copy">
-                        Need the correct format?
-                        <a id="downloadLink" href="#">Download the room template</a>
-                    </p>
-                </div>
-                <footer class="modal-footer">
-                    <button type="button" onclick="toggleModal('importFileModal', false)" class="secondary-button">Cancel</button>
-                    <button type="submit" class="primary-button">
-                        <i class="bi bi-cloud-arrow-up" aria-hidden="true"></i>
-                        Start import
-                    </button>
-                </footer>
-            </form>
-        </div>
-    </div>
-
-    <div id="spinnerStatusModal" class="room-modal progress-modal invisible" role="status" aria-live="polite">
-        <div id="spinnerStatusModalCard" class="modal-card progress-card scale-95">
-            <span class="progress-spinner" aria-hidden="true"></span>
-            <p class="eyebrow">Import in progress</p>
-            <h2 id="statusMessage">0%</h2>
-            <p>Please keep this page open while room records are added.</p>
-        </div>
-    </div>
-
-    <div id="importPreviewModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="preview-modal-title">
-        <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
-            <header class="modal-header">
-                <div>
-                    <p class="eyebrow">Validation complete</p>
-                    <h2 id="preview-modal-title">Review room import</h2>
-                </div>
-                <button type="button" onclick="toggleModal('importPreviewModal', false)" class="modal-close" aria-label="Close import preview">
-                    <i class="bi bi-x-lg" aria-hidden="true"></i>
-                </button>
-            </header>
-            <div class="preview-intro">
-                Review the changes detected in the spreadsheet before updating room records.
-            </div>
-            <div class="preview-body">
-                <section class="preview-group created">
-                    <header>
-                        <span class="preview-dot" aria-hidden="true"></span>
-                        <strong>Created rooms</strong>
-                        <span id="createdCount" class="count-badge">0</span>
-                    </header>
-                    <div id="createdPreview" class="preview-list"></div>
-                </section>
-                <section class="preview-group updated">
-                    <header>
-                        <span class="preview-dot" aria-hidden="true"></span>
-                        <strong>Updated rooms</strong>
-                        <span id="updatedCount" class="count-badge">0</span>
-                    </header>
-                    <div id="updatedPreview" class="preview-list"></div>
-                </section>
-                <section class="preview-group errors">
-                    <header>
-                        <span class="preview-dot" aria-hidden="true"></span>
-                        <strong>Errors</strong>
-                        <span id="errorCount" class="count-badge">0</span>
-                    </header>
-                    <div id="errorPreview" class="preview-list"></div>
-                </section>
-            </div>
-            <footer class="modal-footer">
-                <button type="button" onclick="toggleModal('importPreviewModal', false)" class="secondary-button">Cancel</button>
-                <button type="button" id="runImportButton" class="primary-button">
-                    <i class="bi bi-play-fill" aria-hidden="true"></i>
-                    Run import
-                </button>
-            </footer>
-        </div>
-    </div>
-
-    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+    <div
+      id="toast-container"
+      class="toast-container"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
 
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <script src="./script.js"></script>
-</body>
+  </body>
 </html>
