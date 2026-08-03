@@ -85,14 +85,34 @@ module.exports = {
 
   getUserByUserName: (username, callBack) => {
     pool.query(
-      "SELECT *, CONCAT(user_info.givenname, ' ', user_info.surname) AS full_name FROM users LEFT JOIN user_info ON users.id= user_info.user_id inner join permissions ON users.permission_id = permissions.id WHERE username = ?",
+      `SELECT
+         users.id AS user_id,
+         users.username,
+         users.password,
+         users.is_temp_pass,
+         users.is_student_rater,
+         users.is_admin_rater,
+         users.is_active,
+         permissions.id AS permission_id,
+         permissions.name AS permission_name,
+         permissions.transaction_access,
+         permissions.maintenance_access,
+         permissions.reports_access,
+         permissions.users_access,
+         permissions.is_active AS permission_is_active,
+         CONCAT(user_info.givenname, ' ', user_info.surname) AS full_name
+       FROM users
+       LEFT JOIN user_info ON users.id = user_info.user_id
+       INNER JOIN permissions ON users.permission_id = permissions.id
+       WHERE users.username = ?
+       LIMIT 1`,
       [username],
       (error, results) => {
         if (error) {
-          callBack(error);
+          return callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -120,6 +140,9 @@ module.exports = {
       "UPDATE users SET password=?, is_temp_pass=0 WHERE id=?",
       [data.password, data.id],
       (error, results) => {
+        if (error) {
+          return callBack(error);
+        }
         if (results.changedRows == 1) {
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
@@ -131,11 +154,8 @@ module.exports = {
             }
           );
         }
-        if (error) {
-          callBack(error);
-        }
         return callBack(null, results);
-      }
+      },
     );
   },
 };

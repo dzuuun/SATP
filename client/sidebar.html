@@ -548,7 +548,12 @@
             </svg>
             Password
           </a>
-          <button class="profile-action" type="button" id="signout">
+          <button
+            class="profile-action"
+            type="button"
+            id="signout"
+            onclick="fetch('/api/login/logout', { method: 'POST', keepalive: true })"
+          >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path
                 d="M10 17l5-5-5-5M15 12H3M14 4h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-5"

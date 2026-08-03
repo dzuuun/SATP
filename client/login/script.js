@@ -86,9 +86,12 @@ form.addEventListener("submit", async (e) => {
     // Bulk store data
     const { data, user_id } = response;
 
+    localStorage.clear();
     const storageData = {
       user_id,
       username: data.username,
+      permission_id: data.permission_id,
+      permission_name: data.permission_name,
       is_student_rater: data.is_student_rater,
       transactionAccess: data.transaction_access,
       maintenanceAccess: data.maintenance_access,

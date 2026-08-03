@@ -4,16 +4,34 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const bodyParser = require("body-parser");
-const cors = require("cors");
 const morgan = require("morgan");
+const {
+  checkToken,
+  requirePermission,
+  protectMaintenanceChanges,
+} = require("./auth/auth_validation");
+
+if (!process.env.SECRET_KEY) {
+  throw new Error("SECRET_KEY must be configured before starting SATP.");
+}
 
 const app = express();
+if (process.env.TRUST_PROXY === "true") app.set("trust proxy", 1);
 
 // --- Middleware ---
 app.use(express.json());
 app.use(bodyParser.json());
-app.use(cors());
 app.use(morgan("combined"));
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "same-origin");
+  next();
+});
+app.use("/api", (_req, res, next) => {
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
 
 // --- API Routes ---
 const loginRouter = require("./api/login/login.router");
@@ -48,28 +66,45 @@ const ratingRouter = require("./api/reports/rating/rating.router");
 
 // --- API Route Implementation ---
 app.use("/api/login", loginRouter);
-app.use("/api/schoolyear", schoolYearRouter);
-app.use("/api/subject", subjectRouter);
-app.use("/api/room", roomRouter);
-app.use("/api/department", departmentRouter);
-app.use("/api/college", collegeRouter);
-app.use("/api/course", courseRouter);
-app.use("/api/semester", semesterRouter);
-app.use("/api/teacher", teacherRouter);
-app.use("/api/category", categoryRouter);
-app.use("/api/item", itemRouter);
-app.use("/api/studentsubject", studentSubjectRouter);
-app.use("/api/student", studentRouter);
-app.use("/api/admin", adminRouter);
+app.use("/api", checkToken);
+app.use("/api/schoolyear", protectMaintenanceChanges, schoolYearRouter);
+app.use("/api/subject", protectMaintenanceChanges, subjectRouter);
+app.use("/api/room", protectMaintenanceChanges, roomRouter);
+app.use("/api/department", protectMaintenanceChanges, departmentRouter);
+app.use("/api/college", protectMaintenanceChanges, collegeRouter);
+app.use("/api/course", protectMaintenanceChanges, courseRouter);
+app.use("/api/semester", protectMaintenanceChanges, semesterRouter);
+app.use("/api/teacher", protectMaintenanceChanges, teacherRouter);
+app.use("/api/category", protectMaintenanceChanges, categoryRouter);
+app.use("/api/item", protectMaintenanceChanges, itemRouter);
+app.use(
+  "/api/studentsubject",
+  requirePermission("maintenance_access"),
+  studentSubjectRouter,
+);
+app.use(
+  "/api/student",
+  requirePermission("maintenance_access"),
+  studentRouter,
+);
+app.use("/api/admin", requirePermission("maintenance_access"), adminRouter);
 app.use("/api/gradschool/item", gradSchoolItemRouter);
 
-app.use("/api/activitylog", logRouter);
-app.use("/api/permission", permissionRouter);
-app.use("/api/user", userRouter);
+app.use("/api/activitylog", requirePermission("users_access"), logRouter);
+app.use("/api/permission", requirePermission("users_access"), permissionRouter);
+app.use("/api/user", requirePermission("users_access"), userRouter);
 
 app.use("/api/transaction", transactionRouter);
-app.use("/api/report/ranking", rankingRouter);
-app.use("/api/report/rating", ratingRouter);
+app.use(
+  "/api/report/ranking",
+  requirePermission("reports_access"),
+  rankingRouter,
+);
+app.use(
+  "/api/report/rating",
+  requirePermission("reports_access"),
+  ratingRouter,
+);
 
 // --- File Upload Setup ---
 const storage = multer.diskStorage({
@@ -86,7 +121,7 @@ const upload = multer({ storage });
 
 app.use("/uploads", express.static("uploads"));
 
-app.post("/upload", upload.single("image"), (req, res) => {
+app.post("/upload", checkToken, upload.single("image"), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ success: 0, message: "No file uploaded." });
   }

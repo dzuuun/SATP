@@ -44,15 +44,7 @@ module.exports = {
           message: "Unable to load student rating access.",
         });
       }
-      const userId = req.query?.user_id;
-      if (!userId) {
-        return res.json({
-          success: 1,
-          data: { ...access, can_manage: false },
-        });
-      }
-
-      canManageRatingAccess(userId, (permissionError, canManage) => {
+      canManageRatingAccess(req.user.id, (permissionError, canManage) => {
         if (permissionError) {
           console.error(
             "Unable to verify rating access permission:",
@@ -73,8 +65,8 @@ module.exports = {
 
   setRatingAccess: (req, res) => {
     const enabled = req.body?.enabled;
-    const userId = req.body?.user_id;
-    if (typeof enabled !== "boolean" || !userId) {
+    const userId = req.user.id;
+    if (typeof enabled !== "boolean") {
       return res.status(400).json({
         success: 0,
         message: "A valid rating status and user are required.",
@@ -143,7 +135,11 @@ module.exports = {
   },
 
   getAcademicRecordsByStudent: (req, res) => {
-    getAcademicRecordsByStudent(req.params, (err, results) => {
+    const params =
+      Number(req.user.transaction_access) === 1
+        ? req.params
+        : { ...req.params, student_id: req.user.id };
+    getAcademicRecordsByStudent(params, (err, results) => {
       if (err) {
         console.error(err);
         return res.status(500).json({
@@ -189,10 +185,19 @@ module.exports = {
         console.log(err);
         return;
       }
-      if (!results) {
-        return res.json({
+      if (!results?.length) {
+        return res.status(404).json({
           success: 0,
           message: "No record found.",
+        });
+      }
+      if (
+        Number(req.user.transaction_access) !== 1 &&
+        Number(results[0].student_id) !== Number(req.user.id)
+      ) {
+        return res.status(403).json({
+          success: 0,
+          message: "You do not have access to this academic record.",
         });
       }
       return res.json({
@@ -210,10 +215,19 @@ module.exports = {
         console.log(err);
         return;
       }
-      if (!results) {
-        return res.json({
+      if (!results?.length) {
+        return res.status(404).json({
           success: 0,
           message: "No record found.",
+        });
+      }
+      if (
+        Number(req.user.transaction_access) !== 1 &&
+        Number(results[0].student_id) !== Number(req.user.id)
+      ) {
+        return res.status(403).json({
+          success: 0,
+          message: "You do not have access to this comment.",
         });
       }
       return res.json({
@@ -284,7 +298,7 @@ module.exports = {
   },
 
   submitCommentStatus: (req, res) => {
-    const body = req.body;
+    const body = { ...req.body, user_id: req.user.id };
     requireOpenRating(res, () => {
       submitCommentStatus(body, (err, results) => {
         if (err) {
@@ -311,7 +325,7 @@ module.exports = {
   },
 
   submitAssessment: (req, res) => {
-    const body = req.body;
+    const body = { ...req.body, user_id: req.user.id };
     if (
       !body.academic_record_id ||
       !body.user_id ||

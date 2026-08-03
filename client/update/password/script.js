@@ -51,21 +51,11 @@ form.addEventListener("submit", async (event) => {
 
   setSubmitting(true);
   try {
-    const verification = await requestJson("/api/login/user/", {
-      method: "POST",
-      body: JSON.stringify({
-        id: state.userId,
-        password: currentPassword.value,
-      }),
-    });
-    if (!verification.success) return showToast(verification.message);
-
     const response = await requestJson("/api/login/update/password", {
       method: "PUT",
       body: JSON.stringify({
-        id: state.userId,
+        current_password: currentPassword.value,
         password: newPassword.value,
-        user_id: state.userId,
       }),
     });
     showToast(response.message);

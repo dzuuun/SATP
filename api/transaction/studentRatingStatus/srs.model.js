@@ -186,7 +186,7 @@ module.exports = {
 
   getCommentByTransactionId: (Id, callBack) => {
     pool.query(
-      "SELECT comment FROM academic_records_consolidated WHERE id = ?",
+      "SELECT comment, student_id FROM academic_records_consolidated WHERE id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -279,8 +279,8 @@ module.exports = {
 
   submitCommentStatus: (data, callBack) => {
     pool.query(
-      "SELECT CONCAT(user_info.givenname, ' ', user_info.surname) AS name, academic_records_consolidated.id FROM academic_records_consolidated INNER JOIN user_info ON academic_records_consolidated.student_id = user_info.user_id WHERE academic_records_consolidated.id = ?",
-      [data.transaction_id],
+      "SELECT CONCAT(user_info.givenname, ' ', user_info.surname) AS name, academic_records_consolidated.id FROM academic_records_consolidated INNER JOIN user_info ON academic_records_consolidated.student_id = user_info.user_id WHERE academic_records_consolidated.id = ? AND academic_records_consolidated.student_id = ?",
+      [data.transaction_id, data.user_id],
       (error, results) => {
         if (results.length === 1) {
           pool.query(
