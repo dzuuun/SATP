@@ -1,253 +1,260 @@
 const pool = require("../../../db/db");
 
+const TABLE = "academic_records_consolidated";
+
+const recordSelect = `
+  SELECT
+    records.id,
+    records.student_id,
+    records.school_year_id,
+    records.semester_id,
+    records.subject_id,
+    records.teacher_id,
+    users.username AS student_number,
+    CONCAT_WS(' ', user_info.givenname, user_info.surname) AS student_name,
+    school_years.name AS school_year,
+    semesters.name AS semester,
+    subjects.code AS subject_code,
+    subjects.name AS subject_name,
+    CONCAT_WS(' ', teachers.givenname, teachers.surname) AS teacher_name,
+    records.schedule_code,
+    records.time_start,
+    records.time_end,
+    records.day,
+    rooms.name AS room,
+    records.is_excluded,
+    records.reason,
+    records.comment,
+    records.status
+  FROM ${TABLE} AS records
+  INNER JOIN school_years ON school_years.id = records.school_year_id
+  INNER JOIN semesters ON semesters.id = records.semester_id
+  INNER JOIN subjects ON subjects.id = records.subject_id
+  INNER JOIN teachers ON teachers.id = records.teacher_id
+  INNER JOIN user_info ON user_info.user_id = records.student_id
+  INNER JOIN users ON users.id = records.student_id
+  LEFT JOIN rooms ON rooms.id = records.room_id
+`;
+
+const insertSql = `
+  INSERT INTO ${TABLE}
+    (school_year_id, semester_id, subject_id, teacher_id, student_id,
+     schedule_code, time_start, time_end, day, room_id, is_excluded, status)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+`;
+
+function logActivity(userId, action) {
+  if (!userId) return;
+  pool.query(
+    `INSERT INTO activity_log (user_id, date_time, action)
+     VALUES (?, CURRENT_TIMESTAMP, ?)`,
+    [userId, action],
+    (error) => {
+      if (error) console.error("Unable to write activity log:", error.message);
+    },
+  );
+}
+
+function describeRecord(id, callBack) {
+  pool.query(`${recordSelect} WHERE records.id = ? LIMIT 1`, [id], callBack);
+}
+
+function insertValues(data) {
+  return [
+    data.school_year_id,
+    data.semester_id,
+    data.subject_id,
+    data.teacher_id,
+    data.student_id,
+    data.schedule_code || null,
+    data.time_start || null,
+    data.time_end || null,
+    data.day || null,
+    data.room_id || null,
+    Number(data.is_excluded) === 1 ? 1 : 0,
+  ];
+}
+
+function activityDescription(record) {
+  return `${record.school_year} | ${record.semester} | ${record.subject_code} | ${record.teacher_name}`;
+}
+
 module.exports = {
-  getIncludedSubjectsByStudent: (data, callBack) => {
+  getStudentsByPeriod: (data, callBack) => {
     pool.query(
-      "SELECT student_subject.id, student_subject.student_id, student_subject.school_year_id, student_subject.semester_id, student_subject.subject_id, school_years.name AS school_year, semesters.name AS semester, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, student_subject.schedule_code, student_subject.time_start, student_subject.time_end, student_subject.day, rooms.name AS room, student_subject.is_excluded, student_subject.reason FROM student_subject INNER JOIN school_years ON student_subject.school_year_id = school_years.id INNER JOIN semesters ON student_subject.semester_id = semesters.id INNER JOIN subjects ON student_subject.subject_id = subjects.id INNER JOIN teachers ON student_subject.teacher_id = teachers.id INNER JOIN rooms ON student_subject.room_id=rooms.id INNER JOIN user_info ON student_subject.student_id = user_info.user_id WHERE student_subject.student_id=? AND student_subject.school_year_id=? AND student_subject.semester_id=? AND student_subject.is_excluded=0",
-      [data.student_id, data.school_year_id, data.semester_id],
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
+      `SELECT
+         records.student_id,
+         users.username AS student_number,
+         CONCAT_WS(' ', user_info.givenname, user_info.surname) AS student_name,
+         colleges.code AS college,
+         courses.code AS course,
+         SUM(CASE WHEN records.is_excluded = 0 THEN 1 ELSE 0 END) AS included_count,
+         SUM(CASE WHEN records.is_excluded = 1 THEN 1 ELSE 0 END) AS excluded_count,
+         COUNT(*) AS total_count
+       FROM ${TABLE} AS records
+       INNER JOIN users ON users.id = records.student_id
+       INNER JOIN user_info ON user_info.user_id = records.student_id
+       INNER JOIN courses ON courses.id = user_info.course_id
+       INNER JOIN departments ON departments.id = courses.department_id
+       INNER JOIN colleges ON colleges.id = departments.college_id
+       WHERE records.school_year_id = ? AND records.semester_id = ?
+       GROUP BY records.student_id, users.username, user_info.givenname,
+         user_info.surname, colleges.code, courses.code
+       ORDER BY user_info.surname, user_info.givenname`,
+      [data.school_year_id, data.semester_id],
+      callBack,
     );
   },
 
-  getIncludedSubjectsByStudentById: (id, callBack) => {
+  getSubjectsByPeriod: (data, callBack) => {
     pool.query(
-      "SELECT student_subject.id, student_subject.student_id, student_subject.school_year_id, student_subject.semester_id, student_subject.subject_id, student_subject.teacher_id, school_years.name AS school_year, semesters.name AS semester, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, student_subject.schedule_code, student_subject.time_start, student_subject.time_end, student_subject.day, rooms.name AS room, student_subject.is_excluded, student_subject.reason FROM student_subject INNER JOIN school_years ON student_subject.school_year_id = school_years.id INNER JOIN semesters ON student_subject.semester_id = semesters.id INNER JOIN subjects ON student_subject.subject_id = subjects.id INNER JOIN teachers ON student_subject.teacher_id = teachers.id INNER JOIN rooms ON student_subject.room_id=rooms.id INNER JOIN user_info ON student_subject.student_id = user_info.user_id WHERE student_subject.id=?",
-      [id],
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
+      `${recordSelect}
+       WHERE records.school_year_id = ? AND records.semester_id = ?
+       ORDER BY user_info.surname, user_info.givenname, subjects.code`,
+      [data.school_year_id, data.semester_id],
+      callBack,
     );
   },
+
+  getIncludedSubjectsByStudent: (data, callBack) => {
+    pool.query(
+      `${recordSelect}
+       WHERE records.student_id = ? AND records.school_year_id = ?
+         AND records.semester_id = ? AND records.is_excluded = 0
+       ORDER BY subjects.code`,
+      [data.student_id, data.school_year_id, data.semester_id],
+      callBack,
+    );
+  },
+
+  getIncludedSubjectsByStudentById: describeRecord,
 
   getAllSubjectsByStudent: (data, callBack) => {
     pool.query(
-      "SELECT student_subject.id, student_subject.student_id, student_subject.school_year_id, student_subject.semester_id, student_subject.subject_id, school_years.name AS school_year, semesters.name AS semester, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, student_subject.schedule_code, student_subject.time_start, student_subject.time_end, student_subject.day, rooms.name AS room, student_subject.is_excluded, student_subject.reason FROM student_subject INNER JOIN school_years ON student_subject.school_year_id = school_years.id INNER JOIN semesters ON student_subject.semester_id = semesters.id INNER JOIN subjects ON student_subject.subject_id = subjects.id INNER JOIN teachers ON student_subject.teacher_id = teachers.id INNER JOIN rooms ON student_subject.room_id=rooms.id INNER JOIN user_info ON student_subject.student_id = user_info.user_id WHERE student_subject.student_id=? AND student_subject.school_year_id=? AND student_subject.semester_id=?  AND student_subject.is_excluded=1",
+      `${recordSelect}
+       WHERE records.student_id = ? AND records.school_year_id = ?
+         AND records.semester_id = ? AND records.is_excluded = 1
+       ORDER BY subjects.code`,
       [data.student_id, data.school_year_id, data.semester_id],
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
+      callBack,
     );
   },
 
   showReason: (data, callBack) => {
     pool.query(
-      "SELECT `reason` FROM `student_subject` WHERE id=?",
+      `SELECT reason FROM ${TABLE} WHERE id = ? LIMIT 1`,
       [data.id],
-      (error, results) => {
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
-      }
+      callBack,
     );
   },
 
-  // getExcludedSubjects: (callBack) => {
-  //   pool.query(
-  //     "SELECT student_subject.student_id, student_subject.school_year_id, student_subject.semester_id, student_subject.subject_id, school_years.name AS school_year, semesters.name AS semester, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, student_subject.schedule_code, student_subject.time_start, student_subject.time_end, student_subject.day, rooms.name AS room, student_subject.is_excluded, student_subject.reason FROM student_subject INNER JOIN school_years ON student_subject.school_year_id = school_years.id INNER JOIN semesters ON student_subject.semester_id = semesters.id INNER JOIN subjects ON student_subject.subject_id = subjects.id INNER JOIN teachers ON student_subject.teacher_id = teachers.id INNER JOIN rooms ON student_subject.room_id=rooms.id INNER JOIN user_info ON student_subject.student_id = user_info.user_id WHERE student_subject.is_excluded=1",
-  //     (error, results) => {
-  //       if (error) {
-  //         callBack(error);
-  //       }
-  //       return callBack(null, results);
-  //     }
-  //   );
-  // },
-
-  // add
   addStudentSubject: (data, callBack) => {
     pool.query(
-      "SELECT user_info.user_id, school_years.name AS school_year, semesters.name AS semester, subjects.code AS subject_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name FROM student_subject INNER JOIN school_years ON student_subject.school_year_id = school_years.id INNER JOIN semesters ON student_subject.semester_id = semesters.id INNER JOIN subjects ON student_subject.subject_id = subjects.id INNER JOIN teachers ON student_subject.teacher_id = teachers.id INNER JOIN rooms ON student_subject.room_id=rooms.id INNER JOIN user_info ON student_subject.student_id = user_info.user_id WHERE student_subject.student_id=? AND student_subject.school_year_id=? AND student_subject.semester_id=? AND student_subject.subject_id=? AND student_subject.schedule_code = ? AND student_subject.time_start = ? AND student_subject.time_end = ? AND student_subject.day = ? AND student_subject.teacher_id =? AND student_subject.is_excluded=0",
-      [
-        data.student_id,
-        data.school_year_id,
-        data.semester_id,
-        data.subject_id,
-        data.schedule_code,
-        data.time_start,
-        data.time_end,
-        data.day,
-        data.teacher_id,
-
-      ],
-      (error, result) => {
-        if (result.length === 0) {
-          pool.query(
-            "INSERT INTO student_subject (school_year_id, semester_id, subject_id, teacher_id, student_id, schedule_code, time_start, time_end, day, room_id, is_excluded) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-            [
-              data.school_year_id,
-              data.semester_id,
-              data.subject_id,
-              data.teacher_id,
-              data.student_id,
-              data.schedule_code,
-              data.time_start,
-              data.time_end,
-              data.day,
-              data.room_id,
-              data.is_excluded,
-            ],
-            (error, results) => {
-              pool.query(
-                "SELECT user_info.user_id, school_years.name AS school_year, semesters.name AS semester, subjects.code AS subject_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name FROM student_subject INNER JOIN school_years ON student_subject.school_year_id = school_years.id INNER JOIN semesters ON student_subject.semester_id = semesters.id INNER JOIN subjects ON student_subject.subject_id = subjects.id INNER JOIN teachers ON student_subject.teacher_id = teachers.id INNER JOIN rooms ON student_subject.room_id=rooms.id INNER JOIN user_info ON student_subject.student_id = user_info.user_id WHERE student_subject.student_id=? AND student_subject.school_year_id=? AND student_subject.semester_id=? AND student_subject.subject_id=?",
-                [
-                  data.student_id,
-                  data.school_year_id,
-                  data.semester_id,
-                  data.subject_id,
-                ],
-                (error, result) => {
-                  pool.query(
-                    "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP,?)",
-                    [
-                      data.user_id,
-                      "Added Student's subject: " +
-                        result[0].school_year +
-                        " | " +
-                        result[0].semester +
-                        " | " +
-                        result[0].subject_code +
-                        " | " +
-                        result[0].teacher_name,
-                    ],
-                    (error, results) => {
-                      if (error) {
-                        console.log(error);
-                      }
-                    }
-                  );
-                  if (error) {
-                    console.log(error);
-                  }
-                }
-              );
-              if (error) {
-                callBack(error);
-              }
-              return callBack(null, results);
-            }
-          );
-        } else {
-          return callBack(result);
+      `SELECT id FROM ${TABLE}
+       WHERE student_id = ? AND school_year_id = ? AND semester_id = ?
+         AND subject_id = ?
+       LIMIT 1`,
+      [data.student_id, data.school_year_id, data.semester_id, data.subject_id],
+      (error, existing) => {
+        if (error) return callBack(error);
+        if (existing.length) {
+          const duplicateError = new Error("Student subject already exists");
+          duplicateError.code = "DUPLICATE_SUBJECT";
+          return callBack(duplicateError);
         }
-      }
+
+        pool.query(insertSql, insertValues(data), (insertError, results) => {
+          if (insertError) return callBack(insertError);
+          describeRecord(results.insertId, (describeError, records) => {
+            if (!describeError && records[0]) {
+              logActivity(
+                data.user_id,
+                `Added student's subject: ${activityDescription(records[0])}`,
+              );
+            }
+          });
+          return callBack(null, results);
+        });
+      },
     );
   },
-  // // update
-  // updateStudentSubject: (data, callBack) => {
-  //   pool.query(
-  //     "UPDATE student_subject SET school_year_id=?,semester_id=?,subject_id=?,teacher_id=?,student_id=?,schedule_code=?,time_start=?,time_end=?,day=?,room_id=? WHERE student_subject.student_id=? AND student_subject.school_year_id=? AND student_subject.semester_id=? AND student_subject.subject_id=?",
-  //     [
-  //       data.school_year_id,
-  //       data.semester_id,
-  //       data.subject_id,
-  //       data.teacher_id,
-  //       data.student_id,
-  //       data.schedule_code,
-  //       data.time_start,
-  //       data.time_end,
-  //       data.day,
-  //       data.room_id,
-  //       data.student_id,
-  //       data.school_year_id,
-  //       data.semester_id,
-  //       data.subject_id,
-  //     ],
-  //     (error, results) => {
-  //       if (results.changedRows == 1) {
-  //         pool.query(
-  //           "SELECT user_info.user_id, school_years.name AS school_year, semesters.name AS semester, subjects.code AS subject_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name FROM student_subject INNER JOIN school_years ON student_subject.school_year_id = school_years.id INNER JOIN semesters ON student_subject.semester_id = semesters.id INNER JOIN subjects ON student_subject.subject_id = subjects.id INNER JOIN teachers ON student_subject.teacher_id = teachers.id INNER JOIN rooms ON student_subject.room_id=rooms.id INNER JOIN user_info ON student_subject.student_id = user_info.user_id WHERE student_subject.student_id=? AND student_subject.school_year_id=? AND student_subject.semester_id=? AND student_subject.subject_id=?",
-  //           [
-  //             data.student_id,
-  //             data.school_year_id,
-  //             data.semester_id,
-  //             data.subject_id,
-  //           ],
-  //           (error, result) => {
-  //             pool.query(
-  //               "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-  //               [
-  //                 data.user_id,
-  //                 "Updated Student's subject: " +
-  //                   result[0].school_year +
-  //                   " | " +
-  //                   result[0].semester +
-  //                   " | " +
-  //                   result[0].subject_code +
-  //                   " | " +
-  //                   result[0].teacher_name,
-  //               ],
-  //               (error, results) => {
-  //                 if (error) {
-  //                   console.log(error);
-  //                 }
-  //               }
-  //             );
-  //             if (error) {
-  //               console.log(error);
-  //             }
-  //           }
-  //         );
-  //       }
-  //       if (error) {
-  //         callBack(error);
-  //       }
-  //       return callBack(null, results);
-  //     }
-  //   );
-  // },
+
+  addStudentSubjects: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+
+      const subjectIds = data.subjects.map((subject) =>
+        Number(subject.subject_id),
+      );
+      const placeholders = subjectIds.map(() => "?").join(",");
+      const [existing] = await connection.query(
+        `SELECT subject_id FROM ${TABLE}
+         WHERE student_id = ? AND school_year_id = ? AND semester_id = ?
+           AND subject_id IN (${placeholders})`,
+        [data.student_id, data.school_year_id, data.semester_id, ...subjectIds],
+      );
+      const existingIds = new Set(
+        existing.map((record) => Number(record.subject_id)),
+      );
+      const duplicates = data.subjects.filter((subject) =>
+        existingIds.has(Number(subject.subject_id)),
+      );
+      const created = [];
+
+      for (const subject of data.subjects) {
+        if (existingIds.has(Number(subject.subject_id))) continue;
+        const [result] = await connection.query(
+          insertSql,
+          insertValues({ ...data, ...subject }),
+        );
+        created.push({ id: result.insertId, subject_id: subject.subject_id });
+      }
+
+      await connection.commit();
+      connection.release();
+      connection = null;
+
+      if (created.length) {
+        logActivity(
+          data.user_id,
+          `Added ${created.length} student subject${created.length === 1 ? "" : "s"} for student ID ${data.student_id}`,
+        );
+      }
+      return callBack(null, { created, duplicates });
+    } catch (error) {
+      if (connection) {
+        try {
+          await connection.rollback();
+        } finally {
+          connection.release();
+        }
+      }
+      return callBack(error);
+    }
+  },
 
   deactivateStudentSubject: (data, callBack) => {
     pool.query(
-      "SELECT user_info.user_id, school_years.name AS school_year, semesters.name AS semester, subjects.code AS subject_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teacher_name FROM student_subject INNER JOIN school_years ON student_subject.school_year_id = school_years.id INNER JOIN semesters ON student_subject.semester_id = semesters.id INNER JOIN subjects ON student_subject.subject_id = subjects.id INNER JOIN teachers ON student_subject.teacher_id = teachers.id INNER JOIN rooms ON student_subject.room_id=rooms.id INNER JOIN user_info ON student_subject.student_id = user_info.user_id WHERE student_subject.id=?",
-      [data.id],
-      (error, result) => {
-        pool.query(
-          "UPDATE student_subject SET student_subject.is_excluded=1, student_subject.reason=? WHERE student_subject.id =?",
-          [data.reason, data.id],
-          (error, results) => {
-            if (results.changedRows == 1) {
-              pool.query(
-                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [
-                  data.user_id,
-                  "Deleted Student's subject: " +
-                    result[0].school_year +
-                    " | " +
-                    result[0].semester +
-                    " | " +
-                    result[0].subject_code +
-                    " | " +
-                    result[0].teacher_name,
-                ],
-                (error, results) => {
-                  if (error) {
-                    console.log(error);
-                  }
-                }
-              );
-            }
-            if (error) {
-              callBack(error);
-            }
-            return callBack(null, results);
-          }
-        );
-        if (error) {
-          return callBack(error);
+      `UPDATE ${TABLE}
+       SET is_excluded = 1, reason = ?
+       WHERE id = ? AND is_excluded = 0`,
+      [data.reason, data.id],
+      (error, results) => {
+        if (error || results.changedRows !== 1) {
+          return callBack(error, results);
         }
-      }
+        describeRecord(data.id, (describeError, records) => {
+          if (!describeError && records[0]) {
+            logActivity(
+              data.user_id,
+              `Excluded student's subject: ${activityDescription(records[0])}`,
+            );
+          }
+        });
+        return callBack(null, results);
+      },
     );
   },
 };

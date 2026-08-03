@@ -1,28 +1,36 @@
 const {
+  getStudentsByPeriod,
+  getSubjectsByPeriod,
   getIncludedSubjectsByStudent,
   getAllSubjectsByStudent,
   getIncludedSubjectsByStudentById,
   showReason,
-  // getExcludedSubjects,
   addStudentSubject,
-  // updateStudentSubject,
+  addStudentSubjects,
   deactivateStudentSubject,
 } = require("./studentsubject.controller");
 const router = require("express").Router();
 
 router.get(
+  "/period/students/school_year_id=:school_year_id&semester_id=:semester_id",
+  getStudentsByPeriod,
+);
+router.get(
+  "/period/school_year_id=:school_year_id&semester_id=:semester_id",
+  getSubjectsByPeriod,
+);
+router.get(
   "/included/student_id=:student_id&school_year_id=:school_year_id&semester_id=:semester_id",
-  getIncludedSubjectsByStudent
+  getIncludedSubjectsByStudent,
 );
 router.get(
   "/overall/student_id=:student_id&school_year_id=:school_year_id&semester_id=:semester_id",
-  getAllSubjectsByStudent
+  getAllSubjectsByStudent,
 );
-router.get("/:id", getIncludedSubjectsByStudentById)
+router.get("/:id", getIncludedSubjectsByStudentById);
 router.get("/excluded/:id", showReason);
-// router.get("/removed", getExcludedSubjects);
 router.post("/add", addStudentSubject);
-// router.put("/update", updateStudentSubject);
+router.post("/add-many", addStudentSubjects);
 router.put("/deactivate", deactivateStudentSubject);
 
 module.exports = router;

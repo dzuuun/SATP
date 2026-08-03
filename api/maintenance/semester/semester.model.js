@@ -20,12 +20,18 @@ module.exports = {
   },
 
   getInUseSemester: (callBack) => {
-    pool.query("SELECT * FROM semesters WHERE in_use = 1", (error, results) => {
-      if (error) {
-        callBack(error);
-      }
-      return callBack(null, results);
-    });
+    pool.query(
+      `SELECT *
+       FROM semesters
+       WHERE in_use = 1
+       `,
+      (error, results) => {
+        if (error) {
+          return callBack(error);
+        }
+        return callBack(null, results);
+      },
+    );
   },
 
   getSemesterById: (Id, callBack) => {

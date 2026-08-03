@@ -1,16 +1,103 @@
 const {
   getTransactions,
   getTransactionsByStudent,
+  getAcademicRecordsByStudent,
   getTransactionInfoById,
   getSYSemData,
   getCommentByTransactionId,
   addTransaction,
   submitRating,
   submitCommentStatus,
+  submitAssessment,
   getNotRatedTransactions,
+  getRatingAccess,
+  canManageRatingAccess,
+  setRatingAccess,
 } = require("./srs.model");
 
+function requireOpenRating(res, next) {
+  getRatingAccess((error, access) => {
+    if (error) {
+      console.error("Unable to check student rating access:", error);
+      return res.status(500).json({
+        success: 0,
+        message: "Unable to verify whether student rating is available.",
+      });
+    }
+    if (!access.enabled) {
+      return res.status(403).json({
+        success: 0,
+        message: "Student rating is currently closed.",
+      });
+    }
+    next();
+  });
+}
+
 module.exports = {
+  getRatingAccess: (req, res) => {
+    getRatingAccess((error, access) => {
+      if (error) {
+        console.error("Unable to load student rating access:", error);
+        return res.status(500).json({
+          success: 0,
+          message: "Unable to load student rating access.",
+        });
+      }
+      const userId = req.query?.user_id;
+      if (!userId) {
+        return res.json({
+          success: 1,
+          data: { ...access, can_manage: false },
+        });
+      }
+
+      canManageRatingAccess(userId, (permissionError, canManage) => {
+        if (permissionError) {
+          console.error(
+            "Unable to verify rating access permission:",
+            permissionError,
+          );
+          return res.status(500).json({
+            success: 0,
+            message: "Unable to verify rating access permission.",
+          });
+        }
+        return res.json({
+          success: 1,
+          data: { ...access, can_manage: canManage },
+        });
+      });
+    });
+  },
+
+  setRatingAccess: (req, res) => {
+    const enabled = req.body?.enabled;
+    const userId = req.body?.user_id;
+    if (typeof enabled !== "boolean" || !userId) {
+      return res.status(400).json({
+        success: 0,
+        message: "A valid rating status and user are required.",
+      });
+    }
+    setRatingAccess({ enabled, user_id: userId }, (error, access) => {
+      if (error) {
+        console.error("Unable to update student rating access:", error);
+        return res.status(error.statusCode || 500).json({
+          success: 0,
+          message: error.message || "Unable to update student rating access.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: enabled
+          ? "Student rating is now open."
+          : "Student rating is now closed.",
+        data: access,
+      });
+    });
+  },
+
   getTransactions: (req, res) => {
     const body = req.params;
     getTransactions(body, (err, results) => {
@@ -49,6 +136,24 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Student's Subjects retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
+  },
+
+  getAcademicRecordsByStudent: (req, res) => {
+    getAcademicRecordsByStudent(req.params, (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({
+          success: 0,
+          message: "Unable to retrieve the student's academic records.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "Student academic records retrieved successfully.",
         count: results.length,
         data: results,
       });
@@ -154,49 +259,83 @@ module.exports = {
 
   submitRating: (req, res) => {
     const body = req.body;
-    submitRating(body, (err, results) => {
-      if (err) {
-        console.log(err);
+    requireOpenRating(res, () => {
+      submitRating(body, (err, results) => {
+        if (err) {
+          console.log(err);
+          return res.json({
+            success: 0,
+            message: "Transaction already exists. Try again.",
+          });
+        }
+        if (results === undefined) {
+          return res.status(500).json({
+            success: 0,
+            message: "Some fields are missing or incorrect format.",
+          });
+        }
         return res.json({
-          success: 0,
-          message: "Transaction already exists. Try again.",
+          success: 1,
+          message: "Rating added successfully.",
+          data: results,
         });
-      }
-      if (results === undefined) {
-        return res.status(500).json({
-          success: 0,
-          message: "Some fields are missing or incorrect format.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Rating added successfully.",
-        data: results,
       });
     });
   },
 
   submitCommentStatus: (req, res) => {
     const body = req.body;
-    submitCommentStatus(body, (err, results) => {
-      if (err) {
-        console.log(err);
+    requireOpenRating(res, () => {
+      submitCommentStatus(body, (err, results) => {
+        if (err) {
+          console.log(err);
+          return res.json({
+            success: 0,
+            message: "Transaction already exists. Try again.",
+          });
+        }
+        if (results === undefined) {
+          return res.status(500).json({
+            success: 0,
+            message: "Some fields are missing or incorrect format.",
+          });
+        }
         return res.json({
-          success: 0,
-          message: "Transaction already exists. Try again.",
+          success: 1,
+          message:
+            "Subject rated successfully. Thank you for your participation.",
+          data: results,
         });
-      }
-      if (results === undefined) {
-        return res.status(500).json({
-          success: 0,
-          message: "Some fields are missing or incorrect format.",
+      });
+    });
+  },
+
+  submitAssessment: (req, res) => {
+    const body = req.body;
+    if (
+      !body.academic_record_id ||
+      !body.user_id ||
+      !Array.isArray(body.ratings)
+    ) {
+      return res.status(400).json({
+        success: 0,
+        message: "Invalid assessment submission.",
+      });
+    }
+    requireOpenRating(res, () => {
+      submitAssessment(body, (err, results) => {
+        if (err) {
+          console.error(err);
+          return res.status(400).json({
+            success: 0,
+            message: err.message || "Unable to submit the assessment.",
+          });
+        }
+        return res.json({
+          success: 1,
+          message: "Assessment submitted successfully.",
+          data: results,
         });
-      }
-      return res.json({
-        success: 1,
-        message:
-          "Subject rated successfully. Thank you for your participation.",
-        data: results,
       });
     });
   },

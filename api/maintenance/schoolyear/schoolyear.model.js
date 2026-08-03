@@ -24,13 +24,16 @@ module.exports = {
 
   getInUseSchoolYear: (callBack) => {
     pool.query(
-      "SELECT * FROM school_years WHERE in_use = 1",
+      `SELECT *
+       FROM school_years
+       WHERE in_use = 1
+       ORDER BY is_active DESC, id DESC`,
       (error, results) => {
         if (error) {
-          callBack(error);
+          return callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 

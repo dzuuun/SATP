@@ -37,8 +37,12 @@ const API = {
         opt.textContent = row.name;
         select.appendChild(opt);
       });
-      if (data.length) select.value = String(data[0].id);
-      return data[0] || null;
+      const currentOption =
+        data.find(
+          (row) => Number(row.in_use) === 1 && Number(row.is_active) === 1,
+        ) || data[0];
+      if (currentOption) select.value = String(currentOption.id);
+      return currentOption || null;
     } catch (err) {
       console.error(`Error loading ${endpoint}:`, err);
       return null;
@@ -116,12 +120,24 @@ function renderRatingAccess(enabled) {
     : "Students can view their subjects, but cannot start or submit ratings.";
 }
 
+async function readApiJson(response) {
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    const message =
+      response.status === 404
+        ? "The rating access API is unavailable. Deploy and restart the latest server API."
+        : `The server returned an invalid response (${response.status}).`;
+    throw new Error(message);
+  }
+  return response.json();
+}
+
 async function loadRatingAccess() {
   try {
     const response = await fetch(
       `/api/transaction/rating-access/status?user_id=${encodeURIComponent(state.user_id)}`,
     );
-    const result = await response.json();
+    const result = await readApiJson(response);
     if (!response.ok || !result.success) {
       throw new Error(
         result.message || "Unable to load student rating access.",
@@ -137,7 +153,7 @@ async function loadRatingAccess() {
     return true;
   } catch (error) {
     document.getElementById("ratingAccessCard")?.classList.add("hidden");
-    console.error("Unable to load student rating access controls:", error);
+    console.warn(error.message || "Unable to load student rating access controls.");
     return false;
   }
 }
@@ -151,7 +167,7 @@ async function updateRatingAccess(enabled) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ enabled, user_id: state.user_id }),
     });
-    const result = await response.json();
+    const result = await readApiJson(response);
     if (!response.ok || !result.success) {
       throw new Error(result.message || "Unable to update student rating access.");
     }
