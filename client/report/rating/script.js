@@ -1,301 +1,428 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var reportsAccess = localStorage.getItem("reportsAccess");
-var username = localStorage.getItem("username");
+const state = {
+  userId: localStorage.getItem("user_id"),
+  reportsAccess: localStorage.getItem("reportsAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+  subjectRequest: 0,
+  teacherRequest: 0,
+};
 
-document.getElementById("userName").innerHTML = username;
-
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (reportsAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.reportsAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-// Get schoolYear from API
-const getSchoolYear = async () => {
-  const schoolYearList = document.querySelector("#schoolYear");
-  const endpoint = `/api/schoolyear/inuse/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  rows.forEach((row) => {
-    schoolYearList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
+const reportDescriptions = {
+  institutional:
+    "Shows the selected teacher and subject within the institutional rating framework.",
+  collegiate: "Summarizes assessment ratings for a selected college.",
+  departmental: "Summarizes assessment ratings for a selected department.",
+  individual: "Shows the detailed rating for a selected teacher and subject.",
 };
 
-// Get semester from API
-const getSemester = async () => {
-  const semesterList = document.querySelector("#semester");
-  const endpoint = `/api/semester/inuse/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
+function updateTeacherExportState() {
+  const ratingType = document.getElementById("rating").value;
+  const teacher = document.getElementById("teacher");
+  const button = document.getElementById("teacherExportButton");
+  const hint = document.getElementById("teacherExportHint");
+  const selectedOption = teacher.options[teacher.selectedIndex];
+  const teacherName = selectedOption?.dataset.name || "";
+  const enabled = ratingType === "individual" && Boolean(teacher.value);
 
-  rows.forEach((row) => {
-    semesterList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
-};
-
-const getCollege = async () => {
-  const collegeList = document.querySelector("#college");
-  const endpoint = `/api/college/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  rows.forEach((row) => {
-    collegeList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
-};
-
-const getDepartment = async () => {
-  const departmentList = document.querySelector("#department");
-  const endpoint = `/api/department/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  rows.forEach((row) => {
-    departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
-};
-
-const getTeacher = async () => {
-  const teacherList = document.querySelector("#teacher");
-  const endpoint = `/api/teacher/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  rows.forEach((row) => {
-    teacherList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
-};
-
-getSemester();
-getSchoolYear();
-getCollege();
-getDepartment();
-getTeacher();
-
-$("#rating").change(function () {
-  if ($(this).val() == "collegiate") {
-    $("#collegeSelect").show();
-    $("#college").prop("required", true);
-  } else {
-    $("#collegeSelect").hide();
-    $("#college").prop("required", false);
-  }
-
-  if ($(this).val() == "departmental") {
-    $("#departmentSelect").show();
-    $("#department").prop("required", true);
-  } else {
-    $("#departmentSelect").hide();
-    $("#department").prop("required", false);
-  }
-
-  if ($(this).val() == "individual" || $(this).val() == "institutional") {
-    $("#teacherSelect").show();
-    $("#teacher").prop("required", true);
-    $("#subjectSelect").show();
-    $("#subject").prop("required", true);
-  } else {
-    $("#teacherSelect").hide();
-    $("#teacher").prop("required", false);
-    $("#subjectSelect").hide();
-    $("#subject").prop("required", false);
-  }
-});
-
-let generateReport = document.querySelector("#generateReportForm");
-generateReport.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const formData = new FormData(generateReport);
-  const data = Object.fromEntries(formData);
-
-  localStorage.setItem("genReportSchoolYear", data.school_year);
-  localStorage.setItem("genReportSemester", data.semester);
-  localStorage.setItem("genReportteacher", data.teacher);
-  localStorage.setItem("genReportSubject", data.subject);
-
-  switch (data.ratingReport) {
-    case "institutional":
-      console.log("institutional");
-      // for (let i = 0; i < subjectsArray.length; i++) {
-      //   let subject = encodeURIComponent(subjectsArray[i]);
-      //   setTimeout(() => {
-      //   window.open(`institutional/index.html?subject=${subject}`, "_blank");
-      //   }, i * 500);
-      // }
-    
-      window.location.href = "institutional/index.html";
-      break;
-    case "collegiate":
-      console.log("collegiate");
-      localStorage.setItem("genReportCollege", data.college);
-      window.location.href = "collegiate/index.html";
-      break;
-    case "departmental":
-      console.log("departmental");
-      localStorage.setItem("genReportDepartment", data.department);
-      window.location.href = "departmental/index.html";
-      break;
-    case "individual":
-      console.log("individual");
-      window.location.href = "individual/index.html";
-    
-      // for (let i = 0; i < subjectsArray.length; i++) {
-      //   let subject = encodeURIComponent(subjectsArray[i]);
-      //   setTimeout(() => {
-      //   window.open(`individual/index.html?subject=${subject}`, "_blank");
-      //   }, i * 500);
-      // }
-      break;
-  }
-});
-
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  nav = true;
+  button.disabled = !enabled;
+  button.setAttribute("aria-disabled", String(!enabled));
+  button.title = enabled
+    ? `Export all subjects for ${teacherName} in the selected school year and semester`
+    : "Select a teacher to export all of their subjects";
+  hint.textContent = enabled
+    ? `All subjects for ${teacherName} in the selected period`
+    : "Select a teacher to export all subjects for the selected period";
 }
 
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  nav = false;
-}
-function toggleNav() {
-  nav ? closeNav() : openNav();
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, options);
+  if (!response.ok)
+    throw new Error(`Request failed with status ${response.status}.`);
+  return response.json();
 }
 
-let signOutButton = document.getElementById("signout");
+function escapeHtml(value) {
+  const span = document.createElement("span");
+  span.textContent = value ?? "";
+  return span.innerHTML;
+}
 
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
+function appendOptions(selectId, rows, label, secondaryLabel) {
+  const select = document.getElementById(selectId);
+  select.insertAdjacentHTML(
+    "beforeend",
+    rows
+      .map((row) => {
+        const secondary = secondaryLabel ? row[secondaryLabel] : "";
+        const text = secondary
+          ? `${secondary} — ${row[label] ?? ""}`
+          : (row[label] ?? "");
+        return `<option value="${escapeHtml(row.id)}">${escapeHtml(text)}</option>`;
+      })
+      .join(""),
+  );
+  if (rows.length === 1) select.value = rows[0].id;
+}
+
+async function loadReportOptions() {
+  showLoading("Loading report options...");
+  try {
+    const [schoolYears, semesters, colleges, departments] = await Promise.all([
+        requestJson("/api/schoolyear/inuse/active"),
+        requestJson("/api/semester/inuse/active"),
+        requestJson("/api/college/all/active"),
+        requestJson("/api/department/all/active"),
+      ]);
+    appendOptions("schoolYear", schoolYears.data || [], "name");
+    appendOptions("semester", semesters.data || [], "name");
+    appendOptions("college", colleges.data || [], "name", "code");
+    appendOptions(
+      "department",
+      departments.data || [],
+      "name",
+      "department_code",
+    );
+    await loadTeachersForPeriod();
+  } catch (error) {
+    showToast(error.message || "Unable to load the report options.");
+  } finally {
+    hideLoading();
+  }
+}
+
+function toggleConditionalField(fieldId, inputId, visible) {
+  document.getElementById(fieldId).classList.toggle("hidden", !visible);
+  const input = document.getElementById(inputId);
+  input.required = visible;
+  if (!visible) input.value = "";
+}
+
+document.getElementById("rating").addEventListener("change", (event) => {
+  const type = event.target.value;
+  const needsTeacher = type === "institutional" || type === "individual";
+  toggleConditionalField("collegeSelect", "college", type === "collegiate");
+  toggleConditionalField(
+    "departmentSelect",
+    "department",
+    type === "departmental",
+  );
+  toggleConditionalField("teacherSelect", "teacher", needsTeacher);
+  toggleConditionalField("subjectSelect", "subject", needsTeacher);
+  document
+    .getElementById("exportMenuWrap")
+    .classList.toggle("hidden", type !== "individual");
+  if (type !== "individual") closeExportMenu();
+  updateTeacherExportState();
+  document.getElementById("reportHint").textContent =
+    reportDescriptions[type] ||
+    "Choose the scope of assessment results to include.";
+  if (needsTeacher) updateSubjects();
 });
 
-let subjectsArray = [];
-let subjectList = document.getElementById("subjectList");
+async function updateSubjects() {
+  const subject = document.getElementById("subject");
+  const hint = document.getElementById("subjectHint");
+  const schoolYearId = document.getElementById("schoolYear").value;
+  const semesterId = document.getElementById("semester").value;
+  const teacherId = document.getElementById("teacher").value;
+  const requestId = ++state.subjectRequest;
+  subject.disabled = true;
+  subject.innerHTML =
+    '<option value="">Select the period and teacher first</option>';
+  hint.dataset.state = "";
+  hint.textContent =
+    "Subjects are based on the selected teacher and academic period.";
+  if (!schoolYearId || !semesterId || !teacherId) return;
 
-// Get the dropdowns and add event listeners
-const teacherDropdown = document.querySelector("#teacher");
-const schoolYearDropdown = document.querySelector("#schoolYear");
-const semesterDropdown = document.querySelector("#semester");
-
-// const updateSubjects = async () => {
-//   // Get values from all dropdowns
-//   const query = {
-//     school_year_id: schoolYearDropdown.value,
-//     semester_id: semesterDropdown.value,
-//     teacher_id: teacherDropdown.value,
-//   };
-
-//   // Show subject dropdown if subjects are available
-//   document.getElementById("subject").style.display = "block";
-
-//   // Fetch subjects based on selected values
-//   await fetch(`/api/report/rating/teacher/subjects`, {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(query),
-//   })
-//     .then((res) => res.json())
-//     .then((response) => {
-//       rows = response.data;
-//       subjectsArray = [];
-//       subjectList.innerHTML = "";
-//       document.getElementById("genReportButton").disabled = false;
-
-//       // Add subjects to the list
-//       response.data.forEach((row) => {
-//         subjectsArray.push(row.subject_id); // Store subject IDs
-
-//         let li = document.createElement("li");
-//         li.innerHTML = `<strong>${row.subject_name}</strong> <small class="text-muted">(${row.subject_code})</small>`;
-//         li.classList.add("list-group-item"); // Bootstrap styling (optional)
-//         subjectList.appendChild(li);
-//       });
-
-//       // If no subjects are found, show a message
-//       if (response.data.length === 0) {
-//         document.getElementById("genReportButton").disabled = true;
-//         let li = document.createElement("li");
-//         li.textContent = "No subjects available";
-//         li.classList.add("list-group-item", "text-muted", "text-center");
-//         subjectList.appendChild(li);
-//       }
-
-//       $(".form-control").selectpicker("refresh");
-//     });
-// };
-
-// // Add event listeners for each dropdown to trigger subject update
-// teacherDropdown.addEventListener("change", updateSubjects);
-// schoolYearDropdown.addEventListener("change", updateSubjects);
-// semesterDropdown.addEventListener("change", updateSubjects);
-
-// // Call updateSubjects on initial load to populate the list if needed
-// updateSubjects();
-
-
-const searchData = document.querySelector("#teacher");
-searchData.addEventListener("change", async () => {
-  document.getElementById("subject").innerHTML = ``;
-  var query = {
-    school_year_id: document.getElementById("schoolYear").value,
-    semester_id: document.getElementById("semester").value,
-    teacher_id: document.getElementById("teacher").value,
-    subject_id: document.getElementById("subject").value,
-  };
-
-  await fetch(`/api/report/rating/teacher/subjects`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(query),
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      rows = response.data;
-      response.data.forEach((row) => {
-        document.getElementById(
-          "subject"
-        ).innerHTML += `<option data-subtext="${row.subject_code}" value="${row.subject_id}">${row.subject_name}</option>`;
-      });
-      $(".form-control").selectpicker("refresh");
+  subject.innerHTML = '<option value="">Loading subjects...</option>';
+  hint.textContent = "Loading the teacher's subjects...";
+  try {
+    const response = await requestJson("/api/report/rating/teacher/subjects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        school_year_id: schoolYearId,
+        semester_id: semesterId,
+        teacher_id: teacherId,
+      }),
     });
+    if (requestId !== state.subjectRequest) return;
+    const rows = response.data || [];
+    subject.innerHTML = rows.length
+      ? '<option value="">Select a subject</option>' +
+        rows
+          .map(
+            (row) =>
+              `<option value="${escapeHtml(row.subject_id)}">${escapeHtml(row.subject_code)} — ${escapeHtml(row.subject_name)}</option>`,
+          )
+          .join("")
+      : '<option value="">No subjects available</option>';
+    subject.disabled = !rows.length;
+    hint.dataset.state = rows.length ? "ready" : "error";
+    hint.textContent = rows.length
+      ? `${rows.length} subject${rows.length === 1 ? "" : "s"} available.`
+      : "No subjects were found for this teacher and period.";
+  } catch (error) {
+    if (requestId !== state.subjectRequest) return;
+    subject.innerHTML = '<option value="">Unable to load subjects</option>';
+    hint.dataset.state = "error";
+    hint.textContent =
+      error.message || "Unable to load the teacher's subjects.";
+  }
+}
+
+async function loadTeachersForPeriod() {
+  const teacher = document.getElementById("teacher");
+  const subject = document.getElementById("subject");
+  const schoolYearId = document.getElementById("schoolYear").value;
+  const semesterId = document.getElementById("semester").value;
+  const requestId = ++state.teacherRequest;
+  state.subjectRequest += 1;
+  teacher.disabled = true;
+  teacher.innerHTML =
+    '<option value="">Select the school year and semester first</option>';
+  updateTeacherExportState();
+  subject.disabled = true;
+  subject.innerHTML = '<option value="">Select a teacher first</option>';
+  if (!schoolYearId || !semesterId) return;
+
+  teacher.innerHTML = '<option value="">Loading teachers...</option>';
+  try {
+    const response = await requestJson("/api/report/rating/teacher/period", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        school_year_id: schoolYearId,
+        semester_id: semesterId,
+      }),
+    });
+    if (requestId !== state.teacherRequest) return;
+    const rows = response.data || [];
+    teacher.innerHTML = rows.length
+      ? '<option value="">Select a teacher</option>' +
+        rows
+          .map(
+            (row) =>
+              `<option value="${escapeHtml(row.id)}" data-name="${escapeHtml(row.name)}">${escapeHtml(row.name)} (${Number(row.subject_count)} subject${Number(row.subject_count) === 1 ? "" : "s"})</option>`,
+          )
+          .join("")
+      : '<option value="">No teachers available</option>';
+    teacher.disabled = !rows.length;
+  } catch (error) {
+    if (requestId !== state.teacherRequest) return;
+    teacher.innerHTML = '<option value="">Unable to load teachers</option>';
+    showToast(error.message || "Unable to load teachers for this period.");
+  }
+}
+
+["schoolYear", "semester"].forEach((id) =>
+  document.getElementById(id).addEventListener("change", loadTeachersForPeriod),
+);
+document.getElementById("teacher").addEventListener("change", () => {
+  updateTeacherExportState();
+  updateSubjects();
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-  loadSpinner();
+function closeExportMenu() {
+  document.getElementById("exportMenu").classList.add("hidden");
+  document.getElementById("exportMenuButton").setAttribute("aria-expanded", "false");
+}
 
-  window.addEventListener("load", function () {
-    hideSpinner();
+document.getElementById("exportMenuButton").addEventListener("click", () => {
+  const menu = document.getElementById("exportMenu");
+  const willOpen = menu.classList.contains("hidden");
+  menu.classList.toggle("hidden", !willOpen);
+  document
+    .getElementById("exportMenuButton")
+    .setAttribute("aria-expanded", String(willOpen));
+});
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest("#exportMenuWrap")) closeExportMenu();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeExportMenu();
+});
+
+document
+  .getElementById("bulkExportButton")
+  .addEventListener("click", async () => {
+    closeExportMenu();
+    const schoolYear = document.getElementById("schoolYear");
+    const semester = document.getElementById("semester");
+    if (!schoolYear.value || !semester.value) {
+      showToast(
+        "Select the school year and semester before exporting.",
+        "error",
+      );
+      return;
+    }
+    await exportAllIndividualRatings({
+      schoolYearId: schoolYear.value,
+      semesterId: semester.value,
+      schoolYearName: schoolYear.options[schoolYear.selectedIndex]?.text || "",
+      semesterName: semester.options[semester.selectedIndex]?.text || "",
+    });
   });
+
+document
+  .getElementById("teacherExportButton")
+  .addEventListener("click", async () => {
+    closeExportMenu();
+    const schoolYear = document.getElementById("schoolYear");
+    const semester = document.getElementById("semester");
+    const teacher = document.getElementById("teacher");
+    if (!schoolYear.value || !semester.value || !teacher.value) {
+      showToast(
+        "Select the school year, semester, and teacher before exporting.",
+        "error",
+      );
+      return;
+    }
+    const selectedTeacher = teacher.options[teacher.selectedIndex];
+    await exportTeacherIndividualRatings({
+      schoolYearId: schoolYear.value,
+      semesterId: semester.value,
+      schoolYearName: schoolYear.options[schoolYear.selectedIndex]?.text || "",
+      semesterName: semester.options[semester.selectedIndex]?.text || "",
+      teacherId: teacher.value,
+      teacherName: selectedTeacher?.dataset.name || selectedTeacher?.text || "Teacher",
+    });
+  });
+
+document
+  .getElementById("generateReportForm")
+  .addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form.reportValidity()) return;
+    const data = Object.fromEntries(new FormData(form));
+    const needsSubject =
+      data.ratingReport === "institutional" ||
+      data.ratingReport === "individual";
+    if (needsSubject && !data.subject) {
+      showToast("Select an available subject to continue.");
+      return;
+    }
+    const destinations = {
+      institutional: "institutional/index.html",
+      collegiate: "collegiate/index.html",
+      departmental: "departmental/index.html",
+      individual: "individual/index.html",
+    };
+    const destination = destinations[data.ratingReport];
+    if (!destination) return showToast("Select a rating report to continue.");
+
+    localStorage.setItem("genReportSchoolYear", data.school_year);
+    localStorage.setItem("genReportSemester", data.semester);
+    if (data.teacher) localStorage.setItem("genReportteacher", data.teacher);
+    if (data.subject) localStorage.setItem("genReportSubject", data.subject);
+    if (data.college) localStorage.setItem("genReportCollege", data.college);
+    if (data.department)
+      localStorage.setItem("genReportDepartment", data.department);
+
+    const reportWindow = window.open(destination, "_blank");
+    if (reportWindow) reportWindow.opener = null;
+    else showToast("Allow pop-ups for SATP to open the report in a new tab.");
+  });
+
+function showLoading(message) {
+  document.getElementById("loadingMessage").textContent = message;
+  toggleModal("loadingModal", true);
+}
+
+function hideLoading() {
+  toggleModal("loadingModal", false);
+}
+
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (show) {
+    modal.classList.remove("invisible");
+    document.body.classList.add("overflow-hidden");
+    requestAnimationFrame(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    });
+  } else {
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
+  }
+}
+
+function showToast(message, type = "success") {
+  const toast = document.createElement("div");
+  toast.className = `category-toast${type === "error" ? " toast-error" : ""}`;
+  const icon =
+    type === "error"
+      ? '<path d="M12 8v5M12 17h.01M10.3 4.5 2.7 18a2 2 0 0 0 1.75 3h15.1a2 2 0 0 0 1.75-3L13.7 4.5a2 2 0 0 0-3.4 0Z"/>'
+      : '<path d="m5 12 4 4L19 6"/>';
+  toast.innerHTML = `<span class="toast-symbol"><svg viewBox="0 0 24 24">${icon}</svg></span><span></span>`;
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+function toggleNav() {
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
+}
+
+async function loadSidebar() {
+  try {
+    const container = document.getElementById("sidebar-container");
+    container.innerHTML = await (await fetch("/sidebar.html")).text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    document
+      .querySelector('#mySidenav a[href="/report/rating/index.html"]')
+      ?.classList.add("sub-active");
+    const menu = document.getElementById("dropdown-rating");
+    menu?.classList.remove("hidden");
+    const toggle = document.querySelector('[data-target="dropdown-rating"]');
+    toggle?.setAttribute("aria-expanded", "true");
+    const arrow = toggle?.querySelector(".chevron");
+    if (arrow) arrow.style.transform = "rotate(180deg)";
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
+  loadReportOptions();
 });
-
-function loadSpinner() {
-  document.getElementById("overlay").style.display = "flex";
-}
-
-function hideSpinner() {
-  document.getElementById("overlay").style.display = "none";
-}

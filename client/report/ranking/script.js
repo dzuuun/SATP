@@ -1,159 +1,223 @@
+"use strict";
 
-var user = localStorage.getItem("user_id");
-var reportsAccess = localStorage.getItem("reportsAccess");
-var username = localStorage.getItem("username");
+const state = {
+  userId: localStorage.getItem("user_id"),
+  reportsAccess: localStorage.getItem("reportsAccess"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+};
 
-document.getElementById("userName").innerHTML = username;
-
-if (user === null) {
+if (!state.userId) {
   alert("Log in to continue.");
-  window.location.href = "../../index.html";
-}
-
-if (reportsAccess == 0) {
-  alert("You don't have permission to access this page. Redirecting...");
+  location.href = "../../index.html";
+} else if (state.reportsAccess == 0) {
+  alert("You don't have permission to access this page.");
   history.back();
 }
 
-// Get schoolYear from API
-const getSchoolYear = async () => {
-  const schoolYearList = document.querySelector("#schoolYear");
-  const endpoint = `/api/schoolyear/inuse/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-
-  rows.forEach((row) => {
-    schoolYearList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
+const reportDescriptions = {
+  overall: "Ranks college teachers across the institution.",
+  overallSHS: "Ranks Senior High School teachers across the institution.",
+  collegiate: "Ranks teachers within a selected college.",
+  departmental: "Ranks teachers within a selected department.",
 };
 
-// Get semester from API
-const getSemester = async () => {
-  const semesterList = document.querySelector("#semester");
-  const endpoint = `/api/semester/inuse/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, options);
+  if (!response.ok)
+    throw new Error(`Request failed with status ${response.status}.`);
+  return response.json();
+}
 
-  rows.forEach((row) => {
-    semesterList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
-};
+function escapeHtml(value) {
+  const span = document.createElement("span");
+  span.textContent = value ?? "";
+  return span.innerHTML;
+}
 
-const getCollege = async () => {
-  const collegeList = document.querySelector("#college");
-  const endpoint = `/api/college/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
+function appendOptions(selectId, rows, label, secondaryLabel) {
+  const select = document.getElementById(selectId);
+  select.insertAdjacentHTML(
+    "beforeend",
+    rows
+      .map((row) => {
+        const primary = row[label] ?? "";
+        const secondary = secondaryLabel ? row[secondaryLabel] : "";
+        const text = secondary ? `${secondary} — ${primary}` : primary;
+        return `<option value="${escapeHtml(row.id)}">${escapeHtml(text)}</option>`;
+      })
+      .join(""),
+  );
+  if (rows.length === 1) select.value = rows[0].id;
+}
 
-  rows.forEach((row) => {
-    collegeList.innerHTML += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
-};
-
-const getDepartment = async () => {
-  const departmentList = document.querySelector("#department");
-  const endpoint = `/api/department/all/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
-  rows.forEach((row) => {
-    departmentList.innerHTML += `<option data-subtext="${row.department_code}" value="${row.id}">${row.name}</option>`;
-  });
-  $(".form-control").selectpicker("refresh");
-};
-
-getSemester();
-getSchoolYear();
-getCollege();
-getDepartment();
-
-$("#ranking").change(function () {
-  if ($(this).val() == "collegiate") {
-    $("#collegeSelect").show();
-    $("#college").prop("required", true);
-  } else {
-    $("#collegeSelect").hide();
-    $("#college").prop("required", false);
+async function loadReportOptions() {
+  showLoading("Loading report options...");
+  try {
+    const [schoolYears, semesters, colleges, departments] = await Promise.all([
+      requestJson("/api/schoolyear/inuse/active"),
+      requestJson("/api/semester/inuse/active"),
+      requestJson("/api/college/all/active"),
+      requestJson("/api/department/all/active"),
+    ]);
+    appendOptions("schoolYear", schoolYears.data || [], "name");
+    appendOptions("semester", semesters.data || [], "name");
+    appendOptions("college", colleges.data || [], "name", "code");
+    appendOptions(
+      "department",
+      departments.data || [],
+      "name",
+      "department_code",
+    );
+  } catch (error) {
+    showToast(error.message || "Unable to load the report options.");
+  } finally {
+    hideLoading();
   }
+}
 
-  if ($(this).val() == "departmental") {
-    $("#departmentSelect").show();
-    $("#department").prop("required", true);
-  } else {
-    $("#departmentSelect").hide();
-    $("#department").prop("required", false);
-  }
+document.getElementById("ranking").addEventListener("change", (event) => {
+  const type = event.target.value;
+  const collegeField = document.getElementById("collegeSelect");
+  const departmentField = document.getElementById("departmentSelect");
+  const college = document.getElementById("college");
+  const department = document.getElementById("department");
+  const needsCollege = type === "collegiate";
+  const needsDepartment = type === "departmental";
+
+  collegeField.classList.toggle("hidden", !needsCollege);
+  departmentField.classList.toggle("hidden", !needsDepartment);
+  college.required = needsCollege;
+  department.required = needsDepartment;
+  if (!needsCollege) college.value = "";
+  if (!needsDepartment) department.value = "";
+  document.getElementById("reportHint").textContent =
+    reportDescriptions[type] ||
+    "Choose how teachers should be grouped in the report.";
 });
 
-let generateReport = document.querySelector("#generateReportForm");
-generateReport.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const formData = new FormData(generateReport);
-  const data = Object.fromEntries(formData);
-  localStorage.setItem("genReportSchoolYear", data.school_year);
-  localStorage.setItem("genReportSemester", data.semester);
-  localStorage.setItem("genReportTeachingStatus", data.teaching_status);
+document
+  .getElementById("generateReportForm")
+  .addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form.reportValidity()) return;
+    const data = Object.fromEntries(new FormData(form));
+    const destinations = {
+      overall: "overall/index.html",
+      overallSHS: "overallShs/index.html",
+      collegiate: "collegiate/index.html",
+      departmental: "departmental/index.html",
+    };
+    const destination = destinations[data.rankingReport];
+    if (!destination) return showToast("Select a ranking report to continue.");
 
-  switch (data.rankingReport) {
-    case "overall":
-      window.location.href = "overall/index.html";
-      break;
-      case "overallSHS":
-        window.location.href = "overallShs/index.html";
-        break;
-    case "collegiate":
-      localStorage.setItem("genReportCollege", data.college);
-      window.location.href = "collegiate/index.html";
-      break;
-    case "departmental":
+    localStorage.setItem("genReportSchoolYear", data.school_year);
+    localStorage.setItem("genReportSemester", data.semester);
+    localStorage.setItem("genReportTeachingStatus", data.teaching_status);
+    if (data.college) localStorage.setItem("genReportCollege", data.college);
+    if (data.department)
       localStorage.setItem("genReportDepartment", data.department);
-      window.location.href = "departmental/index.html";
-      break;
-  }
-});
 
-function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  nav = true;
-}
-
-var nav = false;
-
-function closeNav() {
-  document.getElementById("mySidenav").style.width = "0";
-  document.getElementById("main").style.marginLeft = "0";
-  nav = false;
-}
-function toggleNav() {
-  nav ? closeNav() : openNav();
-}
-
-let signOutButton = document.getElementById("signout");
-
-signOutButton.addEventListener("click", () => {
-  localStorage.clear();
-  window.location.href = "../../index.html";
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  loadSpinner();
-
-  window.addEventListener("load", function () {
-    hideSpinner();
+    const button = document.getElementById("generateButton");
+    button.disabled = true;
+    button.lastChild.textContent = " Opening report";
+    const reportWindow = window.open(destination, "_blank");
+    if (reportWindow) {
+      reportWindow.opener = null;
+    } else {
+      showToast("Allow pop-ups for SATP to open the report in a new tab.");
+    }
+    button.disabled = false;
+    button.lastChild.textContent = " Generate report";
   });
+
+function showLoading(message) {
+  document.getElementById("loadingMessage").textContent = message;
+  toggleModal("loadingModal", true);
+}
+
+function hideLoading() {
+  toggleModal("loadingModal", false);
+}
+
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (show) {
+    modal.classList.remove("invisible");
+    document.body.classList.add("overflow-hidden");
+    requestAnimationFrame(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    });
+  } else {
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+    document.body.classList.remove("overflow-hidden");
+  }
+}
+
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML =
+    '<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span><span></span>';
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+function toggleNav() {
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
+}
+
+async function loadSidebar() {
+  try {
+    const container = document.getElementById("sidebar-container");
+    container.innerHTML = await (await fetch("/sidebar.html")).text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "User";
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    const rankingLink = document.querySelector(
+      '#mySidenav a[href="/report/ranking/index.html"]',
+    );
+    rankingLink?.classList.add("sub-active");
+    const reportMenu = document.getElementById("dropdown-rating");
+    reportMenu?.classList.remove("hidden");
+    const reportToggle = document.querySelector(
+      '[data-target="dropdown-rating"]',
+    );
+    reportToggle?.setAttribute("aria-expanded", "true");
+    const arrow = reportToggle?.querySelector(".chevron");
+    if (arrow) arrow.style.transform = "rotate(180deg)";
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
+  loadReportOptions();
 });
-
-function loadSpinner() {
-  document.getElementById("overlay").style.display = "flex";
-}
-
-function hideSpinner() {
-  document.getElementById("overlay").style.display = "none";
-}

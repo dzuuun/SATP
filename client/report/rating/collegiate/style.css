@@ -1,51 +1,86 @@
-body {
-  font-size: 15px;
+@import url("../../ranking/collegiate/style.css");
+
+.rating-details {
+  grid-template-columns: 1.3fr repeat(4, 1fr);
 }
 
-th,
-td {
-  font-size: 15px;
+.rating-details > div:first-child strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.rating-table th:last-child,
+.rating-table td:last-child {
+  width: 110px;
+  text-align: center;
+}
+
+.rating-table td:first-child {
+  width: auto;
+  color: var(--ink);
+  font-weight: 400;
+  text-align: left;
+}
+
+.rating-table .category-row th {
+  padding: 10px 13px;
+  color: var(--green-800);
+  background: #eaf3ed;
+  font-size: 0.61rem;
+  letter-spacing: 0.04em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.rating-table .average-row td {
+  font-weight: 850;
+}
+
+.rating-table .average-row td:first-child {
+  text-align: right;
+}
+
+.comments-section {
+  margin-top: 24px;
+}
+
+.comments-section h4 {
+  margin: 0 0 9px;
+  color: var(--green-900);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.comment-entry {
+  padding: 10px 12px;
+  color: #39473f;
+  background: #f7faf8;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 0.64rem;
+  line-height: 1.55;
+}
+
+.comment-entry + .comment-entry {
+  margin-top: 7px;
+}
+
+@media (max-width: 720px) {
+  .rating-details {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media print {
-  #printPageButton {
-    display: none;
+  .comments-section {
+    break-before: auto;
   }
-  th,
-  td,
-  html {
-    margin-top: -20px;
-    font-size: 12px;
-  }
-}
 
-#overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.7);
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-#overlay .spinner {
-  border: 16px solid #f3f3f3;
-  border-top: 16px solid darkgreen;
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
+  .comment-entry {
+    break-inside: avoid;
   }
 }

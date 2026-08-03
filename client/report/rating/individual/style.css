@@ -1,51 +1,40 @@
-body {
-  font-size: 15px;
+@import url("../collegiate/style.css");
+
+.individual-rating-details {
+  grid-template-columns: 1.3fr repeat(3, 1fr);
 }
 
-th,
-td {
-  font-size: 15px;
+.individual-rating-details strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.4;
 }
 
-@media print {
-  #printPageButton {
-    display: none;
+.individual-rating-details div:nth-child(4),
+.individual-rating-details div:nth-child(8) {
+  border-right: 0;
+}
+
+.individual-rating-details div:nth-child(n + 5) {
+  border-top: 1px solid var(--line);
+}
+
+@media (max-width: 720px) {
+  .individual-rating-details {
+    grid-template-columns: repeat(2, 1fr);
   }
-  th,
-  td,
-   html {
-    margin-top: -20px;
-    font-size: 12px;
+
+  .individual-rating-details div:nth-child(odd) {
+    border-right: 1px solid var(--line);
   }
-}
 
-#overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 0.7);
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
-
-#overlay .spinner {
-  border: 16px solid #f3f3f3;
-  border-top: 16px solid darkgreen;
-  border-radius: 50%;
-  width: 80px;
-  height: 80px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
+  .individual-rating-details div:nth-child(even) {
+    border-right: 0;
   }
-  100% {
-    transform: rotate(360deg);
+
+  .individual-rating-details div:nth-child(n + 3) {
+    border-top: 1px solid var(--line);
   }
 }
