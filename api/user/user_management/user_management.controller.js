@@ -1,6 +1,7 @@
 const {
   getUsers,
   getUserById,
+  updateUser,
   addUser,
   updateUserInfo,
   updateUserControl,
@@ -8,7 +9,7 @@ const {
   updateUserCredentials,
   deleteUser,
   updatePassword,
-  getUserByUserName
+  getUserByUserName,
 } = require("./user_management.model");
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
@@ -51,6 +52,53 @@ module.exports = {
         success: 1,
         message: "User information retrieved successfully.",
         data: results,
+      });
+    });
+  },
+
+  updateUser: (req, res) => {
+    const body = { ...req.body };
+    if (
+      !body.id ||
+      !body.username ||
+      !body.givenname ||
+      !body.surname ||
+      !body.gender ||
+      !body.permission_id
+    ) {
+      return res.status(400).json({
+        success: 0,
+        message: "Complete all required fields.",
+      });
+    }
+
+    body.password = String(body.password || "").trim();
+    if (body.password) {
+      body.password = hashSync(body.password, genSaltSync(10));
+    } else {
+      body.password = null;
+    }
+
+    updateUser(body, (err, results) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).json({
+          success: 0,
+          message:
+            err.code === "ER_DUP_ENTRY"
+              ? "That username is already in use."
+              : "Unable to update the user.",
+        });
+      }
+      if (!results.changedRows) {
+        return res.json({
+          success: 0,
+          message: "Contents are still the same.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: "User updated successfully.",
       });
     });
   },

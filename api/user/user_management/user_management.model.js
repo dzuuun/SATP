@@ -9,7 +9,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -22,8 +22,86 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
+  },
+
+  updateUser: (data, callBack) => {
+    pool.getConnection((connectionError, connection) => {
+      if (connectionError) return callBack(connectionError);
+
+      const fail = (error) => {
+        connection.rollback(() => {
+          connection.release();
+          callBack(error);
+        });
+      };
+
+      connection.beginTransaction((transactionError) => {
+        if (transactionError) {
+          connection.release();
+          return callBack(transactionError);
+        }
+
+        const userFields = [
+          data.username,
+          data.permission_id,
+          data.is_temp_pass,
+          data.is_student_rater,
+          data.is_admin_rater,
+          data.is_active,
+        ];
+        const passwordClause = data.password ? ", password=?" : "";
+        if (data.password) userFields.push(data.password);
+        userFields.push(data.id);
+
+        connection.query(
+          `UPDATE users SET username=?, permission_id=?, is_temp_pass=?, is_student_rater=?, is_admin_rater=?, is_active=?${passwordClause} WHERE id=?`,
+          userFields,
+          (userError, userResult) => {
+            if (userError) return fail(userError);
+
+            connection.query(
+              "UPDATE user_info SET surname=?, givenname=?, middlename=?, course_id=?, year_level=?, gender=? WHERE user_id=?",
+              [
+                data.surname,
+                data.givenname,
+                data.middlename,
+                data.course_id,
+                data.year_level,
+                data.gender,
+                data.id,
+              ],
+              (profileError, profileResult) => {
+                if (profileError) return fail(profileError);
+
+                const changedRows =
+                  userResult.changedRows + profileResult.changedRows;
+                if (!changedRows) {
+                  return connection.commit((commitError) => {
+                    connection.release();
+                    callBack(commitError, { changedRows: 0 });
+                  });
+                }
+
+                connection.query(
+                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+                  [data.user_id, `Updated User: ${data.username}`],
+                  (logError) => {
+                    if (logError) return fail(logError);
+                    connection.commit((commitError) => {
+                      if (commitError) return fail(commitError);
+                      connection.release();
+                      callBack(null, { changedRows });
+                    });
+                  },
+                );
+              },
+            );
+          },
+        );
+      });
+    });
   },
 
   addUser: (data, callBack) => {
@@ -66,20 +144,20 @@ module.exports = {
                       if (error) {
                         console.log(error);
                       }
-                    }
+                    },
                   );
                   if (error) {
                     callBack(error);
                   }
-                }
+                },
               );
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(results);
         }
-      }
+      },
     );
   },
 
@@ -109,19 +187,19 @@ module.exports = {
                     if (error) {
                       console.log(error);
                     }
-                  }
+                  },
                 );
                 if (error) {
                   callBack(error);
                 }
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(null, result);
         }
-      }
+      },
     );
   },
 
@@ -154,7 +232,7 @@ module.exports = {
                     if (error) {
                       console.log(error);
                     }
-                  }
+                  },
                 );
                 if (error) {
                   callBack(error);
@@ -162,12 +240,12 @@ module.exports = {
               } else {
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(null, result);
         }
-      }
+      },
     );
   },
 
@@ -184,14 +262,14 @@ module.exports = {
               if (error) {
                 console.log(error);
               }
-            }
+            },
           );
         }
         if (error) {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -216,19 +294,19 @@ module.exports = {
                     if (error) {
                       console.log(error);
                     }
-                  }
+                  },
                 );
                 if (error) {
                   callBack(error);
                 }
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(null, result);
         }
-      }
+      },
     );
   },
 
@@ -240,7 +318,7 @@ module.exports = {
         if (error) {
           return callBack(error); // Return early on error
         }
-  
+
         if (result.length === 1) {
           // User found, proceed with password update
           pool.query(
@@ -250,7 +328,7 @@ module.exports = {
               if (error) {
                 return callBack(error); // Return early on error
               }
-  
+
               if (updateResult.changedRows === 1) {
                 // Log activity after successful password update
                 pool.query(
@@ -260,20 +338,20 @@ module.exports = {
                     if (error) {
                       console.log("Activity Log Error:", error); // Log the error but don't interrupt flow
                     }
-                  }
+                  },
                 );
               }
-  
+
               return callBack(null, updateResult); // Success callback
-            }
+            },
           );
         } else {
           return callBack(null, result); // User not found, send result back
         }
-      }
+      },
     );
   },
-  
+
   getUserByUserName: (data, callBack) => {
     pool.query(
       "SELECT users.id, users.username, user_info.givenname, user_info.surname, user_info.middlename, courses.id AS course_id, user_info.gender, user_info.year_level, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.username = ?",
@@ -283,7 +361,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 };

@@ -1,7 +1,7 @@
 const router = require("express").Router();
-const { getLog } = require("./log.controller");
+const { getLog, getYears } = require("./log.controller");
 
-// DataTables server-side endpoint
+router.get("/years", getYears);
 router.post("/", getLog);
 
 module.exports = router;

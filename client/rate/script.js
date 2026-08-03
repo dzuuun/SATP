@@ -1,234 +1,287 @@
-const table = document.querySelector("#table");
-const school_year = document.querySelector("#schoolYear");
-const semester = document.querySelector("#semester");
-const studentRater = document.querySelector("#studentRater");
-const teacherRatee = document.querySelector("#teacherRatee");
-const subjectCode = document.querySelector("#subjectCode");
+"use strict";
 
-var userLoggedIn;
-let transactionToRate;
-var transaction_id;
-var item_id = [];
-
-// const getdata = async () => {
-//   fetch(`/api/item/active/rate`, {
-//     method: "GET",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//   })
-//     .then((res) => res.json())
-//     .then((response) => {
-//       rows = response.data;
-
-//       rows.forEach((data) => {
-//         item_id.push(data.id);
-//       });
-//       rows.forEach((data) => {
-// table.innerHTML += `
-//   <tr id="${data.id}">
-//     <td class="text-center">${data.number}</td>
-//     <td class="text-nowrap fs-6">${data.category}</td>
-//     <td class="text-wrap fs-6">${data.question}</td>
-//       <td>
-//         <div class="text-nowrap fs-4">
-//           <select class="star-rating" required>
-//             <option value="0">Select a rating</option>
-//             <option value="5">Excellent</option>
-//             <option value="4">Very Good</option>
-//             <option value="3">Average</option>
-//             <option value="2">Poor</option>
-//             <option value="1">Terrible</option>
-//           </select>
-//         </div>
-//       </td>
-//     </tr>`;
-//       });
-//       stars.rebuild();
-//     });
-// };
-
-const getdata = async () => {
-  await fetch(`/api/item/active/rate`, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      var result = response.data.reduce((x, y) => {
-        (x[y.category] = x[y.category] || []).push(y);
-        return x;
-      }, {});
-
-      for (let i = 0; i < Object.keys(result).length; i++) {
-        table.innerHTML += `<th class="text-center" scope="row" colspan="4">${
-          Object.values(result)[i][0].category
-        }</th>`;
-
-        for (let j = 0; j < Object.values(result)[i].length; j++) {
-          item_id.push(Object.values(result)[i][j].id);
-          table.innerHTML += `
-            <tr id="${Object.values(result)[i][j].id}">
-              <td class="text-center">${
-                Object.values(result)[i][j].number
-              }.</td>
-              <td class="text-wrap fs-6">${
-                Object.values(result)[i][j].question
-              }</td>
-                <td>
-                  <div class="text-nowrap fs-4">
-                    <select class="star-rating" required>
-                      <option value="0">Select a rating</option>
-                      <option value="5">Excellent</option>
-                      <option value="4">Very Good</option>
-                      <option value="3">Average</option>
-                      <option value="2">Poor</option>
-                      <option value="1">Terrible</option>
-                    </select>
-                  </div>
-                </td>
-              </tr>`;
-        }
-        stars.rebuild();
-      }
-    });
+const state = {
+  userId: localStorage.getItem("user_id"),
+  recordId: localStorage.getItem("transactionToRate"),
+  username: localStorage.getItem("username"),
+  fullname: localStorage.getItem("fullname"),
+  items: [],
+  submitting: false,
 };
 
-async function getTransactionInfo(id) {
-  await fetch(`/api/transaction/` + id, {
-    method: "GET",
-  })
-    .then((res) => res.json())
-    .then((response) => {
-      // document.getElementById("teacherImage").src = `/${response.data[0].path}`;
-      school_year.innerHTML = response.data[0].school_year;
-      studentRater.innerHTML = response.data[0].student_name;
-      semester.innerHTML = response.data[0].semester;
-      teacherRatee.innerHTML = response.data[0].teachers_name;
-      subjectCode.innerHTML = response.data[0].subject_code;
-      transaction_id = response.data[0].id;
-    });
+if (!state.userId || !state.recordId) {
+  alert("Select a subject before starting an assessment.");
+  location.href = "../rating/index.html";
 }
 
-async function submitRating() {
-  let comment = document.getElementById("comment").value;
-
-  if (comment === "") {
-    var commentStatus = {
-      transaction_id: transactionToRate,
-      user_id: userLoggedIn,
-    };
-  } else {
-    var commentStatus = {
-      comment: comment,
-      transaction_id: transactionToRate,
-      user_id: userLoggedIn,
-    };
-  }
-
-  if (confirm("Are you sure? This action cannot be undone.") == true) {
-    loadSpinner();
-    for (let i = 0; i < stars.widgets.length; i++) {
-      var rating = {
-        transaction_id: transactionToRate,
-        item_id: item_id[i],
-        rate: stars.widgets[i].indexSelected + 1,
-      };
-      await fetch(`/api/transaction/add/rating`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(rating),
-      })
-        .then((res) => res.json())
-        .then((response) => {
-          if (response.success == 0) {
-            // setErrorMessage(response.message);
-          } else {
-            console.log(response.message);
-          }
-        });
-    }
-
-    await fetch(`/api/transaction/submit/ ` + transactionToRate, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(commentStatus),
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        if (response.success == 0) {
-          setErrorMessage(response.message);
-        } else {
-          hideSpinner();
-          $("#rateDoneModal").modal("show");
-        }
-      });
-  }
-}
-
-function closeRating() {
-  window.open("../rating/index.html", "_self");
-}
-
-function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
-                  <div id="toast-header" class="toast-header border-0 bg-danger text-white">
-                    <i class="bi bi-check-circle me-2"></i>
-                    <strong id="toastLabel" class="me-auto">Error</strong>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                  </div>
-
-                  <div class="d-flex">
-                    <div class="toast-body">
-                      ${message}
-                    </div>
-                  </div>
-                  
-                </div>`;
-  $("#toastContainer").toast("show");
-  setTimeout(() => {
-    $(".alert").alert("close");
-  }, 2000);
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  loadSpinner();
-  userLoggedIn = localStorage.getItem("user_id");
-  transactionToRate = localStorage.getItem("transactionToRate");
-  if (transactionToRate === null) {
-    alert("No subject to rate. Redirecting...");
-    window.open("../rating/index.html", "_self");
-  }
-  getdata();
-  getTransactionInfo(transactionToRate);
-
-  window.addEventListener("load", function () {
-    hideSpinner();
+async function initializeAssessment() {
+  showLoading({
+    label: "Please wait",
+    title: "Preparing assessment",
+    message: "Loading the assessment questions...",
   });
+  try {
+    const [information, itemResponse, ratingAccessResponse] = await Promise.all([
+      requestJson(`/api/transaction/${encodeURIComponent(state.recordId)}`),
+      requestJson("/api/item/active/rate"),
+      requestJson("/api/transaction/rating-access/status"),
+    ]);
+    if (ratingAccessResponse.data?.enabled === false) {
+      throw new Error("Student rating is currently closed.");
+    }
+    const details = information.data?.[0];
+    if (!details) throw new Error("This academic record is not available.");
+    if (Number(details.student_id) !== Number(state.userId)) {
+      throw new Error("This assessment does not belong to your account.");
+    }
+    if (Number(details.status) !== 0) {
+      throw new Error("This subject has already been assessed.");
+    }
+    state.items = itemResponse.data || [];
+    if (!state.items.length)
+      throw new Error("No active assessment items are configured.");
+    renderDetails(details);
+    renderQuestions(state.items);
+    updateProgress();
+    hideLoading();
+  } catch (error) {
+    hideLoading();
+    showToast(error.message || "Unable to prepare the assessment.");
+    setTimeout(() => (location.href = "../rating/index.html"), 1500);
+  }
+}
+
+function renderDetails(details) {
+  document.getElementById("schoolYear").textContent = details.school_year;
+  document.getElementById("semester").textContent = details.semester;
+  document.getElementById("teacherRatee").textContent = details.teachers_name;
+  document.getElementById("subjectCode").textContent = details.subject_code;
+  document.getElementById("subjectName").textContent =
+    details.subject_name || "";
+  document.getElementById("studentRater").textContent = details.student_name;
+}
+
+function renderQuestions(items) {
+  const groups = Object.groupBy
+    ? Object.groupBy(items, (item) => item.category)
+    : items.reduce((result, item) => {
+        (result[item.category] ||= []).push(item);
+        return result;
+      }, {});
+  document.getElementById("questionGroups").innerHTML = Object.entries(groups)
+    .map(
+      ([category, categoryItems]) => `
+        <section class="category-card">
+          <header class="category-heading"><h2>${escapeHtml(category)}</h2><span>${categoryItems.length} items</span></header>
+          ${categoryItems.map((item) => questionTemplate(item)).join("")}
+        </section>`,
+    )
+    .join("");
+}
+
+function questionTemplate(item) {
+  return `<div class="question-row" data-item-id="${Number(item.id)}">
+    <span class="question-number">${escapeHtml(item.number)}</span>
+    <p class="question-text">${escapeHtml(item.question)}</p>
+    <div class="rating-options" role="radiogroup" aria-label="Rate item ${escapeHtml(item.number)}">
+      ${[5, 4, 3, 2, 1].map((value) => `<input type="radio" id="item-${item.id}-${value}" name="item-${item.id}" value="${value}" required><label for="item-${item.id}-${value}" title="${value} — ${scaleLabel(value)}" aria-label="${value} — ${scaleLabel(value)}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9L12 3Z"/></svg></label>`).join("")}
+    </div>
+  </div>`;
+}
+
+document
+  .getElementById("ratingForm")
+  .addEventListener("change", updateProgress);
+document
+  .getElementById("ratingForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (state.submitting) return;
+    const ratings = collectRatings();
+    if (ratings.length !== state.items.length) {
+      showToast("Please answer every assessment item.");
+      document
+        .querySelector(".question-row:not(:has(input:checked))")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    if (
+      !confirm(
+        "Submit this assessment? Your answers cannot be changed afterward.",
+      )
+    )
+      return;
+
+    state.submitting = true;
+    document.getElementById("submitButton").disabled = true;
+    showLoading({
+      label: "Submitting assessment",
+      title: "Uploading your ratings",
+      message: "Your responses are being securely saved...",
+      protectNavigation: true,
+    });
+    try {
+      const completion = await requestJson(
+        "/api/transaction/submit-assessment",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            academic_record_id: state.recordId,
+            user_id: state.userId,
+            ratings,
+            comment: document.getElementById("comment").value.trim() || null,
+          }),
+        },
+      );
+      if (!completion.success)
+        throw new Error(
+          completion.message || "Unable to complete the assessment.",
+        );
+      hideLoading();
+      toggleModal("successModal", true);
+    } catch (error) {
+      hideLoading();
+      showToast(error.message || "Unable to submit the assessment.");
+    } finally {
+      state.submitting = false;
+      document.getElementById("submitButton").disabled = false;
+    }
+  });
+
+function collectRatings() {
+  return state.items.flatMap((item) => {
+    const selected = document.querySelector(
+      `input[name="item-${item.id}"]:checked`,
+    );
+    return selected ? [{ item_id: item.id, rate: Number(selected.value) }] : [];
+  });
+}
+function updateProgress() {
+  const answered = collectRatings().length;
+  const total = state.items.length;
+  document.getElementById("progressText").textContent =
+    `${answered} of ${total} answered`;
+  document.getElementById("progressFill").style.width = total
+    ? `${(answered / total) * 100}%`
+    : "0";
+}
+function scaleLabel(value) {
+  return ["", "Very rarely", "Sometimes", "Regularly", "Often", "Very often"][
+    value
+  ];
+}
+
+const comment = document.getElementById("comment");
+comment.addEventListener("input", () => {
+  comment.value = comment.value.replace(
+    /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}]/gu,
+    "",
+  );
+  document.getElementById("commentCount").textContent =
+    `${comment.value.length} / 2000`;
 });
 
-function loadSpinner() {
-  document.getElementById("overlay").style.display = "flex";
+async function requestJson(url, options = {}) {
+  const response = await fetch(url, {
+    ...options,
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+  });
+  const result = await response.json();
+  if (!response.ok)
+    throw new Error(result.message || `Request failed with status ${response.status}.`);
+  return result;
+}
+function escapeHtml(value) {
+  const span = document.createElement("span");
+  span.textContent = value ?? "";
+  return span.innerHTML;
+}
+function showLoading({ label, title, message, protectNavigation = false }) {
+  const overlay = document.getElementById("loadingOverlay");
+  document.getElementById("loadingLabel").textContent = label;
+  document.getElementById("loadingTitle").textContent = title;
+  document.getElementById("loadingMessage").textContent = message;
+  document
+    .getElementById("loadingNotice")
+    .classList.toggle("invisible", !protectNavigation);
+  overlay.classList.remove("invisible");
+  overlay.setAttribute("aria-hidden", "false");
+  document.body.style.overflow = "hidden";
+  requestAnimationFrame(() => overlay.classList.add("opacity-100"));
+}
+function hideLoading() {
+  const overlay = document.getElementById("loadingOverlay");
+  overlay.classList.remove("opacity-100");
+  overlay.setAttribute("aria-hidden", "true");
+  document.body.style.overflow = "";
+  setTimeout(() => overlay.classList.add("invisible"), 250);
 }
 
-function hideSpinner() {
-  document.getElementById("overlay").style.display = "none";
+window.addEventListener("beforeunload", (event) => {
+  if (!state.submitting) return;
+  event.preventDefault();
+  event.returnValue = "";
+});
+function toggleModal(id, show = true) {
+  const modal = document.getElementById(id);
+  const card = document.getElementById(`${id}Card`);
+  if (show) {
+    modal.classList.remove("invisible");
+    setTimeout(() => {
+      modal.classList.add("opacity-100");
+      card?.classList.replace("scale-95", "scale-100");
+    }, 10);
+  } else {
+    modal.classList.remove("opacity-100");
+    card?.classList.replace("scale-100", "scale-95");
+    setTimeout(() => modal.classList.add("invisible"), 250);
+  }
+}
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "category-toast";
+  toast.innerHTML =
+    '<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span><span></span>';
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+function closeRating() {
+  location.href = "../rating/index.html";
+}
+function toggleNav() {
+  const side = document.getElementById("mySidenav");
+  if (!side) return;
+  const open = side.style.width === "280px";
+  side.style.width = open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
+}
+async function loadSidebar() {
+  try {
+    const container = document.getElementById("sidebar-container");
+    container.innerHTML = await (await fetch("/sidebar.html")).text();
+    const name = document.getElementById("sidebar-fullname");
+    if (name) name.textContent = state.fullname || state.username || "Student";
+    const portalLabel = document.querySelector(".sidebar-brand small");
+    if (portalLabel) portalLabel.textContent = "Student portal";
+    document.querySelectorAll(".nav-list > li").forEach((item) => {
+      item.style.display = item.id === "student-rating-nav" ? "" : "none";
+    });
+    document
+      .querySelector("#student-rating-nav a")
+      ?.classList.add("nav-active");
+    document.getElementById("signout")?.addEventListener("click", () => {
+      localStorage.clear();
+      location.href = "../index.html";
+    });
+  } catch (error) {
+    console.error("Sidebar failed:", error);
+  }
 }
 
-const noEmojiInput = document.getElementById("comment");
-
-noEmojiInput.addEventListener("input", function () {
-  // Filter out emojis using a regular expression
-  const regex = /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F700}-\u{1F77F}\u{1F780}-\u{1F7FF}\u{1F800}-\u{1F8FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E6}-\u{1F1FF}]/gu;
-
-  // Remove any emoji characters from the input value
-  noEmojiInput.value = noEmojiInput.value.replace(regex, '');
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("year").textContent = new Date().getFullYear();
+  loadSidebar();
+  initializeAssessment();
 });

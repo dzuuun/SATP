@@ -257,49 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-async function exportToExcel() {
-  try {
-    showSpinner(); // Show the loading overlay
-
-    // 1. Fetch the data from the server
-    const response = await fetch("/api/room");
-    const result = await response.json();
-
-    if (!result.data || result.data.length === 0) {
-      setErrorMessage("No data available to export.");
-      hideSpinner();
-      return;
-    }
-
-    // 2. Map the data to user-friendly headers
-    const exportData = result.data.map((room) => ({
-      name: room.name,
-      Status: room.is_active == 1 ? "Active" : "Inactive",
-    }));
-
-    // 3. Generate Workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(exportData);
-
-    // 4. Style: Set column widths for a cleaner look
-    const colWidths = [{ wch: 30 }, { wch: 15 }];
-    ws["!cols"] = colWidths;
-
-    // 5. Append and Download
-    XLSX.utils.book_append_sheet(wb, ws, "Room List");
-
-    // Generates filename like: NDMU_Rooms_2026-04-06.xlsx
-    const fileName = `NDMU_Rooms_${new Date().toISOString().split("T")[0]}.xlsx`;
-    XLSX.writeFile(wb, fileName);
-
-    setSuccessMessage("Data exported successfully!");
-  } catch (error) {
-    console.error("Export Error:", error);
-    setErrorMessage("Failed to export. Please try again.");
-  } finally {
-    hideSpinner(); // Hide the loading overlay
-  }
-}
 /// --- XLSX IMPORT DRAG AND DROP LOGIC ---
 
 const fileInput = document.getElementById("xlsxInput");

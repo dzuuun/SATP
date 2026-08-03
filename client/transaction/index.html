@@ -57,6 +57,24 @@
                 </nav>
             </section>
 
+            <section id="ratingAccessCard" class="rating-access-card hidden" aria-labelledby="rating-access-title">
+                <div class="rating-access-copy">
+                    <span class="rating-access-icon"><i class="bi bi-star" aria-hidden="true"></i></span>
+                    <div>
+                        <div class="rating-access-heading">
+                            <h2 id="rating-access-title">Student rating access</h2>
+                            <span id="ratingAccessStatus" class="rating-access-status">Loading</span>
+                        </div>
+                        <p id="ratingAccessDescription">Checking whether students can begin assessments...</p>
+                    </div>
+                </div>
+                <label class="access-switch" for="ratingAccessToggle">
+                    <input id="ratingAccessToggle" type="checkbox" role="switch" disabled>
+                    <span class="access-switch-track" aria-hidden="true"><span></span></span>
+                    <span class="access-switch-label">Allow student rating</span>
+                </label>
+            </section>
+
             <section class="summary-grid" aria-label="Transaction summary">
                 <article class="summary-card total">
                     <div class="summary-icon"><i class="bi bi-people" aria-hidden="true"></i></div>
@@ -147,6 +165,8 @@
             <p>Developed by the MIS Department</p>
         </footer>
     </div>
+
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
 
     <div id="subjectModal" class="subject-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-panel">

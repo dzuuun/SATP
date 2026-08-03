@@ -6,6 +6,7 @@ const state = {
   fullname: localStorage.getItem("fullname"),
   semester_id: "",
   school_year_id: "",
+  rating_enabled: false,
 };
 
 // Security Gate
@@ -36,8 +37,11 @@ const API = {
         opt.textContent = row.name;
         select.appendChild(opt);
       });
+      if (data.length) select.value = String(data[0].id);
+      return data[0] || null;
     } catch (err) {
       console.error(`Error loading ${endpoint}:`, err);
+      return null;
     }
   },
 
@@ -96,6 +100,77 @@ const API = {
     }
   },
 };
+
+function renderRatingAccess(enabled) {
+  state.rating_enabled = Boolean(enabled);
+  const toggle = document.getElementById("ratingAccessToggle");
+  const status = document.getElementById("ratingAccessStatus");
+  const description = document.getElementById("ratingAccessDescription");
+  toggle.checked = state.rating_enabled;
+  toggle.disabled = false;
+  status.textContent = state.rating_enabled ? "Open" : "Closed";
+  status.classList.toggle("open", state.rating_enabled);
+  status.classList.toggle("closed", !state.rating_enabled);
+  description.textContent = state.rating_enabled
+    ? "Students can open and submit their pending teacher assessments."
+    : "Students can view their subjects, but cannot start or submit ratings.";
+}
+
+async function loadRatingAccess() {
+  try {
+    const response = await fetch(
+      `/api/transaction/rating-access/status?user_id=${encodeURIComponent(state.user_id)}`,
+    );
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(
+        result.message || "Unable to load student rating access.",
+      );
+    }
+    const card = document.getElementById("ratingAccessCard");
+    if (!result.data?.can_manage) {
+      card?.classList.add("hidden");
+      return false;
+    }
+    card?.classList.remove("hidden");
+    renderRatingAccess(result.data?.enabled !== false);
+    return true;
+  } catch (error) {
+    document.getElementById("ratingAccessCard")?.classList.add("hidden");
+    console.error("Unable to load student rating access controls:", error);
+    return false;
+  }
+}
+
+async function updateRatingAccess(enabled) {
+  const toggle = document.getElementById("ratingAccessToggle");
+  toggle.disabled = true;
+  try {
+    const response = await fetch("/api/transaction/rating-access/status", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ enabled, user_id: state.user_id }),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "Unable to update student rating access.");
+    }
+    renderRatingAccess(result.data?.enabled === true);
+    showToast(result.message);
+  } catch (error) {
+    renderRatingAccess(state.rating_enabled);
+    showToast(error.message || "Unable to update student rating access.", true);
+  }
+}
+
+function showToast(message, error = false) {
+  const toast = document.createElement("div");
+  toast.className = `transaction-toast${error ? " error" : ""}`;
+  toast.innerHTML = `<i class="bi ${error ? "bi-exclamation-triangle" : "bi-check2-circle"}" aria-hidden="true"></i><span></span>`;
+  toast.lastElementChild.textContent = message;
+  document.getElementById("toast-container").replaceChildren(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
 
 // 3. DATATABLES INITIALIZATION
 let mainTable;
@@ -292,15 +367,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("year").textContent = new Date().getFullYear();
   showSpinner();
   try {
-    await Promise.all([
+    const [, , , canManageRatingAccess] = await Promise.all([
       loadSidebar(),
       API.fetchOptions("schoolyear", "loadSchoolYear"),
       API.fetchOptions("semester", "loadSemester"),
+      loadRatingAccess(),
     ]);
 
     const loadSchoolYear = document.getElementById("loadSchoolYear");
     const loadSemester = document.getElementById("loadSemester");
     const filterRefresh = document.getElementById("filterRefresh");
+
+    if (canManageRatingAccess) {
+      document
+        .getElementById("ratingAccessToggle")
+        ?.addEventListener("change", (event) => {
+          updateRatingAccess(event.currentTarget.checked);
+        });
+    }
 
     const handleDropdownChange = () => {
       state.school_year_id = loadSchoolYear.value;
@@ -312,6 +396,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     loadSchoolYear?.addEventListener("change", handleDropdownChange);
     loadSemester?.addEventListener("change", handleDropdownChange);
+
+    handleDropdownChange();
+    if (state.school_year_id && state.semester_id) {
+      await API.loadData();
+    }
 
     document
       .getElementById("btnSearch")

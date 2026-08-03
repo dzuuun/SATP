@@ -7,6 +7,8 @@ const {
   getCollegiateComment,
   getTeacherSubject,
   getTeacherInformation,
+  getBulkIndividualRating,
+  getTeachersByPeriod,
 } = require("./rating.controller");
 const router = require("express").Router();
 
@@ -18,5 +20,7 @@ router.post("/comment/departmental", getDepartmentalComment);
 router.post("/comment/collegiate", getCollegiateComment);
 router.post("/teacher/subjects", getTeacherSubject);
 router.post("/teacher/information", getTeacherInformation);
+router.post("/teacher/period", getTeachersByPeriod);
+router.post("/individual/bulk-export", getBulkIndividualRating);
 
 module.exports = router;
