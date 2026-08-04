@@ -201,15 +201,41 @@ module.exports = {
       const duplicates = data.subjects.filter((subject) =>
         existingIds.has(Number(subject.subject_id)),
       );
-      const created = [];
+      const pendingSubjects = data.subjects.filter(
+        (subject) => !existingIds.has(Number(subject.subject_id)),
+      );
+      let created = [];
 
-      for (const subject of data.subjects) {
-        if (existingIds.has(Number(subject.subject_id))) continue;
-        const [result] = await connection.query(
-          insertSql,
+      if (pendingSubjects.length) {
+        const values = pendingSubjects.map((subject) =>
           insertValues({ ...data, ...subject }),
         );
-        created.push({ id: result.insertId, subject_id: subject.subject_id });
+        await connection.query(
+          `INSERT INTO ${TABLE}
+            (school_year_id, semester_id, subject_id, teacher_id, student_id,
+             schedule_code, time_start, time_end, day, room_id, is_excluded,
+             status)
+           VALUES ?`,
+          [values.map((value) => [...value, 0])],
+        );
+
+        const createdSubjectIds = pendingSubjects.map((subject) =>
+          Number(subject.subject_id),
+        );
+        const createdPlaceholders = createdSubjectIds.map(() => "?").join(",");
+        const [createdRows] = await connection.query(
+          `SELECT id, subject_id
+           FROM ${TABLE}
+           WHERE student_id = ? AND school_year_id = ? AND semester_id = ?
+             AND subject_id IN (${createdPlaceholders})`,
+          [
+            data.student_id,
+            data.school_year_id,
+            data.semester_id,
+            ...createdSubjectIds,
+          ],
+        );
+        created = createdRows;
       }
 
       await connection.commit();

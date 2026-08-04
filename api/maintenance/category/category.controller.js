@@ -1,136 +1,46 @@
+const model = require("./category.model");
 const {
-  getAllCategory,
-  getAllActiveCategory,
-  getCategoryById,
-  addCategory,
-  updateCategory,
-  deleteCategory,
-} = require("./category.model");
+  createMaintenanceController,
+  input,
+} = require("../shared/controller_factory");
 
-module.exports = {
-  getAllCategory: (req, res) => {
-    getAllCategory((err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (!results) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Category Information retrieved successfully.",
-        count: results.length,
-        data: results,
-      });
-    });
+module.exports = createMaintenanceController(model, {
+  getAllCategory: {
+    method: "getAllCategory",
+    type: "list",
+    message: "Categories retrieved successfully.",
   },
-
-  getAllActiveCategory: (req, res) => {
-    getAllActiveCategory((err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (!results) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Category Information retrieved successfully.",
-        count: results.length,
-        data: results,
-      });
-    });
+  getAllActiveCategory: {
+    method: "getAllActiveCategory",
+    type: "list",
+    message: "Active categories retrieved successfully.",
   },
-
-  getCategoryById: (req, res) => {
-    const id = req.params.id;
-    getCategoryById(id, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (!results) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Category information retrieved successfully.",
-        data: results,
-      });
-    });
+  getCategoryById: {
+    method: "getCategoryById",
+    type: "one",
+    input: input.id,
+    message: "Category retrieved successfully.",
   },
-
-  addCategory: (req, res) => {
-    const body = req.body;
-    addCategory(body, (err, results) => {
-      if (err) {
-        return res.json({
-          success: 0,
-          message: "Category already exists. Try again.",
-        });
-      }
-      if (results === undefined) {
-        return res.status(500).json({
-          success: 0,
-          message: "Some fields are missing or the format is incorrect.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Category added successfully.",
-        data: results,
-      });
-    });
+  addCategory: {
+    method: "addCategory",
+    type: "create",
+    input: input.body,
+    status: 201,
+    message: "Category added successfully.",
+    duplicateMessage: "Category already exists.",
   },
-
-  updateCategory: (req, res) => {
-    const body = req.body;
-    updateCategory(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return false;
-      }
-      if (results.changedRows == 0) {
-        return res.json({
-          success: 0,
-          message: "Contents are still the same.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Category information updated successfully.",
-      });
-    });
+  updateCategory: {
+    method: "updateCategory",
+    type: "update",
+    input: input.body,
+    includeData: false,
+    message: "Category updated successfully.",
   },
-
-  deleteCategory: (req, res) => {
-    const body = req.body;
-    deleteCategory(body, (err, results) => {
-      if (err) {
-        console.log(err);
-        return;
-      }
-      if (results.affectedRows == 0) {
-        return res.json({
-          success: 0,
-          message: "No record found.",
-        });
-      }
-      return res.json({
-        success: 1,
-        message: "Category deleted successfully.",
-      });
-    });
+  deleteCategory: {
+    method: "deleteCategory",
+    type: "delete",
+    input: input.body,
+    includeData: false,
+    message: "Category deleted successfully.",
   },
-};
+});

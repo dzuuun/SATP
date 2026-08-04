@@ -1,186 +1,57 @@
+const model = require("./gsitem.model");
 const {
-    getAllItems,
-    getActiveItems,
-    getActiveStarRatingItems,
-    getActiveCommentsItems,
-    getItemById,
-    addItem,
-    updateItem,
-    submitComment
-  } = require("./gsitem.model");
-  
-  module.exports = {
-    getAllItems: (req, res) => {
-      getAllItems((err, results) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        if (!results) {
-          return res.json({
-            success: 0,
-            message: " No record found.",
-          });
-        }
-        return res.json({
-          success: 1,
-          message: "Items retrieved successfully.",
-          count: results.length,
-          data: results,
-        });
-      });
-    },
-  
-    getActiveItems: (req, res) => {
-      getActiveItems((err, results) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        if (!results) {
-          return res.json({
-            success: 0,
-            message: "No record found.",
-          });
-        }
-        return res.json({
-          success: 1,
-          message: "Items retrieved successfully.",
-          count: results.length,
-          data: results,
-        });
-      });
-    },
+  createMaintenanceController,
+  input,
+} = require("../shared/controller_factory");
 
-    getActiveCommentsItems: (req, res) => {
-        getActiveCommentsItems((err, results) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (!results) {
-            return res.json({
-              success: 0,
-              message: "No record found.",
-            });
-          }
-          return res.json({
-            success: 1,
-            message: "Items retrieved successfully.",
-            count: results.length,
-            data: results,
-          });
-        });
-      },
-
-    getActiveStarRatingItems: (req, res) => {
-        getActiveStarRatingItems((err, results) => {
-          if (err) {
-            console.log(err);
-            return;
-          }
-          if (!results) {
-            return res.json({
-              success: 0,
-              message: "No record found.",
-            });
-          }
-          return res.json({
-            success: 1,
-            message: "Items retrieved successfully.",
-            count: results.length,
-            data: results,
-          });
-        });
-      },
-  
-    getItemById: (req, res) => {
-      const id = req.params.id;
-      getItemById(id, (err, results) => {
-        if (err) {
-          console.log(err);
-          return;
-        }
-        if (!results) {
-          return res.json({
-            success: 0,
-            message: "No record found.",
-          });
-        }
-        return res.json({
-          success: 1,
-          message: "Item retrieved successfully.",
-          data: results,
-        });
-      });
-    },
-  
-    addItem: (req, res) => {
-      const body = req.body;
-      addItem(body, (err, results) => {
-        if (err) {
-          console.log(err);
-          return res.json({
-            success: 0,
-            message: "Item already exists. Try again.",
-          });
-        }
-        if (results === undefined) {
-          return res.status(500).json({
-            success: 0,
-            message: "Some fields are missing or incorrect format.",
-          });
-        }
-        return res.json({
-          success: 1,
-          message: "Item added successfully.",
-          data: results,
-        });
-      });
-    },
-  
-    updateItem: (req, res) => {
-      const body = req.body;
-      updateItem(body, (err, results) => {
-        if (err) {
-          console.log(err);
-          return false;
-        }
-        if (results.changedRows == 0) {
-          return res.json({
-            success: 0,
-            message: "Contents are still the same.",
-          });
-        }
-        return res.json({
-          success: 1,
-          message: "Item information updated succesfully.",
-        });
-      });
-    },
-
-    submitComment: (req, res) => {
-      const body = req.body;
-      submitComment(body, (err, results) => {
-        if (err) {
-          console.log(err);
-          return res.json({
-            success: 0,
-            message: "Comment already exists. Try again.",
-          });
-        }
-        if (results === undefined) {
-          return res.status(500).json({
-            success: 0,
-            message: "Some fields are missing or incorrect format.",
-          });
-        }
-        return res.json({
-          success: 1,
-          message: "Rating added successfully.",
-          data: results,
-        });
-      });
-    },
-  };
-  
+module.exports = createMaintenanceController(model, {
+  getAllItems: {
+    method: "getAllItems",
+    type: "list",
+    message: "Graduate-school items retrieved successfully.",
+  },
+  getActiveItems: {
+    method: "getActiveItems",
+    type: "list",
+    message: "Active graduate-school items retrieved successfully.",
+  },
+  getActiveStarRatingItems: {
+    method: "getActiveStarRatingItems",
+    type: "list",
+    message: "Active star-rating items retrieved successfully.",
+  },
+  getActiveCommentsItems: {
+    method: "getActiveCommentsItems",
+    type: "list",
+    message: "Active comment items retrieved successfully.",
+  },
+  getItemById: {
+    method: "getItemById",
+    type: "one",
+    input: input.id,
+    message: "Graduate-school item retrieved successfully.",
+  },
+  addItem: {
+    method: "addItem",
+    type: "create",
+    input: input.body,
+    status: 201,
+    message: "Graduate-school item added successfully.",
+    duplicateMessage: "Graduate-school item already exists.",
+  },
+  updateItem: {
+    method: "updateItem",
+    type: "update",
+    input: input.body,
+    includeData: false,
+    message: "Graduate-school item updated successfully.",
+  },
+  submitComment: {
+    method: "submitComment",
+    type: "create",
+    input: input.body,
+    status: 201,
+    message: "Comment submitted successfully.",
+    duplicateMessage: "Comment already exists.",
+  },
+});

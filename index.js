@@ -3,13 +3,18 @@ const express = require("express");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const {
   checkToken,
   requirePermission,
   protectMaintenanceChanges,
 } = require("./auth/auth_validation");
+const {
+  apiRequestContext,
+  maintenanceApiStandards,
+  apiNotFound,
+  apiErrorHandler,
+} = require("./api/middleware/api_standards");
 
 if (!process.env.SECRET_KEY) {
   throw new Error("SECRET_KEY must be configured before starting SATP.");
@@ -19,8 +24,8 @@ const app = express();
 if (process.env.TRUST_PROXY === "true") app.set("trust proxy", 1);
 
 // --- Middleware ---
-app.use(express.json());
-app.use(bodyParser.json());
+app.use(apiRequestContext);
+app.use(express.json({ limit: process.env.API_JSON_LIMIT || "10mb", strict: true }));
 app.use(morgan("combined"));
 app.use((_req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -67,6 +72,25 @@ const ratingRouter = require("./api/reports/rating/rating.router");
 // --- API Route Implementation ---
 app.use("/api/login", loginRouter);
 app.use("/api", checkToken);
+app.use(
+  [
+    "/api/schoolyear",
+    "/api/subject",
+    "/api/room",
+    "/api/department",
+    "/api/college",
+    "/api/course",
+    "/api/semester",
+    "/api/teacher",
+    "/api/category",
+    "/api/item",
+    "/api/studentsubject",
+    "/api/student",
+    "/api/admin",
+    "/api/gradschool/item",
+  ],
+  maintenanceApiStandards,
+);
 app.use("/api/schoolyear", protectMaintenanceChanges, schoolYearRouter);
 app.use("/api/subject", protectMaintenanceChanges, subjectRouter);
 app.use("/api/room", protectMaintenanceChanges, roomRouter);
@@ -105,6 +129,7 @@ app.use(
   requirePermission("reports_access"),
   ratingRouter,
 );
+app.use("/api", apiNotFound);
 
 // --- File Upload Setup ---
 const storage = multer.diskStorage({
@@ -147,6 +172,7 @@ app.use(express.static(clientPath));
 app.get("*", (req, res) => {
   res.status(404).sendFile(path.join(clientPath, "404.html"));
 });
+app.use(apiErrorHandler);
 
 // --- Start Server ---
 const PORT = process.env.PORT || 3000;
