@@ -7,7 +7,9 @@ module.exports = {
       (error, results) => {
         if (error) return callBack(error);
         return callBack(null, {
-          enabled: results.length ? Number(results[0].setting_value) === 1 : true,
+          enabled: results.length
+            ? Number(results[0].setting_value) === 1
+            : true,
           updated_at: results[0]?.updated_at || null,
         });
       },
@@ -44,7 +46,9 @@ module.exports = {
       (accessError, users) => {
         if (accessError) return callBack(accessError);
         if (!users.length) {
-          const error = new Error("You do not have permission to change student rating access.");
+          const error = new Error(
+            "You do not have permission to change student rating access.",
+          );
           error.statusCode = 403;
           return callBack(error);
         }
@@ -66,7 +70,10 @@ module.exports = {
               [data.user_id, action],
               (logError) => {
                 if (logError) {
-                  console.error("Unable to log the rating access change:", logError);
+                  console.error(
+                    "Unable to log the rating access change:",
+                    logError,
+                  );
                 }
                 return callBack(null, { enabled: Boolean(data.enabled) });
               },
@@ -81,7 +88,7 @@ module.exports = {
   getTransactions: (data, callBack) => {
     pool.query(
       // "SELECT transactions.id, transactions.user_id, school_years.name AS school_year, semesters.name AS semester, transactions.status, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, courses.name AS course, departments.name AS department, colleges.name AS college, colleges.code AS college_code, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teachers_name FROM transactions INNER JOIN users ON transactions.user_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON transactions.subject_id = subjects.id INNER JOIN teachers ON transactions.teacher_id = teachers.id INNER JOIN school_years ON transactions.school_year_id=school_years.id INNER JOIN semesters ON transactions.semester_id=semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE transactions.school_year_id=? AND transactions.semester_id=?",
-      "SELECT school_years.name AS SchoolYear, semesters.name AS Semester, users.username AS IDNumber, CONCAT( user_info.surname, ', ', user_info.givenname ) AS FullName, user_info.year_level AS YearLevel, courses.name AS Course, departments.name AS Department, colleges.name AS College, COUNT(academic_records_consolidated.subject_id) AS TotalSubjects, SUM( CASE WHEN academic_records_consolidated.status = 0 THEN 1 ELSE 0 END ) AS PendingStatusCount FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? GROUP BY users.id, school_years.id, semesters.id ORDER BY Course, Department, user_info.surname;",
+      "SELECT school_years.name AS SchoolYear, semesters.name AS Semester, users.username AS IDNumber, CONCAT(user_info.surname, ', ', user_info.givenname) AS FullName, user_info.year_level AS YearLevel, courses.name AS Course, departments.name AS Department, colleges.name AS College, COUNT(academic_records_consolidated.subject_id) AS TotalSubjects, SUM( CASE WHEN academic_records_consolidated.status = 0 THEN 1 ELSE 0 END ) AS PendingStatusCount FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id =? GROUP BY school_years.name, semesters.name, users.id, users.username, user_info.surname, user_info.givenname, user_info.year_level, courses.name, departments.name, colleges.name ORDER BY Course, Department, user_info.surname;",
       [data.school_year_id, data.semester_id],
       (error, results) => {
         if (error) {
@@ -341,77 +348,82 @@ module.exports = {
               "SELECT id, student_id, status FROM academic_records_consolidated WHERE id = ? FOR UPDATE",
               [data.academic_record_id],
               (recordError, records) => {
-            if (recordError) return rollback(recordError);
-            if (!records.length) {
-              return rollback(new Error("Academic record not found."));
-            }
-            if (Number(records[0].student_id) !== Number(data.user_id)) {
-              return rollback(
-                new Error("This assessment belongs to another user."),
-              );
-            }
-
-            connection.query(
-              "SELECT items.id FROM items INNER JOIN categories ON items.category_id = categories.id WHERE items.is_active = 1 AND categories.is_active = 1",
-              (itemError, activeItems) => {
-                if (itemError) return rollback(itemError);
-                const activeIds = new Set(
-                  activeItems.map((item) => Number(item.id)),
-                );
-                const ratings = Array.isArray(data.ratings) ? data.ratings : [];
-                const submittedIds = new Set(
-                  ratings.map((rating) => Number(rating.item_id)),
-                );
-                const valid =
-                  ratings.length === activeIds.size &&
-                  submittedIds.size === activeIds.size &&
-                  ratings.every(
-                    (rating) =>
-                      activeIds.has(Number(rating.item_id)) &&
-                      Number(rating.rate) >= 1 &&
-                      Number(rating.rate) <= 5,
-                  );
-                if (!valid) {
+                if (recordError) return rollback(recordError);
+                if (!records.length) {
+                  return rollback(new Error("Academic record not found."));
+                }
+                if (Number(records[0].student_id) !== Number(data.user_id)) {
                   return rollback(
-                    new Error("Complete every active assessment item."),
+                    new Error("This assessment belongs to another user."),
                   );
                 }
 
                 connection.query(
-                  "DELETE FROM trans_item WHERE transaction_id = ?",
-                  [data.academic_record_id],
-                  (deleteError) => {
-                    if (deleteError) return rollback(deleteError);
-                    const values = ratings.map((rating) => [
-                      data.academic_record_id,
-                      Number(rating.item_id),
-                      Number(rating.rate),
-                    ]);
+                  "SELECT items.id FROM items INNER JOIN categories ON items.category_id = categories.id WHERE items.is_active = 1 AND categories.is_active = 1",
+                  (itemError, activeItems) => {
+                    if (itemError) return rollback(itemError);
+                    const activeIds = new Set(
+                      activeItems.map((item) => Number(item.id)),
+                    );
+                    const ratings = Array.isArray(data.ratings)
+                      ? data.ratings
+                      : [];
+                    const submittedIds = new Set(
+                      ratings.map((rating) => Number(rating.item_id)),
+                    );
+                    const valid =
+                      ratings.length === activeIds.size &&
+                      submittedIds.size === activeIds.size &&
+                      ratings.every(
+                        (rating) =>
+                          activeIds.has(Number(rating.item_id)) &&
+                          Number(rating.rate) >= 1 &&
+                          Number(rating.rate) <= 5,
+                      );
+                    if (!valid) {
+                      return rollback(
+                        new Error("Complete every active assessment item."),
+                      );
+                    }
+
                     connection.query(
-                      "INSERT INTO trans_item (transaction_id, item_id, rate) VALUES ?",
-                      [values],
-                      (insertError) => {
-                        if (insertError) return rollback(insertError);
+                      "DELETE FROM trans_item WHERE transaction_id = ?",
+                      [data.academic_record_id],
+                      (deleteError) => {
+                        if (deleteError) return rollback(deleteError);
+                        const values = ratings.map((rating) => [
+                          data.academic_record_id,
+                          Number(rating.item_id),
+                          Number(rating.rate),
+                        ]);
                         connection.query(
-                          "UPDATE academic_records_consolidated SET comment = ?, status = 1 WHERE id = ?",
-                          [data.comment || null, data.academic_record_id],
-                          (updateError) => {
-                            if (updateError) return rollback(updateError);
+                          "INSERT INTO trans_item (transaction_id, item_id, rate) VALUES ?",
+                          [values],
+                          (insertError) => {
+                            if (insertError) return rollback(insertError);
                             connection.query(
-                              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
-                              [
-                                data.user_id,
-                                `Submitted assessment for academic record ${data.academic_record_id}`,
-                              ],
-                              (logError) => {
-                                if (logError) return rollback(logError);
-                                connection.commit((commitError) => {
-                                  if (commitError) return rollback(commitError);
-                                  connection.release();
-                                  callBack(null, {
-                                    affectedRows: ratings.length,
-                                  });
-                                });
+                              "UPDATE academic_records_consolidated SET comment = ?, status = 1 WHERE id = ?",
+                              [data.comment || null, data.academic_record_id],
+                              (updateError) => {
+                                if (updateError) return rollback(updateError);
+                                connection.query(
+                                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+                                  [
+                                    data.user_id,
+                                    `Submitted assessment for academic record ${data.academic_record_id}`,
+                                  ],
+                                  (logError) => {
+                                    if (logError) return rollback(logError);
+                                    connection.commit((commitError) => {
+                                      if (commitError)
+                                        return rollback(commitError);
+                                      connection.release();
+                                      callBack(null, {
+                                        affectedRows: ratings.length,
+                                      });
+                                    });
+                                  },
+                                );
                               },
                             );
                           },
@@ -420,8 +432,6 @@ module.exports = {
                     );
                   },
                 );
-              },
-            );
               },
             );
           },
