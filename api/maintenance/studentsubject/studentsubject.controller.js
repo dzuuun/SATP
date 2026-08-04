@@ -217,13 +217,53 @@ module.exports = {
       if (error) {
         return databaseError(res, error, "Unable to add the student subjects.");
       }
-      return res.status(results.created.length ? 201 : 409).json({
-        success: results.created.length ? 1 : 0,
+      return res.status(results.created.length ? 201 : 200).json({
+        success: 1,
         message: `${results.created.length} subject${
           results.created.length === 1 ? "" : "s"
         } added; ${results.duplicates.length} already existed.`,
         count: results.created.length,
         data: results,
+      });
+    });
+  },
+
+  updateStudentSubject: (req, res) => {
+    const data = { ...req.body, user_id: req.user.id };
+    if (
+      !hasValidIds(data, [
+        "id",
+        "student_id",
+        "school_year_id",
+        "semester_id",
+        "subject_id",
+        "teacher_id",
+      ]) ||
+      (data.room_id && !isPositiveId(data.room_id))
+    ) {
+      return res.status(400).json({
+        success: 0,
+        message: "A valid student subject record is required.",
+      });
+    }
+    return model.updateStudentSubject(data, (error, results) => {
+      if (error?.code === "DUPLICATE_SUBJECT") {
+        return res.status(409).json({ success: 0, message: error.message });
+      }
+      if (error) {
+        return databaseError(res, error, "Unable to update the student subject.");
+      }
+      if (!results.affectedRows) {
+        return res.status(404).json({
+          success: 0,
+          message: "Student subject not found.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: results.changedRows
+          ? "Student subject updated successfully."
+          : "Student subject information is unchanged.",
       });
     });
   },

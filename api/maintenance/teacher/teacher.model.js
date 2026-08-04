@@ -128,6 +128,26 @@ module.exports = {
     );
   },
 
+  activateTeacher: (data, callBack) => {
+    pool.query(
+      "UPDATE teachers SET is_active=1 WHERE id=? AND is_active<>1",
+      [data.id],
+      (error, results) => {
+        if (error) return callBack(error);
+        if (results.changedRows === 1) {
+          pool.query(
+            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+            [data.user_id, `Activated teacher ID ${data.id} during subject import`],
+            (logError) => {
+              if (logError) console.log(logError);
+            },
+          );
+        }
+        return callBack(null, results);
+      },
+    );
+  },
+
   deleteTeacher: (data, callBack) => {
     pool.query(
       "SELECT givenname, surname FROM teachers WHERE id=?",

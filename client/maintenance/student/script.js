@@ -197,7 +197,7 @@ document.getElementById("downloadLink").addEventListener("click", (e) => {
         surname: "Dela Cruz",
         givenname: "Juan",
         middlename: "Santos",
-        year_level: 1,
+        year_level: "1st Year",
         gender: "Male",
         course_code: "BSIT",
       },
@@ -233,6 +233,11 @@ document
   .addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!xlsxInput.files[0]) return;
+    document.querySelector("#spinnerStatusModal .eyebrow").textContent =
+      "Validating file";
+    document.getElementById("statusMessage").textContent = "Please wait";
+    toggleModal("importFileModal", false);
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
     try {
       const [rows, current] = await Promise.all([
         parseWorkbook(xlsxInput.files[0]),
@@ -240,24 +245,40 @@ document
       ]);
       pendingImport = classifyRows(rows, current.data || []);
       renderPreview();
-      toggleModal("importFileModal", false);
+      toggleModal("spinnerStatusModal", false);
       setTimeout(() => toggleModal("importPreviewModal", true), 250);
     } catch (error) {
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("importFileModal", true), 250);
       setErrorMessage("Unable to validate the Excel file.");
     }
   });
 function classifyRows(rows, existing) {
+  const yearLevelAliases = new Map([
+    ["1st year", "1"],
+    ["first year", "1"],
+    ["2nd year", "2"],
+    ["second year", "2"],
+    ["3rd year", "3"],
+    ["third year", "3"],
+    ["4th year", "4"],
+    ["fourth year", "4"],
+    ["5th year", "5"],
+    ["fifth year", "5"],
+  ]);
   const byUsername = new Map(existing.map((s) => [normalize(s.username), s])),
     seen = new Set(),
     result = { created: [], updated: [], errors: [] },
     allowedYears = ["1", "2", "3", "4", "5", "6", "grade 11", "grade 12"];
   rows.forEach((raw, index) => {
-    const username = String(raw.username || "").trim(),
+    const idNumber = String(raw.id_number || raw.username || "").trim(),
       password = String(raw.password || "").trim(),
       surname = String(raw.surname || "").trim(),
       givenname = String(raw.givenname || "").trim(),
       middlename = String(raw.middlename || "").trim(),
-      year_level = String(raw.year_level || "").trim(),
+      suppliedYearLevel = String(raw.year_level || "").trim(),
+      year_level =
+        yearLevelAliases.get(normalize(suppliedYearLevel)) || suppliedYearLevel,
       gender = String(raw.gender || "")
         .trim()
         .toUpperCase(),
@@ -265,10 +286,11 @@ function classifyRows(rows, existing) {
         .trim()
         .toUpperCase(),
       course = coursesByCode.get(normalize(courseCode)),
-      key = normalize(username),
+      key = normalize(idNumber),
       base = {
         rowNumber: index + 2,
-        username,
+        idNumber,
+        username: idNumber,
         password,
         surname,
         givenname,
@@ -281,8 +303,7 @@ function classifyRows(rows, existing) {
         originalRow: raw,
       };
     if (
-      !username ||
-      !password ||
+      !idNumber ||
       !surname ||
       !givenname ||
       !year_level ||
@@ -306,13 +327,17 @@ function classifyRows(rows, existing) {
         reason: `Course ${courseCode} was not found`,
       });
     else if (seen.has(key))
-      result.errors.push({ ...base, reason: "Duplicate username in file" });
+      result.errors.push({ ...base, reason: "Duplicate ID number in file" });
     else {
       seen.add(key);
       const current = byUsername.get(key);
-      current
-        ? result.updated.push({ ...base, id: current.id })
-        : result.created.push(base);
+      if (current) result.updated.push({ ...base, id: current.id });
+      else if (!password)
+        result.errors.push({
+          ...base,
+          reason: "Password is required when creating a new student",
+        });
+      else result.created.push(base);
     }
   });
   return result;
@@ -320,7 +345,7 @@ function classifyRows(rows, existing) {
 function renderPreview() {
   [
     ["created", "createdPreview", "createdCount", "Will be created"],
-    ["updated", "updatedPreview", "updatedCount", "Existing username"],
+    ["updated", "updatedPreview", "updatedCount", "Ready to update"],
     ["errors", "errorPreview", "errorCount", ""],
   ].forEach(([key, listId, countId, detail]) => {
     const items = pendingImport[key],
@@ -339,7 +364,7 @@ function renderPreview() {
       row.innerHTML =
         '<span class="row-number"></span><span class="room-name"></span><span class="row-detail"></span>';
       row.children[0].textContent = `Row ${item.rowNumber}`;
-      row.children[1].textContent = `${item.username} — ${item.givenname} ${item.surname}`;
+      row.children[1].textContent = `${item.idNumber} — ${item.givenname} ${item.surname}`;
       row.children[2].textContent = item.reason || detail;
       list.appendChild(row);
     });
@@ -366,28 +391,44 @@ document
       return setErrorMessage(`${errors.length} invalid rows exported.`);
     }
     toggleModal("importPreviewModal", false);
+    document.querySelector("#spinnerStatusModal .eyebrow").textContent =
+      "Import in progress";
+    document.getElementById("statusMessage").textContent = "0%";
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
     const totals = { created: 0, updated: 0 };
     for (let i = 0; i < actions.length; i++) {
       const { type, item } = actions[i];
       try {
-        let r;
-        if (type === "created") {
-          r = await requestJson("/api/student/add", {
-            method: "POST",
-            body: JSON.stringify({
-              ...item,
-              permission_id: 5,
-              is_temp_pass: 0,
-              user_id: state.userId,
-            }),
-          });
-        } else {
-          r = await requestJson("/api/student/update/info", {
-            method: "PUT",
-            body: JSON.stringify({ ...item, user_id: state.userId }),
-          });
-        }
+        const r =
+          type === "created"
+            ? await requestJson("/api/student/add", {
+                method: "POST",
+                body: JSON.stringify({
+                  username: item.username,
+                  password: item.password,
+                  surname: item.surname,
+                  givenname: item.givenname,
+                  middlename: item.middlename,
+                  course_id: item.course_id,
+                  year_level: item.year_level,
+                  gender: item.gender,
+                  is_active: 1,
+                  permission_id: 5,
+                  is_temp_pass: 0,
+                }),
+              })
+            : await requestJson("/api/student/update/info", {
+                method: "PUT",
+                body: JSON.stringify({
+                  id: item.id,
+                  surname: item.surname,
+                  givenname: item.givenname,
+                  middlename: item.middlename,
+                  course_id: item.course_id,
+                  year_level: item.year_level,
+                  gender: item.gender,
+                }),
+              });
         r.success
           ? totals[type]++
           : errors.push({
@@ -432,6 +473,10 @@ function toggleModal(id, show = true) {
   const modal = document.getElementById(id),
     card = document.getElementById(`${id}Card`);
   if (!modal) return;
+  const dropZoneText = modal.querySelector("#dropZone p");
+  if (show && dropZoneText && !dropZoneText.dataset.defaultText) {
+    dropZoneText.dataset.defaultText = dropZoneText.textContent.trim();
+  }
   if (show) {
     modal.classList.remove("invisible");
     setTimeout(() => {
@@ -442,7 +487,12 @@ function toggleModal(id, show = true) {
   } else {
     modal.classList.remove("opacity-100");
     card?.classList.replace("scale-100", "scale-95");
-    setTimeout(() => modal.classList.add("invisible"), 250);
+    setTimeout(() => {
+      modal.classList.add("invisible");
+      modal.querySelectorAll("form").forEach((form) => form.reset());
+      if (dropZoneText?.dataset.defaultText)
+        dropZoneText.textContent = dropZoneText.dataset.defaultText;
+    }, 250);
     document.body.classList.remove("overflow-hidden");
   }
 }

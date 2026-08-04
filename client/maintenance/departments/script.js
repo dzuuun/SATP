@@ -383,6 +383,10 @@ function toggleModal(id, show = true) {
   const modal = document.getElementById(id);
   const card = document.getElementById(`${id}Card`);
   if (!modal) return;
+  const dropZoneText = modal.querySelector("#dropZone p");
+  if (show && dropZoneText && !dropZoneText.dataset.defaultText) {
+    dropZoneText.dataset.defaultText = dropZoneText.textContent.trim();
+  }
   if (show) {
     modal.classList.remove("invisible");
     setTimeout(() => {
@@ -393,7 +397,12 @@ function toggleModal(id, show = true) {
   } else {
     modal.classList.remove("opacity-100");
     card?.classList.replace("scale-100", "scale-95");
-    setTimeout(() => modal.classList.add("invisible"), 250);
+    setTimeout(() => {
+      modal.classList.add("invisible");
+      modal.querySelectorAll("form").forEach((form) => form.reset());
+      if (dropZoneText?.dataset.defaultText)
+        dropZoneText.textContent = dropZoneText.dataset.defaultText;
+    }, 250);
     document.body.classList.remove("overflow-hidden");
   }
 }

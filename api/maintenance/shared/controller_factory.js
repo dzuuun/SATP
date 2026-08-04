@@ -59,14 +59,18 @@ function createMaintenanceController(model, definitions) {
       }
 
       if (definition.type === "one") {
-        const data = Array.isArray(result) ? result : result ? [result] : [];
-        if (!data.length) {
+        const record = Array.isArray(result) ? result[0] : result;
+        if (!record) {
           return res.status(404).json({
             success: 0,
             message: definition.notFoundMessage || "Record not found.",
           });
         }
-        return res.json({ success: 1, message: definition.message, data });
+        return res.json({
+          success: 1,
+          message: definition.message,
+          data: record,
+        });
       }
 
       if (definition.type === "update" && result?.changedRows === 0) {

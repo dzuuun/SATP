@@ -122,6 +122,8 @@ function toggleModal(modalId, show = true) {
       dropZone.classList.remove("border-[#1a5f35]", "bg-green-50/50");
     }
 
+    modal.querySelectorAll("form").forEach((form) => form.reset());
+
     // --- 3. FINISH HIDING THE MODAL ---
     setTimeout(() => {
       modal.classList.add("invisible");

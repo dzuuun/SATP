@@ -176,7 +176,10 @@ function toggleModal(id, show = true) {
   } else {
     modal.classList.remove("opacity-100");
     card?.classList.replace("scale-100", "scale-95");
-    setTimeout(() => modal.classList.add("invisible"), 250);
+    setTimeout(() => {
+      modal.classList.add("invisible");
+      modal.querySelectorAll("form").forEach((form) => form.reset());
+    }, 250);
     document.body.classList.remove("overflow-hidden");
   }
 }

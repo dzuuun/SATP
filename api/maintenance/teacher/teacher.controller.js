@@ -11,6 +11,7 @@ module.exports = createStandardController(model, {
     getTeacherByName: ["getTeacherByName", "one", "body"],
     addTeacher: ["addTeacher", "create", "body"],
     updateTeacher: ["updateTeacher", "update", "body"],
+    activateTeacher: ["activateTeacher", "update", "body"],
     deleteTeacher: ["deleteTeacher", "delete", "body"],
   },
 });

@@ -10,6 +10,7 @@ const recordSelect = `
     records.semester_id,
     records.subject_id,
     records.teacher_id,
+    records.room_id,
     users.username AS student_number,
     CONCAT_WS(' ', user_info.givenname, user_info.surname) AS student_name,
     school_years.name AS school_year,
@@ -259,6 +260,57 @@ module.exports = {
       }
       return callBack(error);
     }
+  },
+
+  updateStudentSubject: (data, callBack) => {
+    pool.query(
+      `SELECT id FROM ${TABLE}
+       WHERE student_id = ? AND school_year_id = ? AND semester_id = ?
+         AND subject_id = ? AND id <> ?
+       LIMIT 1`,
+      [
+        data.student_id,
+        data.school_year_id,
+        data.semester_id,
+        data.subject_id,
+        data.id,
+      ],
+      (lookupError, existing) => {
+        if (lookupError) return callBack(lookupError);
+        if (existing.length) {
+          const duplicateError = new Error("Student subject already exists");
+          duplicateError.code = "DUPLICATE_SUBJECT";
+          return callBack(duplicateError);
+        }
+
+        pool.query(
+          `UPDATE ${TABLE}
+           SET subject_id = ?, teacher_id = ?, schedule_code = ?,
+             time_start = ?, time_end = ?, day = ?, room_id = ?
+           WHERE id = ?`,
+          [
+            data.subject_id,
+            data.teacher_id,
+            data.schedule_code || null,
+            data.time_start || null,
+            data.time_end || null,
+            data.day || null,
+            data.room_id || null,
+            data.id,
+          ],
+          (updateError, results) => {
+            if (updateError) return callBack(updateError);
+            if (results.changedRows === 1) {
+              logActivity(
+                data.user_id,
+                `Updated student subject record ID ${data.id}`,
+              );
+            }
+            return callBack(null, results);
+          },
+        );
+      },
+    );
   },
 
   deactivateStudentSubject: (data, callBack) => {

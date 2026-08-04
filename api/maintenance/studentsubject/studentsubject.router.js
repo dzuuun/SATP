@@ -7,6 +7,7 @@ const {
   showReason,
   addStudentSubject,
   addStudentSubjects,
+  updateStudentSubject,
   deactivateStudentSubject,
 } = require("./studentsubject.controller");
 const router = require("express").Router();
@@ -31,6 +32,7 @@ router.get("/:id", getIncludedSubjectsByStudentById);
 router.get("/excluded/:id", showReason);
 router.post("/add", addStudentSubject);
 router.post("/add-many", addStudentSubjects);
+router.put("/update", updateStudentSubject);
 router.put("/deactivate", deactivateStudentSubject);
 
 module.exports = router;

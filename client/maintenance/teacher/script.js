@@ -167,7 +167,7 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
       givenname: "Juan",
       middlename: "Reyes",
       department_code: "ENG",
-      is_part_time: 0,
+      is_part_time: "Full Time",
     },
   ]);
   const workbook = XLSX.utils.book_new();
@@ -227,6 +227,14 @@ const normalize = (value) =>
     .toLowerCase();
 
 function classifyRows(rows, existing) {
+  const teachingStatuses = new Map([
+    ["full time", 0],
+    ["fulltime", 0],
+    ["part time", 1],
+    ["parttime", 1],
+    ["ntpo", 2],
+    ["ntpo & admin", 2],
+  ]);
   const existingByName = new Map(
     existing.map((item) => [normalize(item.name), item]),
   );
@@ -249,7 +257,11 @@ function classifyRows(rows, existing) {
       .toUpperCase();
     const department = departmentsByCode.get(normalize(departmentCode));
     const teachingStatusValue = String(raw.is_part_time ?? "").trim();
-    const isPartTime = Number(teachingStatusValue);
+    const teachingStatusKey = normalize(teachingStatusValue).replace(
+      /[-_]+/g,
+      " ",
+    );
+    const isPartTime = teachingStatuses.get(teachingStatusKey);
     const key = normalize(`${givenname} ${surname}`);
     const base = {
       rowNumber,
@@ -272,10 +284,10 @@ function classifyRows(rows, existing) {
         ...base,
         reason: `Department ${departmentCode} was not found`,
       });
-    } else if (teachingStatusValue === "" || ![0, 1, 2].includes(isPartTime)) {
+    } else if (isPartTime === undefined) {
       result.errors.push({
         ...base,
-        reason: "is_part_time must be 0, 1, or 2",
+        reason: "is_part_time must be Full Time, Part Time, or NTPO",
       });
     } else if (seen.has(key)) {
       result.errors.push({ ...base, reason: "Duplicate teacher in file" });
@@ -407,6 +419,10 @@ function toggleModal(id, show = true) {
   const modal = document.getElementById(id);
   const card = document.getElementById(`${id}Card`);
   if (!modal) return;
+  const dropZoneText = modal.querySelector("#dropZone p");
+  if (show && dropZoneText && !dropZoneText.dataset.defaultText) {
+    dropZoneText.dataset.defaultText = dropZoneText.textContent.trim();
+  }
   if (show) {
     modal.classList.remove("invisible");
     setTimeout(() => {
@@ -417,7 +433,12 @@ function toggleModal(id, show = true) {
   } else {
     modal.classList.remove("opacity-100");
     card?.classList.replace("scale-100", "scale-95");
-    setTimeout(() => modal.classList.add("invisible"), 250);
+    setTimeout(() => {
+      modal.classList.add("invisible");
+      modal.querySelectorAll("form").forEach((form) => form.reset());
+      if (dropZoneText?.dataset.defaultText)
+        dropZoneText.textContent = dropZoneText.dataset.defaultText;
+    }, 250);
     document.body.classList.remove("overflow-hidden");
   }
 }
