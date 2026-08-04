@@ -320,6 +320,79 @@
       </select>
     </div>
 
+    <div id="editSubjectModal" class="room-modal invisible">
+      <div
+        id="editSubjectModalCard"
+        class="modal-card enrollment-card scale-95"
+      >
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Enrollment settings</p>
+            <h2>Edit student subject</h2>
+            <p id="editSubjectContext" class="modal-context"></p>
+          </div>
+          <button
+            type="button"
+            class="modal-close"
+            onclick="toggleModal('editSubjectModal', false)"
+            aria-label="Close edit student subject"
+          >
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </header>
+        <form id="editStudentSubjectForm">
+          <div class="modal-body">
+            <div class="enrollment-grid">
+              <div class="field">
+                <label for="editSubjectSelect">Subject</label>
+                <select id="editSubjectSelect" name="subject_id" required>
+                  <option value="" disabled selected>Select subject</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="editTeacherSelect">Teacher</label>
+                <select id="editTeacherSelect" name="teacher_id" required>
+                  <option value="" disabled selected>Select teacher</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="editScheduleCode">Schedule code</label>
+                <input id="editScheduleCode" name="schedule_code" />
+              </div>
+              <div class="field">
+                <label for="editTimeStart">Time start</label>
+                <input id="editTimeStart" type="time" name="time_start" />
+              </div>
+              <div class="field">
+                <label for="editTimeEnd">Time end</label>
+                <input id="editTimeEnd" type="time" name="time_end" />
+              </div>
+              <div class="field">
+                <label for="editDay">Day</label>
+                <input id="editDay" name="day" placeholder="MTH / TTF" />
+              </div>
+              <div class="field">
+                <label for="editRoomSelect">Room</label>
+                <select id="editRoomSelect" name="room_id">
+                  <option value="">No room</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <footer class="modal-footer">
+            <button
+              type="button"
+              class="secondary-button"
+              onclick="toggleModal('editSubjectModal', false)"
+            >
+              Cancel
+            </button>
+            <button class="primary-button">Save changes</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
     <div id="deactivateModal" class="room-modal invisible">
       <div id="deactivateModalCard" class="modal-card scale-95">
         <header class="modal-header">
@@ -399,7 +472,9 @@
               onclick="toggleModal('importFileModal', false)"
             >
               Cancel</button
-            ><button class="primary-button">Validate file</button>
+            ><button id="validateFileButton" class="primary-button">
+              Validate file
+            </button>
           </footer>
         </form>
       </div>
@@ -465,9 +540,9 @@
         class="modal-card progress-card scale-95"
       >
         <span class="progress-spinner"></span>
-        <p class="eyebrow">Import in progress</p>
+        <p id="progressEyebrow" class="eyebrow">Import in progress</p>
         <h2 id="statusMessage">0%</h2>
-        <p>Please keep this page open.</p>
+        <p id="progressDetail">Please keep this page open.</p>
       </div>
     </div>
     <div

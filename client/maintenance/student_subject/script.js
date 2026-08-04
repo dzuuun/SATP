@@ -7,6 +7,8 @@ var user = localStorage.getItem("user_id");
 var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
 let periodStudents = new Map();
+let importTeachersByName = new Map();
+let importStudentsByNumber = new Map();
 
 if (user === null) {
   alert("Log in to continue.");
@@ -65,9 +67,14 @@ let table = $("#table").DataTable({
       orderable: false,
       data: null,
       render: function (data, type, row) {
-        return `<button type="button" class="table-deactivate-button" onclick="deactivateSubject(${row.id})" aria-label="Exclude ${row.subject_code}" title="Exclude subject">
+        return `<div class="table-action-group">
+          <button type="button" class="table-edit-button" onclick="editStudentSubject(${row.id})" aria-label="Edit ${row.subject_code}" title="Edit subject">
+            <svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg>
+          </button>
+          <button type="button" class="table-deactivate-button" onclick="deactivateSubject(${row.id})" aria-label="Exclude ${row.subject_code}" title="Exclude subject">
           <svg viewBox="0 0 24 24"><path d="M6 12h12"/><circle cx="12" cy="12" r="9"/></svg>
-        </button>`;
+          </button>
+        </div>`;
       },
     },
   ],
@@ -98,6 +105,16 @@ let tableExcluded = $("#tableExcluded").DataTable({
       },
     },
     { data: "reason" },
+    {
+      title: "Actions",
+      width: "6%",
+      orderable: false,
+      data: null,
+      render: (data, type, row) =>
+        `<button type="button" class="table-edit-button" onclick="editStudentSubject(${row.id})" aria-label="Edit ${row.subject_code}" title="Edit subject">
+          <svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg>
+        </button>`,
+    },
   ],
 });
 
@@ -479,6 +496,105 @@ async function confirmGenerateTransaction(rowId) {
 }
 
 // update status on the API
+let editingSubjectRecord = null;
+
+function copyEditOptions(targetId, sourceId, emptyLabel) {
+  const target = document.getElementById(targetId);
+  const source = document.getElementById(sourceId);
+  target.replaceChildren();
+  if (emptyLabel) {
+    const empty = document.createElement("option");
+    empty.value = "";
+    empty.textContent = emptyLabel;
+    target.appendChild(empty);
+  }
+  [...source.options]
+    .filter((option) => option.value)
+    .forEach((option) => target.appendChild(option.cloneNode(true)));
+}
+
+function ensureEditOption(select, value, label) {
+  if (!value || select.querySelector(`option[value="${value}"]`)) return;
+  const option = document.createElement("option");
+  option.value = value;
+  option.textContent = label;
+  select.appendChild(option);
+}
+
+async function editStudentSubject(id) {
+  try {
+    const response = await fetch(`/api/studentsubject/${id}`);
+    const payload = await response.json();
+    if (!response.ok || !payload.success) {
+      throw new Error(payload.message || "Unable to load student subject.");
+    }
+    const record = Array.isArray(payload.data) ? payload.data[0] : payload.data;
+    editingSubjectRecord = record;
+
+    copyEditOptions("editSubjectSelect", "selectSubject", "Select subject");
+    copyEditOptions("editTeacherSelect", "selectTeacher", "Select teacher");
+    copyEditOptions("editRoomSelect", "selectRoom", "No room");
+    const subjectSelect = document.getElementById("editSubjectSelect");
+    const teacherSelect = document.getElementById("editTeacherSelect");
+    const roomSelect = document.getElementById("editRoomSelect");
+    ensureEditOption(
+      subjectSelect,
+      record.subject_id,
+      `${record.subject_code} — ${record.subject_name}`,
+    );
+    ensureEditOption(teacherSelect, record.teacher_id, record.teacher_name);
+    ensureEditOption(roomSelect, record.room_id, record.room);
+    subjectSelect.value = record.subject_id;
+    teacherSelect.value = record.teacher_id;
+    roomSelect.value = record.room_id || "";
+    document.getElementById("editScheduleCode").value =
+      record.schedule_code || "";
+    document.getElementById("editTimeStart").value = String(
+      record.time_start || "",
+    ).slice(0, 5);
+    document.getElementById("editTimeEnd").value = String(
+      record.time_end || "",
+    ).slice(0, 5);
+    document.getElementById("editDay").value = record.day || "";
+    document.getElementById("editSubjectContext").textContent =
+      `${record.student_number} — ${record.student_name}`;
+    [subjectSelect, teacherSelect, roomSelect].forEach(syncSearchableSelect);
+    toggleModal("editSubjectModal", true);
+  } catch (error) {
+    setErrorMessage(error.message || "Unable to load student subject.");
+  }
+}
+
+document
+  .getElementById("editStudentSubjectForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!editingSubjectRecord || !confirm("Save these subject changes?")) return;
+    const values = Object.fromEntries(new FormData(event.currentTarget));
+    try {
+      const response = await fetch("/api/studentsubject/update", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...values,
+          id: editingSubjectRecord.id,
+          student_id: editingSubjectRecord.student_id,
+          school_year_id: editingSubjectRecord.school_year_id,
+          semester_id: editingSubjectRecord.semester_id,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.message || "Unable to update student subject.");
+      }
+      toggleModal("editSubjectModal", false);
+      await Promise.all([loadIncludedData(), loadExcludedData()]);
+      setSuccessMessage(payload.message);
+    } catch (error) {
+      setErrorMessage(error.message || "Unable to update student subject.");
+    }
+  });
+
 var rowIdToDeact;
 function deactivateSubject(id) {
   rowIdToDeact = id;
@@ -594,7 +710,7 @@ const getSubject = async () => {
 
   var optionRow = "";
   rows.forEach((row) => {
-    optionRow += `<option data-subtext="${row.code}" value="${row.id}">${row.name}</option>`;
+    optionRow += `<option data-subtext="${row.code}" value="${row.id}">${row.code} — ${row.name}</option>`;
   });
   subjectList.innerHTML += optionRow;
 };
@@ -602,13 +718,16 @@ const getSubject = async () => {
 // Get teacher from API
 const getTeacher = async () => {
   const teacherList = document.querySelector("#selectTeacher");
-  const endpoint = `/api/teacher/all/active`,
+  const endpoint = `/api/teacher`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
 
+  importTeachersByName = new Map(
+    rows.map((row) => [normalizeImportValue(row.name), row]),
+  );
   var optionRow = "";
-  rows.forEach((row) => {
+  rows.filter((row) => Number(row.is_active) === 1).forEach((row) => {
     optionRow += `<option value="${row.id}">${row.name}</option>`;
   });
   teacherList.innerHTML += optionRow;
@@ -617,13 +736,16 @@ const getTeacher = async () => {
 // Get student from API
 const getStudent = async () => {
   const studentList = document.querySelector("#selectStudent");
-  const endpoint = `/api/student/all/active`,
+  const endpoint = `/api/student`,
     response = await fetch(endpoint),
     data = await response.json(),
     rows = data.data;
 
+  importStudentsByNumber = new Map(
+    rows.map((row) => [normalizeImportValue(row.username), row]),
+  );
   var optionRow = "";
-  rows.forEach((row) => {
+  rows.filter((row) => Number(row.is_active) === 1).forEach((row) => {
     optionRow += `<option value="${row.id}">${row.username} — ${row.name}</option>`;
   });
   studentList.innerHTML += optionRow;
@@ -645,6 +767,19 @@ const getRoom = async () => {
 let pendingSubjectImport = { created: [], updated: [], errors: [] };
 const xlsxInput = document.getElementById("xlsxInput");
 const uploadFileForm = document.querySelector("#uploadFileForm");
+const validateFileButton = document.getElementById("validateFileButton");
+
+function setImportProgress(eyebrow, status, detail) {
+  document.getElementById("progressEyebrow").textContent = eyebrow;
+  document.getElementById("statusMessage").textContent = status;
+  document.getElementById("progressDetail").textContent = detail;
+}
+
+function waitForPaint() {
+  return new Promise((resolve) =>
+    requestAnimationFrame(() => requestAnimationFrame(resolve)),
+  );
+}
 
 xlsxInput.addEventListener("change", () => {
   if (xlsxInput.files[0]) {
@@ -695,15 +830,30 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
 
 uploadFileForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  if (!xlsxInput.files[0]) return;
+  const selectedFile = xlsxInput.files[0];
+  if (!selectedFile) return;
+  validateFileButton.disabled = true;
+  toggleModal("importFileModal", false);
+  setImportProgress(
+    "Validating workbook",
+    "Reading file...",
+    "Checking the spreadsheet and resolving its records.",
+  );
+  setTimeout(() => toggleModal("spinnerStatusModal", true), 200);
   try {
-    const rows = await parseWorkbook(xlsxInput.files[0]);
-    pendingSubjectImport = classifySubjectRows(rows);
+    await new Promise((resolve) => setTimeout(resolve, 260));
+    await waitForPaint();
+    const rows = await parseWorkbook(selectedFile);
+    pendingSubjectImport = await classifySubjectRows(rows);
     renderSubjectImportPreview();
-    toggleModal("importFileModal", false);
+    toggleModal("spinnerStatusModal", false);
     setTimeout(() => toggleModal("importPreviewModal", true), 250);
   } catch (error) {
+    toggleModal("spinnerStatusModal", false);
     setErrorMessage(error.message || "Unable to validate the Excel file.");
+    setTimeout(() => toggleModal("importFileModal", true), 250);
+  } finally {
+    validateFileButton.disabled = false;
   }
 });
 
@@ -760,6 +910,23 @@ function normalizeImportTime(value) {
   }`;
 }
 
+function isTbaTeacherRow(row) {
+  const values = [
+    readImportColumn(row, "InstructorID", "TeacherID"),
+    readImportColumn(row, "TeacherFirstName"),
+    readImportColumn(row, "TeacherMiddleName"),
+    readImportColumn(row, "TeacherLastName"),
+    readImportColumn(row, "Teacher", "TeacherName", "Instructor"),
+  ];
+  return values.some((value) => {
+    const normalized = String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "");
+    return ["tba", "tobeannounced", "tobeassigned"].includes(normalized);
+  });
+}
+
 function optionMap(selectId, valueReader = (option) => option.textContent) {
   return new Map(
     [...document.querySelectorAll(`#${selectId} option[value]`)]
@@ -771,11 +938,7 @@ function optionMap(selectId, valueReader = (option) => option.textContent) {
   );
 }
 
-function classifySubjectRows(rows) {
-  const students = optionMap(
-    "selectStudent",
-    (option) => option.textContent.split(/â€”|—/)[0],
-  );
+async function classifySubjectRows(rows) {
   const schoolYears = optionMap("selectSchoolYear");
   const semesters = optionMap("selectSemester");
   const semesterIds = new Map(
@@ -787,13 +950,27 @@ function classifySubjectRows(rows) {
     "selectSubject",
     (option) => option.dataset.subtext,
   );
-  const teachers = optionMap("selectTeacher");
   const rooms = optionMap("selectRoom");
   const seen = new Set();
   const result = { created: [], updated: [], errors: [] };
 
-  rows.forEach((raw, index) => {
+  for (let index = 0; index < rows.length; index++) {
+    const raw = rows[index];
+    if (index % 200 === 0) {
+      const progress = rows.length
+        ? Math.round((index / rows.length) * 100)
+        : 100;
+      setImportProgress(
+        "Validating workbook",
+        `${progress}%`,
+        `Checking row ${Math.min(index + 1, rows.length)} of ${rows.length}.`,
+      );
+      await waitForPaint();
+    }
     const studentNumber = readImportColumn(raw, "StudentID", "IDNumber");
+    const student = importStudentsByNumber.get(
+      normalizeImportValue(studentNumber),
+    );
     const schoolYear = readImportColumn(raw, "SchoolYear");
     const semesterValue = readImportColumn(raw, "semester_id", "Semester");
     const subjectCode = readImportColumn(raw, "SubjectCode");
@@ -801,15 +978,30 @@ function classifySubjectRows(rows) {
       raw,
       "TeacherFirstName",
     )} ${readImportColumn(raw, "TeacherLastName")}`.trim();
+    const teacher = importTeachersByName.get(
+      normalizeImportValue(teacherName),
+    );
     const roomCode = readImportColumn(raw, "RoomCode");
+    if (isTbaTeacherRow(raw)) {
+      result.errors.push({
+        rowNumber: index + 2,
+        originalRow: raw,
+        reason: "Teacher is TBA",
+      });
+      continue;
+    }
     const resolved = {
-      student_id: students.get(normalizeImportValue(studentNumber)),
+      student_id: student?.id,
+      student_needs_activation:
+        student != null && Number(student.is_active) !== 1,
       school_year_id: schoolYears.get(normalizeImportValue(schoolYear)),
       semester_id:
         semesterIds.get(String(Number(semesterValue))) ||
         semesters.get(normalizeImportValue(semesterValue)),
       subject_id: subjects.get(normalizeImportValue(subjectCode)),
-      teacher_id: teachers.get(normalizeImportValue(teacherName)),
+      teacher_id: teacher?.id,
+      teacher_needs_activation:
+        teacher != null && Number(teacher.is_active) !== 1,
       room_id: roomCode ? rooms.get(normalizeImportValue(roomCode)) : null,
       schedule_code: String(
         readImportColumn(raw, "schedule_code", "ScheduleCode"),
@@ -852,7 +1044,12 @@ function classifySubjectRows(rows) {
       seen.add(key);
       result.created.push(item);
     }
-  });
+  }
+  setImportProgress(
+    "Validation complete",
+    "100%",
+    `${rows.length} row${rows.length === 1 ? "" : "s"} checked.`,
+  );
   return result;
 }
 
@@ -899,19 +1096,108 @@ document
       ...item.originalRow,
       Error: item.reason,
     }));
+
+    toggleModal("importPreviewModal", false);
+    if (!pendingSubjectImport.created.length) {
+      downloadSubjectImportErrors(errors);
+      return setErrorMessage(`${errors.length} invalid rows exported.`);
+    }
+    setImportProgress(
+      "Import in progress",
+      "0%",
+      "Please keep this page open.",
+    );
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+
+    const inactiveStudentIds = [
+      ...new Set(
+        pendingSubjectImport.created
+          .filter((item) => item.student_needs_activation)
+          .map((item) => Number(item.student_id)),
+      ),
+    ];
+    const failedStudentIds = new Set();
+    for (const studentId of inactiveStudentIds) {
+      try {
+        setImportProgress(
+          "Activating matched students",
+          "Please wait",
+          "An inactive student from the workbook is being reactivated.",
+        );
+        const response = await fetch("/api/student/update/status", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: studentId, is_active: 1 }),
+        });
+        if (!response.ok) throw new Error("Student could not be activated");
+        for (const student of importStudentsByNumber.values()) {
+          if (Number(student.id) === studentId) student.is_active = 1;
+        }
+      } catch (error) {
+        failedStudentIds.add(studentId);
+      }
+    }
+
+    const inactiveTeacherIds = [
+      ...new Set(
+        pendingSubjectImport.created
+          .filter((item) => item.teacher_needs_activation)
+          .map((item) => Number(item.teacher_id)),
+      ),
+    ];
+    const failedTeacherIds = new Set();
+    for (const teacherId of inactiveTeacherIds) {
+      try {
+        setImportProgress(
+          "Activating matched teachers",
+          "Please wait",
+          "An inactive teacher from the workbook is being reactivated.",
+        );
+        const response = await fetch("/api/teacher/activate", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: teacherId }),
+        });
+        if (!response.ok) throw new Error("Teacher could not be activated");
+        for (const teacher of importTeachersByName.values()) {
+          if (Number(teacher.id) === teacherId) teacher.is_active = 1;
+        }
+      } catch (error) {
+        failedTeacherIds.add(teacherId);
+      }
+    }
+
+    const importableItems = pendingSubjectImport.created.filter((item) => {
+      if (failedStudentIds.has(Number(item.student_id))) {
+        errors.push({
+          ...item.originalRow,
+          Error: "Matched student could not be activated",
+        });
+        return false;
+      }
+      if (!failedTeacherIds.has(Number(item.teacher_id))) return true;
+      errors.push({
+        ...item.originalRow,
+        Error: "Matched teacher could not be activated",
+      });
+      return false;
+    });
     const groups = new Map();
-    pendingSubjectImport.created.forEach((item) => {
+    importableItems.forEach((item) => {
       const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}`;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(item);
     });
-
-    toggleModal("importPreviewModal", false);
     if (!groups.size) {
+      toggleModal("spinnerStatusModal", false);
       downloadSubjectImportErrors(errors);
-      return setErrorMessage(`${errors.length} invalid rows exported.`);
+      return setErrorMessage("No student subjects could be imported.");
     }
-    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+    setImportProgress(
+      "Import in progress",
+      "0%",
+      "Please keep this page open.",
+    );
 
     let created = 0;
     let transactionFailures = 0;
@@ -1032,8 +1318,36 @@ function toggleModal(id, show = true) {
   } else {
     modal.classList.remove("opacity-100");
     card?.classList.replace("scale-100", "scale-95");
-    setTimeout(() => modal.classList.add("invisible"), 250);
+    setTimeout(() => {
+      modal.classList.add("invisible");
+      resetModalInputs(modal, id);
+    }, 250);
     document.body.classList.remove("overflow-hidden");
+  }
+}
+
+function resetModalInputs(modal, id) {
+  const forms = [...modal.querySelectorAll("form")];
+  if (!forms.length) return;
+
+  forms.forEach((form) => form.reset());
+  modal
+    .querySelectorAll(".search-select")
+    .forEach((wrapper) => wrapper.classList.remove("open"));
+  modal
+    .querySelectorAll(".search-select-search")
+    .forEach((input) => (input.value = ""));
+  modal.querySelectorAll("select").forEach(syncSearchableSelect);
+
+  if (id === "addNewModal") {
+    document.getElementById("subjectRows")?.replaceChildren();
+  }
+  if (id === "importFileModal") {
+    const fileDescription = document.querySelector("#dropZone p");
+    if (fileDescription) {
+      fileDescription.textContent =
+        "Use the downloadable template for the required columns";
+    }
   }
 }
 
