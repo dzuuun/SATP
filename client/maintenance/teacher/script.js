@@ -103,9 +103,11 @@ async function editFormCall(id) {
     const response = await requestJson(`/api/teacher/${id}`);
     const teacher = response.data;
     rowIdToUpdate = teacher.id;
+    document.getElementById("editPrefix").value = teacher.prefix || "";
     document.getElementById("editGivenName").value = teacher.givenname || "";
     document.getElementById("editMiddleName").value = teacher.middlename || "";
     document.getElementById("editLastName").value = teacher.surname || "";
+    document.getElementById("editSuffix").value = teacher.suffix || "";
     document.getElementById("editDepartmentSelect").value =
       teacher.department_id;
     document.getElementById("editTeachingStatusSelect").value =
@@ -163,9 +165,11 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
   event.preventDefault();
   const worksheet = XLSX.utils.json_to_sheet([
     {
+      prefix: "Dr.",
       surname: "Santos",
       givenname: "Juan",
       middlename: "Reyes",
+      suffix: "PhD",
       department_code: "ENG",
       is_part_time: "Full Time",
     },
@@ -252,6 +256,12 @@ function classifyRows(rows, existing) {
     const middlename = String(raw.middlename || "")
       .trim()
       .replace(/\s+/g, " ");
+    const prefix = String(raw.prefix || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    const suffix = String(raw.suffix || "")
+      .trim()
+      .replace(/\s+/g, " ");
     const departmentCode = String(raw.department_code || "")
       .trim()
       .toUpperCase();
@@ -265,9 +275,11 @@ function classifyRows(rows, existing) {
     const key = normalize(`${givenname} ${surname}`);
     const base = {
       rowNumber,
+      prefix,
       surname,
       givenname,
       middlename,
+      suffix,
       departmentCode,
       department_id: department?.id,
       is_part_time: isPartTime,
@@ -358,9 +370,11 @@ document
     for (let index = 0; index < actions.length; index++) {
       const { type, item } = actions[index];
       const payload = {
+        prefix: item.prefix,
         surname: item.surname,
         givenname: item.givenname,
         middlename: item.middlename,
+        suffix: item.suffix,
         department_id: item.department_id,
         is_part_time: item.is_part_time,
         is_active: 1,
