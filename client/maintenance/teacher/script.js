@@ -240,7 +240,10 @@ function classifyRows(rows, existing) {
     ["ntpo & admin", 2],
   ]);
   const existingByName = new Map(
-    existing.map((item) => [normalize(item.name), item]),
+    existing.map((item) => [
+      normalize(`${item.givenname} ${item.surname}`),
+      item,
+    ]),
   );
   const seen = new Set();
   const result = { created: [], updated: [], errors: [] };
@@ -377,7 +380,7 @@ document
         suffix: item.suffix,
         department_id: item.department_id,
         is_part_time: item.is_part_time,
-        is_active: 1,
+        is_active: item.is_active,
         user_id: state.userId,
       };
       if (item.id) payload.id = item.id;

@@ -1,10 +1,20 @@
 const pool = require("../../../db/db");
 
+const cleanText = (value) =>
+  String(value || "")
+    .trim()
+    .replace(/\s+/g, " ");
+
 module.exports = {
   getTeachers: (callback) => {
     pool.query(
       `SELECT
           teachers.id,
+          teachers.prefix,
+          teachers.givenname,
+          teachers.surname,
+          teachers.middlename,
+          teachers.suffix,
           CONCAT(
             IFNULL(CONCAT(teachers.prefix, ' '), ''),
             teachers.givenname,
@@ -17,6 +27,7 @@ module.exports = {
             )
           ) AS name,
           departments.code AS department_code,
+          teachers.department_id,
           teachers.is_part_time,
           teachers.is_active
       FROM teachers
@@ -25,7 +36,7 @@ module.exports = {
       ORDER BY teachers.surname, teachers.givenname`,
       (error, results) => {
         if (error) {
-          callback(error);
+          return callback(error);
         }
         return callback(null, results);
       },
@@ -36,6 +47,11 @@ module.exports = {
     pool.query(
       `SELECT
           teachers.id,
+          teachers.prefix,
+          teachers.givenname,
+          teachers.surname,
+          teachers.middlename,
+          teachers.suffix,
           CONCAT(
             IFNULL(CONCAT(teachers.prefix, ' '), ''),
             teachers.givenname,
@@ -48,6 +64,7 @@ module.exports = {
             )
           ) AS name,
           departments.code AS department_code,
+          teachers.department_id,
           teachers.is_part_time,
           teachers.is_active
       FROM teachers
@@ -57,7 +74,7 @@ module.exports = {
       ORDER BY teachers.surname, teachers.givenname`,
       (error, results) => {
         if (error) {
-          callback(error);
+          return callback(error);
         }
         return callback(null, results);
       },
@@ -83,7 +100,7 @@ module.exports = {
       [Id],
       (error, results) => {
         if (error) {
-          callBack(error);
+          return callBack(error);
         }
         return callBack(null, results[0]);
       },
@@ -91,6 +108,9 @@ module.exports = {
   },
 
   getTeacherByName: (data, callBack) => {
+    const givenname = cleanText(data.givenname);
+    const surname = cleanText(data.surname);
+
     pool.query(
       `SELECT
           teachers.id,
@@ -105,11 +125,14 @@ module.exports = {
       FROM teachers
       INNER JOIN departments
         ON teachers.department_id = departments.id
-      WHERE teachers.givenname LIKE ? AND teachers.surname LIKE ?`,
-      [data.givenname + "%", data.surname + "%"],
+      WHERE LOWER(TRIM(teachers.givenname)) LIKE LOWER(?)
+        AND LOWER(TRIM(teachers.surname)) LIKE LOWER(?)
+      ORDER BY teachers.surname, teachers.givenname
+      LIMIT 1`,
+      [givenname + "%", surname + "%"],
       (error, results) => {
         if (error) {
-          callBack(error);
+          return callBack(error);
         }
         return callBack(null, results[0]);
       },
@@ -117,61 +140,81 @@ module.exports = {
   },
 
   addTeacher: (data, callBack) => {
+    const prefix = cleanText(data.prefix) || null;
+    const surname = cleanText(data.surname);
+    const givenname = cleanText(data.givenname);
+    const middlename = cleanText(data.middlename) || null;
+    const suffix = cleanText(data.suffix) || null;
+
     pool.query(
-      "SELECT surname, givenname FROM teachers WHERE surname=? AND givenname=?",
-      [data.surname, data.givenname],
+      `SELECT id
+       FROM teachers
+       WHERE LOWER(TRIM(surname)) = LOWER(?)
+         AND LOWER(TRIM(givenname)) = LOWER(?)
+       LIMIT 1`,
+      [surname, givenname],
       (error, results) => {
         if (error) {
           return callBack(error);
         }
 
-        if (results.length === 0) {
-          pool.query(
-            `INSERT INTO teachers
-              (prefix, surname, givenname, middlename, suffix, department_id, is_part_time, is_active)
-             VALUES (?,?,?,?,?,?,?,?)`,
-            [
-              data.prefix,
-              data.surname,
-              data.givenname,
-              data.middlename,
-              data.suffix,
-              data.department_id,
-              data.is_part_time,
-              data.is_active,
-            ],
-            (error, results) => {
-              if (error) {
-                return callBack(error);
-              }
-
-              pool.query(
-                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [
-                  data.user_id,
-                  "Added Teacher: " +
-                    (data.prefix ? data.prefix + " " : "") +
-                    data.givenname +
-                    " " +
-                    data.surname +
-                    (data.suffix ? ", " + data.suffix : ""),
-                ],
-                (logError) => {
-                  if (logError) console.log(logError);
-                },
-              );
-
-              return callBack(null, results);
-            },
-          );
-        } else {
-          return callBack(results);
+        if (results.length > 0) {
+          return callBack(null, {
+            duplicate: true,
+            existingId: results[0].id,
+            affectedRows: 0,
+          });
         }
+
+        pool.query(
+          `INSERT INTO teachers
+            (prefix, surname, givenname, middlename, suffix, department_id, is_part_time, is_active)
+           VALUES (?,?,?,?,?,?,?,?)`,
+          [
+            prefix,
+            surname,
+            givenname,
+            middlename,
+            suffix,
+            data.department_id,
+            data.is_part_time,
+            data.is_active,
+          ],
+          (insertError, insertResults) => {
+            if (insertError) {
+              return callBack(insertError);
+            }
+
+            pool.query(
+              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+              [
+                data.user_id,
+                "Added Teacher: " +
+                  (prefix ? prefix + " " : "") +
+                  givenname +
+                  " " +
+                  surname +
+                  (suffix ? ", " + suffix : ""),
+              ],
+              (logError) => {
+                if (logError) console.log(logError);
+              },
+            );
+
+            return callBack(null, insertResults);
+          },
+        );
       },
     );
   },
 
   updateTeacher: (data, callBack) => {
+    const prefix = cleanText(data.prefix) || null;
+    const surname = cleanText(data.surname);
+    const givenname = cleanText(data.givenname);
+    const middlename = cleanText(data.middlename) || null;
+    const suffix = cleanText(data.suffix) || null;
+
     pool.query(
       `UPDATE teachers
        SET
@@ -185,11 +228,11 @@ module.exports = {
          is_active=?
        WHERE id=?`,
       [
-        data.prefix,
-        data.surname,
-        data.givenname,
-        data.middlename,
-        data.suffix,
+        prefix,
+        surname,
+        givenname,
+        middlename,
+        suffix,
         data.department_id,
         data.is_part_time,
         data.is_active,
@@ -206,11 +249,11 @@ module.exports = {
             [
               data.user_id,
               "Updated Teacher: " +
-                (data.prefix ? data.prefix + " " : "") +
-                data.givenname +
+                (prefix ? prefix + " " : "") +
+                givenname +
                 " " +
-                data.surname +
-                (data.suffix ? ", " + data.suffix : ""),
+                surname +
+                (suffix ? ", " + suffix : ""),
             ],
             (logError) => {
               if (logError) console.log(logError);
@@ -257,12 +300,16 @@ module.exports = {
           return callBack(error);
         }
 
+        if (!result.length) {
+          return callBack(null, { affectedRows: 0 });
+        }
+
         pool.query(
           "DELETE FROM teachers WHERE id=?",
           [data.id],
-          (error, results) => {
-            if (error) {
-              return callBack(error);
+          (deleteError, results) => {
+            if (deleteError) {
+              return callBack(deleteError);
             }
 
             if (results.affectedRows === 1) {
