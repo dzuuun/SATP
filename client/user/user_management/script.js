@@ -29,7 +29,7 @@ const table = $("#table").DataTable({
     { data: "permission", title: "Permission", width: "13%" },
     {
       data: "is_temp_pass",
-      title: "Temporary",
+      title: "Temporary Password",
       className: "dt-center",
       render: yesNo,
     },

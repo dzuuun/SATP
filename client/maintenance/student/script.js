@@ -414,7 +414,7 @@ document
                   gender: item.gender,
                   is_active: 1,
                   permission_id: 5,
-                  is_temp_pass: 0,
+                  is_temp_pass: 1,
                 }),
               })
             : await requestJson("/api/student/update/info", {
