@@ -81,6 +81,105 @@ function activityDescription(record) {
 }
 
 module.exports = {
+  getActiveScheduleAssignments: (data, callBack) => {
+    pool.query(
+      `SELECT arc.school_year_id, sy.name AS school_year,
+              arc.semester_id, sem.name AS semester,
+              arc.subject_id, subjects.code AS subject_code,
+              subjects.name AS subject_name, arc.schedule_code,
+              arc.teacher_id,
+              CONCAT(
+                IFNULL(CONCAT(teachers.prefix, ' '), ''),
+                teachers.givenname, ' ', teachers.surname,
+                IF(
+                  teachers.suffix IS NOT NULL AND teachers.suffix <> '',
+                  CONCAT(', ', teachers.suffix),
+                  ''
+                )
+              ) AS teacher_name,
+              COUNT(DISTINCT arc.student_id) AS student_count
+       FROM ${TABLE} AS arc
+       INNER JOIN school_years AS sy ON sy.id = arc.school_year_id
+       INNER JOIN semesters AS sem ON sem.id = arc.semester_id
+       INNER JOIN subjects ON subjects.id = arc.subject_id
+       INNER JOIN teachers ON teachers.id = arc.teacher_id
+       WHERE arc.school_year_id = ? AND arc.semester_id = ?
+         AND arc.schedule_code IS NOT NULL AND TRIM(arc.schedule_code) <> ''
+       GROUP BY arc.school_year_id, sy.name, arc.semester_id, sem.name,
+                arc.subject_id, subjects.code, subjects.name,
+                arc.schedule_code, arc.teacher_id, teachers.prefix,
+                teachers.givenname, teachers.surname, teachers.suffix
+       ORDER BY arc.schedule_code, subjects.code, teacher_name`,
+      [data.school_year_id, data.semester_id],
+      callBack,
+    );
+  },
+
+  reassignScheduleTeacher: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+      const [currentRows] = await connection.query(
+        `SELECT CONCAT(
+           IFNULL(CONCAT(prefix, ' '), ''), givenname, ' ', surname,
+           IF(suffix IS NOT NULL AND suffix <> '', CONCAT(', ', suffix), '')
+         ) AS name
+         FROM teachers WHERE id = ? LIMIT 1`,
+        [data.current_teacher_id],
+      );
+      const [newRows] = await connection.query(
+        `SELECT CONCAT(
+           IFNULL(CONCAT(prefix, ' '), ''), givenname, ' ', surname,
+           IF(suffix IS NOT NULL AND suffix <> '', CONCAT(', ', suffix), '')
+         ) AS name
+         FROM teachers WHERE id = ? AND is_active = 1 LIMIT 1`,
+        [data.teacher_id],
+      );
+      if (!newRows.length) throw new Error("The selected teacher is unavailable.");
+
+      const [transactionResult] = await connection.query(
+        `UPDATE transactions AS transactions
+         INNER JOIN ${TABLE} AS arc
+           ON arc.student_id = transactions.user_id
+          AND arc.school_year_id = transactions.school_year_id
+          AND arc.semester_id = transactions.semester_id
+          AND arc.subject_id = transactions.subject_id
+         SET transactions.teacher_id = ?
+         WHERE arc.school_year_id = ? AND arc.semester_id = ?
+           AND arc.subject_id = ? AND arc.teacher_id = ?
+           AND arc.schedule_code = ?`,
+        [data.teacher_id, data.school_year_id, data.semester_id, data.subject_id,
+          data.current_teacher_id, data.schedule_code],
+      );
+      const [enrollmentResult] = await connection.query(
+        `UPDATE ${TABLE} SET teacher_id = ?
+         WHERE school_year_id = ? AND semester_id = ? AND subject_id = ?
+           AND teacher_id = ? AND schedule_code = ?`,
+        [data.teacher_id, data.school_year_id, data.semester_id, data.subject_id,
+          data.current_teacher_id, data.schedule_code],
+      );
+      if (!enrollmentResult.affectedRows) {
+        throw new Error("No matching section assignments were found.");
+      }
+      await connection.query(
+        "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+        [data.user_id,
+          `Reassigned schedule ${data.schedule_code} from ${currentRows[0]?.name || "Unknown teacher"} to ${newRows[0].name}`],
+      );
+      await connection.commit();
+      return callBack(null, {
+        enrollments_updated: enrollmentResult.affectedRows,
+        transactions_updated: transactionResult.affectedRows,
+      });
+    } catch (error) {
+      if (connection) await connection.rollback();
+      return callBack(error);
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
   getStudentsByPeriod: (data, callBack) => {
     pool.query(
       `SELECT
@@ -186,25 +285,79 @@ module.exports = {
       connection = await pool.promise().getConnection();
       await connection.beginTransaction();
 
+      const [students] = await connection.query(
+        "SELECT username FROM users WHERE id = ? LIMIT 1",
+        [data.student_id],
+      );
+      const studentUsername = students[0]?.username || "Unknown student";
+
       const subjectIds = data.subjects.map((subject) =>
         Number(subject.subject_id),
       );
       const placeholders = subjectIds.map(() => "?").join(",");
       const [existing] = await connection.query(
-        `SELECT subject_id FROM ${TABLE}
+        `SELECT id, subject_id, teacher_id, schedule_code, time_start, time_end,
+                day, room_id, is_excluded
+         FROM ${TABLE}
          WHERE student_id = ? AND school_year_id = ? AND semester_id = ?
            AND subject_id IN (${placeholders})`,
         [data.student_id, data.school_year_id, data.semester_id, ...subjectIds],
       );
-      const existingIds = new Set(
-        existing.map((record) => Number(record.subject_id)),
-      );
-      const duplicates = data.subjects.filter((subject) =>
-        existingIds.has(Number(subject.subject_id)),
+      const existingBySubject = new Map(
+        existing.map((record) => [Number(record.subject_id), record]),
       );
       const pendingSubjects = data.subjects.filter(
-        (subject) => !existingIds.has(Number(subject.subject_id)),
+        (subject) => !existingBySubject.has(Number(subject.subject_id)),
       );
+      const comparable = (value) =>
+        String(value ?? "")
+          .trim()
+          .replace(/\s+/g, " ")
+          .toLowerCase();
+      const comparableTime = (value) => {
+        const normalized = comparable(value);
+        const match = normalized.match(/^(\d{1,2}):(\d{2})/);
+        return match
+          ? `${String(Number(match[1])).padStart(2, "0")}:${match[2]}`
+          : normalized;
+      };
+      const updated = [];
+      const skipped = [];
+
+      for (const subject of data.subjects) {
+        const current = existingBySubject.get(Number(subject.subject_id));
+        if (!current) continue;
+        const changed =
+          Number(current.teacher_id) !== Number(subject.teacher_id) ||
+          comparable(current.schedule_code) !== comparable(subject.schedule_code) ||
+          comparableTime(current.time_start) !== comparableTime(subject.time_start) ||
+          comparableTime(current.time_end) !== comparableTime(subject.time_end) ||
+          comparable(current.day) !== comparable(subject.day) ||
+          Number(current.room_id || 0) !== Number(subject.room_id || 0) ||
+          Number(current.is_excluded || 0) !== Number(subject.is_excluded || 0);
+
+        if (!changed) {
+          skipped.push({ id: current.id, subject_id: current.subject_id });
+          continue;
+        }
+        await connection.query(
+          `UPDATE ${TABLE}
+           SET teacher_id = ?, schedule_code = ?, time_start = ?, time_end = ?,
+               day = ?, room_id = ?, is_excluded = ?
+           WHERE id = ?`,
+          [
+            subject.teacher_id,
+            subject.schedule_code || null,
+            subject.time_start || null,
+            subject.time_end || null,
+            subject.day || null,
+            subject.room_id || null,
+            subject.is_excluded ? 1 : 0,
+            current.id,
+          ],
+        );
+        updated.push({ id: current.id, subject_id: current.subject_id });
+      }
       let created = [];
 
       if (pendingSubjects.length) {
@@ -246,10 +399,16 @@ module.exports = {
       if (created.length) {
         logActivity(
           data.user_id,
-          `Added ${created.length} student subject${created.length === 1 ? "" : "s"} for student ID ${data.student_id}`,
+          `Added ${created.length} student subject${created.length === 1 ? "" : "s"} for student ${studentUsername}`,
         );
       }
-      return callBack(null, { created, duplicates });
+      if (updated.length) {
+        logActivity(
+          data.user_id,
+          `Updated ${updated.length} student subject${updated.length === 1 ? "" : "s"} for student ${studentUsername}`,
+        );
+      }
+      return callBack(null, { created, updated, skipped });
     } catch (error) {
       if (connection) {
         try {

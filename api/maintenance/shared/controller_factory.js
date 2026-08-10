@@ -75,8 +75,9 @@ function createMaintenanceController(model, definitions) {
 
       if (definition.type === "update" && result?.changedRows === 0) {
         return res.json({
-          success: 0,
-          message: "Contents are still the same.",
+          success: 1,
+          skipped: true,
+          message: "No changes were required.",
         });
       }
 

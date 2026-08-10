@@ -1,4 +1,5 @@
 const pool = require("../../../db/db");
+const bcrypt = require("bcrypt");
 
 module.exports = {
   getAllAdmin: (callBack) => {
@@ -39,6 +40,20 @@ module.exports = {
   },
 
   addAdmin: (data, callBack) => {
+    let password;
+
+    try {
+      const plainTextPassword = String(data.password || "");
+
+      if (!plainTextPassword) {
+        return callBack(new Error("Password is required."));
+      }
+
+      password = bcrypt.hashSync(plainTextPassword, 10);
+    } catch (error) {
+      return callBack(error);
+    }
+
     pool.query(
       "SELECT username FROM users WHERE username=?",
       [data.username],
@@ -48,7 +63,7 @@ module.exports = {
             "INSERT INTO users (username, password, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?)",
             [
               data.username,
-              data.password,
+              password,
               data.permission_id,
               data.is_temp_pass,
               0,

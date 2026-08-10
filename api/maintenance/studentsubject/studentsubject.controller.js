@@ -34,6 +34,53 @@ function listResponse(res, successMessage, errorMessage) {
 }
 
 module.exports = {
+  getActiveScheduleAssignments: (req, res) => {
+    if (!hasValidIds(req.query, ["school_year_id", "semester_id"])) {
+      return res.status(400).json({
+        success: 0,
+        message: "A valid school year and semester are required.",
+      });
+    }
+    return model.getActiveScheduleAssignments(
+      req.query,
+      listResponse(
+        res,
+        "Schedule assignments retrieved successfully.",
+        "Unable to retrieve schedule assignments.",
+      ),
+    );
+  },
+
+  reassignScheduleTeacher: (req, res) => {
+    const data = { ...req.body, user_id: req.user.id };
+    const fields = [
+      "school_year_id",
+      "semester_id",
+      "subject_id",
+      "current_teacher_id",
+      "teacher_id",
+    ];
+    if (
+      !hasValidIds(data, fields) ||
+      !String(data.schedule_code || "").trim()
+    ) {
+      return res.status(400).json({
+        success: 0,
+        message: "A valid section and teacher are required.",
+      });
+    }
+    return model.reassignScheduleTeacher(data, (error, results) => {
+      if (error) {
+        return res.status(400).json({ success: 0, message: error.message });
+      }
+      return res.json({
+        success: 1,
+        message: "Teacher reassigned successfully.",
+        data: results,
+      });
+    });
+  },
+
   getStudentsByPeriod: (req, res) => {
     if (!hasValidIds(req.params, ["school_year_id", "semester_id"])) {
       return res.status(400).json({
@@ -221,7 +268,7 @@ module.exports = {
         success: 1,
         message: `${results.created.length} subject${
           results.created.length === 1 ? "" : "s"
-        } added; ${results.duplicates.length} already existed.`,
+        } added; ${results.updated.length} updated; ${results.skipped.length} unchanged.`,
         count: results.created.length,
         data: results,
       });
