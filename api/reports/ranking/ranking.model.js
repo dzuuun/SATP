@@ -6,7 +6,8 @@ module.exports = {
       `SELECT 
          school_years.name AS school_year, 
          semesters.name AS semester, 
-         CONCAT(teachers.surname, ', ', teachers.givenname) AS teacher_name, 
+         CONCAT(IFNULL(CONCAT(teachers.prefix, ' '), ''), teachers.givenname, ' ', teachers.surname,
+           IF(teachers.suffix IS NOT NULL AND teachers.suffix <> '', CONCAT(', ', teachers.suffix), '')) AS teacher_name,
          teachers.is_part_time, 
          departments.name AS department, 
          colleges.name AS college, 
@@ -47,7 +48,8 @@ module.exports = {
       `SELECT 
          school_years.name AS school_year, 
          semesters.name AS semester, 
-         CONCAT(teachers.surname, ', ', teachers.givenname) AS teacher_name, 
+         CONCAT(IFNULL(CONCAT(teachers.prefix, ' '), ''), teachers.givenname, ' ', teachers.surname,
+           IF(teachers.suffix IS NOT NULL AND teachers.suffix <> '', CONCAT(', ', teachers.suffix), '')) AS teacher_name,
          teachers.is_part_time, 
          departments.name AS department, 
          colleges.name AS college, 
@@ -88,7 +90,8 @@ module.exports = {
       `SELECT 
          school_years.name AS school_year, 
          semesters.name AS semester, 
-         CONCAT(teachers.surname, ', ', teachers.givenname) AS teacher_name, 
+         CONCAT(IFNULL(CONCAT(teachers.prefix, ' '), ''), teachers.givenname, ' ', teachers.surname,
+           IF(teachers.suffix IS NOT NULL AND teachers.suffix <> '', CONCAT(', ', teachers.suffix), '')) AS teacher_name,
          teachers.is_part_time, 
          departments.name AS department, 
          colleges.name AS college, 
@@ -134,7 +137,8 @@ module.exports = {
       `SELECT 
          school_years.name AS school_year, 
          semesters.name AS semester, 
-         CONCAT(teachers.surname, ', ', teachers.givenname) AS teacher_name, 
+         CONCAT(IFNULL(CONCAT(teachers.prefix, ' '), ''), teachers.givenname, ' ', teachers.surname,
+           IF(teachers.suffix IS NOT NULL AND teachers.suffix <> '', CONCAT(', ', teachers.suffix), '')) AS teacher_name,
          teachers.is_part_time, 
          departments.name AS department, 
          colleges.name AS college, 

@@ -5,7 +5,8 @@ module.exports = {
     pool.query(
       `SELECT
          t.id,
-         CONCAT(t.surname, ', ', t.givenname) AS name,
+         CONCAT(IFNULL(CONCAT(t.prefix, ' '), ''), t.givenname, ' ', t.surname,
+           IF(t.suffix IS NOT NULL AND t.suffix <> '', CONCAT(', ', t.suffix), '')) AS name,
          COUNT(DISTINCT arc.subject_id) AS subject_count
        FROM academic_records_consolidated AS arc
          FORCE INDEX (idx_arc_rating_period)
@@ -15,7 +16,7 @@ module.exports = {
          AND arc.semester_id = ?
          AND arc.teacher_id IS NOT NULL
          AND arc.subject_id IS NOT NULL
-       GROUP BY t.id, t.surname, t.givenname
+       GROUP BY t.id, t.prefix, t.surname, t.givenname, t.suffix
        ORDER BY t.surname, t.givenname`,
       [data.school_year_id, data.semester_id],
       (error, results) => {
@@ -39,7 +40,8 @@ module.exports = {
          rc.respondents,
          sy.name AS school_year,
          sem.name AS semester,
-         CONCAT(t.surname, ', ', t.givenname) AS teacher_name,
+         CONCAT(IFNULL(CONCAT(t.prefix, ' '), ''), t.givenname, ' ', t.surname,
+           IF(t.suffix IS NOT NULL AND t.suffix <> '', CONCAT(', ', t.suffix), '')) AS teacher_name,
          s.code AS subject_code,
          s.name AS subject_name,
          d.name AS department,
@@ -97,8 +99,10 @@ module.exports = {
          rc.respondents,
          sy.name,
          sem.name,
+         t.prefix,
          t.surname,
          t.givenname,
+         t.suffix,
          s.code,
          s.name,
          d.name,
@@ -147,7 +151,8 @@ module.exports = {
          COUNT(DISTINCT arc.student_id) AS respondents,
          sy.name AS school_year,
          sem.name AS semester,
-         CONCAT(t.surname, ', ', t.givenname) AS teacher_name,
+         CONCAT(IFNULL(CONCAT(t.prefix, ' '), ''), t.givenname, ' ', t.surname,
+           IF(t.suffix IS NOT NULL AND t.suffix <> '', CONCAT(', ', t.suffix), '')) AS teacher_name,
          s.code AS subject,
          d.name AS department,
          c.name AS college,
@@ -183,8 +188,10 @@ module.exports = {
          i.id,
          sy.name,
          sem.name,
+         t.prefix,
          t.surname,
          t.givenname,
+         t.suffix,
          s.code,
          d.name,
          c.name,
@@ -395,7 +402,8 @@ module.exports = {
       `SELECT
          sy.name AS school_year,
          sem.name AS semester,
-         CONCAT(t.surname, ', ', t.givenname) AS teacher_name,
+         CONCAT(IFNULL(CONCAT(t.prefix, ' '), ''), t.givenname, ' ', t.surname,
+           IF(t.suffix IS NOT NULL AND t.suffix <> '', CONCAT(', ', t.suffix), '')) AS teacher_name,
          s.code AS subject_code,
          s.id AS subject_id,
          s.name AS subject_name,
@@ -421,8 +429,10 @@ module.exports = {
          s.id,
          sy.name,
          sem.name,
+         t.prefix,
          t.surname,
          t.givenname,
+         t.suffix,
          s.code,
          s.name,
          d.name,
@@ -445,7 +455,8 @@ module.exports = {
       `SELECT
          sy.name AS school_year,
          sem.name AS semester,
-         CONCAT(t.surname, ', ', t.givenname) AS teacher_name,
+         CONCAT(IFNULL(CONCAT(t.prefix, ' '), ''), t.givenname, ' ', t.surname,
+           IF(t.suffix IS NOT NULL AND t.suffix <> '', CONCAT(', ', t.suffix), '')) AS teacher_name,
          d.name AS department,
          c.name AS college,
          ROUND(AVG(CAST(ti.rate AS FLOAT)), 3) AS mean
@@ -468,8 +479,10 @@ module.exports = {
        GROUP BY
          sy.name,
          sem.name,
+         t.prefix,
          t.surname,
          t.givenname,
+         t.suffix,
          d.name,
          c.name`,
       [data.school_year_id, data.semester_id, data.teacher_id],
