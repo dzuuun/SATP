@@ -43,6 +43,12 @@ function escapeHtml(value) {
   return span.innerHTML;
 }
 
+function formatMean(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "0.00";
+  return (Math.round((number + Number.EPSILON) * 100) / 100).toFixed(2);
+}
+
 async function loadReport() {
   showLoading();
   try {
@@ -92,16 +98,16 @@ function renderReport() {
     first.college || state.collegeCode;
   document.getElementById("schoolYear").textContent = first.school_year || "—";
   document.getElementById("semester").textContent = first.semester || "—";
-  document.getElementById("mean").textContent = average(
-    state.rows.map((row) => Number(row.mean)),
-  ).toFixed(2);
+  document.getElementById("mean").textContent = formatMean(
+    average(state.rows.map((row) => Number(row.mean))),
+  );
   document.getElementById("tbData").innerHTML = state.rows
     .map(
       (row, index) => `<tr>
         <td>${index + 1}</td>
         <td>${escapeHtml(row.teacher_name)}</td>
         <td>${escapeHtml(row.department)}</td>
-        <td>${Number(row.mean).toFixed(2)}</td>
+        <td>${formatMean(row.mean)}</td>
         <td><span class="qualitative-badge">${getQualitativeEquivalent(Number(row.mean))}</span></td>
       </tr>`,
     )
@@ -253,7 +259,7 @@ async function downloadPdf() {
         index + 1,
         row.teacher_name || "",
         row.department || "",
-        Number(row.mean).toFixed(2),
+        formatMean(row.mean),
         getQualitativeEquivalent(Number(row.mean)),
       ]),
       theme: "grid",

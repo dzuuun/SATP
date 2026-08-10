@@ -43,6 +43,12 @@ function average(values) {
     : 0;
 }
 
+function formatMean(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "0.00";
+  return (Math.round((number + Number.EPSILON) * 100) / 100).toFixed(2);
+}
+
 function groupedRows() {
   const groups = new Map();
   state.rows.forEach((row) => {
@@ -97,9 +103,9 @@ function renderReport() {
   document.getElementById("semester").textContent = first.semester || "—";
   document.getElementById("respondents").textContent =
     Number(first.respondents) || 0;
-  document.getElementById("overallMean").textContent = average(
-    state.rows.map((row) => row.mean),
-  ).toFixed(2);
+  document.getElementById("overallMean").textContent = formatMean(
+    average(state.rows.map((row) => row.mean)),
+  );
 
   const html = [];
   groupedRows().forEach((items, category) => {
@@ -108,15 +114,15 @@ function renderReport() {
     );
     items.forEach((item) =>
       html.push(
-        `<tr><td>${escapeHtml(item.number)}. ${escapeHtml(item.question)}</td><td>${Number(item.mean).toFixed(2)}</td></tr>`,
+        `<tr><td>${escapeHtml(item.number)}. ${escapeHtml(item.question)}</td><td>${formatMean(item.mean)}</td></tr>`,
       ),
     );
     html.push(
-      `<tr class="average-row"><td>Category average</td><td>${average(items.map((item) => item.mean)).toFixed(2)}</td></tr>`,
+      `<tr class="average-row"><td>Category average</td><td>${formatMean(average(items.map((item) => item.mean)))}</td></tr>`,
     );
   });
   html.push(
-    `<tr class="average-row"><td>College average</td><td>${average(state.rows.map((row) => row.mean)).toFixed(2)}</td></tr>`,
+    `<tr class="average-row"><td>College average</td><td>${formatMean(average(state.rows.map((row) => row.mean)))}</td></tr>`,
   );
   document.getElementById("tbData").innerHTML = html.join("");
 
@@ -279,7 +285,7 @@ async function downloadPdf() {
       items.forEach((item) =>
         body.push([
           `${item.number}. ${item.question}`,
-          Number(item.mean).toFixed(2),
+          formatMean(item.mean),
         ]),
       );
       body.push([
@@ -288,7 +294,7 @@ async function downloadPdf() {
           styles: { halign: "right", fontStyle: "bold" },
         },
         {
-          content: average(items.map((item) => item.mean)).toFixed(2),
+          content: formatMean(average(items.map((item) => item.mean))),
           styles: { fontStyle: "bold" },
         },
       ]);
@@ -299,7 +305,7 @@ async function downloadPdf() {
         styles: { halign: "right", fontStyle: "bold" },
       },
       {
-        content: average(state.rows.map((row) => row.mean)).toFixed(2),
+        content: formatMean(average(state.rows.map((row) => row.mean))),
         styles: { fontStyle: "bold" },
       },
     ]);

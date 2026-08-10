@@ -24,6 +24,12 @@ function numericAverage(values) {
     : 0;
 }
 
+function formatMean(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "0.00";
+  return (Math.round((number + Number.EPSILON) * 100) / 100).toFixed(2);
+}
+
 async function reportImageData(url) {
   const response = await fetch(url);
   if (!response.ok) throw new Error("Unable to load a report image.");
@@ -224,7 +230,7 @@ function buildRatingPdf(
     items.forEach((item) =>
       tableBody.push([
         `${item.number}. ${item.question}`,
-        Number(item.mean).toFixed(2),
+        formatMean(item.mean),
       ]),
     );
     tableBody.push([
@@ -233,7 +239,7 @@ function buildRatingPdf(
         styles: { halign: "right", fontStyle: "bold" },
       },
       {
-        content: numericAverage(items.map((item) => item.mean)).toFixed(2),
+        content: formatMean(numericAverage(items.map((item) => item.mean))),
         styles: { fontStyle: "bold" },
       },
     ]);
@@ -244,14 +250,14 @@ function buildRatingPdf(
       content: "Course average",
       styles: { halign: "right", fontStyle: "bold" },
     },
-    { content: subjectMean.toFixed(2), styles: { fontStyle: "bold" } },
+    { content: formatMean(subjectMean), styles: { fontStyle: "bold" } },
   ]);
   tableBody.push([
     {
       content: "Teacher mean",
       styles: { halign: "right", fontStyle: "bold" },
     },
-    { content: teacherMean.toFixed(2), styles: { fontStyle: "bold" } },
+    { content: formatMean(teacherMean), styles: { fontStyle: "bold" } },
   ]);
   tableBody.push([
     {
@@ -329,12 +335,12 @@ function buildBulkRatingReportElement(report, teacherMean, reportLabel) {
   const rows = [];
   categories.forEach((items, category) => {
     rows.push(`<tr class="category-row"><th colspan="2">${bulkEscapeHtml(category)}</th></tr>`);
-    items.forEach((item) => rows.push(`<tr><td>${bulkEscapeHtml(item.number)}. ${bulkEscapeHtml(item.question)}</td><td>${Number(item.mean).toFixed(2)}</td></tr>`));
-    rows.push(`<tr class="average-row"><td>Category Average: </td><td>${numericAverage(items.map((item) => item.mean)).toFixed(2)}</td></tr>`);
+    items.forEach((item) => rows.push(`<tr><td>${bulkEscapeHtml(item.number)}. ${bulkEscapeHtml(item.question)}</td><td>${formatMean(item.mean)}</td></tr>`));
+    rows.push(`<tr class="average-row"><td>Category Average: </td><td>${formatMean(numericAverage(items.map((item) => item.mean)))}</td></tr>`);
   });
   const subjectMean = numericAverage(report.items.map((item) => item.mean));
-  rows.push(`<tr class="average-row"><td>Course Average: </td><td>${subjectMean.toFixed(2)}</td></tr>`);
-  rows.push(`<tr class="average-row"><td>Your Mean: </td><td>${teacherMean.toFixed(2)}</td></tr>`);
+  rows.push(`<tr class="average-row"><td>Course Average: </td><td>${formatMean(subjectMean)}</td></tr>`);
+  rows.push(`<tr class="average-row"><td>Your Mean: </td><td>${formatMean(teacherMean)}</td></tr>`);
   rows.push(`<tr class="average-row"><td>Qualitative Equivalent: </td><td>${bulkEscapeHtml(qualitativeEquivalent(teacherMean))}</td></tr>`);
   const comments = report.comments.length
     ? `<section class="comments-section"><h4>Comments:</h4><div>${report.comments.map((comment) => `<p class="comment-entry">${bulkEscapeHtml(comment)}</p>`).join("")}</div></section>`
@@ -358,7 +364,7 @@ function buildBulkRatingReportElement(report, teacherMean, reportLabel) {
       <div><span>Respondents</span><strong>${report.respondents}</strong></div>
       <div><span>Date Generated</span><strong>${new Intl.DateTimeFormat("en-PH", { year: "numeric", month: "long", day: "numeric" }).format(new Date())}</strong></div>
     </section>
-    <div class="mean-summary"><span>Course Average:</span><strong>${subjectMean.toFixed(2)}</strong></div>
+    <div class="mean-summary"><span>Course Average:</span><strong>${formatMean(subjectMean)}</strong></div>
     <div class="report-table-wrap"><table class="rating-table" aria-label="${reportLabel} rating results"><thead><tr><th>Criteria</th><th>Item Average</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>
     ${comments}
     <footer class="document-footer"><span>SATP ${reportLabel} Rating Report</span><span>Notre Dame of Marbel University</span></footer>`;

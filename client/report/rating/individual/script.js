@@ -56,6 +56,12 @@ function average(values) {
   return numbers.length ? numbers.reduce((sum, value) => sum + value, 0) / numbers.length : 0;
 }
 
+function formatMean(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return "0.00";
+  return (Math.round((number + Number.EPSILON) * 100) / 100).toFixed(2);
+}
+
 function getQualitativeEquivalent(score) {
   if (score >= 1 && score <= 1.5) return "Poor";
   if (score > 1.51 && score <= 2.24) return "Fair";
@@ -121,18 +127,18 @@ function renderReport() {
   document.getElementById("department").textContent = teacherInfo.department || first.department || "—";
   document.getElementById("subject").textContent = first.subject || "—";
   document.getElementById("respondents").textContent = Number(first.respondents) || 0;
-  document.getElementById("subjectAverage").textContent = subjectMean.toFixed(2);
+  document.getElementById("subjectAverage").textContent = formatMean(subjectMean);
 
   const html = [];
   groupedRows().forEach((items, category) => {
     html.push(`<tr class="category-row"><th colspan="2">${escapeHtml(category)}</th></tr>`);
     items.forEach((item) => {
-      html.push(`<tr><td>${escapeHtml(item.number)}. ${escapeHtml(item.question)}</td><td>${Number(item.mean).toFixed(2)}</td></tr>`);
+      html.push(`<tr><td>${escapeHtml(item.number)}. ${escapeHtml(item.question)}</td><td>${formatMean(item.mean)}</td></tr>`);
     });
-    html.push(`<tr class="average-row"><td>Category Average: </td><td>${average(items.map((item) => item.mean)).toFixed(2)}</td></tr>`);
+    html.push(`<tr class="average-row"><td>Category Average: </td><td>${formatMean(average(items.map((item) => item.mean)))}</td></tr>`);
   });
-  html.push(`<tr class="average-row"><td>Course Average: </td><td>${subjectMean.toFixed(2)}</td></tr>`);
-  html.push(`<tr class="average-row"><td>Your Mean: </td><td>${displayedTeacherMean.toFixed(2)}</td></tr>`);
+  html.push(`<tr class="average-row"><td>Course Average: </td><td>${formatMean(subjectMean)}</td></tr>`);
+  html.push(`<tr class="average-row"><td>Your Mean: </td><td>${formatMean(displayedTeacherMean)}</td></tr>`);
   html.push(`<tr class="average-row"><td>Qualitative Equivalent: </td><td>${escapeHtml(getQualitativeEquivalent(displayedTeacherMean))}</td></tr>`);
   document.getElementById("tbData").innerHTML = html.join("");
 

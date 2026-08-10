@@ -384,7 +384,20 @@ module.exports = {
               return rollback(new Error("Student rating is currently closed."));
             }
             connection.query(
-              "SELECT academic_records_consolidated.id, academic_records_consolidated.student_id, academic_records_consolidated.status, subjects.code AS subject_code FROM academic_records_consolidated INNER JOIN subjects ON academic_records_consolidated.subject_id = subjects.id WHERE academic_records_consolidated.id = ? FOR UPDATE",
+              `SELECT
+                 academic_records_consolidated.id,
+                 academic_records_consolidated.student_id,
+                 academic_records_consolidated.school_year_id,
+                 academic_records_consolidated.semester_id,
+                 academic_records_consolidated.subject_id,
+                 academic_records_consolidated.teacher_id,
+                 academic_records_consolidated.status,
+                 subjects.code AS subject_code
+               FROM academic_records_consolidated
+               INNER JOIN subjects
+                 ON academic_records_consolidated.subject_id = subjects.id
+               WHERE academic_records_consolidated.id = ?
+               FOR UPDATE`,
               [data.academic_record_id],
               (recordError, records) => {
                 if (recordError) return rollback(recordError);
@@ -425,13 +438,13 @@ module.exports = {
                       );
                     }
 
-                    connection.query(
+                    const saveRatings = (transactionId) => connection.query(
                       "DELETE FROM trans_item WHERE transaction_id = ?",
-                      [data.academic_record_id],
+                      [transactionId],
                       (deleteError) => {
                         if (deleteError) return rollback(deleteError);
                         const values = ratings.map((rating) => [
-                          data.academic_record_id,
+                          transactionId,
                           Number(rating.item_id),
                           Number(rating.rate),
                         ]);
@@ -465,6 +478,52 @@ module.exports = {
                                 );
                               },
                             );
+                          },
+                        );
+                      },
+                    );
+
+                    const record = records[0];
+                    connection.query(
+                      `INSERT INTO transactions
+                         (id, school_year_id, semester_id, subject_id, teacher_id, comment, user_id, status)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, 1)
+                       ON DUPLICATE KEY UPDATE
+                         school_year_id = VALUES(school_year_id),
+                         semester_id = VALUES(semester_id),
+                         subject_id = VALUES(subject_id),
+                         teacher_id = VALUES(teacher_id),
+                         comment = VALUES(comment),
+                         user_id = VALUES(user_id),
+                         status = 1`,
+                      [
+                        record.id,
+                        record.school_year_id,
+                        record.semester_id,
+                        record.subject_id,
+                        record.teacher_id,
+                        data.comment || null,
+                        record.student_id,
+                      ],
+                      (parentError) => {
+                        if (parentError) return rollback(parentError);
+                        connection.query(
+                          `DELETE FROM transactions
+                           WHERE id <> ?
+                             AND school_year_id = ?
+                             AND semester_id = ?
+                             AND subject_id = ?
+                             AND user_id = ?`,
+                          [
+                            record.id,
+                            record.school_year_id,
+                            record.semester_id,
+                            record.subject_id,
+                            record.student_id,
+                          ],
+                          (cleanupError) => {
+                            if (cleanupError) return rollback(cleanupError);
+                            return saveRatings(record.id);
                           },
                         );
                       },
