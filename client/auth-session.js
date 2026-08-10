@@ -12,6 +12,33 @@
     }).catch(() => {});
   };
 
+  function applySidebarPermissions(root = document) {
+    root.querySelectorAll?.("[data-required-access]").forEach((item) => {
+      const accessKey = item.dataset.requiredAccess;
+      const permitted = Number(localStorage.getItem(accessKey)) === 1;
+      item.hidden = !permitted;
+      item.setAttribute("aria-hidden", String(!permitted));
+    });
+  }
+
+  applySidebarPermissions();
+  const sidebarObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (!(node instanceof Element)) return;
+        if (node.matches("[data-required-access]")) {
+          applySidebarPermissions(node.parentElement || node);
+        } else if (node.querySelector("[data-required-access]")) {
+          applySidebarPermissions(node);
+        }
+      });
+    });
+  });
+  sidebarObserver.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+
   let promptVisible = false;
   const loginUrl = "/login/index.html?reason=session-expired";
 

@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SATP | Schedule Assignment</title>
+    <link rel="icon" href="../../images/NDMU-Logo.png" />
+    <link rel="stylesheet" href="../../tailwind.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="sidebar-container"></div>
+    <div id="main">
+      <header class="site-header">
+        <div class="header-brand">
+          <button class="menu-button" type="button" onclick="toggleNav()" aria-label="Open navigation"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg></button>
+          <a href="../../"><img src="../../images/NDMU-Logo.png" alt="" /><span><strong>Notre Dame of Marbel University</strong><small>Student Assessment of Teacher's Performance</small></span></a>
+        </div>
+        <div class="header-context"><span>Maintenance</span><strong>Schedule assignment</strong></div>
+      </header>
+      <main class="workspace">
+        <section class="page-heading">
+          <div><p class="eyebrow">Academic assignments</p><h1>Schedule assignment</h1><p>Reassign the teacher handling a section in the current active period.</p></div>
+          <nav><a href="../../">SATP</a><span>›</span><span>Maintenance</span><span>›</span><span>Schedule assignment</span></nav>
+        </section>
+        <section class="records-card">
+          <div class="records-heading">
+            <div><p class="eyebrow">Academic period</p><h2>Schedule codes</h2><p id="periodLabel">Loading current period…</p></div>
+            <div class="period-filters">
+              <div class="field"><label for="schoolYearSelect">School year</label><select id="schoolYearSelect"><option value="">Select school year</option></select></div>
+              <div class="field"><label for="semesterSelect">Semester</label><select id="semesterSelect"><option value="">Select semester</option></select></div>
+            </div>
+          </div>
+          <div class="table-shell"><table id="table" class="display" aria-label="Schedule assignments"></table></div>
+        </section>
+      </main>
+      <footer class="site-footer"><p>&copy; <span id="year"></span> Notre Dame of Marbel University</p><span></span><p>Developed by the MIS Department</p></footer>
+    </div>
+
+    <div id="reassignModal" class="room-modal invisible">
+      <form id="reassignForm" class="modal-card scale-95">
+        <header class="modal-header"><div><p class="eyebrow">Section assignment</p><h2>Reassign teacher</h2></div><button type="button" class="modal-close" onclick="toggleModal('reassignModal', false)">×</button></header>
+        <div class="modal-body">
+          <div class="section-summary"><strong id="sectionCode"></strong><span id="sectionSubject"></span><small id="currentTeacher"></small></div>
+          <label for="teacherSelect">New teacher</label>
+          <select id="teacherSelect" required>
+            <option value="">Select a teacher</option>
+          </select>
+        </div>
+        <footer class="modal-footer"><button type="button" class="secondary-button" onclick="toggleModal('reassignModal', false)">Cancel</button><button class="primary-button" type="submit">Save assignment</button></footer>
+      </form>
+    </div>
+    <div id="loadingModal" class="room-modal progress-modal opacity-100" role="status" aria-live="polite">
+      <div class="modal-card progress-card scale-100">
+        <span class="progress-spinner"></span>
+        <p class="eyebrow">Schedule assignment</p>
+        <p id="loadingMessage">Loading active schedule codes...</p>
+      </div>
+    </div>
+    <div id="toast-container" class="toast-container"></div>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="./script.js"></script>
+    <script src="/auth-session.js"></script>
+  </body>
+</html>

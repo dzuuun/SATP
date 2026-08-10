@@ -404,7 +404,7 @@
           </a>
         </li>
 
-        <li>
+        <li data-required-access="transactionAccess">
           <a href="/transaction/index.html" class="nav-link">
             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -415,7 +415,7 @@
           </a>
         </li>
 
-        <li>
+        <li data-required-access="reportsAccess">
           <button
             type="button"
             class="menu-toggle"
@@ -441,7 +441,7 @@
           </ul>
         </li>
 
-        <li>
+        <li data-required-access="maintenanceAccess">
           <button
             type="button"
             class="menu-toggle"
@@ -484,12 +484,15 @@
                 >Student subject</a
               >
             </li>
+                        <li>
+              <a href="/maintenance/schedule_assignment/index.html">Schedule assignment</a>
+            </li>
             <li><a href="/maintenance/subject/index.html">Subject</a></li>
             <li><a href="/maintenance/teacher/index.html">Teacher</a></li>
           </ul>
         </li>
 
-        <li>
+        <li data-required-access="usersAccess">
           <button
             type="button"
             class="menu-toggle"
@@ -552,7 +555,7 @@
             class="profile-action"
             type="button"
             id="signout"
-            onclick="fetch('/api/login/logout', { method: 'POST', keepalive: true })"
+            onclick="window.satpLogout?.()"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path

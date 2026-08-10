@@ -8,6 +8,9 @@ var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
 let periodStudents = new Map();
 let importTeachersByName = new Map();
+
+const teacherImportKey = (firstName, lastName) =>
+  normalizeImportValue(`${firstName || ""} ${lastName || ""}`);
 let importStudentsByNumber = new Map();
 
 if (user === null) {
@@ -287,12 +290,13 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
     });
 
     const createdRecords = response.data?.created || [];
-    const duplicateCount = response.data?.duplicates?.length || 0;
+    const updatedCount = response.data?.updated?.length || 0;
+    const skippedCount = response.data?.skipped?.length || 0;
     await Promise.all(
       createdRecords.map((record) => confirmGenerateTransaction(record.id)),
     );
 
-    if (createdRecords.length) {
+    if (createdRecords.length || updatedCount) {
       toggleModal("addNewModal", false);
       if (student_id && school_year_id && semester_id) {
         await Promise.all([loadExcludedData(), loadIncludedData()]);
@@ -304,7 +308,7 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
     setSuccessMessage(
       `${createdRecords.length} subject${
         createdRecords.length === 1 ? "" : "s"
-      } added${duplicateCount ? `; ${duplicateCount} already existed` : ""}.`,
+      } added; ${updatedCount} updated; ${skippedCount} unchanged.`,
     );
   } catch (error) {
     setErrorMessage(error.message || "Unable to add the selected subjects.");
@@ -364,7 +368,10 @@ function enhanceSearchableSelect(select) {
   const search = document.createElement("input");
   search.type = "search";
   search.className = "search-select-search";
-  search.placeholder = "Search options...";
+  search.placeholder =
+    select.name === "teacher_id" || select.id === "editTeacherSelect"
+      ? "Search teachers..."
+      : "Search options...";
   search.autocomplete = "off";
   const optionsContainer = document.createElement("div");
   optionsContainer.className = "search-select-options";
@@ -723,9 +730,12 @@ const getTeacher = async () => {
     data = await response.json(),
     rows = data.data;
 
-  importTeachersByName = new Map(
-    rows.map((row) => [normalizeImportValue(row.name), row]),
-  );
+  importTeachersByName = new Map();
+  rows.forEach((row) => {
+    const key = teacherImportKey(row.givenname, row.surname);
+    if (!key) return;
+    importTeachersByName.set(key, row);
+  });
   var optionRow = "";
   rows.filter((row) => Number(row.is_active) === 1).forEach((row) => {
     optionRow += `<option value="${row.id}">${row.name}</option>`;
@@ -771,8 +781,17 @@ const validateFileButton = document.getElementById("validateFileButton");
 
 function setImportProgress(eyebrow, status, detail) {
   document.getElementById("progressEyebrow").textContent = eyebrow;
-  document.getElementById("statusMessage").textContent = status;
+  const statusMessage = document.getElementById("statusMessage");
+  statusMessage.textContent = status;
+  statusMessage.hidden = !status;
   document.getElementById("progressDetail").textContent = detail;
+  const progress = Math.max(
+    0,
+    Math.min(100, Number.parseFloat(String(status).replace("%", "")) || 0),
+  );
+  const track = document.getElementById("validationProgressTrack");
+  document.getElementById("validationProgressBar").style.width = `${progress}%`;
+  track.setAttribute("aria-valuenow", String(progress));
 }
 
 function waitForPaint() {
@@ -836,7 +855,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
   toggleModal("importFileModal", false);
   setImportProgress(
     "Validating workbook",
-    "Reading file...",
+    "",
     "Checking the spreadsheet and resolving its records.",
   );
   setTimeout(() => toggleModal("spinnerStatusModal", true), 200);
@@ -910,6 +929,13 @@ function normalizeImportTime(value) {
   }`;
 }
 
+function comparableImportTime(value) {
+  const normalized = normalizeImportTime(value);
+  const twentyFourHour = normalized.match(/^(\d{1,2}):(\d{2})/);
+  if (!twentyFourHour) return normalized;
+  return `${String(Number(twentyFourHour[1])).padStart(2, "0")}:${twentyFourHour[2]}`;
+}
+
 function isTbaTeacherRow(row) {
   const values = [
     readImportColumn(row, "InstructorID", "TeacherID"),
@@ -956,14 +982,15 @@ async function classifySubjectRows(rows) {
 
   for (let index = 0; index < rows.length; index++) {
     const raw = rows[index];
-    if (index % 200 === 0) {
+    if (index % 25 === 0 || index === rows.length - 1) {
       const progress = rows.length
-        ? Math.round((index / rows.length) * 100)
-        : 100;
+        ? Math.round((index / rows.length) * 70)
+        : 70;
+      const remaining = rows.length - index;
       setImportProgress(
         "Validating workbook",
         `${progress}%`,
-        `Checking row ${Math.min(index + 1, rows.length)} of ${rows.length}.`,
+        `Checking row ${Math.min(index + 1, rows.length)} of ${rows.length}; ${remaining} remaining.`,
       );
       await waitForPaint();
     }
@@ -974,12 +1001,10 @@ async function classifySubjectRows(rows) {
     const schoolYear = readImportColumn(raw, "SchoolYear");
     const semesterValue = readImportColumn(raw, "semester_id", "Semester");
     const subjectCode = readImportColumn(raw, "SubjectCode");
-    const teacherName = `${readImportColumn(
-      raw,
-      "TeacherFirstName",
-    )} ${readImportColumn(raw, "TeacherLastName")}`.trim();
+    const teacherFirstName = readImportColumn(raw, "TeacherFirstName");
+    const teacherLastName = readImportColumn(raw, "TeacherLastName");
     const teacher = importTeachersByName.get(
-      normalizeImportValue(teacherName),
+      teacherImportKey(teacherFirstName, teacherLastName),
     );
     const roomCode = readImportColumn(raw, "RoomCode");
     if (isTbaTeacherRow(raw)) {
@@ -1045,6 +1070,94 @@ async function classifySubjectRows(rows) {
       result.created.push(item);
     }
   }
+
+  const enrollmentGroups = new Map();
+  result.created.forEach((item) => {
+    const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}`;
+    if (!enrollmentGroups.has(key)) enrollmentGroups.set(key, []);
+    enrollmentGroups.get(key).push(item);
+  });
+
+  const existingKeys = new Set();
+  const periodRequests = new Map();
+  const enrollmentBatches = [...enrollmentGroups.values()];
+  let checkedBatches = 0;
+  setImportProgress(
+    "Checking existing enrollments",
+    "70%",
+    `${enrollmentBatches.length} enrollment group${enrollmentBatches.length === 1 ? "" : "s"} remaining.`,
+  );
+  await waitForPaint();
+  await Promise.all(
+    enrollmentBatches.map(async (items) => {
+      const sample = items[0];
+      const periodKey = `${sample.school_year_id}|${sample.semester_id}`;
+      if (!periodRequests.has(periodKey)) {
+        periodRequests.set(
+          periodKey,
+          fetch(
+            `/api/studentsubject/period/school_year_id=${sample.school_year_id}&semester_id=${sample.semester_id}`,
+          ).then(async (response) => {
+            if (!response.ok) {
+              throw new Error("Unable to check existing enrollments.");
+            }
+            return response.json();
+          }),
+        );
+      }
+      const payload = await periodRequests.get(periodKey);
+      const existingBySubject = new Map(
+        (payload.data || [])
+          .filter(
+            (record) => Number(record.student_id) === Number(sample.student_id),
+          )
+          .map((record) => [Number(record.subject_id), record]),
+      );
+      items.forEach((item) => {
+        const current = existingBySubject.get(Number(item.subject_id));
+        if (!current) return;
+        const unchanged =
+          Number(current.teacher_id) === Number(item.teacher_id) &&
+          normalizeImportValue(current.schedule_code) ===
+            normalizeImportValue(item.schedule_code) &&
+          comparableImportTime(current.time_start) ===
+            comparableImportTime(item.time_start) &&
+          comparableImportTime(current.time_end) ===
+            comparableImportTime(item.time_end) &&
+          normalizeImportValue(current.day) === normalizeImportValue(item.day) &&
+          Number(current.room_id || 0) === Number(item.room_id || 0) &&
+          Number(current.is_excluded || 0) === Number(item.is_excluded || 0);
+        const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${item.subject_id}`;
+        existingKeys.add(key);
+        result.updated.push({
+          ...item,
+          id: current.id,
+          unchanged,
+          reason: unchanged
+            ? "Enrollment already exists; no changes needed"
+            : "Enrollment already exists; changes will be updated",
+        });
+      });
+      checkedBatches++;
+      const remaining = enrollmentBatches.length - checkedBatches;
+      const progress = enrollmentBatches.length
+        ? 70 + Math.round((checkedBatches / enrollmentBatches.length) * 30)
+        : 100;
+      setImportProgress(
+        "Checking existing enrollments",
+        `${progress}%`,
+        `${remaining} enrollment group${remaining === 1 ? "" : "s"} remaining.`,
+      );
+      await waitForPaint();
+    }),
+  );
+  result.created = result.created.filter(
+    (item) =>
+      !existingKeys.has(
+        `${item.student_id}|${item.school_year_id}|${item.semester_id}|${item.subject_id}`,
+      ),
+  );
+
   setImportProgress(
     "Validation complete",
     "100%",
@@ -1086,7 +1199,9 @@ function renderSubjectImportPreview() {
     });
   });
   document.getElementById("runImportButton").disabled =
-    !pendingSubjectImport.created.length && !pendingSubjectImport.errors.length;
+    !pendingSubjectImport.created.length &&
+    !pendingSubjectImport.updated.length &&
+    !pendingSubjectImport.errors.length;
 }
 
 document
@@ -1098,7 +1213,11 @@ document
     }));
 
     toggleModal("importPreviewModal", false);
-    if (!pendingSubjectImport.created.length) {
+    const actionableItems = [
+      ...pendingSubjectImport.created,
+      ...pendingSubjectImport.updated,
+    ];
+    if (!actionableItems.length) {
       downloadSubjectImportErrors(errors);
       return setErrorMessage(`${errors.length} invalid rows exported.`);
     }
@@ -1111,7 +1230,7 @@ document
 
     const inactiveStudentIds = [
       ...new Set(
-        pendingSubjectImport.created
+        actionableItems
           .filter((item) => item.student_needs_activation)
           .map((item) => Number(item.student_id)),
       ),
@@ -1140,7 +1259,7 @@ document
 
     const inactiveTeacherIds = [
       ...new Set(
-        pendingSubjectImport.created
+        actionableItems
           .filter((item) => item.teacher_needs_activation)
           .map((item) => Number(item.teacher_id)),
       ),
@@ -1167,7 +1286,7 @@ document
       }
     }
 
-    const importableItems = pendingSubjectImport.created.filter((item) => {
+    const importableItems = actionableItems.filter((item) => {
       if (failedStudentIds.has(Number(item.student_id))) {
         errors.push({
           ...item.originalRow,
@@ -1200,6 +1319,8 @@ document
     );
 
     let created = 0;
+    let updated = 0;
+    let skipped = 0;
     let transactionFailures = 0;
     const groupEntries = [...groups.values()];
     for (let index = 0; index < groupEntries.length; index++) {
@@ -1218,12 +1339,9 @@ document
         });
         const payload = await response.json();
         const createdRows = payload.data?.created || [];
-        const duplicateIds = new Set(
-          (payload.data?.duplicates || []).map((item) =>
-            Number(item.subject_id),
-          ),
-        );
         created += createdRows.length;
+        updated += (payload.data?.updated || []).length;
+        skipped += (payload.data?.skipped || []).length;
         const transactionResults = await Promise.allSettled(
           createdRows.map((record) => confirmGenerateTransaction(record.id)),
         );
@@ -1231,15 +1349,7 @@ document
           if (result.status === "fulfilled") return;
           transactionFailures++;
         });
-        items
-          .filter((item) => duplicateIds.has(Number(item.subject_id)))
-          .forEach((item) =>
-            errors.push({
-              ...item.originalRow,
-              Error: "Student subject already exists",
-            }),
-          );
-        if (!response.ok && response.status !== 409) {
+        if (!response.ok) {
           throw new Error(payload.message || "Server rejected rows");
         }
       } catch (error) {
@@ -1260,7 +1370,7 @@ document
     setTimeout(
       () =>
         setSuccessMessage(
-          `${created} created${
+          `${created} created, ${updated} updated, ${skipped} unchanged${
             errors.length ? `, ${errors.length} failed rows exported` : ""
           }${
             transactionFailures
