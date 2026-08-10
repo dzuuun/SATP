@@ -4,6 +4,14 @@
   if (window.__satpSessionExpiryHandler) return;
   window.__satpSessionExpiryHandler = true;
 
+  window.satpLogout = () => {
+    fetch("/api/login/logout", {
+      method: "POST",
+      credentials: "same-origin",
+      keepalive: true,
+    }).catch(() => {});
+  };
+
   let promptVisible = false;
   const loginUrl = "/login/index.html?reason=session-expired";
 

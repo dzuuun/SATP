@@ -9,7 +9,7 @@ const { checkToken } = require("../../auth/auth_validation");
 
 router.post("/", login);
 router.get("/session", checkToken, session);
-router.post("/logout", logout);
+router.post("/logout", checkToken, logout);
 router.put("/update/password", checkToken, updatePassword);
 router.all("/register", (_req, res) =>
   res.status(404).json({ success: 0, message: "Registration is disabled." }),

@@ -194,7 +194,7 @@ let modalTable;
 
 $(document).ready(function () {
   mainTable = $("#mainTable").DataTable({
-    autoWidth: false, // Forces the table to follow the 100% CSS rule
+    autoWidth: false,
     responsive: true,
 
     columns: [
@@ -222,23 +222,29 @@ $(document).ready(function () {
           const pending = parseInt(data);
           const isComplete = pending === 0 && total > 0;
           const color = isComplete ? "text-green-600" : "text-red-500";
-          const icon = isComplete ? "bi-check-circle-fill" : "bi-x-circle-fill";
+          const icon = isComplete
+            ? "bi-check-circle-fill"
+            : "bi-x-circle-fill";
 
           return `
-                        <div class="flex flex-col items-center justify-center gap-1 group cursor-pointer" onclick="showSubjectModal('${row.IDNumber}')">
-                            <i class="bi ${icon} ${color} text-2xl transition-transform group-hover:scale-110"></i>
-                            <span class="text-[10px] font-black uppercase ${color}">
-                                ${total - pending} / ${total}
-                            </span>
-                        </div>`;
+            <div class="flex flex-col items-center justify-center gap-1">
+              <i class="bi ${icon} ${color} text-2xl"></i>
+              <span class="text-[10px] font-black uppercase ${color}">
+                ${total - pending} / ${total}
+              </span>
+            </div>`;
         },
       },
     ],
 
+    createdRow: function (row) {
+      $(row)
+        .addClass("cursor-pointer hover:bg-gray-100 transition-colors")
+        .css("cursor", "pointer");
+    },
+
     dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
     pageLength: 10,
-    responsive: true,
-    autoWidth: false, // CRITICAL: Allows CSS to dictate width
     language: {
       search: "",
       searchPlaceholder: "Type a keyword...",
@@ -247,6 +253,15 @@ $(document).ready(function () {
         next: "Next",
       },
     },
+  });
+
+  // Click anywhere on the row to view the student's subjects
+  $("#mainTable tbody").on("click", "tr", function () {
+    const data = mainTable.row(this).data();
+
+    if (!data) return;
+
+    showSubjectModal(data.IDNumber);
   });
 });
 

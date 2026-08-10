@@ -116,6 +116,14 @@ module.exports = {
     );
   },
 
+  logActivity: (userId, action, callBack = () => {}) => {
+    pool.query(
+      "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+      [userId, action],
+      callBack,
+    );
+  },
+
   updateUser: (data, callBack) => {
     pool.query(
       "UPDATE users SET username=?, full_name=?, position=?, auth_level=? WHERE user_id = ?",

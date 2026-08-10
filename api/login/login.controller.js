@@ -3,6 +3,7 @@ const {
   checkPassword,
   getUsers,
   getUserByUserName,
+  logActivity,
   updatePassword,
 } = require("./login.model");
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
@@ -154,6 +155,9 @@ module.exports = {
       failedLogins.delete(key);
       const token = createSessionToken(results.user_id, results.password);
       setSessionCookie(res, token);
+      logActivity(results.user_id, "Logged in", (logError) => {
+        if (logError) console.error("Unable to log sign in:", logError);
+      });
       const { password: _password, permission_is_active: _active, ...user } =
         results;
       return res.json({
@@ -171,8 +175,11 @@ module.exports = {
       data: req.user,
     }),
 
-  logout: (_req, res) => {
+  logout: (req, res) => {
     clearSessionCookie(res);
+    logActivity(req.user.id, "Logged out", (logError) => {
+      if (logError) console.error("Unable to log sign out:", logError);
+    });
     return res.json({ success: 1, message: "Signed out successfully." });
   },
 
