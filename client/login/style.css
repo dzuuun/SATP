@@ -99,9 +99,10 @@ main {
 
 .portal-card {
     width: min(1120px, 100%);
-    min-height: 620px;
+    height: 700px;
+    min-height: 700px;
     display: grid;
-    grid-template-columns: 1.02fr .98fr;
+    grid-template-columns: 1.08fr .92fr;
     overflow: hidden;
     background: var(--surface);
     border: 1px solid rgba(7, 92, 59, .1);
@@ -110,7 +111,8 @@ main {
 }
 
 .hero {
-    min-height: 620px;
+    height: 700px;
+    min-height: 700px;
     padding: clamp(42px, 6vw, 80px);
     display: flex;
     align-items: flex-end;
@@ -138,10 +140,19 @@ main {
 }
 
 .hero-content > img {
-    width: 165px;
+    width: 170px;
     height: auto;
     margin-bottom: 34px;
     object-fit: contain;
+}
+
+@media (min-width: 801px) {
+    .hero-content > img {
+        position: absolute;
+        top: clamp(42px, 6vw, 80px);
+        left: clamp(42px, 6vw, 80px);
+        margin: 0;
+    }
 }
 
 .eyebrow {
@@ -454,11 +465,14 @@ footer > span {
     }
 
     .portal-card {
+        height: auto;
+        min-height: 0;
         grid-template-columns: 1fr;
         border-radius: 22px;
     }
 
     .hero {
+        height: auto;
         min-height: 280px;
         padding: 34px;
     }

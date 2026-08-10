@@ -92,7 +92,8 @@ main {
 
 .portal-card {
     width: min(1120px, 100%);
-    min-height: 590px;
+    height: 700px;
+    min-height: 700px;
     display: grid;
     grid-template-columns: 1.08fr .92fr;
     overflow: hidden;
@@ -103,7 +104,8 @@ main {
 }
 
 .hero {
-    min-height: 590px;
+    height: 700px;
+    min-height: 700px;
     padding: clamp(42px, 6vw, 80px);
     display: flex;
     align-items: flex-end;
@@ -135,6 +137,15 @@ main {
     height: auto;
     margin-bottom: 34px;
     object-fit: contain;
+}
+
+@media (min-width: 801px) {
+    .hero-content > img {
+        position: absolute;
+        top: clamp(42px, 6vw, 80px);
+        left: clamp(42px, 6vw, 80px);
+        margin: 0;
+    }
 }
 
 .eyebrow {
@@ -319,11 +330,14 @@ footer > span {
     }
 
     .portal-card {
+        height: auto;
+        min-height: 0;
         grid-template-columns: 1fr;
         border-radius: 22px;
     }
 
     .hero {
+        height: auto;
         min-height: 340px;
         padding: 36px;
         align-items: flex-end;

@@ -669,7 +669,7 @@ function setErrorMessage(message) {
     "beforeend",
     `
     <div id="${id}" class="room-toast room-toast-error flex items-center w-full max-w-xs p-4 mb-4 text-white rounded-2xl shadow-xl transform transition-all duration-500 translate-y-10 opacity-0 border border-white/10">
-        <div class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-red-100 bg-white/20 rounded-lg">
+        <div class="inline-flex items-center justify-center shrink-0 w-8 h-8 text-red-100 bg-white/20 rounded-lg">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4 3 20h18L12 4Zm0 5v5m0 3h.01"></path></svg>
         </div>
         <div class="ms-3 text-[11px] font-black uppercase tracking-wider">${message}</div>
