@@ -386,7 +386,24 @@ async function loadSidebar() {
 
 document
   .getElementById("downloadButton")
-  .addEventListener("click", downloadPdf);
+  .addEventListener("click", async () => {
+    if (!state.rows.length) return;
+    const button = document.getElementById("downloadButton");
+    const label = button.querySelector("span");
+    const safeCollegeCode = state.collegeCode.replace(/[\\/:*?"<>|]/g, "-");
+    button.disabled = true;
+    label.textContent = "Preparing PDF...";
+    try {
+      await renderReportPdf({
+        filename: `SATP College Ranking Report - ${safeCollegeCode} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+      });
+    } catch (error) {
+      showToast(error.message || "Unable to generate the PDF report.");
+    } finally {
+      button.disabled = false;
+      label.textContent = "Download PDF";
+    }
+  });
 document
   .getElementById("printButton")
   .addEventListener("click", () => window.print());

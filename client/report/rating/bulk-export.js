@@ -118,7 +118,14 @@ function appendPdfComments(pdf, comments) {
   });
 }
 
-function buildRatingPdf(report, teacherMean, logos) {
+function buildRatingPdf(
+  report,
+  teacherMean,
+  logos,
+  ratingType = "individual",
+) {
+  const reportLabel =
+    ratingType === "institutional" ? "Institutional" : "Individual";
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF({
     orientation: "portrait",
@@ -153,7 +160,7 @@ function buildRatingPdf(report, teacherMean, logos) {
     align: "center",
   });
   pdf.setFontSize(10);
-  pdf.text("INDIVIDUAL RATING REPORT", pageWidth / 2, 50, {
+  pdf.text(`${reportLabel.toUpperCase()} RATING REPORT`, pageWidth / 2, 50, {
     align: "center",
   });
 
@@ -285,7 +292,7 @@ function buildRatingPdf(report, teacherMean, logos) {
       pdf.setFont("helvetica", "normal");
       pdf.setFontSize(7);
       pdf.setTextColor(100);
-      pdf.text("SATP Individual Rating Report", 18, pageHeight - 7);
+      pdf.text(`SATP ${reportLabel} Rating Report`, 18, pageHeight - 7);
       pdf.text(
         `Page ${pdf.internal.getNumberOfPages()}`,
         pageWidth - 18,
@@ -307,7 +314,59 @@ function saveZipBlob(blob, fileName) {
   setTimeout(() => URL.revokeObjectURL(link.href), 0);
 }
 
+function bulkEscapeHtml(value) {
+  const element = document.createElement("span");
+  element.textContent = value ?? "";
+  return element.innerHTML;
+}
+
+function buildBulkRatingReportElement(report, teacherMean, reportLabel) {
+  const categories = new Map();
+  report.items.forEach((item) => {
+    if (!categories.has(item.category)) categories.set(item.category, []);
+    categories.get(item.category).push(item);
+  });
+  const rows = [];
+  categories.forEach((items, category) => {
+    rows.push(`<tr class="category-row"><th colspan="2">${bulkEscapeHtml(category)}</th></tr>`);
+    items.forEach((item) => rows.push(`<tr><td>${bulkEscapeHtml(item.number)}. ${bulkEscapeHtml(item.question)}</td><td>${Number(item.mean).toFixed(2)}</td></tr>`));
+    rows.push(`<tr class="average-row"><td>Category Average: </td><td>${numericAverage(items.map((item) => item.mean)).toFixed(2)}</td></tr>`);
+  });
+  const subjectMean = numericAverage(report.items.map((item) => item.mean));
+  rows.push(`<tr class="average-row"><td>Subject Average: </td><td>${subjectMean.toFixed(2)}</td></tr>`);
+  rows.push(`<tr class="average-row"><td>Your Mean: </td><td>${teacherMean.toFixed(2)}</td></tr>`);
+  rows.push(`<tr class="average-row"><td>Qualitative Equivalent: </td><td>${bulkEscapeHtml(qualitativeEquivalent(teacherMean))}</td></tr>`);
+  const comments = report.comments.length
+    ? `<section class="comments-section"><h4>Comments:</h4><div>${report.comments.map((comment) => `<p class="comment-entry">${bulkEscapeHtml(comment)}</p>`).join("")}</div></section>`
+    : "";
+  const element = document.createElement("article");
+  element.className = "report-sheet";
+  element.innerHTML = `
+    <header class="document-header">
+      <img src="../../images/NDMU-Logo.png" alt="NDMU seal">
+      <div><p>JMJ Marist Brothers</p><h2>Notre Dame of Marbel University</h2><p>Alunan Avenue, City of Koronadal 9506</p><p>South Cotabato, Philippines</p></div>
+      <img src="../../images/green-university.jpg" alt="Green University">
+    </header>
+    <section class="document-title"><p>Student Assessment of Teacher's Performance</p><h3>${reportLabel} Rating Report</h3></section>
+    <section class="report-details individual-rating-details" aria-label="Report details">
+      <div><span>Teacher</span><strong>${bulkEscapeHtml(report.teacherName)}</strong></div>
+      <div><span>School Year</span><strong>${bulkEscapeHtml(report.schoolYear)}</strong></div>
+      <div><span>Semester</span><strong>${bulkEscapeHtml(report.semester)}</strong></div>
+      <div><span>College</span><strong>${bulkEscapeHtml(report.college)}</strong></div>
+      <div><span>Department</span><strong>${bulkEscapeHtml(report.department)}</strong></div>
+      <div><span>Subject</span><strong>${bulkEscapeHtml(report.subjectCode)} - ${bulkEscapeHtml(report.subjectName)}</strong></div>
+      <div><span>Respondents</span><strong>${report.respondents}</strong></div>
+      <div><span>Date Generated</span><strong>${new Intl.DateTimeFormat("en-PH", { year: "numeric", month: "long", day: "numeric" }).format(new Date())}</strong></div>
+    </section>
+    <div class="mean-summary"><span>Subject Average:</span><strong>${subjectMean.toFixed(2)}</strong></div>
+    <div class="report-table-wrap"><table class="rating-table" aria-label="${reportLabel} rating results"><thead><tr><th>Criteria</th><th>Item Average</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>
+    ${comments}
+    <footer class="document-footer"><span>SATP ${reportLabel} Rating Report</span><span>Notre Dame of Marbel University</span></footer>`;
+  return element;
+}
+
 async function exportIndividualRatings({
+  ratingType = "individual",
   schoolYearId,
   semesterId,
   schoolYearName,
@@ -315,6 +374,8 @@ async function exportIndividualRatings({
   teacherId = null,
   teacherName = "",
 }) {
+  const reportLabel =
+    ratingType === "institutional" ? "Institutional" : "Individual";
   const bulkExportButton = document.getElementById("bulkExportButton");
   const teacherExportButton = document.getElementById("teacherExportButton");
   const exportMenuButton = document.getElementById("exportMenuButton");
@@ -329,7 +390,7 @@ async function exportIndividualRatings({
       : "Loading all teacher and subject ratings for the selected period...",
   );
   try {
-    if (!window.jspdf?.jsPDF || !window.JSZip)
+    if (typeof html2pdf === "undefined" || !window.JSZip)
       throw new Error("The ZIP or PDF generator could not be loaded.");
     const response = await requestJson(
       "/api/report/rating/individual/bulk-export",
@@ -349,18 +410,9 @@ async function exportIndividualRatings({
     );
     if (!reports.length)
       throw new Error(
-        "No completed individual ratings were found for this period.",
+        `No completed ${reportLabel.toLowerCase()} ratings were found for this period.`,
       );
 
-    const logos = { ndmu: null, green: null };
-    try {
-      [logos.ndmu, logos.green] = await Promise.all([
-        reportImageData("../../images/NDMU-Logo.png"),
-        reportImageData("../../images/green-university.jpg"),
-      ]);
-    } catch (error) {
-      console.warn("ZIP report logos were not loaded:", error);
-    }
     const means = calculateTeacherMeans(reports);
     const zip = new JSZip();
     for (let index = 0; index < reports.length; index += 1) {
@@ -370,11 +422,19 @@ async function exportIndividualRatings({
       const teacherFolder = teacherId
         ? zip
         : zip.folder(safeFileName(report.teacherName, "Teacher"));
-      const fileName = `SATP Individual Rating Report - ${safeFileName(report.subjectCode, "Subject")} - ${safeFileName(report.subjectName, "Rating")}.pdf`;
-      teacherFolder.file(
-        fileName,
-        buildRatingPdf(report, means.get(String(report.teacherId)) || 0, logos),
+      const fileName = `SATP ${reportLabel} Rating Report - ${safeFileName(report.subjectCode, "Subject")} - ${safeFileName(report.subjectName, "Rating")}.pdf`;
+      const teacherMean = means.get(String(report.teacherId)) || 0;
+      const reportElement = buildBulkRatingReportElement(
+        report,
+        teacherMean,
+        reportLabel,
       );
+      const pdfBlob = await renderReportPdf({
+        element: reportElement,
+        filename: fileName,
+        save: false,
+      });
+      teacherFolder.file(fileName, pdfBlob);
       if ((index + 1) % 5 === 0)
         await new Promise((resolve) => requestAnimationFrame(resolve));
     }
@@ -394,7 +454,7 @@ async function exportIndividualRatings({
     );
     saveZipBlob(
       zipBlob,
-      `SATP Individual Rating Reports - ${teacherId ? safeFileName(teacherName, "Teacher") : "All Teachers"} - ${safeFileName(schoolYearName)} - ${safeFileName(semesterName)}.zip`,
+      `SATP ${reportLabel} Rating Reports - ${teacherId ? safeFileName(teacherName, "Teacher") : "All Teachers"} - ${safeFileName(schoolYearName)} - ${safeFileName(semesterName)}.zip`,
     );
     showToast(
       teacherId
@@ -403,7 +463,8 @@ async function exportIndividualRatings({
     );
   } catch (error) {
     showToast(
-      error.message || "Unable to export the individual rating reports.",
+      error.message ||
+        `Unable to export the ${reportLabel.toLowerCase()} rating reports.`,
     );
   } finally {
     hideLoading();

@@ -20,6 +20,16 @@
   font-weight: 850;
 }
 
+.report-table-wrap th:nth-child(3),
+.report-table-wrap td:nth-child(3),
+.report-table-wrap th:nth-child(4),
+.report-table-wrap td:nth-child(4) {
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: auto;
+}
+
 @media (max-width: 720px) {
   .overall-details {
     grid-template-columns: 1fr;

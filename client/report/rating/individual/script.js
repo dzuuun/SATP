@@ -151,141 +151,144 @@ function showEmptyState() {
   document.getElementById("emptyState").classList.remove("hidden");
 }
 
-async function imageData(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Unable to load a report image.");
-  const blob = await response.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
 
-function appendPdfComments(pdf) {
-  if (!state.comments.length) return;
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const pageHeight = pdf.internal.pageSize.getHeight();
-  let y = (pdf.lastAutoTable?.finalY || 80) + 10;
-  if (y > pageHeight - 30) {
-    pdf.addPage();
-    y = 20;
-  }
-  pdf.setFont("helvetica", "bold");
-  pdf.setFontSize(9);
-  pdf.text("Comments:", 18, y);
-  y += 6;
-  pdf.setFont("helvetica", "normal");
-  pdf.setFontSize(7.5);
-  state.comments.forEach((row, index) => {
-    const lines = pdf.splitTextToSize(`${index + 1}. ${row.comment}`, pageWidth - 36);
-    if (y + lines.length * 4 > pageHeight - 15) {
-      pdf.addPage();
-      y = 20;
-    }
-    pdf.text(lines, 18, y);
-    y += lines.length * 4 + 3;
-  });
-}
 
-function addPdfDetail(pdf, label, value, y, width) {
-  const lines = pdf.splitTextToSize(`${label}: ${value}`, width);
-  pdf.text(lines, 18, y);
-  return y + lines.length * 4 + 1;
-}
 
 async function downloadPdf() {
   if (!state.rows.length) return;
+
   const button = document.getElementById("downloadButton");
   const label = button.querySelector("span");
+  const originalReport = document.getElementById("reportSheet");
+
   button.disabled = true;
   label.textContent = "Preparing PDF...";
+
+  let exportContainer = null;
+
   try {
-    if (!window.jspdf?.jsPDF) throw new Error("The PDF generator could not be loaded.");
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "letter" });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    try {
-      const [ndmu, green] = await Promise.all([
-        imageData("../../../images/NDMU-Logo.png"),
-        imageData("../../../images/green-university.jpg"),
-      ]);
-      pdf.addImage(ndmu, "PNG", 18, 10, 24, 24);
-      pdf.addImage(green, "JPEG", pageWidth - 47, 11, 29, 22);
-    } catch (error) {
-      console.warn("PDF logos were not added:", error);
+    if (typeof html2pdf === "undefined") {
+      throw new Error("html2pdf could not be loaded.");
     }
-    pdf.setTextColor(20, 40, 30);
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(13);
-    pdf.text("NOTRE DAME OF MARBEL UNIVERSITY", pageWidth / 2, 14, { align: "center" });
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(8);
-    pdf.text("Alunan Avenue, City of Koronadal 9506", pageWidth / 2, 19, { align: "center" });
-    pdf.text("South Cotabato, Philippines", pageWidth / 2, 23, { align: "center" });
-    pdf.setDrawColor(7, 92, 59);
-    pdf.line(18, 37, pageWidth - 18, 37);
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(9);
-    pdf.text("STUDENT ASSESSMENT OF TEACHER'S PERFORMANCE", pageWidth / 2, 44, { align: "center" });
-    pdf.setFontSize(10);
-    pdf.text(reportConfig.title.toUpperCase(), pageWidth / 2, 50, { align: "center" });
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(8);
 
-    let detailY = 58;
-    detailY = addPdfDetail(pdf, "Teacher", document.getElementById("teacher").textContent, detailY, pageWidth - 36);
-    detailY = addPdfDetail(pdf, "College", document.getElementById("college").textContent, detailY, pageWidth - 36);
-    detailY = addPdfDetail(pdf, "Department", document.getElementById("department").textContent, detailY, pageWidth - 36);
-    detailY = addPdfDetail(pdf, "Subject", document.getElementById("subject").textContent, detailY, pageWidth - 36);
-    pdf.text(`School Year: ${document.getElementById("schoolYear").textContent}`, 18, detailY);
-    pdf.text(`Semester: ${document.getElementById("semester").textContent}`, 112, detailY);
-    detailY += 5;
-    pdf.text(`Respondents: ${document.getElementById("respondents").textContent}`, 18, detailY);
-    pdf.text(`Date Generated: ${document.getElementById("dateGenerated").textContent}`, 112, detailY);
-    detailY += 5;
-    pdf.setFont("helvetica", "bold");
-    pdf.text(`Subject Average: ${document.getElementById("subjectAverage").textContent}`, pageWidth - 18, detailY, { align: "right" });
+    const teacherName = document
+      .getElementById("teacher")
+      .textContent.trim()
+      .replace(/[\\/:*?"<>|]/g, "-");
 
-    const teacherMean = Number(state.teacher?.mean);
-    const subjectMean = average(state.rows.map((row) => row.mean));
-    const displayedTeacherMean = Number.isFinite(teacherMean) ? teacherMean : subjectMean;
-    const body = [];
-    groupedRows().forEach((items, category) => {
-      body.push([{ content: category, colSpan: 2, styles: { fillColor: [234, 243, 237], textColor: [7, 92, 59], fontStyle: "bold" } }]);
-      items.forEach((item) => body.push([`${item.number}. ${item.question}`, Number(item.mean).toFixed(2)]));
-      body.push([{ content: "Category Average: ", styles: { halign: "right", fontStyle: "bold" } }, { content: average(items.map((item) => item.mean)).toFixed(2), styles: { fontStyle: "bold" } }]);
-    });
-    body.push([{ content: "Subject Average: ", styles: { halign: "right", fontStyle: "bold" } }, { content: subjectMean.toFixed(2), styles: { fontStyle: "bold" } }]);
-    body.push([{ content: "Your Mean: ", styles: { halign: "right", fontStyle: "bold" } }, { content: displayedTeacherMean.toFixed(2), styles: { fontStyle: "bold" } }]);
-    body.push([{ content: "Qualitative Equivalent: ", styles: { halign: "right", fontStyle: "bold" } }, { content: getQualitativeEquivalent(displayedTeacherMean), styles: { fontStyle: "bold" } }]);
+    const subjectName = document
+      .getElementById("subject")
+      .textContent.trim()
+      .replace(/[\\/:*?"<>|]/g, "-");
 
-    pdf.autoTable({
-      startY: detailY + 5,
-      margin: { left: 18, right: 18, bottom: 18 },
-      head: [["Criteria", "Item Average"]],
-      body,
-      theme: "grid",
-      headStyles: { fillColor: [7, 92, 59], textColor: 255, fontStyle: "bold", fontSize: 7.5, overflow: "linebreak" },
-      bodyStyles: { textColor: [30, 42, 35], fontSize: 7.2, cellPadding: 2.1, overflow: "linebreak" },
-      columnStyles: { 0: { cellWidth: 142 }, 1: { cellWidth: 26, halign: "center" } },
-      didDrawPage: () => {
-        const height = pdf.internal.pageSize.getHeight();
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(7);
-        pdf.setTextColor(100);
-        pdf.text(`SATP ${reportConfig.title}`, 18, height - 7);
-        pdf.text(`Page ${pdf.internal.getNumberOfPages()}`, pageWidth - 18, height - 7, { align: "right" });
+    const date = new Date().toISOString().slice(0, 10);
+
+    /*
+     * Clone the report so it is no longer affected by:
+     * - sidebar width
+     * - #main margin
+     * - responsive styles
+     * - parent transforms
+     * - centered page offsets
+     */
+    const reportClone = originalReport.cloneNode(true);
+
+    reportClone.removeAttribute("id");
+    reportClone.classList.add("html2pdf-report");
+
+    exportContainer = document.createElement("div");
+    exportContainer.className = "html2pdf-container";
+    exportContainer.appendChild(reportClone);
+
+    document.body.appendChild(exportContainer);
+
+    // Wait for cloned images to finish loading.
+    const images = [...reportClone.querySelectorAll("img")];
+
+    await Promise.all(
+      images.map((image) => {
+        if (image.complete) return Promise.resolve();
+
+        return new Promise((resolve) => {
+          image.onload = resolve;
+          image.onerror = resolve;
+        });
+      }),
+    );
+
+    // Wait for fonts and layout.
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+
+    await new Promise((resolve) =>
+      requestAnimationFrame(() =>
+        requestAnimationFrame(resolve),
+      ),
+    );
+
+    const options = {
+      margin: 0,
+
+      filename:
+        `SATP ${reportConfig.title} - ` +
+        `${teacherName} - ${subjectName} - ${date}.pdf`,
+
+      image: {
+        type: "jpeg",
+        quality: 0.98,
       },
-    });
-    appendPdfComments(pdf);
-    const teacherName = document.getElementById("teacher").textContent.replace(/[\\/:*?"<>|]/g, "-");
-    const subjectName = document.getElementById("subject").textContent.replace(/[\\/:*?"<>|]/g, "-");
-    pdf.save(`SATP ${reportConfig.title} - ${teacherName} - ${subjectName} - ${new Date().toISOString().slice(0, 10)}.pdf`);
+
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        allowTaint: false,
+        backgroundColor: "#ffffff",
+        logging: false,
+
+        // Capture only the cloned report.
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
+
+        width: reportClone.scrollWidth,
+        windowWidth: reportClone.scrollWidth,
+      },
+
+      jsPDF: {
+        unit: "mm",
+        format: "letter",
+        orientation: "portrait",
+      },
+
+      pagebreak: {
+        mode: ["css", "legacy"],
+        avoid: [
+          ".document-header",
+          ".document-title",
+          ".individual-rating-details",
+          ".mean-summary",
+          ".category-row",
+          ".average-row",
+          ".comment-entry",
+        ],
+      },
+    };
+
+    await html2pdf()
+      .set(options)
+      .from(reportClone)
+      .save();
   } catch (error) {
-    showToast(error.message || "Unable to generate the PDF report.");
+    console.error("PDF generation error:", error);
+
+    showToast(
+      error.message || "Unable to generate the PDF report.",
+    );
   } finally {
+    exportContainer?.remove();
+
     button.disabled = false;
     label.textContent = "Download PDF";
   }
@@ -356,7 +359,36 @@ async function loadSidebar() {
   }
 }
 
-document.getElementById("downloadButton").addEventListener("click", downloadPdf);
+document.getElementById("downloadButton").addEventListener("click", async () => {
+  if (!state.rows.length) return;
+  const button = document.getElementById("downloadButton");
+  const label = button.querySelector("span");
+  const teacherName = document
+    .getElementById("teacher")
+    .textContent.trim()
+    .replace(/[\\/:*?"<>|]/g, "-");
+  const subjectName = document
+    .getElementById("subject")
+    .textContent.trim()
+    .replace(/[\\/:*?"<>|]/g, "-");
+  button.disabled = true;
+  label.textContent = "Preparing PDF...";
+  try {
+    await renderReportPdf({
+      filename: `SATP ${reportConfig.title} - ${teacherName} - ${subjectName} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+      pagebreakAvoid: [
+        ".individual-rating-details",
+        ".mean-summary",
+      ],
+    });
+  } catch (error) {
+    console.error("PDF generation error:", error);
+    showToast(error.message || "Unable to generate the PDF report.");
+  } finally {
+    button.disabled = false;
+    label.textContent = "Download PDF";
+  }
+});
 document.getElementById("printButton").addEventListener("click", () => window.print());
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("year").textContent = new Date().getFullYear();

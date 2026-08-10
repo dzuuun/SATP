@@ -38,3 +38,121 @@
     border-top: 1px solid var(--line);
   }
 }
+/*
+ * Off-screen export container.
+ * Do not use display:none because html2canvas cannot capture it.
+ */
+.html2pdf-container {
+  position: fixed;
+  top: 0;
+  left: -100000px;
+  z-index: -99999;
+
+  width: 740px;
+  margin: 0;
+  padding: 0;
+
+  overflow: visible;
+  background: #ffffff;
+
+  transform: none !important;
+}
+
+/*
+ * Letter page content width:
+ * 8.5 inches × 96px = 816px.
+ */
+.html2pdf-report {
+  position: relative !important;
+  inset: auto !important;
+
+  display: block !important;
+
+  width: 740px !important;
+  min-width: 740px !important;
+  max-width: 740px !important;
+
+  height: auto !important;
+  min-height: 0 !important;
+
+  margin: 0 !important;
+  padding: 0 12px !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+
+  overflow: visible !important;
+  box-sizing: border-box !important;
+
+  background: #ffffff !important;
+
+  transform: none !important;
+  translate: none !important;
+  scale: none !important;
+}
+
+/* Prevent responsive application layout from affecting the clone. */
+.html2pdf-report * {
+  box-sizing: border-box;
+}
+
+.html2pdf-report .document-header {
+  width: 100% !important;
+
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.html2pdf-report .individual-rating-details {
+  display: grid !important;
+  grid-template-columns: 1.3fr repeat(3, 1fr) !important;
+
+  width: 100% !important;
+}
+
+.html2pdf-report .report-table-wrap {
+  width: 100% !important;
+  overflow: visible !important;
+}
+
+.html2pdf-report .rating-table {
+  width: 100% !important;
+  min-width: 0 !important;
+
+  table-layout: fixed !important;
+  border-collapse: collapse;
+}
+
+.html2pdf-report .rating-table thead {
+  display: table-header-group;
+}
+
+.html2pdf-report .rating-table tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.html2pdf-report .rating-table th:first-child,
+.html2pdf-report .rating-table td:first-child {
+  width: 84% !important;
+}
+
+.html2pdf-report .rating-table th:last-child,
+.html2pdf-report .rating-table td:last-child {
+  width: 16% !important;
+}
+
+.html2pdf-report .category-row,
+.html2pdf-report .average-row,
+.html2pdf-report .comment-entry,
+.html2pdf-report .mean-summary,
+.html2pdf-report .document-title,
+.html2pdf-report .document-footer {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.html2pdf-report img {
+  max-width: 100%;
+}

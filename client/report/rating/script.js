@@ -24,7 +24,6 @@ const reportDescriptions = {
   departmental: "Summarizes assessment ratings for a selected department.",
   individual: "Shows the detailed rating for a selected teacher and subject.",
 };
-
 function updateTeacherExportState() {
   const ratingType = document.getElementById("rating").value;
   const teacher = document.getElementById("teacher");
@@ -32,7 +31,9 @@ function updateTeacherExportState() {
   const hint = document.getElementById("teacherExportHint");
   const selectedOption = teacher.options[teacher.selectedIndex];
   const teacherName = selectedOption?.dataset.name || "";
-  const enabled = ratingType === "individual" && Boolean(teacher.value);
+  const enabled =
+    ["institutional", "individual"].includes(ratingType) &&
+    Boolean(teacher.value);
 
   button.disabled = !enabled;
   button.setAttribute("aria-disabled", String(!enabled));
@@ -120,8 +121,11 @@ document.getElementById("rating").addEventListener("change", (event) => {
   toggleConditionalField("subjectSelect", "subject", needsTeacher);
   document
     .getElementById("exportMenuWrap")
-    .classList.toggle("hidden", type !== "individual");
-  if (type !== "individual") closeExportMenu();
+    .classList.toggle(
+      "hidden",
+      !["institutional", "individual"].includes(type),
+    );
+  if (!["institutional", "individual"].includes(type)) closeExportMenu();
   updateTeacherExportState();
   document.getElementById("reportHint").textContent =
     reportDescriptions[type] ||
@@ -183,11 +187,18 @@ async function updateSubjects() {
 
 async function loadTeachersForPeriod() {
   const teacher = document.getElementById("teacher");
+  const teacherSearch = teacher
+    .closest(".search-select")
+    ?.querySelector(".search-select-input");
   const subject = document.getElementById("subject");
   const schoolYearId = document.getElementById("schoolYear").value;
   const semesterId = document.getElementById("semester").value;
   const requestId = ++state.teacherRequest;
   state.subjectRequest += 1;
+  if (teacherSearch) {
+    teacherSearch.value = "";
+    teacherSearch.disabled = true;
+  }
   teacher.disabled = true;
   teacher.innerHTML =
     '<option value="">Select the school year and semester first</option>';
@@ -218,11 +229,100 @@ async function loadTeachersForPeriod() {
           .join("")
       : '<option value="">No teachers available</option>';
     teacher.disabled = !rows.length;
+    if (teacherSearch) teacherSearch.disabled = !rows.length;
+    syncSearchableSelect(teacher);
   } catch (error) {
     if (requestId !== state.teacherRequest) return;
     teacher.innerHTML = '<option value="">Unable to load teachers</option>';
     showToast(error.message || "Unable to load teachers for this period.");
   }
+}
+
+function enhanceSearchableSelect(select) {
+  if (!select || select.dataset.searchable === "true") return;
+  select.dataset.searchable = "true";
+  const wrapper = document.createElement("div");
+  wrapper.className = "search-select";
+  select.parentNode.insertBefore(wrapper, select);
+  wrapper.appendChild(select);
+
+  const input = document.createElement("input");
+  input.type = "text";
+  input.className = "search-select-input";
+  input.readOnly = true;
+  input.disabled = select.disabled;
+  input.placeholder = select.options[0]?.textContent || "Select a teacher";
+  input.autocomplete = "off";
+
+  const list = document.createElement("div");
+  list.className = "search-select-list";
+  const search = document.createElement("input");
+  search.type = "search";
+  search.className = "search-select-search";
+  search.placeholder = "Search teachers...";
+  search.autocomplete = "off";
+  const optionsContainer = document.createElement("div");
+  optionsContainer.className = "search-select-options";
+  list.append(search, optionsContainer);
+  wrapper.append(input, list);
+
+  const render = () => {
+    const query = search.value.trim().toLowerCase();
+    const options = [...select.options].filter(
+      (option) =>
+        option.value &&
+        (!query || option.textContent.toLowerCase().includes(query)),
+    );
+    optionsContainer.replaceChildren();
+    if (!options.length) {
+      const empty = document.createElement("p");
+      empty.className = "search-select-empty";
+      empty.textContent = "No matching teachers";
+      optionsContainer.appendChild(empty);
+      return;
+    }
+    options.forEach((option) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = `search-select-option${option.value === select.value ? " selected" : ""}`;
+      button.textContent = option.textContent;
+      button.addEventListener("click", () => {
+        select.value = option.value;
+        input.value = option.textContent;
+        wrapper.classList.remove("open");
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      });
+      optionsContainer.appendChild(button);
+    });
+  };
+
+  const open = () => {
+    if (select.disabled) return;
+    wrapper.classList.add("open");
+    search.value = "";
+    render();
+    setTimeout(() => search.focus(), 0);
+  };
+  input.addEventListener("click", open);
+  input.addEventListener("keydown", (event) => {
+    if (["Enter", " ", "ArrowDown"].includes(event.key)) {
+      event.preventDefault();
+      open();
+    }
+  });
+  search.addEventListener("input", render);
+  wrapper.addEventListener("click", (event) => event.stopPropagation());
+  syncSearchableSelect(select);
+}
+
+function syncSearchableSelect(select) {
+  const input = select
+    ?.closest(".search-select")
+    ?.querySelector(".search-select-input");
+  if (!input) return;
+  input.disabled = select.disabled;
+  input.value = select.value ? select.selectedOptions[0]?.textContent || "" : "";
+  input.placeholder = select.options[0]?.textContent || "Select a teacher";
 }
 
 ["schoolYear", "semester"].forEach((id) =>
@@ -231,6 +331,11 @@ async function loadTeachersForPeriod() {
 document.getElementById("teacher").addEventListener("change", () => {
   updateTeacherExportState();
   updateSubjects();
+});
+document.addEventListener("click", () => {
+  document
+    .querySelectorAll(".search-select.open")
+    .forEach((wrapper) => wrapper.classList.remove("open"));
 });
 
 function closeExportMenu() {
@@ -269,6 +374,7 @@ document
       return;
     }
     await exportAllIndividualRatings({
+      ratingType: document.getElementById("rating").value,
       schoolYearId: schoolYear.value,
       semesterId: semester.value,
       schoolYearName: schoolYear.options[schoolYear.selectedIndex]?.text || "",
@@ -292,6 +398,7 @@ document
     }
     const selectedTeacher = teacher.options[teacher.selectedIndex];
     await exportTeacherIndividualRatings({
+      ratingType: document.getElementById("rating").value,
       schoolYearId: schoolYear.value,
       semesterId: semester.value,
       schoolYearName: schoolYear.options[schoolYear.selectedIndex]?.text || "",
@@ -423,6 +530,7 @@ async function loadSidebar() {
 
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("year").textContent = new Date().getFullYear();
+  enhanceSearchableSelect(document.getElementById("teacher"));
   loadSidebar();
   loadReportOptions();
 });

@@ -48,6 +48,13 @@ function escapeHtml(value) {
   return span.innerHTML;
 }
 
+function formatOrganizationName(value) {
+  return String(value || "")
+    .replace(/,\s*/g, ", ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 async function loadReport() {
   toggleModal("loadingModal", true);
   try {
@@ -93,8 +100,8 @@ function renderReport() {
   document.getElementById("tbData").innerHTML = state.rows
     .map(
       (row, index) => `<tr>
-    <td>${index + 1}</td><td>${escapeHtml(row.teacher_name)}</td><td>${escapeHtml(row.department)}</td>
-    <td>${escapeHtml(row.college)}</td><td>${Number(row.mean).toFixed(2)}</td>
+    <td>${index + 1}</td><td>${escapeHtml(row.teacher_name)}</td><td>${escapeHtml(formatOrganizationName(row.department))}</td>
+    <td>${escapeHtml(formatOrganizationName(row.college))}</td><td>${Number(row.mean).toFixed(2)}</td>
     <td><span class="qualitative-badge">${getQualitativeEquivalent(Number(row.mean))}</span></td>
   </tr>`,
     )
@@ -359,7 +366,23 @@ async function loadSidebar() {
 
 document
   .getElementById("downloadButton")
-  .addEventListener("click", downloadPdf);
+  .addEventListener("click", async () => {
+    if (!state.rows.length) return;
+    const button = document.getElementById("downloadButton");
+    const label = button.querySelector("span");
+    button.disabled = true;
+    label.textContent = "Preparing PDF...";
+    try {
+      await renderReportPdf({
+        filename: `SATP ${reportConfig.fileLabel} Ranking Report - ${new Date().toISOString().slice(0, 10)}.pdf`,
+      });
+    } catch (error) {
+      showToast(error.message || "Unable to generate the PDF report.");
+    } finally {
+      button.disabled = false;
+      label.textContent = "Download PDF";
+    }
+  });
 document
   .getElementById("printButton")
   .addEventListener("click", () => window.print());
