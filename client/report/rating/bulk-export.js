@@ -190,7 +190,7 @@ function buildRatingPdf(
   );
   detailY = drawDetailRow(
     `Department: ${report.department}`,
-    `Subject: ${report.subjectCode} - ${report.subjectName}`,
+    `Course: ${report.subjectCode} - ${report.subjectName}`,
     detailY,
   );
   detailY = drawDetailRow(
@@ -241,7 +241,7 @@ function buildRatingPdf(
   const subjectMean = numericAverage(report.items.map((item) => item.mean));
   tableBody.push([
     {
-      content: "Subject average",
+      content: "Course average",
       styles: { halign: "right", fontStyle: "bold" },
     },
     { content: subjectMean.toFixed(2), styles: { fontStyle: "bold" } },
@@ -333,7 +333,7 @@ function buildBulkRatingReportElement(report, teacherMean, reportLabel) {
     rows.push(`<tr class="average-row"><td>Category Average: </td><td>${numericAverage(items.map((item) => item.mean)).toFixed(2)}</td></tr>`);
   });
   const subjectMean = numericAverage(report.items.map((item) => item.mean));
-  rows.push(`<tr class="average-row"><td>Subject Average: </td><td>${subjectMean.toFixed(2)}</td></tr>`);
+  rows.push(`<tr class="average-row"><td>Course Average: </td><td>${subjectMean.toFixed(2)}</td></tr>`);
   rows.push(`<tr class="average-row"><td>Your Mean: </td><td>${teacherMean.toFixed(2)}</td></tr>`);
   rows.push(`<tr class="average-row"><td>Qualitative Equivalent: </td><td>${bulkEscapeHtml(qualitativeEquivalent(teacherMean))}</td></tr>`);
   const comments = report.comments.length
@@ -354,11 +354,11 @@ function buildBulkRatingReportElement(report, teacherMean, reportLabel) {
       <div><span>Semester</span><strong>${bulkEscapeHtml(report.semester)}</strong></div>
       <div><span>College</span><strong>${bulkEscapeHtml(report.college)}</strong></div>
       <div><span>Department</span><strong>${bulkEscapeHtml(report.department)}</strong></div>
-      <div><span>Subject</span><strong>${bulkEscapeHtml(report.subjectCode)} - ${bulkEscapeHtml(report.subjectName)}</strong></div>
+      <div><span>Course</span><strong>${bulkEscapeHtml(report.subjectCode)} - ${bulkEscapeHtml(report.subjectName)}</strong></div>
       <div><span>Respondents</span><strong>${report.respondents}</strong></div>
       <div><span>Date Generated</span><strong>${new Intl.DateTimeFormat("en-PH", { year: "numeric", month: "long", day: "numeric" }).format(new Date())}</strong></div>
     </section>
-    <div class="mean-summary"><span>Subject Average:</span><strong>${subjectMean.toFixed(2)}</strong></div>
+    <div class="mean-summary"><span>Course Average:</span><strong>${subjectMean.toFixed(2)}</strong></div>
     <div class="report-table-wrap"><table class="rating-table" aria-label="${reportLabel} rating results"><thead><tr><th>Criteria</th><th>Item Average</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>
     ${comments}
     <footer class="document-footer"><span>SATP ${reportLabel} Rating Report</span><span>Notre Dame of Marbel University</span></footer>`;
@@ -386,8 +386,8 @@ async function exportIndividualRatings({
   generateButton.disabled = true;
   showLoading(
     teacherId
-      ? `Loading all subject ratings for ${teacherName}...`
-      : "Loading all teacher and subject ratings for the selected period...",
+      ? `Loading all course ratings for ${teacherName}...`
+      : "Loading all teacher and course ratings for the selected period...",
   );
   try {
     if (typeof html2pdf === "undefined" || !window.JSZip)
@@ -418,11 +418,11 @@ async function exportIndividualRatings({
     for (let index = 0; index < reports.length; index += 1) {
       const report = reports[index];
       document.getElementById("loadingMessage").textContent =
-        `Preparing ${index + 1} of ${reports.length} subject reports...`;
+        `Preparing ${index + 1} of ${reports.length} course reports...`;
       const teacherFolder = teacherId
         ? zip
         : zip.folder(safeFileName(report.teacherName, "Teacher"));
-      const fileName = `SATP ${reportLabel} Rating Report - ${safeFileName(report.subjectCode, "Subject")} - ${safeFileName(report.subjectName, "Rating")}.pdf`;
+      const fileName = `SATP ${reportLabel} Rating Report - ${safeFileName(report.subjectCode, "Course")} - ${safeFileName(report.subjectName, "Rating")}.pdf`;
       const teacherMean = means.get(String(report.teacherId)) || 0;
       const reportElement = buildBulkRatingReportElement(
         report,
@@ -458,8 +458,8 @@ async function exportIndividualRatings({
     );
     showToast(
       teacherId
-        ? `${reports.length} subject reports for ${teacherName} were exported successfully.`
-        : `${reports.length} subject reports for all teachers were exported successfully.`,
+        ? `${reports.length} course reports for ${teacherName} were exported successfully.`
+        : `${reports.length} course reports for all teachers were exported successfully.`,
     );
   } catch (error) {
     showToast(

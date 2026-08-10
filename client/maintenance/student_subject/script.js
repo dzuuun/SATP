@@ -28,8 +28,8 @@ let studentTable = $("#studentTable").DataTable({
     { data: "student_number", title: "ID number", width: "18%" },
     { data: "student_name", title: "Student name" },
     { data: "college", title: "College" },
-    { data: "course", title: "Course", className: "dt-center" },
-    { data: "total_count", title: "Total subjects", className: "dt-center" },
+    { data: "course", title: "Program", className: "dt-center" },
+    { data: "total_count", title: "Total courses", className: "dt-center" },
     {
       data: "student_id",
       title: "Actions",
@@ -39,7 +39,7 @@ let studentTable = $("#studentTable").DataTable({
       render: (data) => `
         <button type="button" class="table-view-button" onclick="openStudentSubjects(${Number(
           data,
-        )})" aria-label="View student subjects" title="View subjects">
+        )})" aria-label="View student courses" title="View courses">
           <svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>
         </button>`,
     },
@@ -56,8 +56,8 @@ let table = $("#table").DataTable({
   columnDefs: [{ className: "dt-center", targets: "_all" }],
   // ordering: false,
   columns: [
-    { data: "subject_code", title: "Subject code" },
-    { data: "subject_name", title: "Subject name" },
+    { data: "subject_code", title: "Course code" },
+    { data: "subject_name", title: "Course name" },
     { data: "teacher_name", title: "Teacher" },
     { data: "schedule_code", title: "Schedule" },
     { data: "time_start", title: "Starts" },
@@ -71,10 +71,10 @@ let table = $("#table").DataTable({
       data: null,
       render: function (data, type, row) {
         return `<div class="table-action-group">
-          <button type="button" class="table-edit-button" onclick="editStudentSubject(${row.id})" aria-label="Edit ${row.subject_code}" title="Edit subject">
+          <button type="button" class="table-edit-button" onclick="editStudentSubject(${row.id})" aria-label="Edit ${row.subject_code}" title="Edit course">
             <svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg>
           </button>
-          <button type="button" class="table-deactivate-button" onclick="deactivateSubject(${row.id})" aria-label="Exclude ${row.subject_code}" title="Exclude subject">
+          <button type="button" class="table-deactivate-button" onclick="deactivateSubject(${row.id})" aria-label="Exclude ${row.subject_code}" title="Exclude course">
           <svg viewBox="0 0 24 24"><path d="M6 12h12"/><circle cx="12" cy="12" r="9"/></svg>
           </button>
         </div>`;
@@ -114,7 +114,7 @@ let tableExcluded = $("#tableExcluded").DataTable({
       orderable: false,
       data: null,
       render: (data, type, row) =>
-        `<button type="button" class="table-edit-button" onclick="editStudentSubject(${row.id})" aria-label="Edit ${row.subject_code}" title="Edit subject">
+        `<button type="button" class="table-edit-button" onclick="editStudentSubject(${row.id})" aria-label="Edit ${row.subject_code}" title="Edit course">
           <svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg>
         </button>`,
     },
@@ -133,7 +133,7 @@ searchData.addEventListener("submit", async (event) => {
 });
 
 function loadIncludedData() {
-  loadSpinner("Loading the selected student's subjects");
+  loadSpinner("Loading the selected student's courses");
   return $.ajax({
     url: `/api/studentsubject/included/student_id=${student_id}&school_year_id=${school_year_id}&semester_id=${semester_id}`,
     type: "get",
@@ -148,7 +148,7 @@ function loadIncludedData() {
     })
     .fail(function () {
       hideSpinner();
-      setErrorMessage("Unable to load the selected student's subjects.");
+      setErrorMessage("Unable to load the selected student's courses.");
     });
 }
 
@@ -224,7 +224,7 @@ async function openStudentSubjects(selectedStudentId) {
   document.getElementById("studentSubjectsTitle").textContent =
     student.student_name;
   document.getElementById("studentSubjectsContext").textContent =
-    `${student.student_number} · ${student.total_count} subject${
+    `${student.student_number} · ${student.total_count} course${
       student.total_count === 1 ? "" : "s"
     }`;
   showEnrollmentTab("included");
@@ -254,7 +254,7 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
   const rows = [...document.querySelectorAll(".subject-entry")];
   if (
     !rows.length ||
-    !confirm(`Add ${rows.length} subject${rows.length === 1 ? "" : "s"}?`)
+    !confirm(`Add ${rows.length} course${rows.length === 1 ? "" : "s"}?`)
   )
     return;
   const shared = {
@@ -284,7 +284,7 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
     }).then(async (result) => {
       const payload = await result.json();
       if (!result.ok && result.status !== 409) {
-        throw new Error(payload.message || "Unable to add subjects.");
+        throw new Error(payload.message || "Unable to add courses.");
       }
       return payload;
     });
@@ -306,12 +306,12 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
     }
 
     setSuccessMessage(
-      `${createdRecords.length} subject${
+      `${createdRecords.length} course${
         createdRecords.length === 1 ? "" : "s"
       } added; ${updatedCount} updated; ${skippedCount} unchanged.`,
     );
   } catch (error) {
-    setErrorMessage(error.message || "Unable to add the selected subjects.");
+    setErrorMessage(error.message || "Unable to add the selected courses.");
   }
 });
 
@@ -533,12 +533,12 @@ async function editStudentSubject(id) {
     const response = await fetch(`/api/studentsubject/${id}`);
     const payload = await response.json();
     if (!response.ok || !payload.success) {
-      throw new Error(payload.message || "Unable to load student subject.");
+      throw new Error(payload.message || "Unable to load student course.");
     }
     const record = Array.isArray(payload.data) ? payload.data[0] : payload.data;
     editingSubjectRecord = record;
 
-    copyEditOptions("editSubjectSelect", "selectSubject", "Select subject");
+    copyEditOptions("editSubjectSelect", "selectSubject", "Select course");
     copyEditOptions("editTeacherSelect", "selectTeacher", "Select teacher");
     copyEditOptions("editRoomSelect", "selectRoom", "No room");
     const subjectSelect = document.getElementById("editSubjectSelect");
@@ -568,7 +568,7 @@ async function editStudentSubject(id) {
     [subjectSelect, teacherSelect, roomSelect].forEach(syncSearchableSelect);
     toggleModal("editSubjectModal", true);
   } catch (error) {
-    setErrorMessage(error.message || "Unable to load student subject.");
+    setErrorMessage(error.message || "Unable to load student course.");
   }
 }
 
@@ -576,7 +576,7 @@ document
   .getElementById("editStudentSubjectForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!editingSubjectRecord || !confirm("Save these subject changes?")) return;
+    if (!editingSubjectRecord || !confirm("Save these course changes?")) return;
     const values = Object.fromEntries(new FormData(event.currentTarget));
     try {
       const response = await fetch("/api/studentsubject/update", {
@@ -592,13 +592,13 @@ document
       });
       const payload = await response.json();
       if (!response.ok || !payload.success) {
-        throw new Error(payload.message || "Unable to update student subject.");
+        throw new Error(payload.message || "Unable to update student course.");
       }
       toggleModal("editSubjectModal", false);
       await Promise.all([loadIncludedData(), loadExcludedData()]);
       setSuccessMessage(payload.message);
     } catch (error) {
-      setErrorMessage(error.message || "Unable to update student subject.");
+      setErrorMessage(error.message || "Unable to update student course.");
     }
   });
 
@@ -843,7 +843,7 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
     },
   ]);
   const book = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(book, sheet, "Student Subjects");
+  XLSX.utils.book_append_sheet(book, sheet, "Student Courses");
   XLSX.writeFile(book, "student_subject_import_template.xlsx");
 });
 
@@ -1044,7 +1044,7 @@ async function classifySubjectRows(rows) {
     if (!resolved.student_id) missing.push("student");
     if (!resolved.school_year_id) missing.push("school year");
     if (!resolved.semester_id) missing.push("semester");
-    if (!resolved.subject_id) missing.push("subject");
+    if (!resolved.subject_id) missing.push("course");
     if (!resolved.teacher_id) missing.push("teacher");
     if (roomCode && !resolved.room_id) missing.push("room");
     const key = [
@@ -1063,7 +1063,7 @@ async function classifySubjectRows(rows) {
     } else if (seen.has(key)) {
       result.errors.push({
         ...item,
-        reason: "Duplicate student subject in file",
+        reason: "Duplicate student course in file",
       });
     } else {
       seen.add(key);
@@ -1310,7 +1310,7 @@ document
     if (!groups.size) {
       toggleModal("spinnerStatusModal", false);
       downloadSubjectImportErrors(errors);
-      return setErrorMessage("No student subjects could be imported.");
+      return setErrorMessage("No student courses could be imported.");
     }
     setImportProgress(
       "Import in progress",
@@ -1472,7 +1472,7 @@ function showEnrollmentTab(tab) {
   if (!included) tableExcluded.columns.adjust().draw(false);
 }
 
-function loadSpinner(message = "Loading student subjects") {
+function loadSpinner(message = "Loading student courses") {
   const overlay = document.getElementById("tableLoadingOverlay");
   const card = document.getElementById("tableLoadingOverlayCard");
   const label = document.getElementById("tableLoadingMessage");

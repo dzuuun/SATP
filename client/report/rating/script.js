@@ -19,10 +19,10 @@ if (!state.userId) {
 
 const reportDescriptions = {
   institutional:
-    "Shows the selected teacher and subject within the institutional rating framework.",
+    "Shows the selected teacher and course within the institutional rating framework.",
   collegiate: "Summarizes assessment ratings for a selected college.",
   departmental: "Summarizes assessment ratings for a selected department.",
-  individual: "Shows the detailed rating for a selected teacher and subject.",
+  individual: "Shows the detailed rating for a selected teacher and course.",
 };
 function updateTeacherExportState() {
   const ratingType = document.getElementById("rating").value;
@@ -38,11 +38,11 @@ function updateTeacherExportState() {
   button.disabled = !enabled;
   button.setAttribute("aria-disabled", String(!enabled));
   button.title = enabled
-    ? `Export all subjects for ${teacherName} in the selected school year and semester`
-    : "Select a teacher to export all of their subjects";
+    ? `Export all courses for ${teacherName} in the selected school year and semester`
+    : "Select a teacher to export all of their courses";
   hint.textContent = enabled
-    ? `All subjects for ${teacherName} in the selected period`
-    : "Select a teacher to export all subjects for the selected period";
+    ? `All courses for ${teacherName} in the selected period`
+    : "Select a teacher to export all courses for the selected period";
 }
 
 async function requestJson(url, options = {}) {
@@ -145,11 +145,11 @@ async function updateSubjects() {
     '<option value="">Select the period and teacher first</option>';
   hint.dataset.state = "";
   hint.textContent =
-    "Subjects are based on the selected teacher and academic period.";
+    "Courses are based on the selected teacher and academic period.";
   if (!schoolYearId || !semesterId || !teacherId) return;
 
-  subject.innerHTML = '<option value="">Loading subjects...</option>';
-  hint.textContent = "Loading the teacher's subjects...";
+  subject.innerHTML = '<option value="">Loading courses...</option>';
+  hint.textContent = "Loading the teacher's courses...";
   try {
     const response = await requestJson("/api/report/rating/teacher/subjects", {
       method: "POST",
@@ -163,25 +163,25 @@ async function updateSubjects() {
     if (requestId !== state.subjectRequest) return;
     const rows = response.data || [];
     subject.innerHTML = rows.length
-      ? '<option value="">Select a subject</option>' +
+      ? '<option value="">Select a course</option>' +
         rows
           .map(
             (row) =>
               `<option value="${escapeHtml(row.subject_id)}">${escapeHtml(row.subject_code)} — ${escapeHtml(row.subject_name)}</option>`,
           )
           .join("")
-      : '<option value="">No subjects available</option>';
+      : '<option value="">No courses available</option>';
     subject.disabled = !rows.length;
     hint.dataset.state = rows.length ? "ready" : "error";
     hint.textContent = rows.length
-      ? `${rows.length} subject${rows.length === 1 ? "" : "s"} available.`
-      : "No subjects were found for this teacher and period.";
+      ? `${rows.length} course${rows.length === 1 ? "" : "s"} available.`
+      : "No courses were found for this teacher and period.";
   } catch (error) {
     if (requestId !== state.subjectRequest) return;
-    subject.innerHTML = '<option value="">Unable to load subjects</option>';
+    subject.innerHTML = '<option value="">Unable to load courses</option>';
     hint.dataset.state = "error";
     hint.textContent =
-      error.message || "Unable to load the teacher's subjects.";
+      error.message || "Unable to load the teacher's courses.";
   }
 }
 
@@ -224,7 +224,7 @@ async function loadTeachersForPeriod() {
         rows
           .map(
             (row) =>
-              `<option value="${escapeHtml(row.id)}" data-name="${escapeHtml(row.name)}">${escapeHtml(row.name)} (${Number(row.subject_count)} subject${Number(row.subject_count) === 1 ? "" : "s"})</option>`,
+              `<option value="${escapeHtml(row.id)}" data-name="${escapeHtml(row.name)}">${escapeHtml(row.name)} (${Number(row.subject_count)} course${Number(row.subject_count) === 1 ? "" : "s"})</option>`,
           )
           .join("")
       : '<option value="">No teachers available</option>';
@@ -419,7 +419,7 @@ document
       data.ratingReport === "institutional" ||
       data.ratingReport === "individual";
     if (needsSubject && !data.subject) {
-      showToast("Select an available subject to continue.");
+      showToast("Select an available course to continue.");
       return;
     }
     const destinations = {

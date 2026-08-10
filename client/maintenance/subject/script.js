@@ -23,8 +23,8 @@ $(document).ready(() => {
   table = $("#table").DataTable({
     ajax: { url: "/api/subject", dataSrc: "data", cache: true },
     columns: [
-      { data: "code", title: "Subject code", width: "18%" },
-      { data: "name", title: "Subject name" },
+      { data: "code", title: "Course code", width: "18%" },
+      { data: "name", title: "Course name" },
       {
         data: "is_active",
         title: "Status",
@@ -42,12 +42,12 @@ $(document).ready(() => {
         orderable: false,
         className: "dt-center",
         render: (id) =>
-          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit subject"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
+          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit course"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
       },
     ],
     pageLength: 10,
     dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
-    language: { search: "", searchPlaceholder: "Search subjects..." },
+    language: { search: "", searchPlaceholder: "Search courses..." },
   });
 });
 
@@ -55,7 +55,7 @@ document
   .getElementById("newSubjectForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this subject?")) return;
+    if (!confirm("Create this course?")) return;
     const payload = formPayload(event.currentTarget, "isSubjectActive");
     await saveSubject("/api/subject/add", "POST", payload, "addNewModal");
   });
@@ -71,7 +71,7 @@ async function editFormCall(id) {
       subject.is_active == 1;
     toggleModal("editModal", true);
   } catch (error) {
-    setErrorMessage("Unable to load the subject.");
+    setErrorMessage("Unable to load the course.");
   }
 }
 
@@ -79,7 +79,7 @@ document
   .getElementById("editSubjectForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these subject changes?")) return;
+    if (!confirm("Save these course changes?")) return;
     const payload = formPayload(event.currentTarget, "isSubjectActiveEdit");
     payload.id = rowIdToUpdate;
     await saveSubject("/api/subject/update", "PUT", payload, "editModal");
@@ -104,7 +104,7 @@ async function saveSubject(url, method, payload, modalId) {
     toggleModal(modalId, false);
     table.ajax.reload(null, false);
   } catch (error) {
-    setErrorMessage("Unable to save the subject.");
+    setErrorMessage("Unable to save the course.");
   }
 }
 
@@ -122,7 +122,7 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
     { code: "ENG 101", name: "English Communication" },
   ]);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Subjects");
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Courses");
   XLSX.writeFile(workbook, "subject_import_template.xlsx");
 });
 
@@ -195,7 +195,7 @@ function classifyRows(rows, existing) {
     if (!code || !name) {
       result.errors.push({ ...base, reason: "Code and name are required" });
     } else if (seen.has(key)) {
-      result.errors.push({ ...base, reason: "Duplicate subject code in file" });
+      result.errors.push({ ...base, reason: "Duplicate course code in file" });
     } else {
       seen.add(key);
       const current = byCode.get(key);

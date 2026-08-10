@@ -168,8 +168,8 @@ $(document).ready(async () => {
     },
     columns: [
       { data: "schedule_code", title: "Schedule code" },
-      { data: "subject_code", title: "Subject code" },
-      { data: "subject_name", title: "Subject" },
+      { data: "subject_code", title: "Course code" },
+      { data: "subject_name", title: "Course" },
       { data: "teacher_name", title: "Assigned teacher" },
       { data: "student_count", title: "Students", className: "dt-center" },
       { data: null, title: "Actions", orderable: false, className: "dt-center", render: () => `<button type="button" class="section-reassign-button" aria-label="Reassign teacher">Reassign</button>` },

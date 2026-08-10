@@ -57,12 +57,12 @@ async function initializeSubjects() {
         },
         error() {
           hideLoading();
-          showToast("Unable to load your subjects.");
+          showToast("Unable to load your courses.");
         },
       },
       columns: [
-        { data: "subject_code", title: "Subject code", width: "16%" },
-        { data: "subject_name", title: "Subject name" },
+        { data: "subject_code", title: "Course code", width: "16%" },
+        { data: "subject_name", title: "Course name" },
         { data: "teachers_name", title: "Teacher", width: "28%" },
         {
           data: null,
@@ -86,8 +86,8 @@ async function initializeSubjects() {
       pageLength: 10,
       language: {
         search: "",
-        searchPlaceholder: "Search subjects...",
-        emptyTable: "No subjects are available for this academic period.",
+        searchPlaceholder: "Search courses...",
+        emptyTable: "No courses are available for this academic period.",
         paginate: { previous: "Previous", next: "Next" },
       },
       initComplete: hideLoading,

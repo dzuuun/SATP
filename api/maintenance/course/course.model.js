@@ -63,7 +63,7 @@ module.exports = {
             (error, results) => {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Added Course: " + data.code],
+                [data.user_id, "Added Program: " + data.code],
                 (error, results) => {
                   if (error) {
                     console.log(error);
@@ -91,7 +91,7 @@ module.exports = {
         if (results.changedRows == 1) {
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated Course: " + data.code],
+            [data.user_id, "Updated Program: " + data.code],
             (error, results) => {
               if (error) {
                 console.log(error);
@@ -119,7 +119,7 @@ module.exports = {
             if (results.affectedRows == 1) {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Deleted Course: " + result[0].code],
+                [data.user_id, "Deleted Program: " + result[0].code],
                 (error, results) => {
                   if (error) {
                     console.log(error);

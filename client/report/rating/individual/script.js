@@ -131,7 +131,7 @@ function renderReport() {
     });
     html.push(`<tr class="average-row"><td>Category Average: </td><td>${average(items.map((item) => item.mean)).toFixed(2)}</td></tr>`);
   });
-  html.push(`<tr class="average-row"><td>Subject Average: </td><td>${subjectMean.toFixed(2)}</td></tr>`);
+  html.push(`<tr class="average-row"><td>Course Average: </td><td>${subjectMean.toFixed(2)}</td></tr>`);
   html.push(`<tr class="average-row"><td>Your Mean: </td><td>${displayedTeacherMean.toFixed(2)}</td></tr>`);
   html.push(`<tr class="average-row"><td>Qualitative Equivalent: </td><td>${escapeHtml(getQualitativeEquivalent(displayedTeacherMean))}</td></tr>`);
   document.getElementById("tbData").innerHTML = html.join("");

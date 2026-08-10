@@ -127,7 +127,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Student's Subjects retrieved successfully.",
+        message: "Student's Courses retrieved successfully.",
         count: results.length,
         data: results,
       });
@@ -327,7 +327,7 @@ module.exports = {
         return res.json({
           success: 1,
           message:
-            "Subject rated successfully. Thank you for your participation.",
+            "Course rated successfully. Thank you for your participation.",
           data: results,
         });
       });

@@ -10,7 +10,7 @@ const state = {
 };
 
 if (!state.userId || !state.recordId) {
-  alert("Select a subject before starting an assessment.");
+  alert("Select a course before starting an assessment.");
   location.href = "../rating/index.html";
 }
 
@@ -35,7 +35,7 @@ async function initializeAssessment() {
       throw new Error("This assessment does not belong to your account.");
     }
     if (Number(details.status) !== 0) {
-      throw new Error("This subject has already been assessed.");
+      throw new Error("This course has already been assessed.");
     }
     state.items = itemResponse.data || [];
     if (!state.items.length)

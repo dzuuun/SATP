@@ -32,7 +32,7 @@ $(document).ready(() => {
         className: "student-username-cell",
       },
       { data: "name", title: "Student name" },
-      { data: "course", title: "Course", width: "14%" },
+      { data: "course", title: "Program", width: "14%" },
       {
         data: "is_active",
         title: "Status",
@@ -76,7 +76,7 @@ async function loadCourses() {
       });
     });
   } catch (e) {
-    setErrorMessage("Unable to load courses.");
+    setErrorMessage("Unable to load programs.");
   }
 }
 function addPayload(form) {
@@ -324,7 +324,7 @@ function classifyRows(rows, existing) {
     else if (!course)
       result.errors.push({
         ...base,
-        reason: `Course ${courseCode} was not found`,
+        reason: `Program ${courseCode} was not found`,
       });
     else if (seen.has(key))
       result.errors.push({ ...base, reason: "Duplicate ID number in file" });

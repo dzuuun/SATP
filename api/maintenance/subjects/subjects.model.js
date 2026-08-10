@@ -70,7 +70,7 @@ module.exports = {
               // Log activity after successful subject insert
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
-                [data.user_id, "Added Subject: " + data.code],
+                [data.user_id, "Added Course: " + data.code],
                 (error) => {
                   if (error) {
                     console.log("Activity Log Error:", error); // Log the error but don't interrupt flow
@@ -101,7 +101,7 @@ module.exports = {
           // Log the activity if the subject was successfully updated
           pool.query(
             "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
-            [data.user_id, "Updated Subject: " + data.name],
+            [data.user_id, "Updated Course: " + data.name],
             (logError) => {
               if (logError) {
                 console.log("Activity Log Error:", logError); // Log the error but don't interrupt the flow
@@ -126,7 +126,7 @@ module.exports = {
             if (results.affectedRows == 1) {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Deleted Subject: " + result[0].code],
+                [data.user_id, "Deleted Course: " + result[0].code],
                 (error, results) => {
                   if (error) {
                     console.log(error);

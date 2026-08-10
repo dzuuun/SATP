@@ -156,7 +156,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Teacher's Subject retrieved successfully.",
+        message: "Teacher's Course retrieved successfully.",
         count: results.length,
         data: results,
       });
@@ -178,7 +178,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Teacher's Subject retrieved successfully.",
+        message: "Teacher's Course retrieved successfully.",
         count: results.length,
         data: results,
       });

@@ -109,8 +109,8 @@ module.exports = {
       req.params,
       listResponse(
         res,
-        "Student subjects retrieved successfully.",
-        "Unable to retrieve student subjects.",
+        "Student courses retrieved successfully.",
+        "Unable to retrieve student courses.",
       ),
     );
   },
@@ -128,8 +128,8 @@ module.exports = {
       req.params,
       listResponse(
         res,
-        "Student subjects retrieved successfully.",
-        "Unable to retrieve student subjects.",
+        "Student courses retrieved successfully.",
+        "Unable to retrieve student courses.",
       ),
     );
   },
@@ -147,17 +147,17 @@ module.exports = {
           return databaseError(
             res,
             error,
-            "Unable to retrieve the student subject.",
+            "Unable to retrieve the student course.",
           );
         }
         if (!results.length) {
           return res
             .status(404)
-            .json({ success: 0, message: "Student subject not found." });
+            .json({ success: 0, message: "Student course not found." });
         }
         return res.json({
           success: 1,
-          message: "Student subject retrieved successfully.",
+          message: "Student course retrieved successfully.",
           data: results,
         });
       },
@@ -177,8 +177,8 @@ module.exports = {
       req.params,
       listResponse(
         res,
-        "Excluded student subjects retrieved successfully.",
-        "Unable to retrieve excluded student subjects.",
+        "Excluded student courses retrieved successfully.",
+        "Unable to retrieve excluded student courses.",
       ),
     );
   },
@@ -200,7 +200,7 @@ module.exports = {
       if (!results.length) {
         return res
           .status(404)
-          .json({ success: 0, message: "Student subject not found." });
+          .json({ success: 0, message: "Student course not found." });
       }
       return res.json({
         success: 1,
@@ -222,11 +222,11 @@ module.exports = {
         return res.status(409).json({ success: 0, message: error.message });
       }
       if (error) {
-        return databaseError(res, error, "Unable to add the student subject.");
+        return databaseError(res, error, "Unable to add the student course.");
       }
       return res.status(201).json({
         success: 1,
-        message: "Student subject added successfully.",
+        message: "Student course added successfully.",
         id: results.insertId,
       });
     });
@@ -262,7 +262,7 @@ module.exports = {
 
     return model.addStudentSubjects(req.body, (error, results) => {
       if (error) {
-        return databaseError(res, error, "Unable to add the student subjects.");
+        return databaseError(res, error, "Unable to add the student courses.");
       }
       return res.status(results.created.length ? 201 : 200).json({
         success: 1,
@@ -290,7 +290,7 @@ module.exports = {
     ) {
       return res.status(400).json({
         success: 0,
-        message: "A valid student subject record is required.",
+        message: "A valid student course record is required.",
       });
     }
     return model.updateStudentSubject(data, (error, results) => {
@@ -298,19 +298,19 @@ module.exports = {
         return res.status(409).json({ success: 0, message: error.message });
       }
       if (error) {
-        return databaseError(res, error, "Unable to update the student subject.");
+        return databaseError(res, error, "Unable to update the student course.");
       }
       if (!results.affectedRows) {
         return res.status(404).json({
           success: 0,
-          message: "Student subject not found.",
+          message: "Student course not found.",
         });
       }
       return res.json({
         success: 1,
         message: results.changedRows
-          ? "Student subject updated successfully."
-          : "Student subject information is unchanged.",
+          ? "Student course updated successfully."
+          : "Student course information is unchanged.",
       });
     });
   },
@@ -327,18 +327,18 @@ module.exports = {
         return databaseError(
           res,
           error,
-          "Unable to exclude the student subject.",
+          "Unable to exclude the student course.",
         );
       }
       if (!results.changedRows) {
         return res.status(404).json({
           success: 0,
-          message: "Student subject not found or already excluded.",
+          message: "Student course not found or already excluded.",
         });
       }
       return res.json({
         success: 1,
-        message: "Student subject excluded successfully.",
+        message: "Student course excluded successfully.",
       });
     });
   },

@@ -117,7 +117,7 @@ function renderRatingAccess(enabled) {
   status.classList.toggle("closed", !state.rating_enabled);
   description.textContent = state.rating_enabled
     ? "Students can open and submit their pending teacher assessments."
-    : "Students can view their subjects, but cannot start or submit ratings.";
+    : "Students can view their courses, but cannot start or submit ratings.";
 }
 
 async function readApiJson(response) {
@@ -201,14 +201,14 @@ $(document).ready(function () {
       { data: "IDNumber", title: "ID Number", width: "15%" },
       { data: "FullName", title: "Student Name", width: "35%" },
       {
-        data: "Course",
-        title: "Course",
+        data: "Program",
+        title: "Program",
         width: "30%",
         className: "text-wrap-column",
       },
       {
         data: "TotalSubjects",
-        title: "Total Subjects",
+        title: "Total Courses",
         className: "text-center font-bold",
         width: "10%",
       },
@@ -282,7 +282,7 @@ async function showSubjectModal(studentId) {
         { data: "subject_code", title: "CODE" },
         {
           data: "subject_name",
-          title: "SUBJECT",
+          title: "COURSE",
           width: "45%",
           className: "text-wrap-column",
         },

@@ -24,8 +24,8 @@ $(document).ready(() => {
   table = $("#table").DataTable({
     ajax: { url: "/api/course", dataSrc: "data", cache: true },
     columns: [
-      { data: "code", title: "Course code", width: "18%" },
-      { data: "name", title: "Course name" },
+      { data: "code", title: "Program code", width: "18%" },
+      { data: "name", title: "Program name" },
       { data: "department_code", title: "Department", width: "16%" },
       {
         data: "is_active",
@@ -44,12 +44,12 @@ $(document).ready(() => {
         orderable: false,
         className: "dt-center",
         render: (id) =>
-          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit course"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
+          `<button class="table-edit-button" onclick="editFormCall(${id})" aria-label="Edit program"><svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg></button>`,
       },
     ],
     pageLength: 10,
     dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
-    language: { search: "", searchPlaceholder: "Search courses..." },
+    language: { search: "", searchPlaceholder: "Search programs..." },
   });
 
 });
@@ -58,7 +58,7 @@ document
   .getElementById("newCourseForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this course?")) return;
+    if (!confirm("Create this program?")) return;
     const payload = formPayload(event.currentTarget, "isCourseActive");
     await saveCourse("/api/course/add", "POST", payload, "addNewModal");
   });
@@ -76,7 +76,7 @@ async function editFormCall(id) {
       course.is_active == 1;
     toggleModal("editModal", true);
   } catch (error) {
-    setErrorMessage("Unable to load the course.");
+    setErrorMessage("Unable to load the program.");
   }
 }
 
@@ -84,7 +84,7 @@ document
   .getElementById("editCourseForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these course changes?")) return;
+    if (!confirm("Save these program changes?")) return;
     const payload = formPayload(event.currentTarget, "isCourseActiveEdit");
     payload.id = rowIdToUpdate;
     await saveCourse("/api/course/update", "PUT", payload, "editModal");
@@ -109,7 +109,7 @@ async function saveCourse(url, method, payload, modalId) {
     toggleModal(modalId, false);
     table.ajax.reload(null, false);
   } catch (error) {
-    setErrorMessage("Unable to save the course.");
+    setErrorMessage("Unable to save the program.");
   }
 }
 
@@ -131,7 +131,7 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
     },
   ]);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Courses");
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Programs");
   XLSX.writeFile(workbook, "course_import_template.xlsx");
 });
 
@@ -224,7 +224,7 @@ function classifyRows(rows, existing) {
         reason: `Department ${departmentCode} was not found`,
       });
     } else if (seen.has(key)) {
-      result.errors.push({ ...base, reason: "Duplicate course code in file" });
+      result.errors.push({ ...base, reason: "Duplicate program code in file" });
     } else {
       seen.add(key);
       const current = byCode.get(key);

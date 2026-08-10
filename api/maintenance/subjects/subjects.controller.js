@@ -2,8 +2,8 @@ const model = require("./subjects.model");
 const { createStandardController } = require("../shared/controller_factory");
 
 module.exports = createStandardController(model, {
-  entity: "Subject",
-  plural: "Subjects",
+  entity: "Course",
+  plural: "Courses",
   actions: {
     getSubjects: ["getSubjects", "list"],
     getActiveSubjects: ["getActiveSubjects", "active"],

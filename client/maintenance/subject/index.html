@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Manage subjects in the NDMU SATP system."
+      content="Manage courses in the NDMU SATP system."
     />
     <meta name="theme-color" content="#075c3b" />
-    <title>SATP | Subject Maintenance</title>
+    <title>SATP | Course Maintenance</title>
     <link rel="icon" href="../../images/NDMU-Logo.png" />
     <link rel="stylesheet" href="../../tailwind.css" />
     <link
@@ -43,7 +43,7 @@
           >
         </div>
         <div class="header-context">
-          <span>Maintenance</span><strong>Subject</strong>
+          <span>Maintenance</span><strong>Course</strong>
         </div>
       </header>
 
@@ -51,23 +51,23 @@
         <section class="page-heading">
           <div>
             <p class="eyebrow">System maintenance</p>
-            <h1>Subject</h1>
-            <p>Manage the academic subjects available throughout SATP.</p>
+            <h1>Course</h1>
+            <p>Manage the academic courses available throughout SATP.</p>
           </div>
           <nav aria-label="Breadcrumb">
             <a href="../../">SATP</a
             ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
             ><span>Maintenance</span
             ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Subjects</span>
+            ><span>Courses</span>
           </nav>
         </section>
         <section class="records-card">
           <div class="records-heading">
             <div>
               <p class="eyebrow">Academic structure</p>
-              <h2>All subjects</h2>
-              <p>Search and maintain subject codes, names, and status.</p>
+              <h2>All courses</h2>
+              <p>Search and maintain course codes, names, and status.</p>
             </div>
             <button
               type="button"
@@ -75,14 +75,14 @@
               onclick="toggleModal('addNewModal', true)"
             >
               <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>Add
-              subject
+              course
             </button>
           </div>
           <div class="table-shell">
             <table
               id="table"
               class="display nowrap"
-              aria-label="Subjects"
+              aria-label="Courses"
             ></table>
           </div>
         </section>
@@ -105,7 +105,7 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">New record</p>
-            <h2 id="add-title">Add subject</h2>
+            <h2 id="add-title">Add course</h2>
           </div>
           <button
             class="modal-close"
@@ -120,7 +120,7 @@
           <div class="modal-body">
             <div class="field-row">
               <div class="field">
-                <label for="addSubjectCode">Subject code</label
+                <label for="addSubjectCode">Course code</label
                 ><input
                   id="addSubjectCode"
                   name="code"
@@ -129,7 +129,7 @@
                 />
               </div>
               <div class="field">
-                <label for="addSubjectName">Subject name</label
+                <label for="addSubjectName">Course name</label
                 ><input
                   id="addSubjectName"
                   name="name"
@@ -140,7 +140,7 @@
             </div>
             <label class="status-control" for="isSubjectActive"
               ><span
-                ><strong>Active subject</strong
+                ><strong>Active course</strong
                 ><small>Available throughout the system</small></span
               ><input type="checkbox" id="isSubjectActive" checked /><span
                 class="switch"
@@ -167,7 +167,7 @@
                 Cancel
               </button>
               <button class="primary-button" type="submit">
-                Create subject
+                Create course
               </button>
             </div>
           </footer>
@@ -185,8 +185,8 @@
       <div id="editModalCard" class="modal-card scale-95">
         <header class="modal-header">
           <div>
-            <p class="eyebrow">Subject record</p>
-            <h2 id="edit-title">Edit subject</h2>
+            <p class="eyebrow">Course record</p>
+            <h2 id="edit-title">Edit course</h2>
           </div>
           <button
             class="modal-close"
@@ -201,17 +201,17 @@
           <div class="modal-body">
             <div class="field-row">
               <div class="field">
-                <label for="editSubjectCode">Subject code</label
+                <label for="editSubjectCode">Course code</label
                 ><input id="editSubjectCode" name="code" required />
               </div>
               <div class="field">
-                <label for="editSubjectName">Subject name</label
+                <label for="editSubjectName">Course name</label
                 ><input id="editSubjectName" name="name" required />
               </div>
             </div>
             <label class="status-control" for="isSubjectActiveEdit"
               ><span
-                ><strong>Active subject</strong
+                ><strong>Active course</strong
                 ><small>Available throughout the system</small></span
               ><input type="checkbox" id="isSubjectActiveEdit" /><span
                 class="switch"
@@ -242,7 +242,7 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">Bulk action</p>
-            <h2 id="import-title">Import subjects</h2>
+            <h2 id="import-title">Import courses</h2>
           </div>
           <button
             class="modal-close"
@@ -300,7 +300,7 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">Validation complete</p>
-            <h2 id="preview-title">Review subject import</h2>
+            <h2 id="preview-title">Review course import</h2>
           </div>
           <button
             class="modal-close"
@@ -312,19 +312,19 @@
           </button>
         </header>
         <div class="preview-intro">
-          Review all detected changes before updating subject records.
+          Review all detected changes before updating course records.
         </div>
         <div class="preview-body">
           <section class="preview-group created">
             <header>
-              <span class="preview-dot"></span><strong>Created subjects</strong
+              <span class="preview-dot"></span><strong>Created courses</strong
               ><span id="createdCount" class="count-badge">0</span>
             </header>
             <div id="createdPreview" class="preview-list"></div>
           </section>
           <section class="preview-group updated">
             <header>
-              <span class="preview-dot"></span><strong>Updated subjects</strong
+              <span class="preview-dot"></span><strong>Updated courses</strong
               ><span id="updatedCount" class="count-badge">0</span>
             </header>
             <div id="updatedPreview" class="preview-list"></div>
@@ -363,7 +363,7 @@
         <span class="progress-spinner"></span>
         <p class="eyebrow">Import in progress</p>
         <h2 id="statusMessage">0%</h2>
-        <p>Please keep this page open while subject records are processed.</p>
+        <p>Please keep this page open while course records are processed.</p>
       </div>
     </div>
     <div id="toast-container" class="toast-container" aria-live="polite"></div>

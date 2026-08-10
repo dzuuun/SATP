@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#075c3b" />
-    <title>SATP | Student Subject Maintenance</title>
+    <title>SATP | Student Course Maintenance</title>
     <link rel="icon" href="../../images/NDMU-Logo.png" />
     <link rel="stylesheet" href="../../tailwind.css" />
     <link
@@ -38,22 +38,22 @@
           >
         </div>
         <div class="header-context">
-          <span>Maintenance</span><strong>Student subject</strong>
+          <span>Maintenance</span><strong>Student course</strong>
         </div>
       </header>
       <main class="workspace">
         <section class="page-heading">
           <div>
             <p class="eyebrow">System maintenance</p>
-            <h1>Student subject</h1>
-            <p>Manage student schedules and subject inclusion.</p>
+            <h1>Student course</h1>
+            <p>Manage student schedules and course inclusion.</p>
           </div>
           <nav>
             <a href="../../">SATP</a
             ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
             ><span>Maintenance</span
             ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Student Subjects</span>
+            ><span>Student Courses</span>
           </nav>
         </section>
         <section class="records-card">
@@ -62,7 +62,7 @@
               <p class="eyebrow">Enrollment directory</p>
               <h2>Students</h2>
               <p>
-                Open a student to review all subjects for the selected term.
+                Open a student to review all courses for the selected term.
               </p>
             </div>
           </div>
@@ -87,7 +87,7 @@
                 type="button"
                 onclick="openAddModal()"
               >
-                Add subject
+                Add course
               </button>
             </div>
           </form>
@@ -96,7 +96,7 @@
             <table
               id="studentTable"
               class="display"
-              aria-label="Students with enrolled subjects"
+              aria-label="Students with enrolled courses"
             ></table>
           </div>
         </section>
@@ -116,13 +116,13 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">Enrollment detail</p>
-            <h2 id="studentSubjectsTitle">Student subjects</h2>
+            <h2 id="studentSubjectsTitle">Student courses</h2>
             <p id="studentSubjectsContext" class="modal-context"></p>
           </div>
           <button
             class="modal-close"
             onclick="toggleModal('studentSubjectsModal', false)"
-            aria-label="Close student subjects"
+            aria-label="Close student courses"
           >
             <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
           </button>
@@ -135,7 +135,7 @@
               type="button"
               onclick="showEnrollmentTab('included')"
             >
-              Included subjects <span id="includedCount">0</span>
+              Included courses <span id="includedCount">0</span>
             </button>
             <button
               id="excludedTab"
@@ -143,14 +143,14 @@
               type="button"
               onclick="showEnrollmentTab('excluded')"
             >
-              Excluded subjects <span id="excludedCount">0</span>
+              Excluded courses <span id="excludedCount">0</span>
             </button>
           </div>
           <div id="includedPanel" class="table-shell subject-table-shell">
             <table
               id="table"
               class="display"
-              aria-label="Included student subjects"
+              aria-label="Included student courses"
             ></table>
           </div>
           <div
@@ -160,7 +160,7 @@
             <table
               id="tableExcluded"
               class="display"
-              aria-label="Excluded student subjects"
+              aria-label="Excluded student courses"
             ></table>
           </div>
         </div>
@@ -180,7 +180,7 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">New enrollment</p>
-            <h2>Add student subject</h2>
+            <h2>Add student course</h2>
           </div>
           <button
             class="modal-close"
@@ -213,15 +213,15 @@
             </div>
             <div class="batch-heading">
               <div>
-                <p class="eyebrow">Subject batch</p>
-                <h3>Add one or more subjects</h3>
+                <p class="eyebrow">Course batch</p>
+                <h3>Add one or more courses</h3>
               </div>
               <button
                 type="button"
                 class="secondary-button"
                 onclick="addSubjectRow()"
               >
-                Add another subject
+                Add another course
               </button>
             </div>
             <div id="subjectRows" class="subject-rows"></div>
@@ -243,7 +243,7 @@
                 onclick="toggleModal('addNewModal', false)"
               >
                 Cancel</button
-              ><button class="primary-button">Add subjects</button>
+              ><button class="primary-button">Add courses</button>
             </div>
           </footer>
         </form>
@@ -253,11 +253,11 @@
     <template id="subjectRowTemplate">
       <section class="subject-entry">
         <header>
-          <strong>Subject <span class="subject-row-number"></span></strong
+          <strong>Course <span class="subject-row-number"></span></strong
           ><button
             type="button"
             class="remove-subject-row"
-            aria-label="Remove subject"
+            aria-label="Remove course"
             onclick="removeSubjectRow(this)"
           >
             Remove
@@ -265,9 +265,9 @@
         </header>
         <div class="enrollment-grid">
           <div class="field">
-            <label>Subject</label
+            <label>Course</label
             ><select name="subject_id" class="row-subject" required>
-              <option value="" disabled selected>Select subject</option>
+              <option value="" disabled selected>Select course</option>
             </select>
           </div>
           <div class="field">
@@ -300,7 +300,7 @@
           <label class="status-control"
             ><span
               ><strong>Included</strong
-              ><small>Include in assessment subjects</small></span
+              ><small>Include in assessment courses</small></span
             ><input type="checkbox" name="is_included" checked /><span
               class="switch"
             ></span
@@ -310,7 +310,7 @@
     </template>
     <div hidden aria-hidden="true">
       <select id="selectSubject">
-        <option value="" disabled selected>Select subject</option>
+        <option value="" disabled selected>Select course</option>
       </select>
       <select id="selectTeacher">
         <option value="" disabled selected>Select teacher</option>
@@ -328,14 +328,14 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">Enrollment settings</p>
-            <h2>Edit student subject</h2>
+            <h2>Edit student course</h2>
             <p id="editSubjectContext" class="modal-context"></p>
           </div>
           <button
             type="button"
             class="modal-close"
             onclick="toggleModal('editSubjectModal', false)"
-            aria-label="Close edit student subject"
+            aria-label="Close edit student course"
           >
             <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
           </button>
@@ -344,9 +344,9 @@
           <div class="modal-body">
             <div class="enrollment-grid">
               <div class="field">
-                <label for="editSubjectSelect">Subject</label>
+                <label for="editSubjectSelect">Course</label>
                 <select id="editSubjectSelect" name="subject_id" required>
-                  <option value="" disabled selected>Select subject</option>
+                  <option value="" disabled selected>Select course</option>
                 </select>
               </div>
               <div class="field">
@@ -398,7 +398,7 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">Update enrollment</p>
-            <h2>Exclude subject</h2>
+            <h2>Exclude course</h2>
           </div>
           <button
             class="modal-close"
@@ -421,7 +421,7 @@
               onclick="toggleModal('deactivateModal', false)"
             >
               Cancel</button
-            ><button class="primary-button">Exclude subject</button>
+            ><button class="primary-button">Exclude course</button>
           </footer>
         </form>
       </div>
@@ -432,7 +432,7 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">Bulk action</p>
-            <h2>Import student subjects</h2>
+            <h2>Import student courses</h2>
           </div>
           <button
             class="modal-close"
@@ -485,7 +485,7 @@
         <header class="modal-header">
           <div>
             <p class="eyebrow">Validation complete</p>
-            <h2>Review student subject import</h2>
+            <h2>Review student course import</h2>
           </div>
           <button
             class="modal-close"
@@ -569,7 +569,7 @@
         <span class="progress-spinner"></span>
         <p class="eyebrow">Loading records</p>
         <p id="tableLoadingMessage" class="table-loading-message">
-          Loading student subjects
+          Loading student courses
         </p>
       </div>
     </div>

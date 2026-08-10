@@ -141,7 +141,7 @@ async function loadOptions() {
       .getElementById("editPermissionSelect")
       .insertAdjacentHTML("beforeend", permissionOptions);
   } catch {
-    showToast("Unable to load course or permission options.");
+    showToast("Unable to load program or permission options.");
   }
 }
 
