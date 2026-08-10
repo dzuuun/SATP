@@ -40,7 +40,9 @@
 #table td.student-username-cell {
   width: 110px !important;
   max-width: 130px;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 @media (max-width: 640px) {
   .student-grid {

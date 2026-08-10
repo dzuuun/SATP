@@ -395,7 +395,7 @@ document
       "Import in progress";
     document.getElementById("statusMessage").textContent = "0%";
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-    const totals = { created: 0, updated: 0 };
+    const totals = { created: 0, updated: 0, skipped: 0 };
     for (let i = 0; i < actions.length; i++) {
       const { type, item } = actions[i];
       try {
@@ -430,7 +430,9 @@ document
                 }),
               });
         r.success
-          ? totals[type]++
+          ? r.skipped
+            ? totals.skipped++
+            : totals[type]++
           : errors.push({
               ...item.originalRow,
               Error: r.message || "Server rejected row",
@@ -447,7 +449,7 @@ document
     setTimeout(
       () =>
         setSuccessMessage(
-          `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`,
+          `${totals.created} created, ${totals.updated} updated, ${totals.skipped} unchanged${errors.length ? `, ${errors.length} errors exported` : ""}.`,
         ),
       350,
     );

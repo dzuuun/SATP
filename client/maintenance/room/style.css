@@ -258,6 +258,58 @@ button {
   color: var(--muted);
   font-size: 0.75rem;
 }
+
+.maintenance-heading-actions,
+.maintenance-inactive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.maintenance-inactive-toggle {
+  min-height: 42px;
+  padding: 8px 11px;
+  position: relative;
+  color: var(--muted);
+  background: #f7faf8;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.maintenance-inactive-toggle input {
+  width: 1px;
+  height: 1px;
+  position: absolute;
+  opacity: 0;
+}
+
+.maintenance-inactive-toggle input:checked + .switch {
+  background: var(--green-800);
+}
+
+.maintenance-inactive-toggle input:checked + .switch::after {
+  transform: translateX(20px);
+}
+
+.maintenance-inactive-toggle input:focus-visible + .switch {
+  outline: 3px solid rgba(243, 201, 77, 0.8);
+  outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+  .maintenance-heading-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .maintenance-heading-actions > * {
+    justify-content: center;
+  }
+}
 .table-edit-button {
   width: 34px;
   height: 34px;
@@ -666,17 +718,20 @@ table.dataTable tbody tr:hover {
   z-index: 110;
 }
 .progress-card {
-  width: min(400px, 100%);
-  padding: 44px 30px;
+  width: min(310px, calc(100vw - 32px));
+  min-height: 0;
+  padding: 24px;
   display: grid;
   justify-items: center;
+  gap: 8px;
   text-align: center;
   overflow: hidden;
+  border-radius: 15px;
 }
 .progress-spinner {
-  width: 64px;
-  height: 64px;
-  margin-bottom: 24px;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 5px;
   border: 5px solid var(--green-100);
   border-top-color: var(--green-800);
   border-radius: 50%;
@@ -690,11 +745,12 @@ table.dataTable tbody tr:hover {
   font-weight: 500;
 }
 .progress-card > p:last-child {
-  max-width: 280px;
-  margin: 0;
+  max-width: 240px;
+  margin: 2px auto 0;
   color: var(--muted);
-  font-size: 0.75rem;
-  line-height: 1.6;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .preview-card {

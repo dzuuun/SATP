@@ -323,7 +323,7 @@ document
     }
     toggleModal("importPreviewModal", false);
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-    const totals = { created: 0, updated: 0 };
+    const totals = { created: 0, updated: 0, skipped: 0 };
     for (let index = 0; index < actions.length; index++) {
       const { type, item } = actions[index];
       const payload = {
@@ -343,7 +343,9 @@ document
           },
         );
         response.success
-          ? totals[type]++
+          ? response.skipped
+            ? totals.skipped++
+            : totals[type]++
           : errors.push({
               ...item.originalRow,
               Error: response.message || "Server rejected row",
@@ -360,7 +362,7 @@ document
     setTimeout(
       () =>
         setSuccessMessage(
-          `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`,
+          `${totals.created} created, ${totals.updated} updated, ${totals.skipped} unchanged${errors.length ? `, ${errors.length} errors exported` : ""}.`,
         ),
       350,
     );

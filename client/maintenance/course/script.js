@@ -51,6 +51,7 @@ $(document).ready(() => {
     dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
     language: { search: "", searchPlaceholder: "Search courses..." },
   });
+
 });
 
 document
@@ -287,7 +288,7 @@ document
 
     toggleModal("importPreviewModal", false);
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-    const totals = { created: 0, updated: 0 };
+    const totals = { created: 0, updated: 0, skipped: 0 };
     for (let index = 0; index < actions.length; index++) {
       const { type, item } = actions[index];
       const payload = {
@@ -307,7 +308,9 @@ document
           },
         );
         response.success
-          ? totals[type]++
+          ? response.skipped
+            ? totals.skipped++
+            : totals[type]++
           : errors.push({
               ...item.originalRow,
               Error: response.message || "Server rejected row",
@@ -322,7 +325,7 @@ document
     if (errors.length) downloadErrors(errors);
     table.ajax.reload(null, false);
     setTimeout(() => {
-      const message = `${totals.created} created, ${totals.updated} updated${errors.length ? `, ${errors.length} errors exported` : ""}.`;
+      const message = `${totals.created} created, ${totals.updated} updated, ${totals.skipped} unchanged${errors.length ? `, ${errors.length} errors exported` : ""}.`;
       errors.length ? setErrorMessage(message) : setSuccessMessage(message);
     }, 350);
   });

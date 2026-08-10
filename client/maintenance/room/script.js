@@ -539,7 +539,7 @@ runImportButton.addEventListener("click", async () => {
   toggleModal("importPreviewModal", false);
   setTimeout(() => toggleModal("spinnerStatusModal", true), 300);
 
-  const completed = { created: 0, updated: 0, errors: 0 };
+  const completed = { created: 0, updated: 0, skipped: 0, errors: 0 };
 
   for (let index = 0; index < actions.length; index++) {
     const { type, room } = actions[index];
@@ -554,7 +554,7 @@ runImportButton.addEventListener("click", async () => {
           : await updateRoomFromImport(payload);
 
       if (response.success == 1 || response.success === true) {
-        completed[type]++;
+        response.skipped ? completed.skipped++ : completed[type]++;
       } else {
         completed.errors++;
         errorRows.push({
@@ -586,7 +586,7 @@ runImportButton.addEventListener("click", async () => {
 
   setTimeout(() => {
     const errorTotal = errorRows.length;
-    const message = `${completed.created} created, ${completed.updated} updated${errorTotal ? `, ${errorTotal} errors exported` : ""}.`;
+    const message = `${completed.created} created, ${completed.updated} updated, ${completed.skipped} unchanged${errorTotal ? `, ${errorTotal} errors exported` : ""}.`;
     if (errorTotal) {
       setErrorMessage(message);
     } else {
