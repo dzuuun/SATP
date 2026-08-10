@@ -47,6 +47,11 @@
   margin-top: 24px;
 }
 
+.report-sheet .comments-section,
+.report-sheet .comment-entry {
+  color: #000;
+}
+
 .comments-section h4 {
   margin: 0 0 9px;
   color: var(--green-900);

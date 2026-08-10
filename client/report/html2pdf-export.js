@@ -4,6 +4,11 @@ async function renderReportPdf({
   element = document.getElementById("reportSheet"),
   filename,
   pagebreakAvoid = [],
+  avoidAll = false,
+  pagebreakMode = null,
+  includeDefaultAvoid = true,
+  canvasScale = 2,
+  maxCanvasHeight = 0,
   save = true,
 }) {
   if (typeof html2pdf === "undefined") {
@@ -64,14 +69,6 @@ async function renderReportPdf({
     .html2pdf-report table {
       table-layout: fixed !important;
       border-collapse: collapse !important;
-    }
-    .html2pdf-report thead,
-    .html2pdf-report tbody tr,
-    .html2pdf-report tfoot,
-    .html2pdf-report th,
-    .html2pdf-report td {
-      break-inside: avoid !important;
-      page-break-inside: avoid !important;
     }
     .html2pdf-report table[aria-label="Overall college teacher ranking"] th,
     .html2pdf-report table[aria-label="Overall college teacher ranking"] td {
@@ -143,6 +140,9 @@ async function renderReportPdf({
     await new Promise((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(resolve)),
     );
+    const effectiveCanvasScale = maxCanvasHeight
+      ? Math.min(canvasScale, maxCanvasHeight / Math.max(clone.scrollHeight, 1))
+      : canvasScale;
 
     const worker = html2pdf()
       .set({
@@ -150,7 +150,7 @@ async function renderReportPdf({
         filename,
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: {
-          scale: 2,
+          scale: effectiveCanvasScale,
           useCORS: true,
           allowTaint: false,
           backgroundColor: "#ffffff",
@@ -160,19 +160,24 @@ async function renderReportPdf({
         },
         jsPDF: { unit: "mm", format: "letter", orientation: "portrait" },
         pagebreak: {
-          mode: ["avoid-all", "css", "legacy"],
+          mode:
+            pagebreakMode ||
+            (avoidAll
+              ? ["avoid-all", "css", "legacy"]
+              : ["css", "legacy"]),
           avoid: [
-            ".document-header",
-            ".document-title",
-            ".report-details",
-            ".summary-grid",
-            "thead",
-            "tbody tr",
-            "tfoot",
-            ".category-row",
-            ".average-row",
-            ".comment-entry",
-            ".document-footer",
+            ...(includeDefaultAvoid
+              ? [
+                  ".document-header",
+                  ".document-title",
+                  ".report-details",
+                  ".summary-grid",
+                  ".category-row",
+                  ".average-row",
+                  ".comment-entry",
+                  ".document-footer",
+                ]
+              : []),
             ...pagebreakAvoid,
           ],
         },

@@ -455,6 +455,9 @@ document
     try {
       await renderReportPdf({
         filename: `SATP Departmental Rating Report - ${departmentName} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+        pagebreakMode: ["legacy"],
+        includeDefaultAvoid: false,
+        maxCanvasHeight: 30000,
       });
     } catch (error) {
       showToast(error.message || "Unable to generate the PDF report.");

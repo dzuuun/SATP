@@ -402,6 +402,7 @@ document
     try {
       await renderReportPdf({
         filename: `SATP College Ranking Report - ${safeCollegeCode} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+        avoidAll: true,
       });
     } catch (error) {
       showToast(error.message || "Unable to generate the PDF report.");

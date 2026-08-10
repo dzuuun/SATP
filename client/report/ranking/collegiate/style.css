@@ -281,6 +281,19 @@
   font-size: 0.54rem;
 }
 
+/* Keep report text fully legible on screen and in PDF exports. */
+.report-sheet {
+  color: #000;
+}
+
+.report-sheet .report-details span,
+.report-sheet .mean-summary span,
+.report-sheet .report-table-wrap th,
+.report-sheet .empty-state p,
+.report-sheet .document-footer {
+  color: #000;
+}
+
 @media (max-width: 720px) {
   .report-toolbar,
   .report-toolbar > div {

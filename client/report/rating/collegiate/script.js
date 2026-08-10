@@ -132,7 +132,6 @@ function renderReport() {
       .map((row) => `<p class="comment-entry">${escapeHtml(row.comment)}</p>`)
       .join("");
   }
-  document.getElementById("downloadButton").disabled = false;
   document.getElementById("printButton").disabled = false;
 }
 
@@ -447,6 +446,9 @@ document
     try {
       await renderReportPdf({
         filename: `SATP College Rating Report - ${collegeName} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+        pagebreakMode: ["legacy"],
+        includeDefaultAvoid: false,
+        canvasScale: 1,
       });
     } catch (error) {
       showToast(error.message || "Unable to generate the PDF report.");
