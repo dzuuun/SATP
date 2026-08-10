@@ -60,7 +60,7 @@ async function main() {
     "--no-sandbox",
     "--disable-gpu",
     "--hide-scrollbars",
-    "--window-size=1440,1000",
+    `--window-size=${process.env.SATP_CAPTURE_WINDOW || "1440,1000"}`,
     `--remote-debugging-port=${port}`,
     `--user-data-dir=${profile}`,
     "http://localhost:3000/login/",
@@ -130,6 +130,12 @@ async function main() {
           })()`,
         });
         await delay(300);
+      }
+      if (process.env.SATP_CAPTURE_OPEN_SIDEBAR === "1") {
+        await command("Runtime.evaluate", {
+          expression: "typeof toggleNav === 'function' && toggleNav()",
+        });
+        await delay(400);
       }
       const screenshot = await command("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
       fs.writeFileSync(path.join(outputDir, file), Buffer.from(screenshot.data, "base64"));

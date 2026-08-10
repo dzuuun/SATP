@@ -1396,9 +1396,11 @@ function downloadSubjectImportErrors(rows) {
 }
 
 function openNav() {
-  document.getElementById("mySidenav").style.width = "250px";
-  document.getElementById("main").style.marginLeft = "250px";
-  document.querySelector("footer").style.marginLeft = "250px";
+  const overlaySidebar = window.innerWidth <= 1100;
+  document.getElementById("mySidenav").style.width = "280px";
+  document.getElementById("main").style.marginLeft = overlaySidebar ? "0" : "280px";
+  const footer = document.querySelector("#main .site-footer");
+  if (footer) footer.style.marginLeft = overlaySidebar ? "0" : "280px";
   nav = true;
 }
 
@@ -1407,7 +1409,8 @@ var nav = false;
 function closeNav() {
   document.getElementById("mySidenav").style.width = "0";
   document.getElementById("main").style.marginLeft = "0";
-  document.querySelector("footer").style.marginLeft = "0";
+  const footer = document.querySelector("#main .site-footer");
+  if (footer) footer.style.marginLeft = "0";
   nav = false;
 }
 function toggleNav() {
