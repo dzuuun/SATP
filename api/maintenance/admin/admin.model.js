@@ -110,46 +110,77 @@ module.exports = {
   },
 
   updateAdminInfo: (data, callBack) => {
-    pool.query(
-      "SELECT users.username FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE user_id=?",
-      [data.id],
-      (error, result) => {
-        if (result.length == 1) {
-          pool.query(
-            "UPDATE user_info SET surname=?, givenname=?, middlename=?, gender=? WHERE user_id=?",
-            [
-              data.surname,
-              data.givenname,
-              data.middlename,
-              data.gender,
-              data.id,
-            ],
-            (error, results) => {
-              if (results.changedRows == 1) {
-                pool.query(
-                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                  [
-                    data.user_id,
-                    "Updated Admin's information: " + result[0].username,
-                  ],
-                  (error, results) => {
-                    if (error) {
-                      console.log(error);
-                    }
-                  }
-                );
-                if (error) {
-                  callBack(error);
-                }
-              }
-              return callBack(null, results);
-            }
-          );
-        } else {
-          return callBack(null, result);
+    pool.getConnection((connectionError, connection) => {
+      if (connectionError) return callBack(connectionError);
+      const rollback = (error) =>
+        connection.rollback(() => {
+          connection.release();
+          callBack(error);
+        });
+
+      connection.beginTransaction((transactionError) => {
+        if (transactionError) {
+          connection.release();
+          return callBack(transactionError);
         }
-      }
-    );
+        connection.query(
+          "SELECT username FROM users WHERE id=? AND is_admin_rater=1 FOR UPDATE",
+          [data.id],
+          (selectError, admins) => {
+            if (selectError) return rollback(selectError);
+            if (!admins.length) {
+              return connection.commit((commitError) => {
+                connection.release();
+                callBack(commitError, { changedRows: 0 });
+              });
+            }
+            connection.query(
+              "UPDATE user_info SET surname=?, givenname=?, middlename=?, gender=? WHERE user_id=?",
+              [
+                data.surname,
+                data.givenname,
+                data.middlename,
+                data.gender,
+                data.id,
+              ],
+              (profileError, profileResult) => {
+                if (profileError) return rollback(profileError);
+                connection.query(
+                  "UPDATE users SET permission_id=? WHERE id=?",
+                  [data.permission_id, data.id],
+                  (permissionError, permissionResult) => {
+                    if (permissionError) return rollback(permissionError);
+                    const changedRows =
+                      profileResult.changedRows + permissionResult.changedRows;
+                    if (!changedRows) {
+                      return connection.commit((commitError) => {
+                        connection.release();
+                        callBack(commitError, { changedRows: 0 });
+                      });
+                    }
+                    connection.query(
+                      "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                      [
+                        data.user_id,
+                        `Updated Admin information and permission: ${admins[0].username}`,
+                      ],
+                      (logError) => {
+                        if (logError) return rollback(logError);
+                        connection.commit((commitError) => {
+                          if (commitError) return rollback(commitError);
+                          connection.release();
+                          callBack(null, { changedRows });
+                        });
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      });
+    });
   },
 
   updateAdminActiveStatus: (data, callBack) => {

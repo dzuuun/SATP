@@ -250,13 +250,17 @@ module.exports = {
       });
     }
 
-    const uniqueSubjectIds = new Set(
-      subjects.map((subject) => Number(subject.subject_id)),
+    const enrollmentKeys = new Set(
+      subjects.map((subject) => [
+        Number(subject.subject_id),
+        String(subject.schedule_code || "").trim().toLowerCase(),
+        Number(subject.teacher_id),
+      ].join("|")),
     );
-    if (uniqueSubjectIds.size !== subjects.length) {
+    if (enrollmentKeys.size !== subjects.length) {
       return res.status(400).json({
         success: 0,
-        message: "The submitted subject list contains duplicates.",
+        message: "The submitted course, schedule, and teacher list contains duplicates.",
       });
     }
 

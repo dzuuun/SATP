@@ -18,11 +18,49 @@ test("Student Course refreshes database references before workbook classificatio
   [
     "/api/student",
     "/api/teacher",
-    "/api/subject/all/active",
-    "/api/room/all/active",
+    "/api/subject",
+    "/api/room",
     "/api/schoolyear/",
     "/api/semester/inuse/active",
   ].forEach((endpoint) => assert.match(script, new RegExp(endpoint.replaceAll("/", "\\/"))));
+});
+
+test("Student Course import creates missing courses and rooms", () => {
+  const script = read("client/maintenance/student_subject/script.js");
+  assert.match(script, /subject_needs_creation/);
+  assert.match(script, /room_needs_creation/);
+  assert.match(script, /["']\/api\/subject\/add["']/);
+  assert.match(script, /["']\/api\/room\/add["']/);
+  assert.match(script, /readImportColumn\(raw,\s*["']Description["']/);
+  assert.match(script, /readImportColumn\(raw,\s*["']RoomCode["']/);
+});
+
+test("Student Course supports one rating per teacher on the same schedule for CHS", () => {
+  const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
+  const enrollmentModel = read("api/maintenance/studentsubject/studentsubject.model.js");
+  const transactionModel = read("api/transaction/studentRatingStatus/srs.model.js");
+  const importScript = read("client/maintenance/student_subject/script.js");
+  const studentModel = read("api/maintenance/student/student.model.js");
+  const serverEnrollment = read("api/maintenance/serverenrollment/serverenrollment.controller.js");
+
+  assert.match(studentModel, /colleges\.code AS college/);
+  assert.match(enrollmentModel, /college_code/);
+  assert.match(enrollmentModel, /=== "CHS"/);
+  assert.match(importScript, /isChsStudent/);
+  assert.match(serverEnrollment, /row\.StudentCollegeCode/);
+  assert.doesNotMatch(serverEnrollment, /is_chs:\s*normalize\(row\.CollegeCode\)/);
+  assert.match(controller, /subject\.schedule_code/);
+  assert.match(controller, /subject\.teacher_id/);
+  assert.match(enrollmentModel, /existingByEnrollment/);
+  assert.match(importScript, /existingByEnrollment/);
+  assert.match(
+    transactionModel,
+    /subject_id=\? AND teacher_id=\? AND user_id=\?/,
+  );
+  assert.match(
+    transactionModel,
+    /AND subject_id = \?\s+AND teacher_id = \?\s+AND user_id = \?/,
+  );
 });
 
 test("User Management exposes username deactivation upload end to end", () => {

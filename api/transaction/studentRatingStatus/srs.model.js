@@ -241,11 +241,12 @@ module.exports = {
 
   addTransaction: (data, callBack) => {
     pool.query(
-      "SELECT id, teacher_id FROM transactions WHERE school_year_id=? AND semester_id=? AND subject_id=? AND user_id=? LIMIT 1",
+      "SELECT id, teacher_id FROM transactions WHERE school_year_id=? AND semester_id=? AND subject_id=? AND teacher_id=? AND user_id=? LIMIT 1",
       [
         data.school_year_id,
         data.semester_id,
         data.subject_id,
+        data.teacher_id,
         data.id,
       ],
       (error, results) => {
@@ -300,26 +301,11 @@ module.exports = {
             },
           );
         } else {
-          const transaction = results[0];
-          if (Number(transaction.teacher_id) === Number(data.teacher_id)) {
-            return callBack(null, {
-              insertId: transaction.id,
-              exists: true,
-              skipped: true,
-            });
-          }
-          pool.query(
-            "UPDATE transactions SET teacher_id=? WHERE id=?",
-            [data.teacher_id, transaction.id],
-            (updateError) => {
-              if (updateError) return callBack(updateError);
-              return callBack(null, {
-                insertId: transaction.id,
-                exists: true,
-                updated: true,
-              });
-            },
-          );
+          return callBack(null, {
+            insertId: results[0].id,
+            exists: true,
+            skipped: true,
+          });
         }
       },
     );
@@ -562,12 +548,14 @@ module.exports = {
                              AND school_year_id = ?
                              AND semester_id = ?
                              AND subject_id = ?
+                             AND teacher_id = ?
                              AND user_id = ?`,
                           [
                             record.id,
                             record.school_year_id,
                             record.semester_id,
                             record.subject_id,
+                            record.teacher_id,
                             record.student_id,
                           ],
                           (cleanupError) => {

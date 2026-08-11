@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 module.exports = {
   getAllStudent: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, user_info.surname, user_info.givenname, user_info.middlename, user_info.gender, user_info.year_level, CONCAT(user_info.surname, ', ', user_info.givenname) AS name, courses.code AS course, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1",
+      "SELECT users.id, users.username, user_info.surname, user_info.givenname, user_info.middlename, user_info.gender, user_info.year_level, CONCAT(user_info.surname, ', ', user_info.givenname) AS name, courses.code AS course, colleges.code AS college, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id INNER JOIN departments ON courses.department_id=departments.id INNER JOIN colleges ON departments.college_id=colleges.id WHERE users.is_student_rater = 1",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -16,7 +16,7 @@ module.exports = {
 
   getAllActiveStudent: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code AS course, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.is_active = 1",
+      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, courses.code AS course, colleges.code AS college, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id INNER JOIN departments ON courses.department_id=departments.id INNER JOIN colleges ON departments.college_id=colleges.id WHERE users.is_student_rater = 1 AND users.is_active = 1",
       (error, results) => {
         if (error) {
           callBack(error);

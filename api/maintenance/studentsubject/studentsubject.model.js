@@ -250,11 +250,18 @@ module.exports = {
 
   addStudentSubject: (data, callBack) => {
     pool.query(
-      `SELECT id FROM ${TABLE}
-       WHERE student_id = ? AND school_year_id = ? AND semester_id = ?
-         AND subject_id = ?
+      `SELECT records.id FROM ${TABLE} AS records
+       INNER JOIN user_info ON user_info.user_id = records.student_id
+       INNER JOIN courses ON courses.id = user_info.course_id
+       INNER JOIN departments ON departments.id = courses.department_id
+       INNER JOIN colleges ON colleges.id = departments.college_id
+       WHERE records.student_id = ? AND records.school_year_id = ?
+         AND records.semester_id = ? AND records.subject_id = ?
+         AND (UPPER(TRIM(colleges.code)) <> 'CHS' OR
+           (records.teacher_id = ? AND COALESCE(TRIM(records.schedule_code), '') = ?))
        LIMIT 1`,
-      [data.student_id, data.school_year_id, data.semester_id, data.subject_id],
+      [data.student_id, data.school_year_id, data.semester_id, data.subject_id,
+        data.teacher_id, String(data.schedule_code || "").trim()],
       (error, existing) => {
         if (error) return callBack(error);
         if (existing.length) {
@@ -286,10 +293,17 @@ module.exports = {
       await connection.beginTransaction();
 
       const [students] = await connection.query(
-        "SELECT username FROM users WHERE id = ? LIMIT 1",
+        `SELECT users.username, colleges.code AS college_code
+         FROM users
+         INNER JOIN user_info ON user_info.user_id = users.id
+         INNER JOIN courses ON courses.id = user_info.course_id
+         INNER JOIN departments ON departments.id = courses.department_id
+         INNER JOIN colleges ON colleges.id = departments.college_id
+         WHERE users.id = ? LIMIT 1`,
         [data.student_id],
       );
       const studentUsername = students[0]?.username || "Unknown student";
+      const isChsStudent = String(students[0]?.college_code || "").trim().toUpperCase() === "CHS";
 
       const subjectIds = data.subjects.map((subject) =>
         Number(subject.subject_id),
@@ -303,11 +317,21 @@ module.exports = {
            AND subject_id IN (${placeholders})`,
         [data.student_id, data.school_year_id, data.semester_id, ...subjectIds],
       );
-      const existingBySubject = new Map(
-        existing.map((record) => [Number(record.subject_id), record]),
+      const enrollmentKey = (record) => isChsStudent
+        ? [Number(record.subject_id), String(record.schedule_code || "").trim().toLowerCase(),
+          Number(record.teacher_id)].join("|")
+        : String(Number(record.subject_id));
+      const submittedKeys = new Set(data.subjects.map(enrollmentKey));
+      if (submittedKeys.size !== data.subjects.length) {
+        throw new Error(isChsStudent
+          ? "The submitted course, schedule, and teacher list contains duplicates."
+          : "The submitted course list contains duplicates.");
+      }
+      const existingByEnrollment = new Map(
+        existing.map((record) => [enrollmentKey(record), record]),
       );
       const pendingSubjects = data.subjects.filter(
-        (subject) => !existingBySubject.has(Number(subject.subject_id)),
+        (subject) => !existingByEnrollment.has(enrollmentKey(subject)),
       );
       const comparable = (value) =>
         String(value ?? "")
@@ -325,11 +349,9 @@ module.exports = {
       const skipped = [];
 
       for (const subject of data.subjects) {
-        const current = existingBySubject.get(Number(subject.subject_id));
+        const current = existingByEnrollment.get(enrollmentKey(subject));
         if (!current) continue;
         const changed =
-          Number(current.teacher_id) !== Number(subject.teacher_id) ||
-          comparable(current.schedule_code) !== comparable(subject.schedule_code) ||
           comparableTime(current.time_start) !== comparableTime(subject.time_start) ||
           comparableTime(current.time_end) !== comparableTime(subject.time_end) ||
           comparable(current.day) !== comparable(subject.day) ||
@@ -373,12 +395,12 @@ module.exports = {
           [values.map((value) => [...value, 0])],
         );
 
-        const createdSubjectIds = pendingSubjects.map((subject) =>
+        const createdSubjectIds = [...new Set(pendingSubjects.map((subject) =>
           Number(subject.subject_id),
-        );
+        ))];
         const createdPlaceholders = createdSubjectIds.map(() => "?").join(",");
         const [createdRows] = await connection.query(
-          `SELECT id, subject_id
+          `SELECT id, subject_id, teacher_id, schedule_code
            FROM ${TABLE}
            WHERE student_id = ? AND school_year_id = ? AND semester_id = ?
              AND subject_id IN (${createdPlaceholders})`,
@@ -389,7 +411,8 @@ module.exports = {
             ...createdSubjectIds,
           ],
         );
-        created = createdRows;
+        const pendingKeys = new Set(pendingSubjects.map(enrollmentKey));
+        created = createdRows.filter((record) => pendingKeys.has(enrollmentKey(record)));
       }
 
       await connection.commit();
@@ -423,15 +446,24 @@ module.exports = {
 
   updateStudentSubject: (data, callBack) => {
     pool.query(
-      `SELECT id FROM ${TABLE}
-       WHERE student_id = ? AND school_year_id = ? AND semester_id = ?
-         AND subject_id = ? AND id <> ?
+      `SELECT records.id FROM ${TABLE} AS records
+       INNER JOIN user_info ON user_info.user_id = records.student_id
+       INNER JOIN courses ON courses.id = user_info.course_id
+       INNER JOIN departments ON departments.id = courses.department_id
+       INNER JOIN colleges ON colleges.id = departments.college_id
+       WHERE records.student_id = ? AND records.school_year_id = ?
+         AND records.semester_id = ? AND records.subject_id = ?
+         AND (UPPER(TRIM(colleges.code)) <> 'CHS' OR
+           (records.teacher_id = ? AND COALESCE(TRIM(records.schedule_code), '') = ?))
+         AND records.id <> ?
        LIMIT 1`,
       [
         data.student_id,
         data.school_year_id,
         data.semester_id,
         data.subject_id,
+        data.teacher_id,
+        String(data.schedule_code || "").trim(),
         data.id,
       ],
       (lookupError, existing) => {

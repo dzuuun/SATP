@@ -816,8 +816,8 @@ async function refreshWorkbookReferences() {
   const endpoints = [
     "/api/student",
     "/api/teacher",
-    "/api/subject/all/active",
-    "/api/room/all/active",
+    "/api/subject",
+    "/api/room",
     "/api/schoolyear/",
     "/api/semester/inuse/active",
   ];
@@ -836,10 +836,10 @@ async function refreshWorkbookReferences() {
     if (key) importTeachersByName.set(key, row);
   });
   importSubjectsByCode = new Map(
-    (subjects.data || []).map((row) => [normalizeImportValue(row.code), Number(row.id)]),
+    (subjects.data || []).map((row) => [normalizeImportValue(row.code), row]),
   );
   importRoomsByCode = new Map(
-    (rooms.data || []).map((row) => [normalizeImportValue(row.name), Number(row.id)]),
+    (rooms.data || []).map((row) => [normalizeImportValue(row.name), row]),
   );
   importSchoolYearsByName = new Map(
     (schoolYears.data || []).map((row) => [normalizeImportValue(row.name), Number(row.id)]),
@@ -1039,15 +1039,19 @@ async function classifySubjectRows(rows) {
     const student = importStudentsByNumber.get(
       normalizeImportValue(studentNumber),
     );
+    const isChsStudent = normalizeImportValue(student?.college) === "chs";
     const schoolYear = readImportColumn(raw, "SchoolYear");
     const semesterValue = readImportColumn(raw, "semester_id", "Semester");
     const subjectCode = readImportColumn(raw, "SubjectCode");
+    const subjectName = readImportColumn(raw, "Description", "SubjectDescription");
+    const subject = importSubjectsByCode.get(normalizeImportValue(subjectCode));
     const teacherFirstName = readImportColumn(raw, "TeacherFirstName");
     const teacherLastName = readImportColumn(raw, "TeacherLastName");
     const teacher = importTeachersByName.get(
       teacherImportKey(teacherFirstName, teacherLastName),
     );
     const roomCode = readImportColumn(raw, "RoomCode");
+    const room = importRoomsByCode.get(normalizeImportValue(roomCode));
     if (isTbaTeacherRow(raw)) {
       result.errors.push({
         rowNumber: index + 2,
@@ -1058,19 +1062,27 @@ async function classifySubjectRows(rows) {
     }
     const resolved = {
       student_id: student?.id,
+      student_number: String(studentNumber || "").trim(),
+      is_chs: isChsStudent,
       student_needs_activation:
         student != null && Number(student.is_active) !== 1,
       school_year_id: importSchoolYearsByName.get(normalizeImportValue(schoolYear)),
       semester_id:
         importSemesterIds.get(String(Number(semesterValue))) ||
         importSemestersByName.get(normalizeImportValue(semesterValue)),
-      subject_id: importSubjectsByCode.get(normalizeImportValue(subjectCode)),
+      subject_id: subject?.id || null,
+      subject_code: String(subjectCode || "").trim(),
+      subject_name: String(subjectName || subject?.name || "").trim(),
+      subject_needs_creation: !subject && Boolean(subjectCode && subjectName),
+      subject_needs_activation:
+        subject != null && Number(subject.is_active) !== 1,
       teacher_id: teacher?.id,
       teacher_needs_activation:
         teacher != null && Number(teacher.is_active) !== 1,
-      room_id: roomCode
-        ? importRoomsByCode.get(normalizeImportValue(roomCode))
-        : null,
+      room_id: room?.id || null,
+      room_code: String(roomCode || "").trim(),
+      room_needs_creation: Boolean(roomCode) && !room,
+      room_needs_activation: room != null && Number(room.is_active) !== 1,
       schedule_code: String(
         readImportColumn(raw, "schedule_code", "ScheduleCode"),
       ).trim(),
@@ -1087,14 +1099,19 @@ async function classifySubjectRows(rows) {
     if (!resolved.student_id) missing.push("student");
     if (!resolved.school_year_id) missing.push("school year");
     if (!resolved.semester_id) missing.push("semester");
-    if (!resolved.subject_id) missing.push("course");
+    if (!resolved.subject_id && !resolved.subject_needs_creation)
+      missing.push("course code and description");
     if (!resolved.teacher_id) missing.push("teacher");
-    if (roomCode && !resolved.room_id) missing.push("room");
+    if (roomCode && !resolved.room_id && !resolved.room_needs_creation)
+      missing.push("room");
     const key = [
       resolved.student_id,
       resolved.school_year_id,
       resolved.semester_id,
-      resolved.subject_id,
+      resolved.subject_id || normalizeImportValue(resolved.subject_code),
+      ...(isChsStudent
+        ? [normalizeImportValue(resolved.schedule_code), resolved.teacher_id]
+        : []),
     ].join("|");
     const item = { rowNumber: index + 2, originalRow: raw, ...resolved };
 
@@ -1110,6 +1127,14 @@ async function classifySubjectRows(rows) {
       });
     } else {
       seen.add(key);
+      const dependencyActions = [];
+      if (item.subject_needs_creation) dependencyActions.push("course will be created");
+      else if (item.subject_needs_activation)
+        dependencyActions.push("course will be reactivated");
+      if (item.room_needs_creation) dependencyActions.push("room will be created");
+      else if (item.room_needs_activation)
+        dependencyActions.push("room will be reactivated");
+      if (dependencyActions.length) item.reason = dependencyActions.join("; ");
       result.created.push(item);
     }
   }
@@ -1149,20 +1174,22 @@ async function classifySubjectRows(rows) {
         );
       }
       const payload = await periodRequests.get(periodKey);
-      const existingBySubject = new Map(
+      const isChsStudent = Boolean(sample.is_chs);
+      const enrollmentKey = (record) => isChsStudent
+        ? [Number(record.subject_id), normalizeImportValue(record.schedule_code),
+          Number(record.teacher_id)].join("|")
+        : String(Number(record.subject_id));
+      const existingByEnrollment = new Map(
         (payload.data || [])
           .filter(
             (record) => Number(record.student_id) === Number(sample.student_id),
           )
-          .map((record) => [Number(record.subject_id), record]),
+          .map((record) => [enrollmentKey(record), record]),
       );
       items.forEach((item) => {
-        const current = existingBySubject.get(Number(item.subject_id));
+        const current = existingByEnrollment.get(enrollmentKey(item));
         if (!current) return;
         const unchanged =
-          Number(current.teacher_id) === Number(item.teacher_id) &&
-          normalizeImportValue(current.schedule_code) ===
-            normalizeImportValue(item.schedule_code) &&
           comparableImportTime(current.time_start) ===
             comparableImportTime(item.time_start) &&
           comparableImportTime(current.time_end) ===
@@ -1170,7 +1197,7 @@ async function classifySubjectRows(rows) {
           normalizeImportValue(current.day) === normalizeImportValue(item.day) &&
           Number(current.room_id || 0) === Number(item.room_id || 0) &&
           Number(current.is_excluded || 0) === Number(item.is_excluded || 0);
-        const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${item.subject_id}`;
+        const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${enrollmentKey(item)}`;
         existingKeys.add(key);
         result.updated.push({
           ...item,
@@ -1197,7 +1224,10 @@ async function classifySubjectRows(rows) {
   result.created = result.created.filter(
     (item) =>
       !existingKeys.has(
-        `${item.student_id}|${item.school_year_id}|${item.semester_id}|${item.subject_id}`,
+        `${item.student_id}|${item.school_year_id}|${item.semester_id}|${
+          item.is_chs
+            ? [Number(item.subject_id), normalizeImportValue(item.schedule_code), Number(item.teacher_id)].join("|")
+            : String(Number(item.subject_id))}`,
       ),
   );
 
@@ -1271,6 +1301,88 @@ document
     );
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
 
+    const failedSubjectCodes = new Set();
+    const failedRoomCodes = new Set();
+    const subjectDependencies = new Map();
+    const roomDependencies = new Map();
+    actionableItems.forEach((item) => {
+      if (item.subject_needs_creation || item.subject_needs_activation) {
+        subjectDependencies.set(normalizeImportValue(item.subject_code), item);
+      }
+      if (item.room_needs_creation || item.room_needs_activation) {
+        roomDependencies.set(normalizeImportValue(item.room_code), item);
+      }
+    });
+
+    for (const [codeKey, item] of subjectDependencies) {
+      try {
+        setImportProgress(
+          "Preparing courses",
+          "Please wait",
+          `${item.subject_needs_creation ? "Creating" : "Reactivating"} ${item.subject_code}.`,
+        );
+        const response = await fetch(
+          item.subject_needs_creation ? "/api/subject/add" : "/api/subject/update",
+          {
+            method: item.subject_needs_creation ? "POST" : "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: item.subject_id,
+              code: item.subject_code,
+              name: item.subject_name,
+              is_active: 1,
+              user_id: user,
+            }),
+          },
+        );
+        const payload = await response.json();
+        if (!response.ok || !payload.success)
+          throw new Error(payload.message || "Course could not be prepared");
+      } catch (error) {
+        failedSubjectCodes.add(codeKey);
+      }
+    }
+
+    for (const [codeKey, item] of roomDependencies) {
+      try {
+        setImportProgress(
+          "Preparing rooms",
+          "Please wait",
+          `${item.room_needs_creation ? "Creating" : "Reactivating"} ${item.room_code}.`,
+        );
+        const response = await fetch(
+          item.room_needs_creation ? "/api/room/add" : "/api/room/update",
+          {
+            method: item.room_needs_creation ? "POST" : "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: item.room_id,
+              name: item.room_code,
+              is_active: 1,
+              user_id: user,
+            }),
+          },
+        );
+        const payload = await response.json();
+        if (!response.ok || !payload.success)
+          throw new Error(payload.message || "Room could not be prepared");
+      } catch (error) {
+        failedRoomCodes.add(codeKey);
+      }
+    }
+
+    if (subjectDependencies.size || roomDependencies.size) {
+      await refreshWorkbookReferences();
+      actionableItems.forEach((item) => {
+        const subject = importSubjectsByCode.get(
+          normalizeImportValue(item.subject_code),
+        );
+        const room = importRoomsByCode.get(normalizeImportValue(item.room_code));
+        if (subject) item.subject_id = subject.id;
+        if (room) item.room_id = room.id;
+      });
+    }
+
     const inactiveStudentIds = [
       ...new Set(
         actionableItems
@@ -1330,6 +1442,27 @@ document
     }
 
     const importableItems = actionableItems.filter((item) => {
+      if (
+        failedSubjectCodes.has(normalizeImportValue(item.subject_code)) ||
+        !item.subject_id
+      ) {
+        errors.push({
+          ...item.originalRow,
+          Error: "Course could not be created or reactivated",
+        });
+        return false;
+      }
+      if (
+        item.room_code &&
+        (failedRoomCodes.has(normalizeImportValue(item.room_code)) ||
+          !item.room_id)
+      ) {
+        errors.push({
+          ...item.originalRow,
+          Error: "Room could not be created or reactivated",
+        });
+        return false;
+      }
       if (failedStudentIds.has(Number(item.student_id))) {
         errors.push({
           ...item.originalRow,

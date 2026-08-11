@@ -19,34 +19,32 @@ let data = $("#table").DataTable({
     url: `/api/admin`,
     cache: true,
   },
-  columnDefs: [{ className: "dt-center", targets: "" }],
+  columnDefs: [{ className: "dt-center", targets: [3, 4] }],
   columns: [
-    { width: "5%", data: "username" },
-    { data: "name" },
-    { width: "15%", data: "permission" },
+    { width: "15%", data: "username", title: "Username" },
+    { data: "name", title: "Admin name" },
+    { width: "20%", data: "permission", title: "Permission" },
     {
-      width: "5%",
-      data: "null",
+      width: "10%",
+      data: null,
+      title: "Status",
       render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_active
-            ? "<span>Yes</span>"
-            : '<span style="color: red">No</span>'
-        }
-                </td>`;
+        return row.is_active
+          ? '<span class="status-badge active">Active</span>'
+          : '<span class="status-badge inactive">Inactive</span>';
       },
     },
     {
-      width: "5%",
+      width: "10%",
       data: null,
+      title: "Actions",
+      orderable: false,
       render: function (data, type, row) {
-        return `<td  class="text-center">
-        <div class="text-nowrap">              
+        return `<div class="text-nowrap">
           <button class="table-edit-button" type="button" onclick="edit(${row.id})" title="Edit administrator" aria-label="Edit administrator">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg>
           </button>
-        </div>
-      </td> `;
+        </div>`;
       },
     },
   ],
@@ -63,7 +61,10 @@ function showPassword() {
 
 // Get permission from API
 const getPermission = async () => {
-  const permissionList = document.querySelector("#permissionSelect");
+  const permissionLists = [
+    document.querySelector("#permissionSelect"),
+    document.querySelector("#editPermissionSelect"),
+  ];
 
   const endpoint = `/api/permission/all/active`,
     response = await fetch(endpoint),
@@ -71,11 +72,13 @@ const getPermission = async () => {
     result = data.data;
 
   result.forEach((row) => {
-    permissionList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
+    permissionLists.forEach((permissionList) => {
+      permissionList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
+    });
   });
 };
 
-getPermission();
+const permissionsReady = getPermission();
 
 function generatePassword() {
   let result = "";
@@ -159,6 +162,7 @@ function showToast(message, type) {
 // update information on the API
 var rowIdToUpdate;
 async function edit(id) {
+  await permissionsReady;
   await fetch(`/api/admin/` + id, {
     method: "GET",
   })
@@ -169,6 +173,8 @@ async function edit(id) {
       document.getElementById("editMiddleName").value = data.middlename;
       document.getElementById("editLastName").value = data.surname;
       document.getElementById("editGenderSelect").value = data.gender;
+      document.getElementById("editPermissionSelect").value =
+        String(data.permission_id);
       if (data.is_active == 0) {
         document.getElementById("editIsAdminStatusActive").checked = false;
       } else {
