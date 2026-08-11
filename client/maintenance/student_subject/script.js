@@ -8,6 +8,11 @@ var maintenanceAccess = localStorage.getItem("maintenanceAccess");
 var username = localStorage.getItem("username");
 let periodStudents = new Map();
 let importTeachersByName = new Map();
+let importSchoolYearsByName = new Map();
+let importSemestersByName = new Map();
+let importSemesterIds = new Map();
+let importSubjectsByCode = new Map();
+let importRoomsByCode = new Map();
 
 const teacherImportKey = (firstName, lastName) =>
   normalizeImportValue(`${firstName || ""} ${lastName || ""}`);
@@ -800,6 +805,53 @@ function waitForPaint() {
   );
 }
 
+async function refreshWorkbookReferences() {
+  setImportProgress(
+    "Refreshing database records",
+    "5%",
+    "Loading the latest students, teachers, courses, rooms, and academic periods.",
+  );
+  await waitForPaint();
+
+  const endpoints = [
+    "/api/student",
+    "/api/teacher",
+    "/api/subject/all/active",
+    "/api/room/all/active",
+    "/api/schoolyear/",
+    "/api/semester/inuse/active",
+  ];
+  const responses = await Promise.all(endpoints.map((endpoint) => fetch(endpoint)));
+  const failed = responses.find((response) => !response.ok);
+  if (failed) throw new Error("Unable to refresh workbook validation data.");
+  const [students, teachers, subjects, rooms, schoolYears, semesters] =
+    await Promise.all(responses.map((response) => response.json()));
+
+  importStudentsByNumber = new Map(
+    (students.data || []).map((row) => [normalizeImportValue(row.username), row]),
+  );
+  importTeachersByName = new Map();
+  (teachers.data || []).forEach((row) => {
+    const key = teacherImportKey(row.givenname, row.surname);
+    if (key) importTeachersByName.set(key, row);
+  });
+  importSubjectsByCode = new Map(
+    (subjects.data || []).map((row) => [normalizeImportValue(row.code), Number(row.id)]),
+  );
+  importRoomsByCode = new Map(
+    (rooms.data || []).map((row) => [normalizeImportValue(row.name), Number(row.id)]),
+  );
+  importSchoolYearsByName = new Map(
+    (schoolYears.data || []).map((row) => [normalizeImportValue(row.name), Number(row.id)]),
+  );
+  importSemestersByName = new Map(
+    (semesters.data || []).map((row) => [normalizeImportValue(row.name), Number(row.id)]),
+  );
+  importSemesterIds = new Map(
+    (semesters.data || []).map((row) => [String(Number(row.id)), Number(row.id)]),
+  );
+}
+
 xlsxInput.addEventListener("change", () => {
   if (xlsxInput.files[0]) {
     document.querySelector("#dropZone p").textContent =
@@ -862,6 +914,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
   try {
     await new Promise((resolve) => setTimeout(resolve, 260));
     await waitForPaint();
+    await refreshWorkbookReferences();
     const rows = await parseWorkbook(selectedFile);
     pendingSubjectImport = await classifySubjectRows(rows);
     renderSubjectImportPreview();
@@ -965,18 +1018,6 @@ function optionMap(selectId, valueReader = (option) => option.textContent) {
 }
 
 async function classifySubjectRows(rows) {
-  const schoolYears = optionMap("selectSchoolYear");
-  const semesters = optionMap("selectSemester");
-  const semesterIds = new Map(
-    [...document.querySelectorAll("#selectSemester option[value]")]
-      .filter((option) => option.value)
-      .map((option) => [String(Number(option.value)), Number(option.value)]),
-  );
-  const subjects = optionMap(
-    "selectSubject",
-    (option) => option.dataset.subtext,
-  );
-  const rooms = optionMap("selectRoom");
   const seen = new Set();
   const result = { created: [], updated: [], errors: [] };
 
@@ -984,7 +1025,7 @@ async function classifySubjectRows(rows) {
     const raw = rows[index];
     if (index % 25 === 0 || index === rows.length - 1) {
       const progress = rows.length
-        ? Math.round((index / rows.length) * 70)
+        ? 10 + Math.round((index / rows.length) * 60)
         : 70;
       const remaining = rows.length - index;
       setImportProgress(
@@ -1019,15 +1060,17 @@ async function classifySubjectRows(rows) {
       student_id: student?.id,
       student_needs_activation:
         student != null && Number(student.is_active) !== 1,
-      school_year_id: schoolYears.get(normalizeImportValue(schoolYear)),
+      school_year_id: importSchoolYearsByName.get(normalizeImportValue(schoolYear)),
       semester_id:
-        semesterIds.get(String(Number(semesterValue))) ||
-        semesters.get(normalizeImportValue(semesterValue)),
-      subject_id: subjects.get(normalizeImportValue(subjectCode)),
+        importSemesterIds.get(String(Number(semesterValue))) ||
+        importSemestersByName.get(normalizeImportValue(semesterValue)),
+      subject_id: importSubjectsByCode.get(normalizeImportValue(subjectCode)),
       teacher_id: teacher?.id,
       teacher_needs_activation:
         teacher != null && Number(teacher.is_active) !== 1,
-      room_id: roomCode ? rooms.get(normalizeImportValue(roomCode)) : null,
+      room_id: roomCode
+        ? importRoomsByCode.get(normalizeImportValue(roomCode))
+        : null,
       schedule_code: String(
         readImportColumn(raw, "schedule_code", "ScheduleCode"),
       ).trim(),

@@ -59,6 +59,32 @@ $(document).ready(() => {
   });
 });
 
+document
+  .getElementById("exportStudentsButton")
+  .addEventListener("click", () => {
+    if (!table) return setErrorMessage("The student list is still loading.");
+    const students = table.rows({ search: "applied" }).data().toArray();
+    if (!students.length) return setErrorMessage("No students to export.");
+    const exportRows = students.map((student) => ({
+      Username: student.username || "",
+      Surname: student.surname || "",
+      "Given name": student.givenname || "",
+      "Middle name": student.middlename || "",
+      Gender: student.gender || "",
+      "Program code": student.course || "",
+      "Year level": student.year_level || "",
+      Status: Number(student.is_active) === 1 ? "Active" : "Inactive",
+    }));
+    const sheet = XLSX.utils.json_to_sheet(exportRows);
+    const book = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(book, sheet, "Students");
+    XLSX.writeFile(
+      book,
+      `Students_${new Date().toISOString().slice(0, 10)}.xlsx`,
+    );
+    setSuccessMessage(`${exportRows.length} students exported successfully.`);
+  });
+
 async function loadCourses() {
   try {
     const r = await requestJson("/api/course/all/active"),

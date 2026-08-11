@@ -22,7 +22,7 @@ if (!state.userId) {
 const yesNo = (value) =>
   `<span class="boolean-badge ${Number(value) ? "" : "off"}">${Number(value) ? "Yes" : "No"}</span>`;
 const table = $("#table").DataTable({
-  ajax: { url: "/api/user", dataSrc: "data", cache: true },
+  ajax: { url: "/api/user", dataSrc: "data", cache: false },
   columns: [
     { data: "username", title: "Username", width: "10%" },
     { data: "Name", title: "Name" },
@@ -243,10 +243,14 @@ document
 document
   .getElementById("passwordImportForm")
   .addEventListener("submit", (event) => prepareImport(event, "passwords"));
+document
+  .getElementById("deactivateImportForm")
+  .addEventListener("submit", (event) => prepareImport(event, "deactivate"));
 
 [
   ["userXlsxInput", "userDropZone"],
   ["passwordXlsxInput", "passwordDropZone"],
+  ["deactivateXlsxInput", "deactivateDropZone"],
 ].forEach(([inputId, zoneId]) => {
   const input = document.getElementById(inputId);
   input.addEventListener("change", () => {
@@ -291,11 +295,30 @@ document
     );
   });
 
+document
+  .getElementById("downloadDeactivateTemplate")
+  .addEventListener("click", (event) => {
+    event.preventDefault();
+    downloadTemplate(
+      [{ username: "2026-00001" }],
+      "user_deactivation_template.xlsx",
+      "Deactivate Users",
+    );
+  });
+
 async function prepareImport(event, mode) {
   event.preventDefault();
-  const input = document.getElementById(
-    mode === "users" ? "userXlsxInput" : "passwordXlsxInput",
-  );
+  const inputIds = {
+    users: "userXlsxInput",
+    passwords: "passwordXlsxInput",
+    deactivate: "deactivateXlsxInput",
+  };
+  const modalIds = {
+    users: "userImportModal",
+    passwords: "passwordImportModal",
+    deactivate: "deactivateImportModal",
+  };
+  const input = document.getElementById(inputIds[mode]);
   try {
     const rows = await readXlsx(input.files[0]);
     const required =
@@ -309,13 +332,27 @@ async function prepareImport(event, mode) {
             "role",
             "permission_id",
           ]
-        : ["username", "password"];
+        : mode === "passwords"
+          ? ["username", "password"]
+          : ["username"];
+    let usersByUsername = new Map();
+    if (mode === "deactivate") {
+      const response = await requestJson("/api/user");
+      usersByUsername = new Map(
+        (response.data || []).map((user) => [
+          String(user.username || "").trim().toLowerCase(),
+          user,
+        ]),
+      );
+    }
     state.importMode = mode;
     state.validRows = [];
     state.errorRows = [];
+    const seenUsernames = new Set();
     rows.forEach((original, index) => {
       const row = normalizeRow(original);
       const missing = required.filter((key) => !String(row[key] ?? "").trim());
+      const usernameKey = String(row.username || "").trim().toLowerCase();
       const role = String(row.role || "").toLowerCase();
       if (
         mode === "users" &&
@@ -326,20 +363,27 @@ async function prepareImport(event, mode) {
       }
       const invalidRole =
         mode === "users" && !["student", "admin"].includes(role);
+      const uploadedUser = usersByUsername.get(usernameKey);
       const error = missing.length
         ? `Missing: ${[...new Set(missing)].join(", ")}`
         : invalidRole
           ? "Role must be Student or Admin"
+          : mode === "deactivate" && seenUsernames.has(usernameKey)
+            ? "Duplicate username in file"
+            : mode === "deactivate" && !uploadedUser
+              ? "Username not found"
+              : mode === "deactivate" && usernameKey === String(state.username || "").trim().toLowerCase()
+                ? "You cannot deactivate your current account"
+                : mode === "deactivate" && Number(uploadedUser.is_active) !== 1
+                  ? "User is already inactive"
           : "";
+      if (mode === "deactivate" && usernameKey) seenUsernames.add(usernameKey);
       if (error)
         state.errorRows.push({ ...original, Error: error, __row: index + 2 });
       else state.validRows.push({ ...row, __row: index + 2 });
     });
     renderPreview();
-    toggleModal(
-      mode === "users" ? "userImportModal" : "passwordImportModal",
-      false,
-    );
+    toggleModal(modalIds[mode], false);
     setTimeout(() => toggleModal("importPreviewModal", true), 260);
   } catch (error) {
     showToast(error.message || "Unable to read the XLSX file.");
@@ -347,7 +391,12 @@ async function prepareImport(event, mode) {
 }
 
 function renderPreview() {
-  const action = state.importMode === "users" ? "created" : "updated";
+  const action =
+    state.importMode === "users"
+      ? "created"
+      : state.importMode === "deactivate"
+        ? "will be deactivated"
+        : "updated";
   document.getElementById("successPreviewTitle").textContent =
     action[0].toUpperCase() + action.slice(1);
   document.getElementById("previewSummary").textContent =
@@ -360,17 +409,42 @@ function renderPreview() {
   );
   document.getElementById("runImportButton").disabled =
     state.validRows.length === 0;
+  document.getElementById("runImportButton").textContent =
+    state.importMode === "deactivate" ? "Deactivate users" : "Run import";
 }
 
 document
   .getElementById("runImportButton")
   .addEventListener("click", async () => {
+    if (
+      state.importMode === "deactivate" &&
+      !confirm(`Deactivate ${state.validRows.length} uploaded user account${state.validRows.length === 1 ? "" : "s"}?`)
+    ) return;
     toggleModal("importPreviewModal", false);
     await delay(260);
     toggleModal("loadingModal", true);
     await delay(30);
     let completed = 0;
-    for (const row of state.validRows) {
+    if (state.importMode === "deactivate") {
+      try {
+        const response = await requestJson("/api/user/bulk/deactivate", {
+          method: "PUT",
+          body: JSON.stringify({
+            usernames: state.validRows.map((row) => row.username),
+            user_id: state.userId,
+          }),
+        });
+        if (!response.success)
+          throw new Error(response.message || "Deactivation failed");
+        completed = Number(response.data?.deactivated || 0);
+      } catch (error) {
+        state.validRows.forEach((row) => {
+          const clean = { ...row };
+          delete clean.__row;
+          state.errorRows.push({ ...clean, Error: error.message });
+        });
+      }
+    } else for (const row of state.validRows) {
       try {
         let response;
         if (state.importMode === "users") {

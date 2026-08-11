@@ -72,6 +72,15 @@
               <button
                 class="secondary-button"
                 type="button"
+                onclick="toggleModal('deactivateImportModal',true)"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M5 12h14" /></svg
+                >Deactivate users
+              </button>
+              <button
+                class="secondary-button"
+                type="button"
                 onclick="toggleModal('passwordImportModal',true)"
               >
                 <svg viewBox="0 0 24 24">
@@ -516,6 +525,61 @@
               class="secondary-button"
               type="button"
               onclick="toggleModal('passwordImportModal',false)"
+            >
+              Cancel</button
+            ><button class="primary-button">Validate file</button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
+    <div id="deactivateImportModal" class="room-modal invisible">
+      <div id="deactivateImportModalCard" class="modal-card scale-95">
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Bulk operation</p>
+            <h2>Deactivate users</h2>
+          </div>
+          <button
+            class="modal-close"
+            type="button"
+            onclick="toggleModal('deactivateImportModal',false)"
+            aria-label="Close"
+          >
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </header>
+        <form id="deactivateImportForm">
+          <div class="modal-body">
+            <label
+              for="deactivateXlsxInput"
+              id="deactivateDropZone"
+              class="drop-zone"
+            >
+              <span class="upload-icon"
+                ><svg viewBox="0 0 24 24">
+                  <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
+              ></span>
+              <strong>Choose an Excel file</strong>
+              <p>Required column: username</p>
+            </label>
+            <input
+              id="deactivateXlsxInput"
+              type="file"
+              accept=".xlsx,.xls"
+              class="hidden"
+              required
+            />
+            <p class="template-copy">
+              Need the format?
+              <a href="#" id="downloadDeactivateTemplate">Download template</a>
+            </p>
+          </div>
+          <footer class="modal-footer">
+            <button
+              class="secondary-button"
+              type="button"
+              onclick="toggleModal('deactivateImportModal',false)"
             >
               Cancel</button
             ><button class="primary-button">Validate file</button>
