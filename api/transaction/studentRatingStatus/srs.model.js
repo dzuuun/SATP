@@ -3,15 +3,40 @@ const pool = require("../../../db/db");
 module.exports = {
   getRatingAccess: (callBack) => {
     pool.query(
-      "SELECT setting_value, updated_at FROM system_settings WHERE setting_key = 'student_rating_enabled' LIMIT 1",
+      "SELECT setting_key, setting_value, updated_at FROM system_settings WHERE setting_key IN ('student_rating_enabled', 'student_rating_shs_enabled', 'student_rating_non_shs_enabled')",
       (error, results) => {
         if (error) return callBack(error);
+        const settings = new Map(
+          results.map((row) => [row.setting_key, row]),
+        );
+        const legacy = settings.get("student_rating_enabled");
+        const shs = settings.get("student_rating_shs_enabled") || legacy;
+        const nonShs =
+          settings.get("student_rating_non_shs_enabled") || legacy;
         return callBack(null, {
-          enabled: results.length
-            ? Number(results[0].setting_value) === 1
+          shs_enabled: shs ? Number(shs.setting_value) === 1 : true,
+          non_shs_enabled: nonShs
+            ? Number(nonShs.setting_value) === 1
             : true,
-          updated_at: results[0]?.updated_at || null,
+          updated_at:
+            shs?.updated_at || nonShs?.updated_at || legacy?.updated_at || null,
         });
+      },
+    );
+  },
+
+  getStudentRatingGroup: (userId, callBack) => {
+    pool.query(
+      `SELECT CASE WHEN UPPER(TRIM(departments.code)) = 'SHS' THEN 'shs' ELSE 'non_shs' END AS rating_group
+       FROM user_info
+       INNER JOIN courses ON user_info.course_id = courses.id
+       INNER JOIN departments ON courses.department_id = departments.id
+       WHERE user_info.user_id = ?
+       LIMIT 1`,
+      [userId],
+      (error, results) => {
+        if (error) return callBack(error);
+        return callBack(null, results[0]?.rating_group || "non_shs");
       },
     );
   },
@@ -54,17 +79,24 @@ module.exports = {
         }
         pool.query(
           `INSERT INTO system_settings (setting_key, setting_value, updated_by)
-           VALUES ('student_rating_enabled', ?, ?)
+           VALUES (?, ?, ?)
            ON DUPLICATE KEY UPDATE
              setting_value = VALUES(setting_value),
              updated_by = VALUES(updated_by),
              updated_at = CURRENT_TIMESTAMP`,
-          [data.enabled ? "1" : "0", data.user_id],
+          [
+            data.group === "shs"
+              ? "student_rating_shs_enabled"
+              : "student_rating_non_shs_enabled",
+            data.enabled ? "1" : "0",
+            data.user_id,
+          ],
           (settingError) => {
             if (settingError) return callBack(settingError);
+            const groupName = data.group === "shs" ? "SHS" : "College";
             const action = data.enabled
-              ? "Opened student rating access"
-              : "Closed student rating access";
+              ? `Opened ${groupName} student rating access`
+              : `Closed ${groupName} student rating access`;
             pool.query(
               "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
               [data.user_id, action],
@@ -75,7 +107,10 @@ module.exports = {
                     logError,
                   );
                 }
-                return callBack(null, { enabled: Boolean(data.enabled) });
+                return callBack(null, {
+                  group: data.group,
+                  enabled: Boolean(data.enabled),
+                });
               },
             );
           },
@@ -377,7 +412,21 @@ module.exports = {
         }
 
         connection.query(
-          "SELECT setting_value FROM system_settings WHERE setting_key = 'student_rating_enabled' LIMIT 1 FOR UPDATE",
+          `SELECT COALESCE(group_setting.setting_value, legacy_setting.setting_value, '1') AS setting_value
+           FROM user_info
+           INNER JOIN courses ON user_info.course_id = courses.id
+           INNER JOIN departments ON courses.department_id = departments.id
+           LEFT JOIN system_settings AS group_setting
+             ON group_setting.setting_key = CASE
+               WHEN UPPER(TRIM(departments.code)) = 'SHS'
+                 THEN 'student_rating_shs_enabled'
+               ELSE 'student_rating_non_shs_enabled'
+             END
+           LEFT JOIN system_settings AS legacy_setting
+             ON legacy_setting.setting_key = 'student_rating_enabled'
+           WHERE user_info.user_id = ?
+           LIMIT 1 FOR UPDATE`,
+          [data.user_id],
           (accessError, settings) => {
             if (accessError) return rollback(accessError);
             if (settings.length && Number(settings[0].setting_value) !== 1) {

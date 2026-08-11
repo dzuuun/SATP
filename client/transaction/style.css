@@ -285,6 +285,60 @@ button {
     cursor: pointer;
 }
 
+.rating-access-controls {
+    width: min(560px, 52%);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    flex: 0 1 560px;
+}
+
+.rating-access-control {
+    min-width: 0;
+    padding: 14px 15px;
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+    flex-direction: column;
+    gap: 13px;
+    background: #f7faf8;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+}
+
+.rating-access-group {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+}
+
+.rating-access-group strong {
+    color: var(--ink);
+    font-size: .72rem;
+    line-height: 1.35;
+}
+
+.rating-access-group span {
+    color: var(--muted);
+    font-size: .61rem;
+}
+
+.rating-access-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.rating-access-action .access-switch {
+    gap: 8px;
+}
+
+.rating-access-action .access-switch-label {
+    color: var(--muted);
+    font-size: .61rem;
+}
+
 .access-switch input {
     width: 1px;
     height: 1px;
@@ -923,6 +977,11 @@ footer > span {
         flex-direction: column;
     }
 
+    .rating-access-controls {
+        width: 100%;
+        flex-basis: auto;
+    }
+
     .summary-card {
         min-height: 112px;
     }
@@ -967,6 +1026,10 @@ footer > span {
 }
 
 @media (max-width: 480px) {
+    .rating-access-controls {
+        grid-template-columns: 1fr;
+    }
+
     .header-brand strong {
         max-width: 180px;
         display: block;

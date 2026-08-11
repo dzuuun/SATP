@@ -6,6 +6,8 @@
     "start": "node index.js",
     "test": "node --test",
     "test:watch": "node --test --watch",
+    "qa": "node --test --test-reporter=spec",
+    "qa:watch": "node --test --watch --test-reporter=spec",
     "dev": "npx @tailwindcss/cli -i ./src/input.css -o ./src/output.css --watch"
   },
   "author": "",
@@ -22,6 +24,7 @@
     "jspdf-autotable": "^3.8.4",
     "jszip": "^3.10.1",
     "morgan": "^1.10.0",
+    "mssql": "^12.2.0",
     "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
     "mysql2": "^3.14.5",

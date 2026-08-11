@@ -6,7 +6,7 @@ const state = {
   fullname: localStorage.getItem("fullname"),
   semester_id: "",
   school_year_id: "",
-  rating_enabled: false,
+  rating_access: { shs: false, non_shs: false },
 };
 
 // Security Gate
@@ -105,19 +105,20 @@ const API = {
   },
 };
 
-function renderRatingAccess(enabled) {
-  state.rating_enabled = Boolean(enabled);
-  const toggle = document.getElementById("ratingAccessToggle");
-  const status = document.getElementById("ratingAccessStatus");
-  const description = document.getElementById("ratingAccessDescription");
-  toggle.checked = state.rating_enabled;
+function renderRatingAccess(group, enabled) {
+  state.rating_access[group] = Boolean(enabled);
+  const shs = group === "shs";
+  const toggle = document.getElementById(
+    shs ? "shsRatingAccessToggle" : "nonShsRatingAccessToggle",
+  );
+  const status = document.getElementById(
+    shs ? "shsRatingAccessStatus" : "nonShsRatingAccessStatus",
+  );
+  toggle.checked = state.rating_access[group];
   toggle.disabled = false;
-  status.textContent = state.rating_enabled ? "Open" : "Closed";
-  status.classList.toggle("open", state.rating_enabled);
-  status.classList.toggle("closed", !state.rating_enabled);
-  description.textContent = state.rating_enabled
-    ? "Students can open and submit their pending teacher assessments."
-    : "Students can view their courses, but cannot start or submit ratings.";
+  status.textContent = state.rating_access[group] ? "Open" : "Closed";
+  status.classList.toggle("open", state.rating_access[group]);
+  status.classList.toggle("closed", !state.rating_access[group]);
 }
 
 async function readApiJson(response) {
@@ -149,7 +150,8 @@ async function loadRatingAccess() {
       return false;
     }
     card?.classList.remove("hidden");
-    renderRatingAccess(result.data?.enabled !== false);
+    renderRatingAccess("shs", result.data?.shs_enabled !== false);
+    renderRatingAccess("non_shs", result.data?.non_shs_enabled !== false);
     return true;
   } catch (error) {
     document.getElementById("ratingAccessCard")?.classList.add("hidden");
@@ -158,23 +160,25 @@ async function loadRatingAccess() {
   }
 }
 
-async function updateRatingAccess(enabled) {
-  const toggle = document.getElementById("ratingAccessToggle");
+async function updateRatingAccess(group, enabled) {
+  const toggle = document.getElementById(
+    group === "shs" ? "shsRatingAccessToggle" : "nonShsRatingAccessToggle",
+  );
   toggle.disabled = true;
   try {
     const response = await fetch("/api/transaction/rating-access/status", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ enabled, user_id: state.user_id }),
+      body: JSON.stringify({ group, enabled, user_id: state.user_id }),
     });
     const result = await readApiJson(response);
     if (!response.ok || !result.success) {
       throw new Error(result.message || "Unable to update student rating access.");
     }
-    renderRatingAccess(result.data?.enabled === true);
+    renderRatingAccess(group, result.data?.enabled === true);
     showToast(result.message);
   } catch (error) {
-    renderRatingAccess(state.rating_enabled);
+    renderRatingAccess(group, state.rating_access[group]);
     showToast(error.message || "Unable to update student rating access.", true);
   }
 }
@@ -410,11 +414,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const filterRefresh = document.getElementById("filterRefresh");
 
     if (canManageRatingAccess) {
-      document
-        .getElementById("ratingAccessToggle")
-        ?.addEventListener("change", (event) => {
-          updateRatingAccess(event.currentTarget.checked);
+      [
+        ["shsRatingAccessToggle", "shs"],
+        ["nonShsRatingAccessToggle", "non_shs"],
+      ].forEach(([id, group]) => {
+        document.getElementById(id)?.addEventListener("change", (event) => {
+          updateRatingAccess(group, event.currentTarget.checked);
         });
+      });
     }
 
     const handleDropdownChange = () => {

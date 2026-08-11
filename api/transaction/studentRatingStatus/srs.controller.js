@@ -13,9 +13,10 @@ const {
   getRatingAccess,
   canManageRatingAccess,
   setRatingAccess,
+  getStudentRatingGroup,
 } = require("./srs.model");
 
-function requireOpenRating(res, next) {
+function requireOpenRating(req, res, next) {
   getRatingAccess((error, access) => {
     if (error) {
       console.error("Unable to check student rating access:", error);
@@ -24,13 +25,24 @@ function requireOpenRating(res, next) {
         message: "Unable to verify whether student rating is available.",
       });
     }
-    if (!access.enabled) {
-      return res.status(403).json({
-        success: 0,
-        message: "Student rating is currently closed.",
-      });
-    }
-    next();
+    getStudentRatingGroup(req.user.id, (groupError, group) => {
+      if (groupError) {
+        console.error("Unable to identify the student rating group:", groupError);
+        return res.status(500).json({
+          success: 0,
+          message: "Unable to verify student rating access.",
+        });
+      }
+      const enabled =
+        group === "shs" ? access.shs_enabled : access.non_shs_enabled;
+      if (!enabled) {
+        return res.status(403).json({
+          success: 0,
+          message: `${group === "shs" ? "SHS" : "College"} student rating is currently closed.`,
+        });
+      }
+      next();
+    });
   });
 }
 
@@ -55,9 +67,32 @@ module.exports = {
             message: "Unable to verify rating access permission.",
           });
         }
-        return res.json({
-          success: 1,
-          data: { ...access, can_manage: canManage },
+        if (canManage) {
+          return res.json({
+            success: 1,
+            data: { ...access, can_manage: true },
+          });
+        }
+        getStudentRatingGroup(req.user.id, (groupError, group) => {
+          if (groupError) {
+            console.error("Unable to identify the student rating group:", groupError);
+            return res.status(500).json({
+              success: 0,
+              message: "Unable to identify student rating access.",
+            });
+          }
+          return res.json({
+            success: 1,
+            data: {
+              ...access,
+              can_manage: false,
+              group,
+              enabled:
+                group === "shs"
+                  ? access.shs_enabled
+                  : access.non_shs_enabled,
+            },
+          });
         });
       });
     });
@@ -65,14 +100,15 @@ module.exports = {
 
   setRatingAccess: (req, res) => {
     const enabled = req.body?.enabled;
+    const group = req.body?.group;
     const userId = req.user.id;
-    if (typeof enabled !== "boolean") {
+    if (typeof enabled !== "boolean" || !["shs", "non_shs"].includes(group)) {
       return res.status(400).json({
         success: 0,
         message: "A valid rating status and user are required.",
       });
     }
-    setRatingAccess({ enabled, user_id: userId }, (error, access) => {
+    setRatingAccess({ enabled, group, user_id: userId }, (error, access) => {
       if (error) {
         console.error("Unable to update student rating access:", error);
         return res.status(error.statusCode || 500).json({
@@ -82,9 +118,7 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: enabled
-          ? "Student rating is now open."
-          : "Student rating is now closed.",
+        message: `${group === "shs" ? "SHS" : "College"} student rating is now ${enabled ? "open" : "closed"}.`,
         data: access,
       });
     });
@@ -283,7 +317,7 @@ module.exports = {
 
   submitRating: (req, res) => {
     const body = req.body;
-    requireOpenRating(res, () => {
+    requireOpenRating(req, res, () => {
       submitRating(body, (err, results) => {
         if (err) {
           console.log(err);
@@ -309,7 +343,7 @@ module.exports = {
 
   submitCommentStatus: (req, res) => {
     const body = { ...req.body, user_id: req.user.id };
-    requireOpenRating(res, () => {
+    requireOpenRating(req, res, () => {
       submitCommentStatus(body, (err, results) => {
         if (err) {
           console.log(err);
@@ -346,7 +380,7 @@ module.exports = {
         message: "Invalid assessment submission.",
       });
     }
-    requireOpenRating(res, () => {
+    requireOpenRating(req, res, () => {
       submitAssessment(body, (err, results) => {
         if (err) {
           console.error(err);

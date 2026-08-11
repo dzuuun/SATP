@@ -63,16 +63,40 @@
                     <div>
                         <div class="rating-access-heading">
                             <h2 id="rating-access-title">Student rating access</h2>
-                            <span id="ratingAccessStatus" class="rating-access-status">Loading</span>
                         </div>
-                        <p id="ratingAccessDescription">Checking whether students can begin assessments...</p>
+                        <p>Control assessment availability separately for Senior High School and College students.</p>
                     </div>
                 </div>
-                <label class="access-switch" for="ratingAccessToggle">
-                    <input id="ratingAccessToggle" type="checkbox" role="switch" disabled>
-                    <span class="access-switch-track" aria-hidden="true"><span></span></span>
-                    <span class="access-switch-label">Allow student rating</span>
-                </label>
+                <div class="rating-access-controls">
+                    <div class="rating-access-control">
+                        <div class="rating-access-group">
+                            <strong>Senior High School</strong>
+                            <span>SHS students</span>
+                        </div>
+                        <div class="rating-access-action">
+                            <span id="shsRatingAccessStatus" class="rating-access-status">Loading</span>
+                            <label class="access-switch" for="shsRatingAccessToggle">
+                                <span class="access-switch-label">Allow rating</span>
+                                <input id="shsRatingAccessToggle" type="checkbox" role="switch" disabled>
+                                <span class="access-switch-track" aria-hidden="true"><span></span></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="rating-access-control">
+                        <div class="rating-access-group">
+                            <strong>College</strong>
+                            <span>College students</span>
+                        </div>
+                        <div class="rating-access-action">
+                            <span id="nonShsRatingAccessStatus" class="rating-access-status">Loading</span>
+                            <label class="access-switch" for="nonShsRatingAccessToggle">
+                                <span class="access-switch-label">Allow rating</span>
+                                <input id="nonShsRatingAccessToggle" type="checkbox" role="switch" disabled>
+                                <span class="access-switch-track" aria-hidden="true"><span></span></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <section class="summary-grid" aria-label="Transaction summary">
