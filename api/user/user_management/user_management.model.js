@@ -1,6 +1,66 @@
 const pool = require("../../../db/db");
 
 module.exports = {
+  bulkDeactivateUsers: (data, callBack) => {
+    pool.getConnection((connectionError, connection) => {
+      if (connectionError) return callBack(connectionError);
+      const finishWithError = (error) =>
+        connection.rollback(() => {
+          connection.release();
+          callBack(error);
+        });
+      connection.beginTransaction((transactionError) => {
+        if (transactionError) {
+          connection.release();
+          return callBack(transactionError);
+        }
+        const placeholders = data.usernames.map(() => "?").join(",");
+        connection.query(
+          `SELECT id, username, is_active FROM users WHERE username IN (${placeholders}) FOR UPDATE`,
+          data.usernames,
+          (selectError, users) => {
+            if (selectError) return finishWithError(selectError);
+            const activeUsers = users.filter(
+              (user) =>
+                Number(user.is_active) === 1 &&
+                Number(user.id) !== Number(data.user_id),
+            );
+            if (!activeUsers.length) {
+              return connection.commit((commitError) => {
+                connection.release();
+                callBack(commitError, { deactivated: 0 });
+              });
+            }
+            const ids = activeUsers.map((user) => user.id);
+            connection.query(
+              `UPDATE users SET is_active=0 WHERE id IN (${ids.map(() => "?").join(",")})`,
+              ids,
+              (updateError, updateResult) => {
+                if (updateError) return finishWithError(updateError);
+                const names = activeUsers.map((user) => user.username);
+                const description = names.length > 20
+                  ? `${names.slice(0, 20).join(", ")} and ${names.length - 20} more`
+                  : names.join(", ");
+                connection.query(
+                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                  [data.user_id, `Bulk deactivated users: ${description}`],
+                  (logError) => {
+                    if (logError) return finishWithError(logError);
+                    connection.commit((commitError) => {
+                      if (commitError) return finishWithError(commitError);
+                      connection.release();
+                      callBack(null, { deactivated: updateResult.changedRows });
+                    });
+                  },
+                );
+              },
+            );
+          },
+        );
+      });
+    });
+  },
+
   getUsers: (callBack) => {
     pool.query(
       "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id",

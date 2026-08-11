@@ -10,6 +10,7 @@ const {
   deleteUser,
   updatePassword,
   getUserByUserName,
+  bulkDeactivateUsers,
 } = require("./user_management.model");
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
@@ -249,6 +250,35 @@ module.exports = {
         success: 1,
         message: "User retrieved successfully.",
         data: results,
+      });
+    });
+  },
+
+  bulkDeactivateUsers: (req, res) => {
+    const usernames = [...new Set(
+      (Array.isArray(req.body.usernames) ? req.body.usernames : [])
+        .map((username) => String(username || "").trim())
+        .filter(Boolean),
+    )];
+    const userId = Number(req.body.user_id);
+    if (!userId || !usernames.length) {
+      return res.status(400).json({
+        success: 0,
+        message: "Provide at least one username to deactivate.",
+      });
+    }
+    bulkDeactivateUsers({ usernames, user_id: userId }, (error, result) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({
+          success: 0,
+          message: "Unable to deactivate the uploaded users.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: `${result.deactivated} user${result.deactivated === 1 ? "" : "s"} deactivated successfully.`,
+        data: result,
       });
     });
   },

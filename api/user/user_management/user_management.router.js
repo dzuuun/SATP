@@ -9,6 +9,7 @@ const {
   updateUserCredentials,
   updatePassword,
   getUserByUserName,
+  bulkDeactivateUsers,
 } = require("./user_management.controller");
 const router = require("express").Router();
 
@@ -22,4 +23,5 @@ router.put("/update/status", updateStatus);
 router.put("/update/credentials", updateUserCredentials);
 router.put("/update/password", updatePassword);
 router.post("/get", getUserByUserName);
+router.put("/bulk/deactivate", bulkDeactivateUsers);
 module.exports = router;
