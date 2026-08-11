@@ -89,6 +89,15 @@ async function loadDepartments() {
   }
 }
 
+async function refreshImportDepartments() {
+  const response = await requestJson("/api/department/all/active");
+  departmentsByCode.clear();
+  (response.data || []).forEach((department) => {
+    const code = department.department_code || department.code;
+    departmentsByCode.set(normalize(code), department);
+  });
+}
+
 document
   .getElementById("newTeacherForm")
   .addEventListener("submit", async (event) => {
@@ -190,6 +199,7 @@ document
       const [rows, existingResponse] = await Promise.all([
         parseWorkbook(file),
         requestJson("/api/teacher"),
+        refreshImportDepartments(),
       ]);
       pendingImport = classifyRows(rows, existingResponse.data || []);
       renderPreview();

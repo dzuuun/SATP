@@ -145,6 +145,13 @@ async function loadCategories() {
   }
 }
 
+async function refreshImportCategories() {
+  const response = await requestJson("/api/category/all/active");
+  categoriesByName = new Map(
+    (response.data || []).map((category) => [normalize(category.name), category]),
+  );
+}
+
 const xlsxInput = document.getElementById("xlsxInput");
 xlsxInput.addEventListener("change", () => {
   if (xlsxInput.files[0])
@@ -175,6 +182,7 @@ document
       const [rows, existingResponse] = await Promise.all([
         parseWorkbook(xlsxInput.files[0]),
         requestJson("/api/item"),
+        refreshImportCategories(),
       ]);
       pendingImport = classifyRows(rows, existingResponse.data || []);
       renderPreview();

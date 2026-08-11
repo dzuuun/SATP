@@ -105,6 +105,16 @@ async function loadCourses() {
     setErrorMessage("Unable to load programs.");
   }
 }
+
+async function refreshImportCourses() {
+  const response = await requestJson("/api/course/all/active");
+  coursesByCode = new Map(
+    (response.data || []).map((course) => [
+      normalize(course.code || course.course_code),
+      course,
+    ]),
+  );
+}
 function addPayload(form) {
   return {
     ...Object.fromEntries(new FormData(form)),
@@ -268,6 +278,7 @@ document
       const [rows, current] = await Promise.all([
         parseWorkbook(xlsxInput.files[0]),
         requestJson("/api/student"),
+        refreshImportCourses(),
       ]);
       pendingImport = classifyRows(rows, current.data || []);
       renderPreview();

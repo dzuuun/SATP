@@ -144,6 +144,7 @@ document
       const [rows, existingResponse] = await Promise.all([
         parseWorkbook(file),
         requestJson("/api/department"),
+        refreshImportColleges(),
       ]);
       pendingImport = classifyRows(rows, existingResponse.data || []);
       renderPreview();
@@ -379,6 +380,16 @@ async function loadColleges() {
     console.error("Colleges failed to load:", error);
     setErrorMessage("Unable to load colleges.");
   }
+}
+
+async function refreshImportColleges() {
+  const response = await requestJson("/api/college/all/active");
+  collegesByCode = new Map(
+    (response.data || []).map((college) => [
+      normalize(college.code || college.college_code),
+      college,
+    ]),
+  );
 }
 
 function toggleModal(id, show = true) {

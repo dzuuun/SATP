@@ -25,6 +25,24 @@ test("Student Course refreshes database references before workbook classificatio
   ].forEach((endpoint) => assert.match(script, new RegExp(endpoint.replaceAll("/", "\\/"))));
 });
 
+test("Maintenance imports refresh database lookups during validation", () => {
+  const contracts = [
+    ["client/maintenance/teacher/script.js", "refreshImportDepartments"],
+    ["client/maintenance/course/script.js", "refreshImportDepartments"],
+    ["client/maintenance/departments/script.js", "refreshImportColleges"],
+    ["client/maintenance/items/script.js", "refreshImportCategories"],
+    ["client/maintenance/student/script.js", "refreshImportCourses"],
+  ];
+  contracts.forEach(([file, refreshFunction]) => {
+    const script = read(file);
+    assert.match(script, new RegExp(`async function ${refreshFunction}\\(`));
+    const validationCall = script.indexOf(`${refreshFunction}(),`);
+    const classificationCall = script.indexOf("classifyRows(rows");
+    assert.ok(validationCall >= 0, `${file} must refresh during validation`);
+    assert.ok(validationCall < classificationCall, `${file} must refresh before classification`);
+  });
+});
+
 test("Student Course import creates missing courses and rooms", () => {
   const script = read("client/maintenance/student_subject/script.js");
   assert.match(script, /subject_needs_creation/);

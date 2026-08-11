@@ -146,6 +146,7 @@ document
       const [rows, existingResponse] = await Promise.all([
         parseWorkbook(file),
         requestJson("/api/course"),
+        refreshImportDepartments(),
       ]);
       pendingImport = classifyRows(rows, existingResponse.data || []);
       renderPreview();
@@ -373,6 +374,16 @@ async function loadDepartments() {
     console.error("Departments failed to load:", error);
     setErrorMessage("Unable to load departments.");
   }
+}
+
+async function refreshImportDepartments() {
+  const response = await requestJson("/api/department/all/active");
+  departmentsByCode = new Map(
+    (response.data || []).map((department) => [
+      normalize(department.department_code || department.code),
+      department,
+    ]),
+  );
 }
 
 function toggleModal(id, show = true) {
