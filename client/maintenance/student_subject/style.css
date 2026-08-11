@@ -288,6 +288,53 @@
   transition: width 0.2s ease;
 }
 
+#spinnerStatusModalCard {
+  min-height: 288px;
+}
+
+#spinnerStatusModalCard #progressDetail {
+  min-height: 2.9em;
+  margin-bottom: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: center;
+}
+
+#importPreviewModal .preview-body,
+#importPreviewModal .preview-list {
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #87938d #edf2ef;
+}
+
+#importPreviewModal .preview-body::-webkit-scrollbar,
+#importPreviewModal .preview-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+#importPreviewModal .preview-body::-webkit-scrollbar-track,
+#importPreviewModal .preview-list::-webkit-scrollbar-track {
+  background: #edf2ef;
+  border-radius: 999px;
+}
+
+#importPreviewModal .preview-body::-webkit-scrollbar-thumb,
+#importPreviewModal .preview-list::-webkit-scrollbar-thumb {
+  min-height: 32px;
+  background: #87938d;
+  background-clip: padding-box;
+  border: 2px solid #edf2ef;
+  border-radius: 999px;
+}
+
+#importPreviewModal .preview-body::-webkit-scrollbar-thumb:hover,
+#importPreviewModal .preview-list::-webkit-scrollbar-thumb:hover {
+  background: #5f6e66;
+  background-clip: padding-box;
+}
+
 #table td {
   white-space: normal;
 }
