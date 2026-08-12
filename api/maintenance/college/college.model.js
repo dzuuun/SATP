@@ -84,31 +84,40 @@ module.exports = {
     try {
       connection = await pool.promise().getConnection();
       await connection.beginTransaction();
+      const [currentColleges] = await connection.query(
+        "SELECT is_active FROM colleges WHERE id = ? FOR UPDATE",
+        [data.id],
+      );
+      if (!currentColleges.length) throw new Error("College not found.");
+      const targetActive = Number(data.is_active) === 1 ? 1 : 0;
+      const statusChanged = Number(currentColleges[0].is_active) !== targetActive;
       const [collegeResult] = await connection.query(
         "UPDATE colleges SET code=?, name=?, is_active=? WHERE id=?",
         [data.code, data.name, data.is_active, data.id],
       );
       let departmentResult = { changedRows: 0 };
       let programResult = { changedRows: 0 };
-      const targetActive = Number(data.is_active) === 1 ? 1 : 0;
-      [departmentResult] = await connection.query(
-        "UPDATE departments SET is_active = ? WHERE college_id = ? AND is_active <> ?",
-        [targetActive, data.id, targetActive],
-      );
-      [programResult] = await connection.query(
-        `UPDATE courses
-         INNER JOIN departments ON departments.id = courses.department_id
-         SET courses.is_active = ?
-         WHERE departments.college_id = ? AND courses.is_active <> ?`,
-        [targetActive, data.id, targetActive],
-      );
+      if (statusChanged) {
+        [departmentResult] = await connection.query(
+          "UPDATE departments SET is_active = ? WHERE college_id = ? AND is_active <> ?",
+          [targetActive, data.id, targetActive],
+        );
+        [programResult] = await connection.query(
+          `UPDATE courses
+           INNER JOIN departments ON departments.id = courses.department_id
+           SET courses.is_active = ?
+           WHERE departments.college_id = ? AND courses.is_active <> ?`,
+          [targetActive, data.id, targetActive],
+        );
+      }
       const changedRows = Number(collegeResult.changedRows || 0) +
         Number(departmentResult.changedRows || 0) + Number(programResult.changedRows || 0);
       if (changedRows) {
         await connection.query(
           "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-          [data.user_id,
-            `Updated College: ${data.code}; ${targetActive ? "activated" : "deactivated"} ${departmentResult.changedRows || 0} department(s) and ${programResult.changedRows || 0} program(s)`],
+          [data.user_id, statusChanged
+            ? `Updated College: ${data.code}; ${targetActive ? "activated" : "deactivated"} ${departmentResult.changedRows || 0} department(s) and ${programResult.changedRows || 0} program(s)`
+            : `Updated College: ${data.code}`],
         );
       }
       await connection.commit();

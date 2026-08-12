@@ -198,6 +198,10 @@ test("Maintenance activation and deactivation cascade through the hierarchy", ()
   );
   assert.match(college, /targetActive \? "activated" : "deactivated"/);
   assert.match(department, /targetActive \? "activated" : "deactivated"/);
+  assert.match(college, /SELECT is_active FROM colleges WHERE id = \? FOR UPDATE/);
+  assert.match(department, /SELECT is_active FROM departments WHERE id = \? FOR UPDATE/);
+  assert.match(college, /if \(statusChanged\) \{/);
+  assert.match(department, /if \(statusChanged\) \{/);
   assert.match(college, /beginTransaction/);
   assert.match(department, /beginTransaction/);
 });
@@ -326,7 +330,7 @@ test("Empty Select and Choose dropdown prompts cannot be selected", () => {
     const html = fs.readFileSync(file, "utf8");
     assert.match(
       html,
-      /<script src="\/shared-ui\.js"><\/script>/,
+      /<script\s+src="\/shared-ui\.js"\s*>\s*<\/script>/,
       path.relative(root, file),
     );
   });
