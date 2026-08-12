@@ -782,8 +782,11 @@ table.dataTable tbody td.text-wrap-column {
 }
 
 .modal-panel {
-    width: min(1000px, 100%);
-    height: min(720px, calc(100vh - 40px));
+    width: 750px;
+    max-width: calc(100vw - 40px);
+    height: 720px;
+    max-height: calc(100vh - 40px);
+    flex: 0 0 auto;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -837,6 +840,22 @@ table.dataTable tbody td.text-wrap-column {
     height: 100%;
     min-height: 0;
     background: #fff;
+}
+
+.modal-table-shell #modalTable_wrapper {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-table-shell #modalTable_wrapper .dataTables_scrollBody {
+    overflow-y: visible !important;
+}
+
+.modal-table-shell #modalTable_wrapper .dataTables_paginate {
+    margin-top: auto;
+    padding-top: 18px;
 }
 
 .modal-footer {
@@ -1051,7 +1070,10 @@ footer > span {
     }
 
     .modal-panel {
-        height: calc(100vh - 20px);
+        width: 750px;
+        max-width: calc(100vw - 20px);
+        height: 720px;
+        max-height: calc(100vh - 20px);
     }
 }
 

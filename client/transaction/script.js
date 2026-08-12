@@ -295,18 +295,27 @@ async function showSubjectModal(studentId) {
           data: "status",
           title: "STATUS",
           className: "text-center",
-          render: (data) =>
-            data == 1
+          render: (data, type) => {
+            const isRated = Number(data) === 1;
+            if (type === "sort" || type === "type") return isRated ? 1 : 0;
+            if (type === "filter") return isRated ? "RATED" : "PENDING";
+            return isRated
               ? '<span class="text-green-600 font-bold">RATED</span>'
-              : '<span class="text-red-500 font-bold">PENDING</span>',
+              : '<span class="text-red-500 font-bold">PENDING</span>';
+          },
         },
       ],
       lengthChange: false,
       paging: true,
+      pageLength: 8,
       searching: false,
       info: false,
       responsive: true,
       autoWidth: false,
+      drawCallback: function () {
+        const modalBody = document.querySelector("#subjectModal .modal-body");
+        if (modalBody) modalBody.scrollTop = 0;
+      },
     });
     setTimeout(() => hideSpinner(), 600);
   }

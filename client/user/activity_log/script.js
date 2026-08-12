@@ -40,7 +40,7 @@ const table = $("#table").DataTable({
   deferRender: true,
   language: {
     search: "",
-    searchPlaceholder: "Search activity...",
+    searchPlaceholder: "Search ID, user, or activity...",
     processing: "Loading activity...",
     paginate: { previous: "Previous", next: "Next" },
   },

@@ -242,6 +242,30 @@ test("Production deployment enforces proxy HTTPS and secure sessions", () => {
   assert.match(guide, /Remote IP address/);
 });
 
+test("Transaction course modal remains stable across short DataTable pages", () => {
+  const style = read("client/transaction/style.css");
+  const script = read("client/transaction/script.js");
+  assert.match(style, /\.modal-panel[\s\S]*width: 750px[\s\S]*height: 720px/);
+  assert.match(style, /\.modal-table-shell #modalTable_wrapper[\s\S]*height: 100%/);
+  assert.match(style, /#modalTable_wrapper \.dataTables_paginate[\s\S]*margin-top: auto/);
+  assert.match(script, /pageLength: 8/);
+  assert.match(script, /#subjectModal \.modal-body/);
+  assert.match(script, /modalBody\.scrollTop = 0/);
+  assert.match(script, /type === "sort" \|\| type === "type"/);
+  assert.match(script, /return isRated \? 1 : 0/);
+});
+
+test("Activity Log search accepts student ID numbers", () => {
+  const model = read("api/user/activity_log/log.model.js");
+  const script = read("client/user/activity_log/script.js");
+  const migration = read("database/migrations/2026-08-12_users_username_index.sql");
+  assert.match(model, /SELECT id FROM users WHERE username = \? LIMIT 1/);
+  assert.match(model, /filter \+= " AND a\.user_id = \?"/);
+  assert.doesNotMatch(model, /JOIN users AS account/);
+  assert.match(migration, /ADD INDEX idx_users_username \(username\)/);
+  assert.match(script, /Search ID, user, or activity/);
+});
+
 test("Grad School remains excluded from automated page and server QA", () => {
   assert.match(read("test/pages.smoke.test.js"), /includes\(["']gradschool["']\)/);
   assert.match(read("test/server.smoke.test.js"), /includes\(["']gradschool["']\)/);

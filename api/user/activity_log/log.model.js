@@ -82,14 +82,23 @@ module.exports = {
       let filter = "WHERE a.date_time >= ? AND a.date_time < ?";
 
       if (normalizedSearch) {
-        filter += `
-          AND (
-            CONCAT_WS(' ', u.givenname, u.surname) LIKE ?
-            OR a.action LIKE ?
-          )
-        `;
-        const pattern = `%${normalizedSearch}%`;
-        params.push(pattern, pattern);
+        const accounts = await query(
+          "SELECT id FROM users WHERE username = ? LIMIT 1",
+          [normalizedSearch],
+        );
+        if (accounts.length) {
+          filter += " AND a.user_id = ?";
+          params.push(accounts[0].id);
+        } else {
+          filter += `
+            AND (
+              CONCAT_WS(' ', u.givenname, u.surname) LIKE ?
+              OR a.action LIKE ?
+            )
+          `;
+          const pattern = `%${normalizedSearch}%`;
+          params.push(pattern, pattern);
+        }
       }
 
       const dataQuery = `
