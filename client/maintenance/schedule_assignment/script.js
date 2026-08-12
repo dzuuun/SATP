@@ -106,7 +106,11 @@ function enhanceSearchableSelect(select) {
   const render = () => {
     const query = search.value.trim().toLowerCase();
     const matches = [...select.options].filter(
-      (option) => option.value && (!query || option.textContent.toLowerCase().includes(query)),
+      (option) =>
+        option.value &&
+        !option.hidden &&
+        !option.disabled &&
+        (!query || option.textContent.toLowerCase().includes(query)),
     );
     options.replaceChildren();
     if (!matches.length) {
@@ -141,6 +145,25 @@ function enhanceSearchableSelect(select) {
 
 function openReassign(assignment) {
   selectedAssignment = assignment;
+  const assignedTeacherIds = new Set(
+    table
+      .rows()
+      .data()
+      .toArray()
+      .filter(
+        (record) =>
+          String(record.schedule_code || "").trim().toLowerCase() ===
+            String(selectedAssignment.schedule_code || "").trim().toLowerCase() &&
+          Number(record.subject_id) === Number(selectedAssignment.subject_id),
+      )
+      .map((record) => Number(record.teacher_id)),
+  );
+  [...document.getElementById("teacherSelect").options].forEach((option) => {
+    if (!option.value) return;
+    const isAssigned = assignedTeacherIds.has(Number(option.value));
+    option.hidden = isAssigned;
+    option.disabled = isAssigned;
+  });
   document.getElementById("sectionCode").textContent = selectedAssignment.schedule_code;
   document.getElementById("sectionSubject").textContent = `${selectedAssignment.subject_code} — ${selectedAssignment.subject_name}`;
   document.getElementById("currentTeacher").textContent = `Current teacher: ${selectedAssignment.teacher_name}`;
@@ -248,6 +271,12 @@ fetch("../../sidebar.html").then((response) => response.text()).then((html) => {
 });
 function toggleNav() {
   const nav = document.getElementById("mySidenav");
-  nav.style.width = nav.style.width === "280px" ? "0" : "280px";
+  const main = document.getElementById("main");
+  if (!nav) return;
+  const isOpen = nav.style.width === "280px";
+  nav.style.width = isOpen ? "0" : "280px";
+  if (main) {
+    main.style.marginLeft = window.innerWidth <= 1100 || isOpen ? "0" : "280px";
+  }
 }
 document.getElementById("year").textContent = new Date().getFullYear();

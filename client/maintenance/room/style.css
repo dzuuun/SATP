@@ -328,6 +328,35 @@ button {
   color: #fff;
   background: var(--green-800);
 }
+
+.status-badge {
+  padding: 5px 9px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 20px;
+  font-size: 0.65rem;
+  font-weight: 800;
+}
+
+.status-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  background: currentColor;
+  border-radius: 50%;
+}
+
+.status-badge.active {
+  color: var(--green-800);
+  background: var(--green-100);
+}
+
+.status-badge.inactive {
+  color: #8a5551;
+  background: #fff0ef;
+}
 .table-edit-button svg {
   width: 16px;
   height: 16px;

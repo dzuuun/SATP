@@ -137,7 +137,7 @@ module.exports = {
   // updated for new table
   getTransactionsByStudent: (data, callBack) => {
     pool.query(
-      "SELECT academic_records_consolidated.id, academic_records_consolidated.status, academic_records_consolidated.student_id, school_years.name AS school_year, semesters.name AS semester, academic_records_consolidated.status, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT( teachers.givenname, ' ', teachers.surname ) AS teachers_name FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON academic_records_consolidated.subject_id = subjects.id INNER JOIN teachers ON academic_records_consolidated.teacher_id = teachers.id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? AND users.username = ?",
+      "SELECT academic_records_consolidated.id, academic_records_consolidated.status, academic_records_consolidated.student_id, school_years.name AS school_year, semesters.name AS semester, academic_records_consolidated.status, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT(IFNULL(CONCAT(teachers.prefix, ' '), ''), teachers.givenname, ' ', teachers.surname, IF(teachers.suffix IS NOT NULL AND TRIM(teachers.suffix) <> '', CONCAT(', ', teachers.suffix), '')) AS teachers_name FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON academic_records_consolidated.subject_id = subjects.id INNER JOIN teachers ON academic_records_consolidated.teacher_id = teachers.id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? AND users.username = ?",
       [data.school_year_id, data.semester_id, data.student_id],
       (error, results) => {
         if (error) {
@@ -160,7 +160,8 @@ module.exports = {
         CONCAT(ui.givenname, ' ', ui.surname) AS student_name,
         s.code AS subject_code,
         s.name AS subject_name,
-        CONCAT(t.givenname, ' ', t.surname) AS teachers_name
+        CONCAT(IFNULL(CONCAT(t.prefix, ' '), ''), t.givenname, ' ', t.surname,
+          IF(t.suffix IS NOT NULL AND TRIM(t.suffix) <> '', CONCAT(', ', t.suffix), '')) AS teachers_name
       FROM academic_records_consolidated AS ar
       INNER JOIN users AS u ON ar.student_id = u.id
       INNER JOIN user_info AS ui ON u.id = ui.user_id
@@ -207,7 +208,8 @@ module.exports = {
         CONCAT(ui.givenname, ' ', ui.surname) AS student_name,
         s.code AS subject_code,
         s.name AS subject_name,
-        CONCAT(t.givenname, ' ', t.surname) AS teachers_name
+        CONCAT(IFNULL(CONCAT(t.prefix, ' '), ''), t.givenname, ' ', t.surname,
+          IF(t.suffix IS NOT NULL AND TRIM(t.suffix) <> '', CONCAT(', ', t.suffix), '')) AS teachers_name
       FROM academic_records_consolidated AS ar
       INNER JOIN users AS u ON ar.student_id = u.id
       INNER JOIN user_info AS ui ON u.id = ui.user_id
@@ -578,7 +580,7 @@ module.exports = {
   // updated for new table
   getNotRatedTransactions: (data, callBack) => {
     pool.query(
-      "SELECT school_years.name AS SchoolYear, semesters.name AS Semester, users.username AS IDNumber, user_info.givenname AS FirstName, user_info.surname AS LastName, user_info.year_level AS YearLevel, courses.name AS Program, departments.name AS Department, colleges.name AS College, subjects.code AS SubjectCode, CONCAT( teachers.surname, ', ', teachers.givenname ) AS Teacher FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON academic_records_consolidated.subject_id = subjects.id INNER JOIN teachers ON academic_records_consolidated.teacher_id = teachers.id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? AND academic_records_consolidated.status = 0 ORDER BY program, department",
+      "SELECT school_years.name AS SchoolYear, semesters.name AS Semester, users.username AS IDNumber, user_info.givenname AS FirstName, user_info.surname AS LastName, user_info.year_level AS YearLevel, courses.name AS Program, departments.name AS Department, colleges.name AS College, subjects.code AS SubjectCode, CONCAT(IFNULL(CONCAT(teachers.prefix, ' '), ''), teachers.givenname, ' ', teachers.surname, IF(teachers.suffix IS NOT NULL AND TRIM(teachers.suffix) <> '', CONCAT(', ', teachers.suffix), '')) AS Teacher FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN subjects ON academic_records_consolidated.subject_id = subjects.id INNER JOIN teachers ON academic_records_consolidated.teacher_id = teachers.id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN colleges ON departments.college_id = colleges.id WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? AND academic_records_consolidated.status = 0 ORDER BY program, department",
       [data.school_year_id, data.semester_id],
       (error, results) => {
         if (error) {

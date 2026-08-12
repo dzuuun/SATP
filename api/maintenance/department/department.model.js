@@ -83,28 +83,38 @@ module.exports = {
     );
   },
 
-  updateDepartment: (data, callBack) => {
-    pool.query(
-      "UPDATE departments SET code = ?, name = ?, college_id = ?, is_active = ? WHERE id = ?",
-      [data.code, data.name, data.college_id, data.is_active, data.id],
-      (error, results) => {
-        if (results.changedRows == 1) {
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated Department: " + data.code],
-            (error, results) => {
-              if (error) {
-                console.log(error);
-              }
-            }
-          );
-        }
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
+  updateDepartment: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+      const [departmentResult] = await connection.query(
+        "UPDATE departments SET code = ?, name = ?, college_id = ?, is_active = ? WHERE id = ?",
+        [data.code, data.name, data.college_id, data.is_active, data.id],
+      );
+      let programResult = { changedRows: 0 };
+      const targetActive = Number(data.is_active) === 1 ? 1 : 0;
+      [programResult] = await connection.query(
+        "UPDATE courses SET is_active = ? WHERE department_id = ? AND is_active <> ?",
+        [targetActive, data.id, targetActive],
+      );
+      const changedRows = Number(departmentResult.changedRows || 0) +
+        Number(programResult.changedRows || 0);
+      if (changedRows) {
+        await connection.query(
+          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+          [data.user_id,
+            `Updated Department: ${data.code}; ${targetActive ? "activated" : "deactivated"} ${programResult.changedRows || 0} program(s)`],
+        );
       }
-    );
+      await connection.commit();
+      return callBack(null, { ...departmentResult, changedRows });
+    } catch (error) {
+      if (connection) await connection.rollback();
+      return callBack(error);
+    } finally {
+      connection?.release();
+    }
   },
 
   deleteDepartment: (data, callBack) => {

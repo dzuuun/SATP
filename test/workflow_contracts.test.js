@@ -7,6 +7,11 @@ const path = require("node:path");
 
 const root = path.resolve(__dirname, "..");
 const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
+const walk = (directory) =>
+  fs.readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const target = path.join(directory, entry.name);
+    return entry.isDirectory() ? walk(target) : [target];
+  });
 
 test("Student Course refreshes database references before workbook classification", () => {
   const script = read("client/maintenance/student_subject/script.js");
@@ -117,6 +122,124 @@ test("Student rating access is separated for SHS and non-SHS students", () => {
   assert.match(model, /student_rating_shs_enabled/);
   assert.match(model, /student_rating_non_shs_enabled/);
   assert.match(model, /departments\.code/);
+});
+
+test("Student rating displays teacher prefixes and suffixes", () => {
+  const model = read("api/transaction/studentRatingStatus/srs.model.js");
+  assert.match(model, /teachers\.prefix/);
+  assert.match(model, /teachers\.suffix/);
+  assert.match(model, /t\.prefix/);
+  assert.match(model, /t\.suffix/);
+});
+
+test("Expired DataTable requests use the session prompt instead of an Ajax alert", () => {
+  const session = read("client/auth-session.js");
+  assert.match(session, /dataTable\.ext\.errMode/);
+  assert.match(session, /settings\?\.jqXHR\?\.status/);
+  assert.match(session, /status === 401/);
+  assert.match(session, /showSessionExpiredPrompt\(\)/);
+});
+
+test("Header university branding is not navigable", () => {
+  const session = read("client/auth-session.js");
+  assert.match(session, /disableHeaderBrandNavigation/);
+  assert.match(session, /\.header-brand > a/);
+  assert.match(session, /removeAttribute\("href"\)/);
+  assert.match(session, /pointerEvents = "none"/);
+});
+
+test("Admin and Room use the standard maintenance table presentation", () => {
+  const admin = read("client/maintenance/admin/script.js");
+  const room = read("client/maintenance/room/script.js");
+  const roomPage = read("client/maintenance/room/index.html");
+  assert.match(admin, /Search admin accounts/);
+  assert.match(admin, /pageLength:\s*10/);
+  assert.match(room, /status-badge active/);
+  assert.match(room, /Search rooms/);
+  assert.doesNotMatch(roomPage, /id=["']overlay["']/);
+});
+
+test("Maintenance activation and deactivation cascade through the hierarchy", () => {
+  const college = read("api/maintenance/college/college.model.js");
+  const department = read("api/maintenance/department/department.model.js");
+  assert.match(college, /const targetActive = Number\(data\.is_active\) === 1 \? 1 : 0/);
+  assert.match(college, /UPDATE courses[\s\S]*SET courses\.is_active = \?[\s\S]*departments\.college_id = \?/);
+  assert.match(college, /UPDATE departments SET is_active = \? WHERE college_id = \?/);
+  assert.match(department, /UPDATE courses SET is_active = \? WHERE department_id = \?/);
+  assert.match(college, /targetActive \? "activated" : "deactivated"/);
+  assert.match(department, /targetActive \? "activated" : "deactivated"/);
+  assert.match(college, /beginTransaction/);
+  assert.match(department, /beginTransaction/);
+});
+
+test("Schedule reassignment excludes teachers already assigned to the section", () => {
+  const script = read("client/maintenance/schedule_assignment/script.js");
+  assert.match(script, /assignedTeacherIds/);
+  assert.match(script, /record\.schedule_code/);
+  assert.match(script, /record\.teacher_id/);
+  assert.match(script, /option\.hidden = isAssigned/);
+  assert.match(script, /!option\.hidden/);
+});
+
+test("Schedule Assignment sidebar offsets the main page on desktop", () => {
+  const script = read("client/maintenance/schedule_assignment/script.js");
+  assert.match(script, /const main = document\.getElementById\("main"\)/);
+  assert.match(script, /main\.style\.marginLeft/);
+  assert.match(script, /window\.innerWidth <= 1100/);
+});
+
+test("Every non-Grad School sidebar toggle moves the main page responsively", () => {
+  const scripts = walk(path.join(root, "client")).filter(
+    (file) =>
+      file.endsWith("script.js") &&
+      !file.toLowerCase().includes("gradschool") &&
+      /function toggleNav\s*\(/.test(fs.readFileSync(file, "utf8")),
+  );
+  assert.ok(scripts.length > 0);
+  scripts.forEach((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    assert.match(source, /marginLeft|margin-left/, path.relative(root, file));
+  });
+});
+
+test("Header hamburger animates without duplicating the sidebar close icon", () => {
+  const session = read("client/auth-session.js");
+  assert.match(session, /installHeaderMenuAnimation/);
+  assert.match(session, /satp-menu-line-top/);
+  assert.match(session, /satp-menu-line-middle/);
+  assert.match(session, /satp-menu-line-bottom/);
+  assert.match(session, /prefers-reduced-motion/);
+  assert.match(session, /requestAnimationFrame\(syncHeaderMenuState\)/);
+  assert.match(session, /aria-expanded/);
+  assert.doesNotMatch(session, /translateY\(5px\) rotate\(45deg\)/);
+  assert.doesNotMatch(session, /translateY\(-5px\) rotate\(-45deg\)/);
+});
+
+test("Production deployment enforces proxy HTTPS and secure sessions", () => {
+  const server = read("index.js");
+  const auth = read("auth/auth_validation.js");
+  const env = read(".env.example");
+  const guide = read("docs/HTTPS_DEPLOYMENT.md");
+  assert.match(server, /HTTPS_ONLY/);
+  assert.match(server, /req\.secure/);
+  assert.match(server, /res\.redirect\(308/);
+  assert.match(server, /ALLOW_DIRECT_HTTP/);
+  assert.match(server, /allowDirectHttp && !cameThroughProxy/);
+  assert.match(server, /Strict-Transport-Security/);
+  assert.match(auth, /NODE_ENV === "production"/);
+  assert.match(auth, /directHttpAllowed/);
+  assert.match(auth, /function setSessionCookie\(req, res, token\)/);
+  assert.match(env, /TRUST_PROXY=false/);
+  assert.match(env, /HTTPS_ONLY=false/);
+  assert.match(env, /ALLOW_DIRECT_HTTP=false/);
+  assert.match(guide, /reverse_proxy 127\.0\.0\.1:3000/);
+  const ecosystem = read("ecosystem.config.cjs");
+  assert.match(ecosystem, /name: "satp"/);
+  assert.match(ecosystem, /script: "\.\/index\.js"/);
+  assert.match(ecosystem, /NODE_ENV: "production"/);
+  assert.match(guide, /pm2 start ecosystem\.config\.cjs --env production/);
+  assert.match(guide, /PM2\/SATP and Caddy return automatically/);
+  assert.match(guide, /Remote IP address/);
 });
 
 test("Grad School remains excluded from automated page and server QA", () => {

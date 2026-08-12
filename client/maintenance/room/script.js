@@ -30,26 +30,23 @@ $(document).ready(function () {
       dataSrc: "data",
     },
     columns: [
-      { data: "name", title: "ROOM NAME", width: "76%" },
+      { data: "name", title: "Room name" },
       {
         data: "is_active",
-        title: "STATUS",
-        width: "16%",
+        title: "Status",
+        width: "15%",
         className: "dt-center",
         render: function (data) {
           const isActive = data == 1;
-          return `
-                    <div class="flex justify-center">
-                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}">
-                            ${isActive ? "Active" : "Inactive"}
-                        </span>
-                    </div>`;
+          return isActive
+            ? '<span class="status-badge active">Active</span>'
+            : '<span class="status-badge inactive">Inactive</span>';
         },
       },
       {
         data: "id",
-        title: "ACTIONS",
-        width: "8%",
+        title: "Actions",
+        width: "10%",
         orderable: false,
         className: "dt-center",
         render: (data) => `
@@ -61,7 +58,6 @@ $(document).ready(function () {
       },
     ],
     autoWidth: false,
-    responsive: true,
     pageLength: 10,
     dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
     language: {
@@ -694,32 +690,13 @@ function setErrorMessage(message) {
 function toggleNav() {
   const sidenav = document.getElementById("mySidenav");
   const main = document.getElementById("main");
-
-  if (!sidenav) return; // Guard clause if sidebar hasn't loaded yet
-
-  // Check if it's currently open (280px) or closed (0 or empty)
+  if (!sidenav) return;
   const isOpen = sidenav.style.width === "280px";
-
-  if (isOpen) {
-    sidenav.style.width = "0";
-    if (main) main.style.marginLeft = "0";
-  } else {
-    sidenav.style.width = "280px";
-    if (main) main.style.marginLeft = "280px";
+  sidenav.style.width = isOpen ? "0" : "280px";
+  if (main) {
+    main.style.marginLeft = window.innerWidth <= 760 || isOpen ? "0" : "280px";
   }
 }
-
-// --- SPINNER LOGIC ---
-// Targeting the #overlay element directly
-const overlay = document.getElementById("overlay");
-
-const showSpinner = () => {
-  if (overlay) overlay.style.display = "flex";
-};
-
-const hideSpinner = () => {
-  if (overlay) overlay.style.display = "none";
-};
 
 function setupSidebarInteractions() {
   // 1. Set the Fullname (Moved here from DOMContentLoaded)

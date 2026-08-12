@@ -21,7 +21,32 @@ if (!process.env.SECRET_KEY) {
 }
 
 const app = express();
-if (process.env.TRUST_PROXY === "true") app.set("trust proxy", 1);
+const isProduction = process.env.NODE_ENV === "production";
+const trustProxy = process.env.TRUST_PROXY === "true";
+const enforceHttps = process.env.HTTPS_ONLY === "true";
+const allowDirectHttp = process.env.ALLOW_DIRECT_HTTP === "true";
+
+if (trustProxy) app.set("trust proxy", 1);
+if (enforceHttps && !trustProxy) {
+  throw new Error(
+    "HTTPS_ONLY=true requires TRUST_PROXY=true when TLS is terminated by a reverse proxy.",
+  );
+}
+
+app.use((req, res, next) => {
+  const cameThroughProxy = Boolean(req.get("x-forwarded-proto"));
+  const permittedDirectHttp = allowDirectHttp && !cameThroughProxy;
+  if (enforceHttps && !req.secure && !permittedDirectHttp) {
+    return res.redirect(308, `https://${req.get("host")}${req.originalUrl}`);
+  }
+  if (req.secure && isProduction) {
+    res.setHeader(
+      "Strict-Transport-Security",
+      "max-age=31536000; includeSubDomains",
+    );
+  }
+  return next();
+});
 
 // --- Middleware ---
 app.use(apiRequestContext);
@@ -177,5 +202,6 @@ app.use(apiErrorHandler);
 // --- Start Server ---
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
+  const publicUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+  console.log(`SATP server running at ${publicUrl}`);
 });

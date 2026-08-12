@@ -26,11 +26,21 @@ function getToken(req) {
     : null;
 }
 
-function sessionCookieOptions() {
+function sessionCookieOptions(req) {
+  const directHttpAllowed =
+    process.env.ALLOW_DIRECT_HTTP === "true" &&
+    req &&
+    !req.secure &&
+    !req.get("x-forwarded-proto");
+  const secureCookie =
+    !directHttpAllowed &&
+    (process.env.COOKIE_SECURE === "true" ||
+      (process.env.NODE_ENV === "production" &&
+        process.env.COOKIE_SECURE !== "false"));
   return {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.COOKIE_SECURE === "true",
+    secure: secureCookie,
     maxAge: SESSION_DURATION_MS,
     path: "/",
   };
@@ -56,12 +66,12 @@ function createSessionToken(userId, passwordHash) {
   );
 }
 
-function setSessionCookie(res, token) {
-  res.cookie(COOKIE_NAME, token, sessionCookieOptions());
+function setSessionCookie(req, res, token) {
+  res.cookie(COOKIE_NAME, token, sessionCookieOptions(req));
 }
 
-function clearSessionCookie(res) {
-  const options = sessionCookieOptions();
+function clearSessionCookie(req, res) {
+  const options = sessionCookieOptions(req);
   delete options.maxAge;
   res.clearCookie(COOKIE_NAME, options);
 }
@@ -81,7 +91,7 @@ function checkToken(req, res, next) {
     { issuer: "satp", audience: "satp-web" },
     (tokenError, decoded) => {
       if (tokenError || decoded?.type !== "session" || !decoded?.sub) {
-        clearSessionCookie(res);
+        clearSessionCookie(req, res);
         return res.status(401).json({
           success: 0,
           message: "Your session is invalid. Please sign in again.",
@@ -118,7 +128,7 @@ function checkToken(req, res, next) {
             });
           }
           if (!users.length) {
-            clearSessionCookie(res);
+            clearSessionCookie(req, res);
             return res.status(401).json({
               success: 0,
               message: "This account is no longer active.",
@@ -134,7 +144,7 @@ function checkToken(req, res, next) {
             expectedCredential.length !== receivedCredential.length ||
             !timingSafeEqual(expectedCredential, receivedCredential)
           ) {
-            clearSessionCookie(res);
+            clearSessionCookie(req, res);
             return res.status(401).json({
               success: 0,
               message: "Your credentials changed. Please sign in again.",

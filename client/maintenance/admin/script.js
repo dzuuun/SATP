@@ -48,6 +48,13 @@ let data = $("#table").DataTable({
       },
     },
   ],
+  pageLength: 10,
+  dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
+  language: {
+    search: "",
+    searchPlaceholder: "Search admin accounts...",
+    paginate: { previous: "Previous", next: "Next" },
+  },
 });
 
 function showPassword() {

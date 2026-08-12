@@ -324,7 +324,10 @@ document.addEventListener("keydown", (event) => {
 function toggleNav() {
   const isOpen = $("#mySidenav").width() > 0;
   $("#mySidenav").width(isOpen ? 0 : 280);
-  $("#main").css("margin-left", isOpen ? 0 : 280);
+  $("#main").css(
+    "margin-left",
+    window.innerWidth <= 760 || isOpen ? 0 : 280,
+  );
 }
 
 const showSpinner = () => $("#overlay").css("display", "flex");

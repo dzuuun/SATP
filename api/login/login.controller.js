@@ -154,7 +154,7 @@ module.exports = {
 
       failedLogins.delete(key);
       const token = createSessionToken(results.user_id, results.password);
-      setSessionCookie(res, token);
+      setSessionCookie(req, res, token);
       logActivity(results.user_id, "Logged in", (logError) => {
         if (logError) console.error("Unable to log sign in:", logError);
       });
@@ -176,7 +176,7 @@ module.exports = {
     }),
 
   logout: (req, res) => {
-    clearSessionCookie(res);
+    clearSessionCookie(req, res);
     logActivity(req.user.id, "Logged out", (logError) => {
       if (logError) console.error("Unable to log sign out:", logError);
     });
@@ -248,7 +248,7 @@ module.exports = {
             message: "Contents are still the same.",
           });
         }
-        setSessionCookie(res, createSessionToken(req.user.id, body.password));
+        setSessionCookie(req, res, createSessionToken(req.user.id, body.password));
         return res.json({
           success: 1,
           message: "Password updated successfully.",
