@@ -1,218 +1,241 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#075c3b" />
-    <title>SATP | User Management</title>
-    <link rel="icon" href="../../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="../../tailwind.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
-    />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <div id="sidebar-container"></div>
-    <div id="main">
-      <header class="site-header">
-        <div class="header-brand">
-          <button
-            class="menu-button"
-            type="button"
-            onclick="toggleNav()"
-            aria-label="Open navigation"
-          >
-            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-          <a href="../../"
-            ><img
-              src="../../images/NDMU-Logo.png"
-              alt=""
-              width="44"
-              height="44"
-            /><span
-              ><strong>Notre Dame of Marbel University</strong
-              ><small>Student Assessment of Teacher's Performance</small></span
-            ></a
-          >
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#075c3b" />
+  <title>SATP | User Management</title>
+  <link rel="icon" href="../../images/NDMU-Logo.png" />
+  <link rel="stylesheet" href="../../tailwind.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div id="sidebar-container"></div>
+  <div id="main">
+    <header class="site-header">
+      <div class="header-brand">
+        <button class="menu-button" type="button" onclick="toggleNav()" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+        <a href="../../"><img src="../../images/NDMU-Logo.png" alt="" width="44" height="44" /><span><strong>Notre Dame
+              of Marbel University</strong><small>Student Assessment of Teacher's Performance</small></span></a>
+      </div>
+      <div class="header-context">
+        <span>Users &amp; Access</span><strong>User management</strong>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">Access control</p>
+          <h1>User management</h1>
+          <p>
+            Create accounts and maintain user identities, roles, and access.
+          </p>
         </div>
-        <div class="header-context">
-          <span>Users &amp; Access</span><strong>User management</strong>
+        <nav aria-label="Breadcrumb">
+          <a href="../../">SATP</a><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Users &amp; Access</span><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>User management</span>
+        </nav>
+      </section>
+
+      <section class="records-card">
+        <div class="records-heading">
+          <div>
+            <p class="eyebrow">Account directory</p>
+            <h2>User accounts</h2>
+            <p>Search and maintain all SATP user accounts.</p>
+          </div>
+          <div class="heading-actions">
+            <button class="secondary-button" type="button" onclick="toggleModal('deactivateImportModal',true)">
+              <svg viewBox="0 0 24 24">
+                <path d="M5 12h14" />
+              </svg>Deactivate users
+            </button>
+            <button class="secondary-button" type="button" onclick="toggleModal('passwordImportModal',true)">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" />
+              </svg>Update passwords
+            </button>
+            <button class="primary-button" type="button" onclick="openAddModal()">
+              <svg viewBox="0 0 24 24">
+                <path d="M15 19a6 6 0 0 0-12 0m6-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10-3v6m3-3h-6" />
+              </svg>Add user
+            </button>
+          </div>
         </div>
+        <div class="table-shell">
+          <table id="table" class="display" aria-label="User accounts"></table>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+      <span></span>
+      <p>Developed by the MIS Department</p>
+    </footer>
+  </div>
+
+  <div id="addNewModal" class="room-modal invisible" role="dialog" aria-modal="true">
+    <div id="addNewModalCard" class="modal-card user-modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">New account</p>
+          <h2>Add user</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('addNewModal',false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
       </header>
-
-      <main class="workspace">
-        <section class="page-heading">
-          <div>
-            <p class="eyebrow">Access control</p>
-            <h1>User management</h1>
-            <p>
-              Create accounts and maintain user identities, roles, and access.
-            </p>
-          </div>
-          <nav aria-label="Breadcrumb">
-            <a href="../../">SATP</a
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Users &amp; Access</span
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>User management</span>
-          </nav>
-        </section>
-
-        <section class="records-card">
-          <div class="records-heading">
-            <div>
-              <p class="eyebrow">Account directory</p>
-              <h2>User accounts</h2>
-              <p>Search and maintain all SATP user accounts.</p>
+      <form id="newUserForm">
+        <div class="modal-body form-grid">
+          <h3>User credentials</h3>
+          <div class="field-row credentials-row">
+            <div class="field">
+              <label for="addUsername">Username</label><input id="addUsername" name="username" placeholder="ID number"
+                required />
             </div>
-            <div class="heading-actions">
-              <button
-                class="secondary-button"
-                type="button"
-                onclick="toggleModal('deactivateImportModal',true)"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path d="M5 12h14" /></svg
-                >Deactivate users
-              </button>
-              <button
-                class="secondary-button"
-                type="button"
-                onclick="toggleModal('passwordImportModal',true)"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" /></svg
-                >Update passwords
-              </button>
-              <button
-                class="primary-button"
-                type="button"
-                onclick="openAddModal()"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path
-                    d="M15 19a6 6 0 0 0-12 0m6-8a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm10-3v6m3-3h-6"
-                  /></svg
-                >Add user
-              </button>
+            <div class="field">
+              <label for="addPassword">Temporary password</label><input id="addPassword" name="password" type="text"
+                required /><label class="inline-check"><input id="showAddPassword" type="checkbox" checked />Show
+                password</label>
             </div>
           </div>
-          <div class="table-shell">
-            <table
-              id="table"
-              class="display"
-              aria-label="User accounts"
-            ></table>
+          <h3>Personal information</h3>
+          <div class="three-column">
+            <div class="field">
+              <label for="addGivenName">Given name</label><input id="addGivenName" name="givenname" required />
+            </div>
+            <div class="field">
+              <label for="addMiddleName">Middle name</label><input id="addMiddleName" name="middlename" />
+            </div>
+            <div class="field">
+              <label for="addLastName">Last name</label><input id="addLastName" name="surname" required />
+            </div>
           </div>
-        </section>
-      </main>
-      <footer class="site-footer">
-        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-        <span></span>
-        <p>Developed by the MIS Department</p>
-      </footer>
-    </div>
-
-    <div
-      id="addNewModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div id="addNewModalCard" class="modal-card user-modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">New account</p>
-            <h2>Add user</h2>
+          <div class="three-column">
+            <div class="field">
+              <label for="addGender">Gender</label><select id="addGender" name="gender" required>
+                <option value="">Select gender</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="addRole">Account type</label><select id="addRole" required>
+                <option value="">Select type</option>
+                <option value="student">Student</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="permissionSelect">Permission</label><select id="permissionSelect" name="permission_id"
+                required>
+                <option value="">Select permission</option>
+              </select>
+            </div>
           </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('addNewModal',false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          <div id="studentFields" class="field-row hidden">
+            <div class="field">
+              <label for="addCourse">Program</label><select id="addCourse" name="course_id">
+                <option value="">Select program</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="addYearLevel">Year level</label><select id="addYearLevel" name="year_level">
+                <option value="">Select year level</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+                <option value="5">5th Year</option>
+                <option value="6">6th Year</option>
+                <option value="Grade 11">Grade 11</option>
+                <option value="Grade 12">Grade 12</option>
+              </select>
+            </div>
+          </div>
+          <label class="status-control" for="isUserActive"><span><strong>Active user</strong><small>Allow this account
+                to access SATP</small></span><input id="isUserActive" type="checkbox" checked /><span
+              class="switch"></span></label>
+        </div>
+        <footer class="modal-footer split-footer">
+          <button class="text-button" type="button" onclick="openUserImport()">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 16V4m0 0L8 8m4-4 4 4M5 20h14" />
+            </svg>Import multiple
           </button>
-        </header>
-        <form id="newUserForm">
-          <div class="modal-body form-grid">
-            <h3>User credentials</h3>
-            <div class="field-row credentials-row">
-              <div class="field">
-                <label for="addUsername">Username</label
-                ><input
-                  id="addUsername"
-                  name="username"
-                  placeholder="ID number"
-                  required
-                />
-              </div>
-              <div class="field">
-                <label for="addPassword">Temporary password</label
-                ><input
-                  id="addPassword"
-                  name="password"
-                  type="text"
-                  required
-                /><label class="inline-check"
-                  ><input id="showAddPassword" type="checkbox" checked />Show
-                  password</label
-                >
-              </div>
-            </div>
-            <h3>Personal information</h3>
-            <div class="three-column">
-              <div class="field">
-                <label for="addGivenName">Given name</label
-                ><input id="addGivenName" name="givenname" required />
-              </div>
-              <div class="field">
-                <label for="addMiddleName">Middle name</label
-                ><input id="addMiddleName" name="middlename" />
-              </div>
-              <div class="field">
-                <label for="addLastName">Last name</label
-                ><input id="addLastName" name="surname" required />
+          <div>
+            <button class="secondary-button" type="button" onclick="toggleModal('addNewModal',false)">
+              Cancel</button><button class="primary-button">Create user</button>
+          </div>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="editModal" class="room-modal invisible" role="dialog" aria-modal="true">
+    <div id="editModalCard" class="modal-card user-modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Account settings</p>
+          <h2>Edit user</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('editModal',false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="editUserForm">
+        <div class="modal-body unified-editor">
+          <section class="editor-section">
+            <div class="section-heading">
+              <span>01</span>
+              <div>
+                <h3>Profile information</h3>
+                <p>
+                  Identity and academic details stored in the user profile.
+                </p>
               </div>
             </div>
             <div class="three-column">
               <div class="field">
-                <label for="addGender">Gender</label
-                ><select id="addGender" name="gender" required>
-                  <option value="">Select gender</option>
+                <label for="editGivenName">Given name</label><input id="editGivenName" name="givenname" required />
+              </div>
+              <div class="field">
+                <label for="editMiddleName">Middle name</label><input id="editMiddleName" name="middlename" />
+              </div>
+              <div class="field">
+                <label for="editLastName">Last name</label><input id="editLastName" name="surname" required />
+              </div>
+            </div>
+            <div class="three-column">
+              <div class="field">
+                <label for="editGender">Gender</label><select id="editGender" name="gender" required>
                   <option value="MALE">Male</option>
                   <option value="FEMALE">Female</option>
                 </select>
               </div>
               <div class="field">
-                <label for="addRole">Account type</label
-                ><select id="addRole" required>
-                  <option value="">Select type</option>
-                  <option value="student">Student</option>
-                  <option value="admin">Admin</option>
+                <label for="editCourse">Program</label><select id="editCourse" name="course_id">
+                  <option value="">Not applicable</option>
                 </select>
               </div>
               <div class="field">
-                <label for="permissionSelect">Permission</label
-                ><select id="permissionSelect" name="permission_id" required>
-                  <option value="">Select permission</option>
-                </select>
-              </div>
-            </div>
-            <div id="studentFields" class="field-row hidden">
-              <div class="field">
-                <label for="addCourse">Program</label
-                ><select id="addCourse" name="course_id">
-                  <option value="">Select program</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="addYearLevel">Year level</label
-                ><select id="addYearLevel" name="year_level">
-                  <option value="">Select year level</option>
+                <label for="editYearLevel">Year level</label><select id="editYearLevel" name="year_level">
+                  <option value="">Not applicable</option>
                   <option value="1">1st Year</option>
                   <option value="2">2nd Year</option>
                   <option value="3">3rd Year</option>
@@ -224,425 +247,227 @@
                 </select>
               </div>
             </div>
-            <label class="status-control" for="isUserActive"
-              ><span
-                ><strong>Active user</strong
-                ><small>Allow this account to access SATP</small></span
-              ><input id="isUserActive" type="checkbox" checked /><span
-                class="switch"
-              ></span
-            ></label>
-          </div>
-          <footer class="modal-footer split-footer">
-            <button
-              class="text-button"
-              type="button"
-              onclick="openUserImport()"
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M12 16V4m0 0L8 8m4-4 4 4M5 20h14" /></svg
-              >Import multiple
-            </button>
-            <div>
-              <button
-                class="secondary-button"
-                type="button"
-                onclick="toggleModal('addNewModal',false)"
-              >
-                Cancel</button
-              ><button class="primary-button">Create user</button>
-            </div>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div
-      id="editModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div id="editModalCard" class="modal-card user-modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Account settings</p>
-            <h2>Edit user</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('editModal',false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <form id="editUserForm">
-          <div class="modal-body unified-editor">
-            <section class="editor-section">
-              <div class="section-heading">
-                <span>01</span>
-                <div>
-                  <h3>Profile information</h3>
-                  <p>
-                    Identity and academic details stored in the user profile.
-                  </p>
-                </div>
-              </div>
-              <div class="three-column">
-                <div class="field">
-                  <label for="editGivenName">Given name</label
-                  ><input id="editGivenName" name="givenname" required />
-                </div>
-                <div class="field">
-                  <label for="editMiddleName">Middle name</label
-                  ><input id="editMiddleName" name="middlename" />
-                </div>
-                <div class="field">
-                  <label for="editLastName">Last name</label
-                  ><input id="editLastName" name="surname" required />
-                </div>
-              </div>
-              <div class="three-column">
-                <div class="field">
-                  <label for="editGender">Gender</label
-                  ><select id="editGender" name="gender" required>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="editCourse">Program</label
-                  ><select id="editCourse" name="course_id">
-                    <option value="">Not applicable</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="editYearLevel">Year level</label
-                  ><select id="editYearLevel" name="year_level">
-                    <option value="">Not applicable</option>
-                    <option value="1">1st Year</option>
-                    <option value="2">2nd Year</option>
-                    <option value="3">3rd Year</option>
-                    <option value="4">4th Year</option>
-                    <option value="5">5th Year</option>
-                    <option value="6">6th Year</option>
-                    <option value="Grade 11">Grade 11</option>
-                    <option value="Grade 12">Grade 12</option>
-                  </select>
-                </div>
-              </div>
-            </section>
-            <section class="editor-section">
-              <div class="section-heading">
-                <span>02</span>
-                <div>
-                  <h3>Access and role</h3>
-                  <p>Permission group and the type of account.</p>
-                </div>
-              </div>
-              <div class="field-row">
-                <div class="field">
-                  <label for="editPermissionSelect">Permission</label
-                  ><select
-                    id="editPermissionSelect"
-                    name="permission_id"
-                    required
-                  >
-                    <option value="">Select permission</option>
-                  </select>
-                </div>
-                <div class="field">
-                  <label for="editRole">Account type</label
-                  ><select id="editRole" name="role" required>
-                    <option value="student">Student</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-              </div>
-            </section>
-            <section class="editor-section">
-              <div class="section-heading">
-                <span>03</span>
-                <div>
-                  <h3>Login credentials</h3>
-                  <p>Leave the password blank to keep the existing password.</p>
-                </div>
-              </div>
-              <div class="field-row credentials-row">
-                <div class="field">
-                  <label for="editUsername">Username</label
-                  ><input id="editUsername" name="username" required />
-                </div>
-                <div class="field">
-                  <label for="editPassword"
-                    >New password <small>Optional</small></label
-                  ><input
-                    id="editPassword"
-                    name="password"
-                    type="password"
-                    autocomplete="new-password"
-                  /><label class="inline-check"
-                    ><input id="showEditPassword" type="checkbox" />Show
-                    password</label
-                  >
-                </div>
-              </div>
-            </section>
-            <section class="editor-section editor-switches">
-              <label class="status-control" for="editTemporaryPassword"
-                ><span
-                  ><strong>Temporary password</strong
-                  ><small
-                    >Require the user to replace it after login</small
-                  ></span
-                ><input id="editTemporaryPassword" type="checkbox" /><span
-                  class="switch"
-                ></span
-              ></label>
-              <label class="status-control" for="editIsUserActive"
-                ><span
-                  ><strong>Active user</strong
-                  ><small>Allow this account to access SATP</small></span
-                ><input id="editIsUserActive" type="checkbox" /><span
-                  class="switch"
-                ></span
-              ></label>
-            </section>
-          </div>
-          <footer class="modal-footer">
-            <button
-              class="secondary-button"
-              type="button"
-              onclick="toggleModal('editModal',false)"
-            >
-              Cancel</button
-            ><button class="primary-button">Save changes</button>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div id="userImportModal" class="room-modal invisible">
-      <div id="userImportModalCard" class="modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Bulk operation</p>
-            <h2>Import users</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('userImportModal',false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <form id="userImportForm">
-          <div class="modal-body">
-            <label for="userXlsxInput" id="userDropZone" class="drop-zone">
-              <span class="upload-icon"
-                ><svg viewBox="0 0 24 24">
-                  <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
-              ></span>
-              <strong>Choose an Excel file</strong>
-              <p>
-                Required: username, password, givenname, surname, gender, role,
-                and permission_id
-              </p>
-            </label>
-            <input
-              id="userXlsxInput"
-              type="file"
-              accept=".xlsx,.xls"
-              class="hidden"
-              required
-            />
-            <p class="template-copy">
-              Need the format?
-              <a href="#" id="downloadUserTemplate">Download template</a>
-            </p>
-          </div>
-          <footer class="modal-footer">
-            <button
-              class="secondary-button"
-              type="button"
-              onclick="toggleModal('userImportModal',false)"
-            >
-              Cancel</button
-            ><button class="primary-button">Validate file</button>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div id="passwordImportModal" class="room-modal invisible">
-      <div id="passwordImportModalCard" class="modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Bulk operation</p>
-            <h2>Update passwords</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('passwordImportModal',false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <form id="passwordImportForm">
-          <div class="modal-body">
-            <label
-              for="passwordXlsxInput"
-              id="passwordDropZone"
-              class="drop-zone"
-            >
-              <span class="upload-icon"
-                ><svg viewBox="0 0 24 24">
-                  <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
-              ></span>
-              <strong>Choose an Excel file</strong>
-              <p>Required columns: username and password</p>
-            </label>
-            <input
-              id="passwordXlsxInput"
-              type="file"
-              accept=".xlsx,.xls"
-              class="hidden"
-              required
-            />
-            <p class="template-copy">
-              Need the format?
-              <a href="#" id="downloadPasswordTemplate">Download template</a>
-            </p>
-          </div>
-          <footer class="modal-footer">
-            <button
-              class="secondary-button"
-              type="button"
-              onclick="toggleModal('passwordImportModal',false)"
-            >
-              Cancel</button
-            ><button class="primary-button">Validate file</button>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div id="deactivateImportModal" class="room-modal invisible">
-      <div id="deactivateImportModalCard" class="modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Bulk operation</p>
-            <h2>Deactivate users</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('deactivateImportModal',false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <form id="deactivateImportForm">
-          <div class="modal-body">
-            <label
-              for="deactivateXlsxInput"
-              id="deactivateDropZone"
-              class="drop-zone"
-            >
-              <span class="upload-icon"
-                ><svg viewBox="0 0 24 24">
-                  <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
-              ></span>
-              <strong>Choose an Excel file</strong>
-              <p>Required column: username</p>
-            </label>
-            <input
-              id="deactivateXlsxInput"
-              type="file"
-              accept=".xlsx,.xls"
-              class="hidden"
-              required
-            />
-            <p class="template-copy">
-              Need the format?
-              <a href="#" id="downloadDeactivateTemplate">Download template</a>
-            </p>
-          </div>
-          <footer class="modal-footer">
-            <button
-              class="secondary-button"
-              type="button"
-              onclick="toggleModal('deactivateImportModal',false)"
-            >
-              Cancel</button
-            ><button class="primary-button">Validate file</button>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div id="importPreviewModal" class="room-modal invisible">
-      <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Import preview</p>
-            <h2>Check results</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('importPreviewModal',false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <div class="modal-body preview-body">
-          <p id="previewSummary" class="helper-text"></p>
-          <section class="preview-section">
-            <h3>
-              <span class="preview-dot created"></span
-              ><span id="successPreviewTitle">Created</span>
-            </h3>
-            <div id="successPreview"></div>
           </section>
-          <section class="preview-section">
-            <h3><span class="preview-dot error"></span>Errors</h3>
-            <div id="errorPreview"></div>
+          <section class="editor-section">
+            <div class="section-heading">
+              <span>02</span>
+              <div>
+                <h3>Access and role</h3>
+                <p>Permission group and the type of account.</p>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label for="editPermissionSelect">Permission</label><select id="editPermissionSelect"
+                  name="permission_id" required>
+                  <option value="">Select permission</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="editRole">Account type</label><select id="editRole" name="role" required>
+                  <option value="student">Student</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+            </div>
+          </section>
+          <section class="editor-section">
+            <div class="section-heading">
+              <span>03</span>
+              <div>
+                <h3>Login credentials</h3>
+                <p>Leave the password blank to keep the existing password.</p>
+              </div>
+            </div>
+            <div class="field-row credentials-row">
+              <div class="field">
+                <label for="editUsername">Username</label><input id="editUsername" name="username" required />
+              </div>
+              <div class="field">
+                <label for="editPassword">New password <small>Optional</small></label><input id="editPassword"
+                  name="password" type="password" autocomplete="new-password" /><label class="inline-check"><input
+                    id="showEditPassword" type="checkbox" />Show
+                  password</label>
+              </div>
+            </div>
+          </section>
+          <section class="editor-section editor-switches">
+            <label class="status-control" for="editTemporaryPassword"><span><strong>Temporary
+                  password</strong><small>Require the user to replace it after login</small></span><input
+                id="editTemporaryPassword" type="checkbox" /><span class="switch"></span></label>
+            <label class="status-control" for="editIsUserActive"><span><strong>Active user</strong><small>Allow this
+                  account to access SATP</small></span><input id="editIsUserActive" type="checkbox" /><span
+                class="switch"></span></label>
           </section>
         </div>
         <footer class="modal-footer">
-          <button
-            class="secondary-button"
-            type="button"
-            onclick="toggleModal('importPreviewModal',false)"
-          >
-            Cancel</button
-          ><button id="runImportButton" class="primary-button" type="button">
-            Run import
-          </button>
+          <button class="secondary-button" type="button" onclick="toggleModal('editModal',false)">
+            Cancel</button><button class="primary-button">Save changes</button>
         </footer>
-      </div>
+      </form>
     </div>
+  </div>
 
-    <div id="loadingModal" class="room-modal invisible">
-      <div id="loadingModalCard" class="loading-card scale-95">
-        <span class="loader"></span>
-        <p id="loadingMessage">Processing records...</p>
-      </div>
+  <div id="userImportModal" class="room-modal invisible">
+    <div id="userImportModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Bulk operation</p>
+          <h2>Import users</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('userImportModal',false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="userImportForm">
+        <div class="modal-body">
+          <label for="userXlsxInput" id="userDropZone" class="drop-zone">
+            <span class="upload-icon"><svg viewBox="0 0 24 24">
+                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+              </svg></span>
+            <strong>Choose an Excel file</strong>
+            <p>
+              Required: username, password, givenname, surname, gender, role,
+              and permission_id
+            </p>
+          </label>
+          <input id="userXlsxInput" type="file" accept=".xlsx,.xls" class="hidden" required />
+          <p class="template-copy">
+            Need the format?
+            <a href="#" id="downloadUserTemplate">Download template</a>
+          </p>
+        </div>
+        <footer class="modal-footer">
+          <button class="secondary-button" type="button" onclick="toggleModal('userImportModal',false)">
+            Cancel</button><button class="primary-button">Validate file</button>
+        </footer>
+      </form>
     </div>
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="./script.js"></script>
-    <script src="/auth-session.js"></script>
-  </body>
+  </div>
+
+  <div id="passwordImportModal" class="room-modal invisible">
+    <div id="passwordImportModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Bulk operation</p>
+          <h2>Update passwords</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('passwordImportModal',false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="passwordImportForm">
+        <div class="modal-body">
+          <label for="passwordXlsxInput" id="passwordDropZone" class="drop-zone">
+            <span class="upload-icon"><svg viewBox="0 0 24 24">
+                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+              </svg></span>
+            <strong>Choose an Excel file</strong>
+            <p>Required columns: username and password</p>
+          </label>
+          <input id="passwordXlsxInput" type="file" accept=".xlsx,.xls" class="hidden" required />
+          <p class="template-copy">
+            Need the format?
+            <a href="#" id="downloadPasswordTemplate">Download template</a>
+          </p>
+        </div>
+        <footer class="modal-footer">
+          <button class="secondary-button" type="button" onclick="toggleModal('passwordImportModal',false)">
+            Cancel</button><button class="primary-button">Validate file</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="deactivateImportModal" class="room-modal invisible">
+    <div id="deactivateImportModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Bulk operation</p>
+          <h2>Deactivate users</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('deactivateImportModal',false)"
+          aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="deactivateImportForm">
+        <div class="modal-body">
+          <label for="deactivateXlsxInput" id="deactivateDropZone" class="drop-zone">
+            <span class="upload-icon"><svg viewBox="0 0 24 24">
+                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+              </svg></span>
+            <strong>Choose an Excel file</strong>
+            <p>Required column: username</p>
+          </label>
+          <input id="deactivateXlsxInput" type="file" accept=".xlsx,.xls" class="hidden" required />
+          <p class="template-copy">
+            Need the format?
+            <a href="#" id="downloadDeactivateTemplate">Download template</a>
+          </p>
+        </div>
+        <footer class="modal-footer">
+          <button class="secondary-button" type="button" onclick="toggleModal('deactivateImportModal',false)">
+            Cancel</button><button class="primary-button">Validate file</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="importPreviewModal" class="room-modal invisible">
+    <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Import preview</p>
+          <h2>Check results</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('importPreviewModal',false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <div class="modal-body preview-body">
+        <p id="previewSummary" class="helper-text"></p>
+        <section class="preview-section">
+          <h3>
+            <span class="preview-dot created"></span><span id="successPreviewTitle">Created</span>
+          </h3>
+          <div id="successPreview"></div>
+        </section>
+        <section class="preview-section">
+          <h3><span class="preview-dot error"></span>Errors</h3>
+          <div id="errorPreview"></div>
+        </section>
+      </div>
+      <footer class="modal-footer">
+        <button class="secondary-button" type="button" onclick="toggleModal('importPreviewModal',false)">
+          Cancel</button><button id="runImportButton" class="primary-button" type="button">
+          Run import
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="loadingModal" class="room-modal invisible">
+    <div id="loadingModalCard" class="loading-card scale-95">
+      <span class="loader"></span>
+      <p id="loadingMessage">Processing records...</p>
+    </div>
+  </div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="./script.js"></script>
+  <script src="/shared-ui.js"></script>
+  <script src="/auth-session.js"></script>
+</body>
+
 </html>

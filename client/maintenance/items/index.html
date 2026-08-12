@@ -1,397 +1,269 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SATP | Items</title>
-    <link rel="icon" href="../../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="../../tailwind.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
-    />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <div id="sidebar-container"></div>
-    <div id="main">
-      <header class="site-header">
-        <div class="header-brand">
-          <button
-            type="button"
-            class="menu-button"
-            onclick="toggleNav()"
-            aria-label="Open navigation"
-          >
-            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-          <a href="../../"
-            ><img
-              src="../../images/NDMU-Logo.png"
-              alt=""
-              width="44"
-              height="44"
-            /><span
-              ><strong>Notre Dame of Marbel University</strong
-              ><small>Student Assessment of Teacher's Performance</small></span
-            ></a
-          >
-        </div>
-        <div class="header-context">
-          <span>Maintenance</span><strong>Item</strong>
-        </div>
-      </header>
 
-      <main class="workspace">
-        <section class="page-heading">
-          <div>
-            <p class="eyebrow">System maintenance</p>
-            <h1>Item</h1>
-            <p>Manage the questions used in teacher assessments.</p>
-          </div>
-          <nav aria-label="Breadcrumb">
-            <a href="../../">SATP</a
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Maintenance</span
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Item</span>
-          </nav>
-        </section>
-        <section class="records-card">
-          <div class="records-heading">
-            <div>
-              <p class="eyebrow">Assessment directory</p>
-              <h2>All items</h2>
-              <p>
-                Search and maintain evaluation questions, numbering, and status.
-              </p>
-            </div>
-            <button
-              class="primary-button"
-              onclick="toggleModal('addNewModal', true)"
-            >
-              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>Add
-              item
-            </button>
-          </div>
-          <div class="table-shell">
-            <table
-              id="table"
-              class="display nowrap"
-              width="100%"
-              aria-label="Evaluation items"
-            ></table>
-          </div>
-        </section>
-      </main>
-      <footer class="site-footer">
-        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-        <span></span>
-        <p>Developed by the MIS Department</p>
-      </footer>
-    </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SATP | Items</title>
+  <link rel="icon" href="../../images/NDMU-Logo.png" />
+  <link rel="stylesheet" href="../../tailwind.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
-    <div
-      id="addNewModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-title"
-    >
-      <div id="addNewModalCard" class="modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">New record</p>
-            <h2 id="add-title">Add item</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('addNewModal', false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <form id="newItemForm">
-          <div class="modal-body">
-            <div class="field-row">
-              <div class="field">
-                <label for="itemNumber">Number</label
-                ><input
-                  type="number"
-                  min="1"
-                  id="itemNumber"
-                  name="number"
-                  placeholder="1"
-                  required
-                />
-              </div>
-              <div class="field">
-                <label for="categorySelect">Category</label
-                ><select id="categorySelect" name="category_id" required>
-                  <option value="" disabled selected>Select category</option>
-                </select>
-              </div>
-            </div>
-            <div class="field">
-              <label for="itemQuestion">Question</label
-              ><textarea
-                id="itemQuestion"
-                name="question"
-                rows="4"
-                placeholder="Enter the assessment question"
-                required
-              ></textarea>
-            </div>
-            <label class="status-control" for="isQuestionActive"
-              ><span
-                ><strong>Active item</strong
-                ><small>Available in assessments</small></span
-              ><input type="checkbox" id="isQuestionActive" checked /><span
-                class="switch"
-              ></span
-            ></label>
-          </div>
-          <footer class="modal-footer split">
-            <button
-              type="button"
-              class="text-button"
-              onclick="toggleModal('addNewModal', false); setTimeout(() => toggleModal('importFileModal', true), 250);"
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
-              </svg>
-              Import multiple
-            </button>
-            <div>
-              <button
-                type="button"
-                class="secondary-button"
-                onclick="toggleModal('addNewModal', false)"
-              >
-                Cancel</button
-              ><button class="primary-button" type="submit">Create item</button>
-            </div>
-          </footer>
-        </form>
+<body>
+  <div id="sidebar-container"></div>
+  <div id="main">
+    <header class="site-header">
+      <div class="header-brand">
+        <button type="button" class="menu-button" onclick="toggleNav()" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+        <a href="../../"><img src="../../images/NDMU-Logo.png" alt="" width="44" height="44" /><span><strong>Notre Dame
+              of Marbel University</strong><small>Student Assessment of Teacher's Performance</small></span></a>
       </div>
-    </div>
-
-    <div
-      id="editModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-title"
-    >
-      <div id="editModalCard" class="modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Item record</p>
-            <h2 id="edit-title">Edit item</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('editModal', false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <form id="editItemForm">
-          <div class="modal-body">
-            <div class="field-row">
-              <div class="field">
-                <label for="itemNumberEditForm">Number</label
-                ><input
-                  type="number"
-                  min="1"
-                  id="itemNumberEditForm"
-                  name="number"
-                  required
-                />
-              </div>
-              <div class="field">
-                <label for="categorySelectEdit">Category</label
-                ><select id="categorySelectEdit" name="category_id" required>
-                  <option value="" disabled>Select category</option>
-                </select>
-              </div>
-            </div>
-            <div class="field">
-              <label for="itemQuestionEdit">Question</label
-              ><textarea
-                id="itemQuestionEdit"
-                name="question"
-                rows="4"
-                required
-              ></textarea>
-            </div>
-            <label class="status-control" for="isQuestionActiveEdit"
-              ><span
-                ><strong>Active item</strong
-                ><small>Available in assessments</small></span
-              ><input type="checkbox" id="isQuestionActiveEdit" /><span
-                class="switch"
-              ></span
-            ></label>
-          </div>
-          <footer class="modal-footer">
-            <button
-              type="button"
-              class="secondary-button"
-              onclick="toggleModal('editModal', false)"
-            >
-              Cancel</button
-            ><button class="primary-button" type="submit">Save changes</button>
-          </footer>
-        </form>
+      <div class="header-context">
+        <span>Maintenance</span><strong>Item</strong>
       </div>
-    </div>
+    </header>
 
-    <div
-      id="importFileModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="import-title"
-    >
-      <div id="importFileModalCard" class="modal-card scale-95">
-        <header class="modal-header">
+    <main class="workspace">
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">System maintenance</p>
+          <h1>Item</h1>
+          <p>Manage the questions used in teacher assessments.</p>
+        </div>
+        <nav aria-label="Breadcrumb">
+          <a href="../../">SATP</a><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Maintenance</span><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Item</span>
+        </nav>
+      </section>
+      <section class="records-card">
+        <div class="records-heading">
           <div>
-            <p class="eyebrow">Bulk action</p>
-            <h2 id="import-title">Import items</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('importFileModal', false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <form id="uploadFileForm">
-          <div class="modal-body">
-            <label for="xlsxInput" id="dropZone" class="drop-zone"
-              ><span class="upload-icon"
-                ><svg viewBox="0 0 24 24">
-                  <path
-                    d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7"
-                  /></svg></span
-              ><strong>Choose an Excel file</strong>
-              <p>Required columns: category, number, and question</p></label
-            >
-            <input
-              type="file"
-              id="xlsxInput"
-              accept=".xlsx,.xls"
-              class="hidden"
-              required
-            />
-            <p class="template-copy">
-              Need the format?
-              <a id="downloadLink" href="#">Download template</a>
+            <p class="eyebrow">Assessment directory</p>
+            <h2>All items</h2>
+            <p>
+              Search and maintain evaluation questions, numbering, and status.
             </p>
           </div>
-          <footer class="modal-footer">
-            <button
-              type="button"
-              class="secondary-button"
-              onclick="toggleModal('importFileModal', false)"
-            >
-              Cancel</button
-            ><button class="primary-button" type="submit">Validate file</button>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div
-      id="importPreviewModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="preview-title"
-    >
-      <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Validation complete</p>
-            <h2 id="preview-title">Review item import</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('importPreviewModal', false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          <button class="primary-button" onclick="toggleModal('addNewModal', true)">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14" />
+            </svg>Add
+            item
           </button>
-        </header>
-        <div class="preview-intro">
-          Review all detected changes before updating item records.
         </div>
-        <div class="preview-body">
-          <section class="preview-group created">
-            <header>
-              <span class="preview-dot"></span><strong>Created items</strong
-              ><span id="createdCount" class="count-badge">0</span>
-            </header>
-            <div id="createdPreview" class="preview-list"></div>
-          </section>
-          <section class="preview-group updated">
-            <header>
-              <span class="preview-dot"></span><strong>Updated items</strong
-              ><span id="updatedCount" class="count-badge">0</span>
-            </header>
-            <div id="updatedPreview" class="preview-list"></div>
-          </section>
-          <section class="preview-group errors">
-            <header>
-              <span class="preview-dot"></span><strong>Errors</strong
-              ><span id="errorCount" class="count-badge">0</span>
-            </header>
-            <div id="errorPreview" class="preview-list"></div>
-          </section>
+        <div class="table-shell">
+          <table id="table" class="display nowrap" width="100%" aria-label="Evaluation items"></table>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+      <span></span>
+      <p>Developed by the MIS Department</p>
+    </footer>
+  </div>
+
+  <div id="addNewModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="add-title">
+    <div id="addNewModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">New record</p>
+          <h2 id="add-title">Add item</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('addNewModal', false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="newItemForm">
+        <div class="modal-body">
+          <div class="field-row">
+            <div class="field">
+              <label for="itemNumber">Number</label><input type="number" min="1" id="itemNumber" name="number"
+                placeholder="1" required />
+            </div>
+            <div class="field">
+              <label for="categorySelect">Category</label><select id="categorySelect" name="category_id" required>
+                <option value="" disabled selected>Select category</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="itemQuestion">Question</label><textarea id="itemQuestion" name="question" rows="4"
+              placeholder="Enter the assessment question" required></textarea>
+          </div>
+          <label class="status-control" for="isQuestionActive"><span><strong>Active item</strong><small>Available in
+                assessments</small></span><input type="checkbox" id="isQuestionActive" checked /><span
+              class="switch"></span></label>
+        </div>
+        <footer class="modal-footer split">
+          <button type="button" class="text-button"
+            onclick="toggleModal('addNewModal', false); setTimeout(() => toggleModal('importFileModal', true), 250);">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+            </svg>
+            Import multiple
+          </button>
+          <div>
+            <button type="button" class="secondary-button" onclick="toggleModal('addNewModal', false)">
+              Cancel</button><button class="primary-button" type="submit">Create item</button>
+          </div>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="editModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+    <div id="editModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Item record</p>
+          <h2 id="edit-title">Edit item</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('editModal', false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="editItemForm">
+        <div class="modal-body">
+          <div class="field-row">
+            <div class="field">
+              <label for="itemNumberEditForm">Number</label><input type="number" min="1" id="itemNumberEditForm"
+                name="number" required />
+            </div>
+            <div class="field">
+              <label for="categorySelectEdit">Category</label><select id="categorySelectEdit" name="category_id"
+                required>
+                <option value="" disabled>Select category</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label for="itemQuestionEdit">Question</label><textarea id="itemQuestionEdit" name="question" rows="4"
+              required></textarea>
+          </div>
+          <label class="status-control" for="isQuestionActiveEdit"><span><strong>Active item</strong><small>Available in
+                assessments</small></span><input type="checkbox" id="isQuestionActiveEdit" /><span
+              class="switch"></span></label>
         </div>
         <footer class="modal-footer">
-          <button
-            type="button"
-            class="secondary-button"
-            onclick="toggleModal('importPreviewModal', false)"
-          >
-            Cancel</button
-          ><button id="runImportButton" class="primary-button" type="button">
-            Run import
-          </button>
+          <button type="button" class="secondary-button" onclick="toggleModal('editModal', false)">
+            Cancel</button><button class="primary-button" type="submit">Save changes</button>
         </footer>
-      </div>
+      </form>
     </div>
+  </div>
 
-    <div
-      id="spinnerStatusModal"
-      class="room-modal progress-modal invisible"
-      role="status"
-    >
-      <div
-        id="spinnerStatusModalCard"
-        class="modal-card progress-card scale-95"
-      >
-        <span class="progress-spinner"></span>
-        <p class="eyebrow">Import in progress</p>
-        <h2 id="statusMessage">0%</h2>
-        <p>Please keep this page open while item records are processed.</p>
-      </div>
+  <div id="importFileModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="import-title">
+    <div id="importFileModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Bulk action</p>
+          <h2 id="import-title">Import items</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('importFileModal', false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="uploadFileForm">
+        <div class="modal-body">
+          <label for="xlsxInput" id="dropZone" class="drop-zone"><span class="upload-icon"><svg viewBox="0 0 24 24">
+                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+              </svg></span><strong>Choose an Excel file</strong>
+            <p>Required columns: category, number, and question</p>
+          </label>
+          <input type="file" id="xlsxInput" accept=".xlsx,.xls" class="hidden" required />
+          <p class="template-copy">
+            Need the format?
+            <a id="downloadLink" href="#">Download template</a>
+          </p>
+        </div>
+        <footer class="modal-footer">
+          <button type="button" class="secondary-button" onclick="toggleModal('importFileModal', false)">
+            Cancel</button><button class="primary-button" type="submit">Validate file</button>
+        </footer>
+      </form>
     </div>
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="../active-filter.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    <script src="./script.js"></script>
-    <script src="/auth-session.js"></script>
-  </body>
+  </div>
+
+  <div id="importPreviewModal" class="room-modal invisible" role="dialog" aria-modal="true"
+    aria-labelledby="preview-title">
+    <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Validation complete</p>
+          <h2 id="preview-title">Review item import</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('importPreviewModal', false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <div class="preview-intro">
+        Review all detected changes before updating item records.
+      </div>
+      <div class="preview-body">
+        <section class="preview-group created">
+          <header>
+            <span class="preview-dot"></span><strong>Created items</strong><span id="createdCount"
+              class="count-badge">0</span>
+          </header>
+          <div id="createdPreview" class="preview-list"></div>
+        </section>
+        <section class="preview-group updated">
+          <header>
+            <span class="preview-dot"></span><strong>Updated items</strong><span id="updatedCount"
+              class="count-badge">0</span>
+          </header>
+          <div id="updatedPreview" class="preview-list"></div>
+        </section>
+        <section class="preview-group errors">
+          <header>
+            <span class="preview-dot"></span><strong>Errors</strong><span id="errorCount" class="count-badge">0</span>
+          </header>
+          <div id="errorPreview" class="preview-list"></div>
+        </section>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="secondary-button" onclick="toggleModal('importPreviewModal', false)">
+          Cancel</button><button id="runImportButton" class="primary-button" type="button">
+          Run import
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="spinnerStatusModal" class="room-modal progress-modal invisible" role="status">
+    <div id="spinnerStatusModalCard" class="modal-card progress-card scale-95">
+      <span class="progress-spinner"></span>
+      <p class="eyebrow">Import in progress</p>
+      <h2 id="statusMessage">0%</h2>
+      <p>Please keep this page open while item records are processed.</p>
+    </div>
+  </div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="../active-filter.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="./script.js"></script>
+  <script src="/shared-ui.js"></script>
+  <script src="/auth-session.js"></script>
+</body>
+
 </html>

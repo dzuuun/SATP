@@ -1,117 +1,101 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#075c3b" />
-    <title>SATP | Courses to Rate</title>
-    <link rel="icon" href="../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="../tailwind.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
-    />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <div id="sidebar-container"></div>
-    <div id="main">
-      <header class="site-header">
-        <div class="header-brand">
-          <button
-            class="menu-button"
-            type="button"
-            onclick="toggleNav()"
-            aria-label="Open navigation"
-          >
-            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-          <a href="../"
-            ><img
-              src="../images/NDMU-Logo.png"
-              alt=""
-              width="44"
-              height="44"
-            /><span
-              ><strong>Notre Dame of Marbel University</strong
-              ><small>Student Assessment of Teacher's Performance</small></span
-            ></a
-          >
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#075c3b" />
+  <title>SATP | Courses to Rate</title>
+  <link rel="icon" href="../images/NDMU-Logo.png" />
+  <link rel="stylesheet" href="../tailwind.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div id="sidebar-container"></div>
+  <div id="main">
+    <header class="site-header">
+      <div class="header-brand">
+        <button class="menu-button" type="button" onclick="toggleNav()" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+        <a href="../"><img src="../images/NDMU-Logo.png" alt="" width="44" height="44" /><span><strong>Notre Dame of
+              Marbel University</strong><small>Student Assessment of Teacher's Performance</small></span></a>
+      </div>
+      <div class="header-context">
+        <span>Student portal</span><strong>Courses to rate</strong>
+      </div>
+    </header>
+
+    <main class="workspace">
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">Assessment workspace</p>
+          <h1>Courses to rate</h1>
+          <p>
+            Complete your available teacher assessments for the current
+            academic period.
+          </p>
         </div>
-        <div class="header-context">
-          <span>Student portal</span><strong>Courses to rate</strong>
+        <nav aria-label="Breadcrumb">
+          <a href="../">SATP</a><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Student portal</span><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Courses to rate</span>
+        </nav>
+      </section>
+
+      <section class="period-banner" aria-label="Current academic period">
+        <div>
+          <span class="period-icon"><svg viewBox="0 0 24 24">
+              <path d="M4 7h16v13H4zM8 3v8M16 3v8M4 11h16" />
+            </svg></span>
+          <div>
+            <p>Current academic period</p>
+            <strong id="periodName">Loading...</strong>
+          </div>
         </div>
-      </header>
+        <div class="assessment-stats">
+          <span id="ratingAvailability" class="rating-availability">Checking access</span>
+          <span><strong id="pendingCount">—</strong>Pending</span><span><strong
+              id="completedCount">—</strong>Completed</span>
+        </div>
+      </section>
 
-      <main class="workspace">
-        <section class="page-heading">
+      <section class="records-card">
+        <div class="records-heading">
           <div>
-            <p class="eyebrow">Assessment workspace</p>
-            <h1>Courses to rate</h1>
-            <p>
-              Complete your available teacher assessments for the current
-              academic period.
-            </p>
+            <p class="eyebrow">Assessment list</p>
+            <h2>My courses</h2>
+            <p>Select a pending course to begin its teacher assessment.</p>
           </div>
-          <nav aria-label="Breadcrumb">
-            <a href="../">SATP</a
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Student portal</span
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Courses to rate</span>
-          </nav>
-        </section>
+        </div>
+        <div class="table-shell">
+          <div id="tableLoading" class="table-loading">
+            <span class="loader"></span>
+            <p>Loading courses...</p>
+          </div>
+          <table id="table" class="display" aria-label="Courses available for rating"></table>
+        </div>
+      </section>
+    </main>
 
-        <section class="period-banner" aria-label="Current academic period">
-          <div>
-            <span class="period-icon"
-              ><svg viewBox="0 0 24 24">
-                <path d="M4 7h16v13H4zM8 3v8M16 3v8M4 11h16" /></svg
-            ></span>
-            <div>
-              <p>Current academic period</p>
-              <strong id="periodName">Loading...</strong>
-            </div>
-          </div>
-          <div class="assessment-stats">
-            <span id="ratingAvailability" class="rating-availability">Checking access</span>
-            <span><strong id="pendingCount">—</strong>Pending</span
-            ><span><strong id="completedCount">—</strong>Completed</span>
-          </div>
-        </section>
+    <footer class="site-footer">
+      <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+      <span></span>
+      <p>Developed by the MIS Department</p>
+    </footer>
+  </div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="./script.js"></script>
+  <script src="/shared-ui.js"></script>
+  <script src="/auth-session.js"></script>
+</body>
 
-        <section class="records-card">
-          <div class="records-heading">
-            <div>
-              <p class="eyebrow">Assessment list</p>
-              <h2>My courses</h2>
-              <p>Select a pending course to begin its teacher assessment.</p>
-            </div>
-          </div>
-          <div class="table-shell">
-            <div id="tableLoading" class="table-loading">
-              <span class="loader"></span>
-              <p>Loading courses...</p>
-            </div>
-            <table
-              id="table"
-              class="display"
-              aria-label="Courses available for rating"
-            ></table>
-          </div>
-        </section>
-      </main>
-
-      <footer class="site-footer">
-        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-        <span></span>
-        <p>Developed by the MIS Department</p>
-      </footer>
-    </div>
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="./script.js"></script>
-    <script src="/auth-session.js"></script>
-  </body>
 </html>

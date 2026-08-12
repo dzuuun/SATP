@@ -1,160 +1,145 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#075c3b" />
-    <title>SATP | Ranking</title>
-    <link rel="icon" href="../../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="../../tailwind.css" />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <div id="sidebar-container"></div>
-    <div id="main">
-      <header class="site-header">
-        <div class="header-brand">
-          <button
-            class="menu-button"
-            type="button"
-            onclick="toggleNav()"
-            aria-label="Open navigation"
-          >
-            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-          <a href="../../"
-            ><img
-              src="../../images/NDMU-Logo.png"
-              alt=""
-              width="44"
-              height="44"
-            /><span
-              ><strong>Notre Dame of Marbel University</strong
-              ><small>Student Assessment of Teacher's Performance</small></span
-            ></a
-          >
-        </div>
-        <div class="header-context">
-          <span>Reports</span><strong>Ranking</strong>
-        </div>
-      </header>
 
-      <main class="workspace ranking-workspace">
-        <section class="page-heading">
-          <div>
-            <p class="eyebrow">Performance reports</p>
-            <h1>Ranking</h1>
-            <p>
-              Compare teacher performance across the institution and its
-              academic units.
-            </p>
-          </div>
-          <nav aria-label="Breadcrumb">
-            <a href="../../">SATP</a
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Reports</span
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Ranking</span>
-          </nav>
-        </section>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#075c3b" />
+  <title>SATP | Ranking</title>
+  <link rel="icon" href="../../images/NDMU-Logo.png" />
+  <link rel="stylesheet" href="../../tailwind.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
-        <section class="report-card">
-          <div class="report-intro">
-            <p class="eyebrow">Report builder</p>
-            <h2>Generate a ranking report</h2>
-            <p>
-              Select the ranking scope and academic period. The report will use
-              completed assessments that match these filters.
-            </p>
-          </div>
+<body>
+  <div id="sidebar-container"></div>
+  <div id="main">
+    <header class="site-header">
+      <div class="header-brand">
+        <button class="menu-button" type="button" onclick="toggleNav()" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+        <a href="../../"><img src="../../images/NDMU-Logo.png" alt="" width="44" height="44" /><span><strong>Notre Dame
+              of Marbel University</strong><small>Student Assessment of Teacher's Performance</small></span></a>
+      </div>
+      <div class="header-context">
+        <span>Reports</span><strong>Ranking</strong>
+      </div>
+    </header>
 
-          <form id="generateReportForm" class="report-form">
-            <div class="field full-field">
-              <label for="ranking">Report type</label>
-              <select id="ranking" name="rankingReport" required>
-                <option value="">Select a ranking report</option>
-                <option value="overall">Overall ranking — College</option>
-                <option value="overallSHS">Overall ranking — SHS</option>
-                <option value="collegiate">College ranking</option>
-                <option value="departmental">Department ranking</option>
-              </select>
-              <small id="reportHint"
-                >Choose how teachers should be grouped in the report.</small
-              >
-            </div>
-
-            <div id="collegeSelect" class="field full-field hidden">
-              <label for="college">College</label>
-              <select id="college" name="college">
-                <option value="">Select a college</option>
-              </select>
-            </div>
-
-            <div id="departmentSelect" class="field full-field hidden">
-              <label for="department">Department</label>
-              <select id="department" name="department">
-                <option value="">Select a department</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="schoolYear">School year</label>
-              <select id="schoolYear" name="school_year" required>
-                <option value="">Select school year</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="semester">Semester</label>
-              <select id="semester" name="semester" required>
-                <option value="">Select semester</option>
-              </select>
-            </div>
-            <div class="field full-field">
-              <label for="teaching_status">Teaching status</label>
-              <select id="teaching_status" name="teaching_status" required>
-                <option value="">Select teaching status</option>
-                <option value="0">Full Time</option>
-                <option value="1">Part Time</option>
-                <option value="2">NTPO &amp; Admin</option>
-              </select>
-            </div>
-
-            <div class="form-actions full-field">
-              <p><span></span>Only completed assessments are included.</p>
-              <button id="generateButton" class="primary-button" type="submit">
-                <svg viewBox="0 0 24 24">
-                  <path d="M4 19V9m5 10V5m5 14v-7m5 7V3M2 21h20" />
-                </svg>
-                Generate report
-              </button>
-            </div>
-          </form>
-        </section>
-      </main>
-
-      <footer class="site-footer">
-        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-        <span></span>
-        <p>Developed by the MIS Department</p>
-      </footer>
-    </div>
-
-    <div
-      id="loadingModal"
-      class="room-modal invisible"
-      role="status"
-      aria-live="polite"
-    >
-      <div id="loadingModalCard" class="loading-card scale-95">
-        <span class="loader-spinner" aria-hidden="true"></span>
+    <main class="workspace ranking-workspace">
+      <section class="page-heading">
         <div>
-          <strong>Preparing reports</strong>
-          <p id="loadingMessage">Loading report options...</p>
+          <p class="eyebrow">Performance reports</p>
+          <h1>Ranking</h1>
+          <p>
+            Compare teacher performance across the institution and its
+            academic units.
+          </p>
         </div>
+        <nav aria-label="Breadcrumb">
+          <a href="../../">SATP</a><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Reports</span><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Ranking</span>
+        </nav>
+      </section>
+
+      <section class="report-card">
+        <div class="report-intro">
+          <p class="eyebrow">Report builder</p>
+          <h2>Generate a ranking report</h2>
+          <p>
+            Select the ranking scope and academic period. The report will use
+            completed assessments that match these filters.
+          </p>
+        </div>
+
+        <form id="generateReportForm" class="report-form">
+          <div class="field full-field">
+            <label for="ranking">Report type</label>
+            <select id="ranking" name="rankingReport" required>
+              <option value="">Select a ranking report</option>
+              <option value="overall">Overall ranking — College</option>
+              <option value="overallSHS">Overall ranking — SHS</option>
+              <option value="collegiate">College ranking</option>
+              <option value="departmental">Department ranking</option>
+            </select>
+            <small id="reportHint">Choose how teachers should be grouped in the report.</small>
+          </div>
+
+          <div id="collegeSelect" class="field full-field hidden">
+            <label for="college">College</label>
+            <select id="college" name="college">
+              <option value="">Select a college</option>
+            </select>
+          </div>
+
+          <div id="departmentSelect" class="field full-field hidden">
+            <label for="department">Department</label>
+            <select id="department" name="department">
+              <option value="">Select a department</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="schoolYear">School year</label>
+            <select id="schoolYear" name="school_year" required>
+              <option value="">Select school year</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="semester">Semester</label>
+            <select id="semester" name="semester" required>
+              <option value="">Select semester</option>
+            </select>
+          </div>
+          <div class="field full-field">
+            <label for="teaching_status">Teaching status</label>
+            <select id="teaching_status" name="teaching_status" required>
+              <option value="">Select teaching status</option>
+              <option value="0">Full Time</option>
+              <option value="1">Part Time</option>
+              <option value="2">NTPO &amp; Admin</option>
+            </select>
+          </div>
+
+          <div class="form-actions full-field">
+            <p><span></span>Only completed assessments are included.</p>
+            <button id="generateButton" class="primary-button" type="submit">
+              <svg viewBox="0 0 24 24">
+                <path d="M4 19V9m5 10V5m5 14v-7m5 7V3M2 21h20" />
+              </svg>
+              Generate report
+            </button>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+      <span></span>
+      <p>Developed by the MIS Department</p>
+    </footer>
+  </div>
+
+  <div id="loadingModal" class="room-modal invisible" role="status" aria-live="polite">
+    <div id="loadingModalCard" class="loading-card scale-95">
+      <span class="loader-spinner" aria-hidden="true"></span>
+      <div>
+        <strong>Preparing reports</strong>
+        <p id="loadingMessage">Loading report options...</p>
       </div>
     </div>
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-    <script src="./script.js"></script>
-    <script src="/auth-session.js"></script>
-  </body>
+  </div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <script src="./script.js"></script>
+  <script src="/shared-ui.js"></script>
+  <script src="/auth-session.js"></script>
+</body>
+
 </html>

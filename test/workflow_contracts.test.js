@@ -27,7 +27,9 @@ test("Student Course refreshes database references before workbook classificatio
     "/api/room",
     "/api/schoolyear/",
     "/api/semester/inuse/active",
-  ].forEach((endpoint) => assert.match(script, new RegExp(endpoint.replaceAll("/", "\\/"))));
+  ].forEach((endpoint) =>
+    assert.match(script, new RegExp(endpoint.replaceAll("/", "\\/"))),
+  );
 });
 
 test("Maintenance imports refresh database lookups during validation", () => {
@@ -44,7 +46,10 @@ test("Maintenance imports refresh database lookups during validation", () => {
     const validationCall = script.indexOf(`${refreshFunction}(),`);
     const classificationCall = script.indexOf("classifyRows(rows");
     assert.ok(validationCall >= 0, `${file} must refresh during validation`);
-    assert.ok(validationCall < classificationCall, `${file} must refresh before classification`);
+    assert.ok(
+      validationCall < classificationCall,
+      `${file} must refresh before classification`,
+    );
   });
 });
 
@@ -59,19 +64,30 @@ test("Student Course import creates missing courses and rooms", () => {
 });
 
 test("Student Course supports one rating per teacher on the same schedule for CHS", () => {
-  const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
-  const enrollmentModel = read("api/maintenance/studentsubject/studentsubject.model.js");
-  const transactionModel = read("api/transaction/studentRatingStatus/srs.model.js");
+  const controller = read(
+    "api/maintenance/studentsubject/studentsubject.controller.js",
+  );
+  const enrollmentModel = read(
+    "api/maintenance/studentsubject/studentsubject.model.js",
+  );
+  const transactionModel = read(
+    "api/transaction/studentRatingStatus/srs.model.js",
+  );
   const importScript = read("client/maintenance/student_subject/script.js");
   const studentModel = read("api/maintenance/student/student.model.js");
-  const serverEnrollment = read("api/maintenance/serverenrollment/serverenrollment.controller.js");
+  const serverEnrollment = read(
+    "api/maintenance/serverenrollment/serverenrollment.controller.js",
+  );
 
   assert.match(studentModel, /colleges\.code AS college/);
   assert.match(enrollmentModel, /college_code/);
   assert.match(enrollmentModel, /=== "CHS"/);
   assert.match(importScript, /isChsStudent/);
   assert.match(serverEnrollment, /row\.StudentCollegeCode/);
-  assert.doesNotMatch(serverEnrollment, /is_chs:\s*normalize\(row\.CollegeCode\)/);
+  assert.doesNotMatch(
+    serverEnrollment,
+    /is_chs:\s*normalize\(row\.CollegeCode\)/,
+  );
   assert.match(controller, /subject\.schedule_code/);
   assert.match(controller, /subject\.teacher_id/);
   assert.match(enrollmentModel, /existingByEnrollment/);
@@ -141,11 +157,13 @@ test("Expired DataTable requests use the session prompt instead of an Ajax alert
 });
 
 test("Header university branding is not navigable", () => {
+  const sharedUi = read("client/shared-ui.js");
   const session = read("client/auth-session.js");
-  assert.match(session, /disableHeaderBrandNavigation/);
-  assert.match(session, /\.header-brand > a/);
-  assert.match(session, /removeAttribute\("href"\)/);
-  assert.match(session, /pointerEvents = "none"/);
+  assert.match(sharedUi, /disableHeaderBrandNavigation/);
+  assert.match(sharedUi, /\.header-brand > a/);
+  assert.match(sharedUi, /removeAttribute\("href"\)/);
+  assert.match(sharedUi, /pointerEvents = "none"/);
+  assert.doesNotMatch(session, /disableHeaderBrandNavigation/);
 });
 
 test("Admin and Room use the standard maintenance table presentation", () => {
@@ -162,10 +180,22 @@ test("Admin and Room use the standard maintenance table presentation", () => {
 test("Maintenance activation and deactivation cascade through the hierarchy", () => {
   const college = read("api/maintenance/college/college.model.js");
   const department = read("api/maintenance/department/department.model.js");
-  assert.match(college, /const targetActive = Number\(data\.is_active\) === 1 \? 1 : 0/);
-  assert.match(college, /UPDATE courses[\s\S]*SET courses\.is_active = \?[\s\S]*departments\.college_id = \?/);
-  assert.match(college, /UPDATE departments SET is_active = \? WHERE college_id = \?/);
-  assert.match(department, /UPDATE courses SET is_active = \? WHERE department_id = \?/);
+  assert.match(
+    college,
+    /const targetActive = Number\(data\.is_active\) === 1 \? 1 : 0/,
+  );
+  assert.match(
+    college,
+    /UPDATE courses[\s\S]*SET courses\.is_active = \?[\s\S]*departments\.college_id = \?/,
+  );
+  assert.match(
+    college,
+    /UPDATE departments SET is_active = \? WHERE college_id = \?/,
+  );
+  assert.match(
+    department,
+    /UPDATE courses SET is_active = \? WHERE department_id = \?/,
+  );
   assert.match(college, /targetActive \? "activated" : "deactivated"/);
   assert.match(department, /targetActive \? "activated" : "deactivated"/);
   assert.match(college, /beginTransaction/);
@@ -203,16 +233,16 @@ test("Every non-Grad School sidebar toggle moves the main page responsively", ()
 });
 
 test("Header hamburger animates without duplicating the sidebar close icon", () => {
+  const sharedUi = read("client/shared-ui.js");
   const session = read("client/auth-session.js");
-  assert.match(session, /installHeaderMenuAnimation/);
-  assert.match(session, /satp-menu-line-top/);
-  assert.match(session, /satp-menu-line-middle/);
-  assert.match(session, /satp-menu-line-bottom/);
-  assert.match(session, /prefers-reduced-motion/);
-  assert.match(session, /requestAnimationFrame\(syncHeaderMenuState\)/);
-  assert.match(session, /aria-expanded/);
-  assert.doesNotMatch(session, /translateY\(5px\) rotate\(45deg\)/);
-  assert.doesNotMatch(session, /translateY\(-5px\) rotate\(-45deg\)/);
+  assert.match(sharedUi, /installHeaderMenuAnimation/);
+  assert.match(sharedUi, /satp-menu-line-top/);
+  assert.match(sharedUi, /satp-menu-line-middle/);
+  assert.match(sharedUi, /satp-menu-line-bottom/);
+  assert.match(sharedUi, /prefers-reduced-motion/);
+  assert.match(sharedUi, /requestAnimationFrame\(syncHeaderMenuState\)/);
+  assert.match(sharedUi, /aria-expanded/);
+  assert.doesNotMatch(session, /installHeaderMenuAnimation/);
 });
 
 test("Production deployment enforces proxy HTTPS and secure sessions", () => {
@@ -246,8 +276,14 @@ test("Transaction course modal remains stable across short DataTable pages", () 
   const style = read("client/transaction/style.css");
   const script = read("client/transaction/script.js");
   assert.match(style, /\.modal-panel[\s\S]*width: 750px[\s\S]*height: 720px/);
-  assert.match(style, /\.modal-table-shell #modalTable_wrapper[\s\S]*height: 100%/);
-  assert.match(style, /#modalTable_wrapper \.dataTables_paginate[\s\S]*margin-top: auto/);
+  assert.match(
+    style,
+    /\.modal-table-shell #modalTable_wrapper[\s\S]*height: 100%/,
+  );
+  assert.match(
+    style,
+    /#modalTable_wrapper \.dataTables_paginate[\s\S]*margin-top: auto/,
+  );
   assert.match(script, /pageLength: 8/);
   assert.match(script, /#subjectModal \.modal-body/);
   assert.match(script, /modalBody\.scrollTop = 0/);
@@ -258,7 +294,9 @@ test("Transaction course modal remains stable across short DataTable pages", () 
 test("Activity Log search accepts student ID numbers", () => {
   const model = read("api/user/activity_log/log.model.js");
   const script = read("client/user/activity_log/script.js");
-  const migration = read("database/migrations/2026-08-12_users_username_index.sql");
+  const migration = read(
+    "database/migrations/2026-08-12_users_username_index.sql",
+  );
   assert.match(model, /SELECT id FROM users WHERE username = \? LIMIT 1/);
   assert.match(model, /filter \+= " AND a\.user_id = \?"/);
   assert.doesNotMatch(model, /JOIN users AS account/);
@@ -266,7 +304,41 @@ test("Activity Log search accepts student ID numbers", () => {
   assert.match(script, /Search ID, user, or activity/);
 });
 
+test("Empty Select and Choose dropdown prompts cannot be selected", () => {
+  const sharedUi = read("client/shared-ui.js");
+  const session = read("client/auth-session.js");
+  assert.match(sharedUi, /function disableSelectPlaceholders/);
+  assert.match(sharedUi, /\^\(select\|choose\)\\b/i);
+  assert.match(sharedUi, /option\.value === "" && isPrompt/);
+  assert.match(sharedUi, /option\.disabled = true/);
+  assert.match(
+    sharedUi,
+    /disableSelectPlaceholders\(node\.parentElement \|\| node\)/,
+  );
+  assert.doesNotMatch(session, /disableSelectPlaceholders/);
+
+  const authenticatedPages = walk(path.join(root, "client")).filter((file) => {
+    if (!file.endsWith(".html") || file.toLowerCase().includes("gradschool"))
+      return false;
+    return fs.readFileSync(file, "utf8").includes("/auth-session.js");
+  });
+  authenticatedPages.forEach((file) => {
+    const html = fs.readFileSync(file, "utf8");
+    assert.match(
+      html,
+      /<script src="\/shared-ui\.js"><\/script>/,
+      path.relative(root, file),
+    );
+  });
+});
+
 test("Grad School remains excluded from automated page and server QA", () => {
-  assert.match(read("test/pages.smoke.test.js"), /includes\(["']gradschool["']\)/);
-  assert.match(read("test/server.smoke.test.js"), /includes\(["']gradschool["']\)/);
+  assert.match(
+    read("test/pages.smoke.test.js"),
+    /includes\(["']gradschool["']\)/,
+  );
+  assert.match(
+    read("test/server.smoke.test.js"),
+    /includes\(["']gradschool["']\)/,
+  );
 });

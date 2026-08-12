@@ -1,422 +1,320 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <meta name="theme-color" content="#075c3b" />
-    <title>SATP | Student Maintenance</title>
-    <link rel="icon" href="../../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="../../tailwind.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
-    />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
 
-  <body>
-    <div id="sidebar-container"></div>
-    <div id="main">
-      <header class="site-header">
-        <div class="header-brand">
-          <button
-            class="menu-button"
-            onclick="toggleNav()"
-            aria-label="Open navigation"
-          >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#075c3b" />
+  <title>SATP | Student Maintenance</title>
+  <link rel="icon" href="../../images/NDMU-Logo.png" />
+  <link rel="stylesheet" href="../../tailwind.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div id="sidebar-container"></div>
+  <div id="main">
+    <header class="site-header">
+      <div class="header-brand">
+        <button class="menu-button" onclick="toggleNav()" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg></button><a href="../../"><img src="../../images/NDMU-Logo.png" alt="" width="44"
+            height="44" /><span><strong>Notre Dame of Marbel University</strong><small>Student Assessment of Teacher's
+              Performance</small></span></a>
+      </div>
+      <div class="header-context">
+        <span>Maintenance</span><strong>Student</strong>
+      </div>
+    </header>
+    <main class="workspace">
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">System maintenance</p>
+          <h1>Student</h1>
+          <p>Manage student accounts and academic information.</p>
+        </div>
+        <nav>
+          <a href="../../">SATP</a><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Maintenance</span><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Students</span>
+        </nav>
+      </section>
+      <section class="records-card">
+        <div class="records-heading">
+          <div>
+            <p class="eyebrow">Student directory</p>
+            <h2>All students</h2>
+            <p>Search and maintain student access and enrollment details.</p>
+          </div>
+          <button id="exportStudentsButton" class="secondary-button" type="button">
             <svg viewBox="0 0 24 24">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg></button
-          ><a href="../../"
-            ><img
-              src="../../images/NDMU-Logo.png"
-              alt=""
-              width="44"
-              height="44"
-            /><span
-              ><strong>Notre Dame of Marbel University</strong
-              ><small>Student Assessment of Teacher's Performance</small></span
-            ></a
-          >
+              <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" />
+            </svg>Export students
+          </button>
+          <button class="primary-button" onclick="toggleModal('addNewModal',true)">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14" />
+            </svg>Add student
+          </button>
         </div>
-        <div class="header-context">
-          <span>Maintenance</span><strong>Student</strong>
+        <div class="table-shell">
+          <table id="table" class="display nowrap"></table>
         </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+      <span></span>
+      <p>Developed by the MIS Department</p>
+    </footer>
+  </div>
+
+  <div id="addNewModal" class="room-modal invisible">
+    <div id="addNewModalCard" class="modal-card student-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">New account</p>
+          <h2>Add student</h2>
+        </div>
+        <button class="modal-close" onclick="toggleModal('addNewModal',false)">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
       </header>
-      <main class="workspace">
-        <section class="page-heading">
-          <div>
-            <p class="eyebrow">System maintenance</p>
-            <h1>Student</h1>
-            <p>Manage student accounts and academic information.</p>
+      <form id="newStudentForm">
+        <div class="modal-body student-grid">
+          <div class="field">
+            <label for="addUsername">Username</label><input id="addUsername" name="username" placeholder="ID number"
+              required />
           </div>
-          <nav>
-            <a href="../../">SATP</a
-            ><svg viewBox="0 0 24 24">
-              <path d="m9 18 6-6-6-6" /></svg
-            ><span>Maintenance</span
-            ><svg viewBox="0 0 24 24">
-              <path d="m9 18 6-6-6-6" /></svg
-            ><span>Students</span>
-          </nav>
-        </section>
-        <section class="records-card">
-          <div class="records-heading">
-            <div>
-              <p class="eyebrow">Student directory</p>
-              <h2>All students</h2>
-              <p>Search and maintain student access and enrollment details.</p>
-            </div>
-            <button
-              id="exportStudentsButton"
-              class="secondary-button"
-              type="button"
-            >
+          <div class="field password-wrap">
+            <label for="addPassword">Temporary password</label><input id="addPassword" name="password" type="password"
+              required /><button type="button" class="password-toggle" onclick="togglePassword()"
+              aria-label="Show password">
               <svg viewBox="0 0 24 24">
-                <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" /></svg
-              >Export students
-            </button>
-            <button
-              class="primary-button"
-              onclick="toggleModal('addNewModal',true)"
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M12 5v14M5 12h14" /></svg
-              >Add student
+                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
+                <circle cx="12" cy="12" r="2.5" />
+              </svg>
             </button>
           </div>
-          <div class="table-shell">
-            <table id="table" class="display nowrap"></table>
+          <div class="field">
+            <label for="addGivenName">Given name</label><input id="addGivenName" name="givenname" required />
           </div>
-        </section>
-      </main>
-      <footer class="site-footer">
-        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-        <span></span>
-        <p>Developed by the MIS Department</p>
-      </footer>
-    </div>
-
-    <div id="addNewModal" class="room-modal invisible">
-      <div id="addNewModalCard" class="modal-card student-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">New account</p>
-            <h2>Add student</h2>
+          <div class="field">
+            <label for="addMiddleName">Middle name</label><input id="addMiddleName" name="middlename" />
           </div>
-          <button
-            class="modal-close"
-            onclick="toggleModal('addNewModal',false)"
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </button>
-        </header>
-        <form id="newStudentForm">
-          <div class="modal-body student-grid">
-            <div class="field">
-              <label for="addUsername">Username</label
-              ><input
-                id="addUsername"
-                name="username"
-                placeholder="ID number"
-                required
-              />
-            </div>
-            <div class="field password-wrap">
-              <label for="addPassword">Temporary password</label
-              ><input
-                id="addPassword"
-                name="password"
-                type="password"
-                required
-              /><button
-                type="button"
-                class="password-toggle"
-                onclick="togglePassword()"
-                aria-label="Show password"
-              >
-                <svg viewBox="0 0 24 24">
-                  <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
-                  <circle cx="12" cy="12" r="2.5" />
-                </svg>
-              </button>
-            </div>
-            <div class="field">
-              <label for="addGivenName">Given name</label
-              ><input id="addGivenName" name="givenname" required />
-            </div>
-            <div class="field">
-              <label for="addMiddleName">Middle name</label
-              ><input id="addMiddleName" name="middlename" />
-            </div>
-            <div class="field">
-              <label for="addLastName">Last name</label
-              ><input id="addLastName" name="surname" required />
-            </div>
-            <div class="field">
-              <label for="genderSelect">Gender</label
-              ><select id="genderSelect" name="gender" required>
-                <option value="" disabled selected>Select gender</option>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="courseSelect">Program</label
-              ><select id="courseSelect" name="course_id" required>
-                <option value="" disabled selected>Select program</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="yearLevel">Year level</label
-              ><select id="yearLevel" name="year_level" required>
-                <option value="" disabled selected>Select year level</option>
-                <option value="1">1st Year</option>
-                <option value="2">2nd Year</option>
-                <option value="3">3rd Year</option>
-                <option value="4">4th Year</option>
-                <option value="5">5th Year</option>
-                <option value="6">6th Year</option>
-                <option value="Grade 11">Grade 11</option>
-                <option value="Grade 12">Grade 12</option>
-              </select>
-            </div>
-            <label class="status-control wide" for="isStudentActive"
-              ><span
-                ><strong>Active student</strong
-                ><small>Can access the assessment system</small></span
-              ><input type="checkbox" id="isStudentActive" checked /><span
-                class="switch"
-              ></span
-            ></label>
+          <div class="field">
+            <label for="addLastName">Last name</label><input id="addLastName" name="surname" required />
           </div>
-          <footer class="modal-footer split">
-            <button
-              type="button"
-              class="text-button"
-              onclick="toggleModal('addNewModal',false);setTimeout(()=>toggleModal('importFileModal',true),250)"
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
-              >Import multiple
-            </button>
-            <div>
-              <button
-                type="button"
-                class="secondary-button"
-                onclick="toggleModal('addNewModal',false)"
-              >
-                Cancel</button
-              ><button class="primary-button">Create student</button>
-            </div>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div id="editModal" class="room-modal invisible">
-      <div id="editModalCard" class="modal-card student-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Student record</p>
-            <h2>Edit student</h2>
+          <div class="field">
+            <label for="genderSelect">Gender</label><select id="genderSelect" name="gender" required>
+              <option value="" disabled selected>Select gender</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
           </div>
-          <button class="modal-close" onclick="toggleModal('editModal',false)">
-            <svg viewBox="0 0 24 24">
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </button>
-        </header>
-        <form id="editStudentForm">
-          <div class="modal-body student-grid">
-            <div class="field">
-              <label for="editGivenName">Given name</label
-              ><input id="editGivenName" name="givenname" required />
-            </div>
-            <div class="field">
-              <label for="editMiddleName">Middle name</label
-              ><input id="editMiddleName" name="middlename" />
-            </div>
-            <div class="field">
-              <label for="editLastName">Last name</label
-              ><input id="editLastName" name="surname" required />
-            </div>
-            <div class="field">
-              <label for="editGenderSelect">Gender</label
-              ><select id="editGenderSelect" name="gender" required>
-                <option value="MALE">Male</option>
-                <option value="FEMALE">Female</option>
-              </select>
-            </div>
-            <div class="field">
-              <label for="editCourseSelect">Program</label
-              ><select id="editCourseSelect" name="course_id" required></select>
-            </div>
-            <div class="field">
-              <label for="editYearLevel">Year level</label
-              ><select id="editYearLevel" name="year_level" required>
-                <option value="1">1st Year</option>
-                <option value="2">2nd Year</option>
-                <option value="3">3rd Year</option>
-                <option value="4">4th Year</option>
-                <option value="5">5th Year</option>
-                <option value="6">6th Year</option>
-                <option value="Grade 11">Grade 11</option>
-                <option value="Grade 12">Grade 12</option>
-              </select>
-            </div>
-            <label class="status-control wide" for="editIsStudentStatusActive"
-              ><span
-                ><strong>Active student</strong
-                ><small>Can access the assessment system</small></span
-              ><input type="checkbox" id="editIsStudentStatusActive" /><span
-                class="switch"
-              ></span
-            ></label>
+          <div class="field">
+            <label for="courseSelect">Program</label><select id="courseSelect" name="course_id" required>
+              <option value="" disabled selected>Select program</option>
+            </select>
           </div>
-          <footer class="modal-footer">
-            <button
-              type="button"
-              class="secondary-button"
-              onclick="toggleModal('editModal',false)"
-            >
-              Cancel</button
-            ><button class="primary-button">Save changes</button>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div id="importFileModal" class="room-modal invisible">
-      <div id="importFileModalCard" class="modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Bulk action</p>
-            <h2>Import students</h2>
+          <div class="field">
+            <label for="yearLevel">Year level</label><select id="yearLevel" name="year_level" required>
+              <option value="" disabled selected>Select year level</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+              <option value="5">5th Year</option>
+              <option value="6">6th Year</option>
+              <option value="Grade 11">Grade 11</option>
+              <option value="Grade 12">Grade 12</option>
+            </select>
           </div>
-          <button
-            class="modal-close"
-            onclick="toggleModal('importFileModal',false)"
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </button>
-        </header>
-        <form id="uploadFileForm">
-          <div class="modal-body">
-            <label for="xlsxInput" id="dropZone" class="drop-zone"
-              ><span class="upload-icon"
-                ><svg viewBox="0 0 24 24">
-                  <path
-                    d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7"
-                  /></svg></span
-              ><strong>Choose an Excel file</strong>
-              <p>
-                Required: username, surname, givenname, year_level, gender,
-                course_code. Password is required for new students only.
-                Year level accepts 1st Year through 5th Year.
-              </p> </label
-            ><input
-              type="file"
-              id="xlsxInput"
-              accept=".xlsx,.xls"
-              class="hidden"
-              required
-            />
-            <p class="template-copy">
-              Need the format?
-              <a id="downloadLink" href="#">Download template</a>
-            </p>
-          </div>
-          <footer class="modal-footer">
-            <button
-              type="button"
-              class="secondary-button"
-              onclick="toggleModal('importFileModal',false)"
-            >
-              Cancel</button
-            ><button class="primary-button">Validate file</button>
-          </footer>
-        </form>
-      </div>
-    </div>
-
-    <div id="importPreviewModal" class="room-modal invisible">
-      <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Validation complete</p>
-            <h2>Review student import</h2>
-          </div>
-          <button
-            class="modal-close"
-            onclick="toggleModal('importPreviewModal',false)"
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M6 6l12 12M18 6 6 18" />
-            </svg>
-          </button>
-        </header>
-        <div class="preview-intro">
-          New ID numbers create accounts. Existing students only have their
-          profile information updated; their username and password stay the
-          same.
+          <label class="status-control wide" for="isStudentActive"><span><strong>Active student</strong><small>Can
+                access the assessment system</small></span><input type="checkbox" id="isStudentActive" checked /><span
+              class="switch"></span></label>
         </div>
-        <div class="preview-body">
-          <section class="preview-group created">
-            <header>
-              <span class="preview-dot"></span><strong>Created students</strong
-              ><span id="createdCount" class="count-badge">0</span>
-            </header>
-            <div id="createdPreview" class="preview-list"></div>
-          </section>
-          <section class="preview-group updated">
-            <header>
-              <span class="preview-dot"></span><strong>Updated students</strong
-              ><span id="updatedCount" class="count-badge">0</span>
-            </header>
-            <div id="updatedPreview" class="preview-list"></div>
-          </section>
-          <section class="preview-group errors">
-            <header>
-              <span class="preview-dot"></span><strong>Errors</strong
-              ><span id="errorCount" class="count-badge">0</span>
-            </header>
-            <div id="errorPreview" class="preview-list"></div>
-          </section>
+        <footer class="modal-footer split">
+          <button type="button" class="text-button"
+            onclick="toggleModal('addNewModal',false);setTimeout(()=>toggleModal('importFileModal',true),250)">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+            </svg>Import multiple
+          </button>
+          <div>
+            <button type="button" class="secondary-button" onclick="toggleModal('addNewModal',false)">
+              Cancel</button><button class="primary-button">Create student</button>
+          </div>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="editModal" class="room-modal invisible">
+    <div id="editModalCard" class="modal-card student-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Student record</p>
+          <h2>Edit student</h2>
+        </div>
+        <button class="modal-close" onclick="toggleModal('editModal',false)">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="editStudentForm">
+        <div class="modal-body student-grid">
+          <div class="field">
+            <label for="editGivenName">Given name</label><input id="editGivenName" name="givenname" required />
+          </div>
+          <div class="field">
+            <label for="editMiddleName">Middle name</label><input id="editMiddleName" name="middlename" />
+          </div>
+          <div class="field">
+            <label for="editLastName">Last name</label><input id="editLastName" name="surname" required />
+          </div>
+          <div class="field">
+            <label for="editGenderSelect">Gender</label><select id="editGenderSelect" name="gender" required>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="editCourseSelect">Program</label><select id="editCourseSelect" name="course_id"
+              required></select>
+          </div>
+          <div class="field">
+            <label for="editYearLevel">Year level</label><select id="editYearLevel" name="year_level" required>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+              <option value="5">5th Year</option>
+              <option value="6">6th Year</option>
+              <option value="Grade 11">Grade 11</option>
+              <option value="Grade 12">Grade 12</option>
+            </select>
+          </div>
+          <label class="status-control wide" for="editIsStudentStatusActive"><span><strong>Active
+                student</strong><small>Can access the assessment system</small></span><input type="checkbox"
+              id="editIsStudentStatusActive" /><span class="switch"></span></label>
         </div>
         <footer class="modal-footer">
-          <button
-            class="secondary-button"
-            onclick="toggleModal('importPreviewModal',false)"
-          >
-            Cancel</button
-          ><button id="runImportButton" class="primary-button">
-            Run import
-          </button>
+          <button type="button" class="secondary-button" onclick="toggleModal('editModal',false)">
+            Cancel</button><button class="primary-button">Save changes</button>
         </footer>
-      </div>
+      </form>
     </div>
-    <div id="spinnerStatusModal" class="room-modal progress-modal invisible">
-      <div
-        id="spinnerStatusModalCard"
-        class="modal-card progress-card scale-95"
-      >
-        <span class="progress-spinner"></span>
-        <p class="eyebrow">Import in progress</p>
-        <h2 id="statusMessage">0%</h2>
-        <p>Please keep this page open while student records are processed.</p>
-      </div>
+  </div>
+
+  <div id="importFileModal" class="room-modal invisible">
+    <div id="importFileModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Bulk action</p>
+          <h2>Import students</h2>
+        </div>
+        <button class="modal-close" onclick="toggleModal('importFileModal',false)">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="uploadFileForm">
+        <div class="modal-body">
+          <label for="xlsxInput" id="dropZone" class="drop-zone"><span class="upload-icon"><svg viewBox="0 0 24 24">
+                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
+              </svg></span><strong>Choose an Excel file</strong>
+            <p>
+              Required: username, surname, givenname, year_level, gender,
+              course_code. Password is required for new students only.
+              Year level accepts 1st Year through 5th Year.
+            </p>
+          </label><input type="file" id="xlsxInput" accept=".xlsx,.xls" class="hidden" required />
+          <p class="template-copy">
+            Need the format?
+            <a id="downloadLink" href="#">Download template</a>
+          </p>
+        </div>
+        <footer class="modal-footer">
+          <button type="button" class="secondary-button" onclick="toggleModal('importFileModal',false)">
+            Cancel</button><button class="primary-button">Validate file</button>
+        </footer>
+      </form>
     </div>
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="../active-filter.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-    <script src="./script.js"></script>
-    <script src="/auth-session.js"></script>
-  </body>
+  </div>
+
+  <div id="importPreviewModal" class="room-modal invisible">
+    <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Validation complete</p>
+          <h2>Review student import</h2>
+        </div>
+        <button class="modal-close" onclick="toggleModal('importPreviewModal',false)">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <div class="preview-intro">
+        New ID numbers create accounts. Existing students only have their
+        profile information updated; their username and password stay the
+        same.
+      </div>
+      <div class="preview-body">
+        <section class="preview-group created">
+          <header>
+            <span class="preview-dot"></span><strong>Created students</strong><span id="createdCount"
+              class="count-badge">0</span>
+          </header>
+          <div id="createdPreview" class="preview-list"></div>
+        </section>
+        <section class="preview-group updated">
+          <header>
+            <span class="preview-dot"></span><strong>Updated students</strong><span id="updatedCount"
+              class="count-badge">0</span>
+          </header>
+          <div id="updatedPreview" class="preview-list"></div>
+        </section>
+        <section class="preview-group errors">
+          <header>
+            <span class="preview-dot"></span><strong>Errors</strong><span id="errorCount" class="count-badge">0</span>
+          </header>
+          <div id="errorPreview" class="preview-list"></div>
+        </section>
+      </div>
+      <footer class="modal-footer">
+        <button class="secondary-button" onclick="toggleModal('importPreviewModal',false)">
+          Cancel</button><button id="runImportButton" class="primary-button">
+          Run import
+        </button>
+      </footer>
+    </div>
+  </div>
+  <div id="spinnerStatusModal" class="room-modal progress-modal invisible">
+    <div id="spinnerStatusModalCard" class="modal-card progress-card scale-95">
+      <span class="progress-spinner"></span>
+      <p class="eyebrow">Import in progress</p>
+      <h2 id="statusMessage">0%</h2>
+      <p>Please keep this page open while student records are processed.</p>
+    </div>
+  </div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="../active-filter.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+  <script src="./script.js"></script>
+  <script src="/shared-ui.js"></script>
+  <script src="/auth-session.js"></script>
+</body>
+
 </html>

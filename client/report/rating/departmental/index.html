@@ -1,190 +1,150 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#075c3b" />
-    <title>SATP | Departmental Rating</title>
-    <link rel="icon" href="../../../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="../../../tailwind.css" />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <div id="sidebar-container" class="app-only"></div>
-    <div id="main">
-      <header class="site-header app-only">
-        <div class="header-brand">
-          <button
-            class="menu-button"
-            type="button"
-            onclick="toggleNav()"
-            aria-label="Open navigation"
-          >
-            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-          <a href="../../../"
-            ><img
-              src="../../../images/NDMU-Logo.png"
-              alt=""
-              width="44"
-              height="44"
-            /><span
-              ><strong>Notre Dame of Marbel University</strong
-              ><small>Student Assessment of Teacher's Performance</small></span
-            ></a
-          >
-        </div>
-        <div class="header-context">
-          <span>Rating</span><strong>Departmental Rating Report</strong>
-        </div>
-      </header>
 
-      <main class="workspace report-workspace">
-        <section class="page-heading app-only">
-          <div>
-            <p class="eyebrow">Generated report</p>
-            <h1>Departmental Rating Report</h1>
-            <p>
-              Review, download, or print assessment results for the selected
-              department.
-            </p>
-          </div>
-          <nav aria-label="Breadcrumb">
-            <a href="../../../">SATP</a
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><a href="../index.html">Rating</a
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Departmental Rating Report</span>
-          </nav>
-        </section>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#075c3b" />
+  <title>SATP | Departmental Rating</title>
+  <link rel="icon" href="../../../images/NDMU-Logo.png" />
+  <link rel="stylesheet" href="../../../tailwind.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
-        <div class="report-toolbar app-only">
-          <a class="secondary-button" href="../index.html"
-            ><svg viewBox="0 0 24 24"><path d="m10 6-6 6 6 6M4 12h16" /></svg
-            >Close</a
-          >
-          <div>
-            <button
-              id="downloadButton"
-              class="secondary-button"
-              type="button"
-              disabled
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" /></svg
-              ><span>Download PDF</span>
-            </button>
-            <button
-              id="printButton"
-              class="primary-button"
-              type="button"
-              disabled
-            >
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z"
-                /></svg
-              >Print
-            </button>
-          </div>
-        </div>
+<body>
+  <div id="sidebar-container" class="app-only"></div>
+  <div id="main">
+    <header class="site-header app-only">
+      <div class="header-brand">
+        <button class="menu-button" type="button" onclick="toggleNav()" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+        </button>
+        <a href="../../../"><img src="../../../images/NDMU-Logo.png" alt="" width="44" height="44" /><span><strong>Notre
+              Dame of Marbel University</strong><small>Student Assessment of Teacher's Performance</small></span></a>
+      </div>
+      <div class="header-context">
+        <span>Rating</span><strong>Departmental Rating Report</strong>
+      </div>
+    </header>
 
-        <article id="reportSheet" class="report-sheet">
-          <header class="document-header">
-            <img src="../../../images/NDMU-Logo.png" alt="NDMU seal" />
-            <div>
-              <p>JMJ Marist Brothers</p>
-              <h2>Notre Dame of Marbel University</h2>
-              <p>Alunan Avenue, City of Koronadal 9506</p>
-              <p>South Cotabato, Philippines</p>
-            </div>
-            <img
-              src="../../../images/green-university.jpg"
-              alt="Green University"
-            />
-          </header>
-          <section class="document-title">
-            <p>Student Assessment of Teacher's Performance</p>
-            <h3>Departmental Rating Report</h3>
-          </section>
-          <section
-            class="report-details department-rating-details"
-            aria-label="Report details"
-          >
-            <div><span>Department</span><strong id="department">&mdash;</strong></div>
-            <div><span>College</span><strong id="college">&mdash;</strong></div>
-            <div>
-              <span>School year</span><strong id="schoolYear">&mdash;</strong>
-            </div>
-            <div><span>Semester</span><strong id="semester">&mdash;</strong></div>
-            <div>
-              <span>Respondents</span><strong id="respondents">&mdash;</strong>
-            </div>
-            <div>
-              <span>Date generated</span><strong id="dateGenerated">&mdash;</strong>
-            </div>
-          </section>
-          <div class="mean-summary">
-            <span>Department Average:</span><strong id="overallMean">&mdash;</strong>
-          </div>
-          <div class="report-table-wrap">
-            <table
-              id="table"
-              class="rating-table"
-              aria-label="Department rating results"
-            >
-              <thead>
-                <tr>
-                  <th>Criteria</th>
-                  <th>Item Average</th>
-                </tr>
-              </thead>
-              <tbody id="tbData"></tbody>
-            </table>
-            <div id="emptyState" class="empty-state hidden">
-              <strong>No rating data found</strong>
-              <p>No completed assessments match the selected report filters.</p>
-            </div>
-          </div>
-          <section id="commentSection" class="comments-section hidden">
-            <h4>Comments:</h4>
-            <div id="comments"></div>
-          </section>
-          <footer class="document-footer">
-            <span>SATP Department Rating Report</span
-            ><span>Notre Dame of Marbel University</span>
-          </footer>
-        </article>
-      </main>
-      <footer class="site-footer app-only">
-        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-        <span></span>
-        <p>Developed by the MIS Department</p>
-      </footer>
-    </div>
-
-    <div
-      id="loadingModal"
-      class="room-modal invisible app-only"
-      role="status"
-      aria-live="polite"
-    >
-      <div id="loadingModalCard" class="loading-card scale-95">
-        <span class="loader-spinner" aria-hidden="true"></span>
+    <main class="workspace report-workspace">
+      <section class="page-heading app-only">
         <div>
-          <strong>Preparing report</strong>
-          <p>Loading the department rating...</p>
+          <p class="eyebrow">Generated report</p>
+          <h1>Departmental Rating Report</h1>
+          <p>
+            Review, download, or print assessment results for the selected
+            department.
+          </p>
+        </div>
+        <nav aria-label="Breadcrumb">
+          <a href="../../../">SATP</a><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><a href="../index.html">Rating</a><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Departmental Rating Report</span>
+        </nav>
+      </section>
+
+      <div class="report-toolbar app-only">
+        <a class="secondary-button" href="../index.html"><svg viewBox="0 0 24 24">
+            <path d="m10 6-6 6 6 6M4 12h16" />
+          </svg>Close</a>
+        <div>
+          <button id="downloadButton" class="secondary-button" type="button" disabled>
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" />
+            </svg><span>Download PDF</span>
+          </button>
+          <button id="printButton" class="primary-button" type="button" disabled>
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M7 14h10v7H7z" />
+            </svg>Print
+          </button>
         </div>
       </div>
+
+      <article id="reportSheet" class="report-sheet">
+        <header class="document-header">
+          <img src="../../../images/NDMU-Logo.png" alt="NDMU seal" />
+          <div>
+            <p>JMJ Marist Brothers</p>
+            <h2>Notre Dame of Marbel University</h2>
+            <p>Alunan Avenue, City of Koronadal 9506</p>
+            <p>South Cotabato, Philippines</p>
+          </div>
+          <img src="../../../images/green-university.jpg" alt="Green University" />
+        </header>
+        <section class="document-title">
+          <p>Student Assessment of Teacher's Performance</p>
+          <h3>Departmental Rating Report</h3>
+        </section>
+        <section class="report-details department-rating-details" aria-label="Report details">
+          <div><span>Department</span><strong id="department">&mdash;</strong></div>
+          <div><span>College</span><strong id="college">&mdash;</strong></div>
+          <div>
+            <span>School year</span><strong id="schoolYear">&mdash;</strong>
+          </div>
+          <div><span>Semester</span><strong id="semester">&mdash;</strong></div>
+          <div>
+            <span>Respondents</span><strong id="respondents">&mdash;</strong>
+          </div>
+          <div>
+            <span>Date generated</span><strong id="dateGenerated">&mdash;</strong>
+          </div>
+        </section>
+        <div class="mean-summary">
+          <span>Department Average:</span><strong id="overallMean">&mdash;</strong>
+        </div>
+        <div class="report-table-wrap">
+          <table id="table" class="rating-table" aria-label="Department rating results">
+            <thead>
+              <tr>
+                <th>Criteria</th>
+                <th>Item Average</th>
+              </tr>
+            </thead>
+            <tbody id="tbData"></tbody>
+          </table>
+          <div id="emptyState" class="empty-state hidden">
+            <strong>No rating data found</strong>
+            <p>No completed assessments match the selected report filters.</p>
+          </div>
+        </div>
+        <section id="commentSection" class="comments-section hidden">
+          <h4>Comments:</h4>
+          <div id="comments"></div>
+        </section>
+        <footer class="document-footer">
+          <span>SATP Department Rating Report</span><span>Notre Dame of Marbel University</span>
+        </footer>
+      </article>
+    </main>
+    <footer class="site-footer app-only">
+      <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+      <span></span>
+      <p>Developed by the MIS Department</p>
+    </footer>
+  </div>
+
+  <div id="loadingModal" class="room-modal invisible app-only" role="status" aria-live="polite">
+    <div id="loadingModalCard" class="loading-card scale-95">
+      <span class="loader-spinner" aria-hidden="true"></span>
+      <div>
+        <strong>Preparing report</strong>
+        <p>Loading the department rating...</p>
+      </div>
     </div>
-    <div
-      id="toast-container"
-      class="toast-container app-only"
-      aria-live="polite"
-    ></div>
-    <script src="../../../vendor/html2pdf.bundle.min.js"></script>
-    <script src="../../html2pdf-export.js"></script>
-    <script src="./script.js"></script>
-    <script src="/auth-session.js"></script>
-  </body>
+  </div>
+  <div id="toast-container" class="toast-container app-only" aria-live="polite"></div>
+  <script src="../../../vendor/html2pdf.bundle.min.js"></script>
+  <script src="../../html2pdf-export.js"></script>
+  <script src="./script.js"></script>
+  <script src="/shared-ui.js"></script>
+  <script src="/auth-session.js"></script>
+</body>
+
 </html>

@@ -1,224 +1,149 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="Manage semesters in the NDMU SATP system."
-    />
-    <meta name="theme-color" content="#075c3b" />
-    <title>SATP | Semester Maintenance</title>
-    <link rel="icon" href="../../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="../../tailwind.css" />
-    <link
-      rel="stylesheet"
-      href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css"
-    />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <div id="sidebar-container"></div>
-    <div id="main">
-      <header class="site-header">
-        <div class="header-brand">
-          <button
-            type="button"
-            class="menu-button"
-            onclick="toggleNav()"
-            aria-label="Open navigation"
-          >
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Manage semesters in the NDMU SATP system." />
+  <meta name="theme-color" content="#075c3b" />
+  <title>SATP | Semester Maintenance</title>
+  <link rel="icon" href="../../images/NDMU-Logo.png" />
+  <link rel="stylesheet" href="../../tailwind.css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div id="sidebar-container"></div>
+  <div id="main">
+    <header class="site-header">
+      <div class="header-brand">
+        <button type="button" class="menu-button" onclick="toggleNav()" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg></button><a href="../../"><img src="../../images/NDMU-Logo.png" alt="" width="44"
+            height="44" /><span><strong>Notre Dame of Marbel University</strong><small>Student Assessment of Teacher's
+              Performance</small></span></a>
+      </div>
+      <div class="header-context">
+        <span>Maintenance</span><strong>Semester</strong>
+      </div>
+    </header>
+    <main class="workspace">
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">System maintenance</p>
+          <h1>Semester</h1>
+          <p>Manage the academic semesters available throughout SATP.</p>
+        </div>
+        <nav aria-label="Breadcrumb">
+          <a href="../../">SATP</a><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Maintenance</span><svg viewBox="0 0 24 24">
+            <path d="m9 18 6-6-6-6" />
+          </svg><span>Semesters</span>
+        </nav>
+      </section>
+      <section class="records-card">
+        <div class="records-heading">
+          <div>
+            <p class="eyebrow">Academic calendar</p>
+            <h2>All semesters</h2>
+            <p>Search and maintain semester availability and usage.</p>
+          </div>
+          <button type="button" class="primary-button" onclick="toggleModal('addNewModal', true)">
             <svg viewBox="0 0 24 24">
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            </svg></button
-          ><a href="../../"
-            ><img
-              src="../../images/NDMU-Logo.png"
-              alt=""
-              width="44"
-              height="44"
-            /><span
-              ><strong>Notre Dame of Marbel University</strong
-              ><small>Student Assessment of Teacher's Performance</small></span
-            ></a
-          >
+              <path d="M12 5v14M5 12h14" />
+            </svg>Add
+            semester
+          </button>
         </div>
-        <div class="header-context">
-          <span>Maintenance</span><strong>Semester</strong>
+        <div class="table-shell">
+          <table id="table" class="display nowrap" aria-label="Semesters"></table>
         </div>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+      <span></span>
+      <p>Developed by the MIS Department</p>
+    </footer>
+  </div>
+
+  <div id="addNewModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="add-title">
+    <div id="addNewModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">New record</p>
+          <h2 id="add-title">Add semester</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('addNewModal', false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
       </header>
-      <main class="workspace">
-        <section class="page-heading">
-          <div>
-            <p class="eyebrow">System maintenance</p>
-            <h1>Semester</h1>
-            <p>Manage the academic semesters available throughout SATP.</p>
+      <form id="newSemesterForm">
+        <div class="modal-body">
+          <div class="field">
+            <label for="addSemester">Semester</label><input id="addSemester" name="name"
+              placeholder="Example: First Semester" required />
           </div>
-          <nav aria-label="Breadcrumb">
-            <a href="../../">SATP</a
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Maintenance</span
-            ><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg
-            ><span>Semesters</span>
-          </nav>
-        </section>
-        <section class="records-card">
-          <div class="records-heading">
-            <div>
-              <p class="eyebrow">Academic calendar</p>
-              <h2>All semesters</h2>
-              <p>Search and maintain semester availability and usage.</p>
-            </div>
-            <button
-              type="button"
-              class="primary-button"
-              onclick="toggleModal('addNewModal', true)"
-            >
-              <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg>Add
-              semester
-            </button>
-          </div>
-          <div class="table-shell">
-            <table
-              id="table"
-              class="display nowrap"
-              aria-label="Semesters"
-            ></table>
-          </div>
-        </section>
-      </main>
-      <footer class="site-footer">
-        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-        <span></span>
-        <p>Developed by the MIS Department</p>
-      </footer>
-    </div>
-
-    <div
-      id="addNewModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-title"
-    >
-      <div id="addNewModalCard" class="modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">New record</p>
-            <h2 id="add-title">Add semester</h2>
-          </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('addNewModal', false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          <label class="status-control" for="isSemesterInUse"><span><strong>In use</strong><small>Use as the current
+                semester</small></span><input type="checkbox" id="isSemesterInUse" /><span
+              class="switch"></span></label><label class="status-control" for="isSemesterActive"><span><strong>Active
+                semester</strong><small>Available throughout the system</small></span><input type="checkbox"
+              id="isSemesterActive" checked /><span class="switch"></span></label>
+        </div>
+        <footer class="modal-footer">
+          <button type="button" class="secondary-button" onclick="toggleModal('addNewModal', false)">
+            Cancel</button><button class="primary-button" type="submit">
+            Create semester
           </button>
-        </header>
-        <form id="newSemesterForm">
-          <div class="modal-body">
-            <div class="field">
-              <label for="addSemester">Semester</label
-              ><input
-                id="addSemester"
-                name="name"
-                placeholder="Example: First Semester"
-                required
-              />
-            </div>
-            <label class="status-control" for="isSemesterInUse"
-              ><span
-                ><strong>In use</strong
-                ><small>Use as the current semester</small></span
-              ><input type="checkbox" id="isSemesterInUse" /><span
-                class="switch"
-              ></span></label
-            ><label class="status-control" for="isSemesterActive"
-              ><span
-                ><strong>Active semester</strong
-                ><small>Available throughout the system</small></span
-              ><input type="checkbox" id="isSemesterActive" checked /><span
-                class="switch"
-              ></span
-            ></label>
-          </div>
-          <footer class="modal-footer">
-            <button
-              type="button"
-              class="secondary-button"
-              onclick="toggleModal('addNewModal', false)"
-            >
-              Cancel</button
-            ><button class="primary-button" type="submit">
-              Create semester
-            </button>
-          </footer>
-        </form>
-      </div>
+        </footer>
+      </form>
     </div>
+  </div>
 
-    <div
-      id="editModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="edit-title"
-    >
-      <div id="editModalCard" class="modal-card scale-95">
-        <header class="modal-header">
-          <div>
-            <p class="eyebrow">Semester record</p>
-            <h2 id="edit-title">Edit semester</h2>
+  <div id="editModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="edit-title">
+    <div id="editModalCard" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Semester record</p>
+          <h2 id="edit-title">Edit semester</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('editModal', false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="editSemesterForm">
+        <div class="modal-body">
+          <div class="field">
+            <label for="editSemester">Semester</label><input id="editSemester" name="name" required />
           </div>
-          <button
-            class="modal-close"
-            type="button"
-            onclick="toggleModal('editModal', false)"
-            aria-label="Close"
-          >
-            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
-          </button>
-        </header>
-        <form id="editSemesterForm">
-          <div class="modal-body">
-            <div class="field">
-              <label for="editSemester">Semester</label
-              ><input id="editSemester" name="name" required />
-            </div>
-            <label class="status-control" for="isSemesterInUseEdit"
-              ><span
-                ><strong>In use</strong
-                ><small>Use as the current semester</small></span
-              ><input type="checkbox" id="isSemesterInUseEdit" /><span
-                class="switch"
-              ></span></label
-            ><label class="status-control" for="isSemesterActiveEdit"
-              ><span
-                ><strong>Active semester</strong
-                ><small>Available throughout the system</small></span
-              ><input type="checkbox" id="isSemesterActiveEdit" /><span
-                class="switch"
-              ></span
-            ></label>
-          </div>
-          <footer class="modal-footer">
-            <button
-              type="button"
-              class="secondary-button"
-              onclick="toggleModal('editModal', false)"
-            >
-              Cancel</button
-            ><button class="primary-button" type="submit">Save changes</button>
-          </footer>
-        </form>
-      </div>
+          <label class="status-control" for="isSemesterInUseEdit"><span><strong>In use</strong><small>Use as the current
+                semester</small></span><input type="checkbox" id="isSemesterInUseEdit" /><span
+              class="switch"></span></label><label class="status-control"
+            for="isSemesterActiveEdit"><span><strong>Active semester</strong><small>Available throughout the
+                system</small></span><input type="checkbox" id="isSemesterActiveEdit" /><span
+              class="switch"></span></label>
+        </div>
+        <footer class="modal-footer">
+          <button type="button" class="secondary-button" onclick="toggleModal('editModal', false)">
+            Cancel</button><button class="primary-button" type="submit">Save changes</button>
+        </footer>
+      </form>
     </div>
+  </div>
 
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="./script.js"></script>
-    <script src="/auth-session.js"></script>
-  </body>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+  <script src="./script.js"></script>
+  <script src="/shared-ui.js"></script>
+  <script src="/auth-session.js"></script>
+</body>
+
 </html>

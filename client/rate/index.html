@@ -1,181 +1,151 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#075c3b" />
-    <title>SATP | Rate Teacher</title>
-    <link rel="icon" href="../images/NDMU-Logo.png" />
-    <link rel="stylesheet" href="../tailwind.css" />
-    <link rel="stylesheet" href="./style.css" />
-  </head>
-  <body>
-    <div id="sidebar-container"></div>
-    <div id="main">
-      <header class="site-header">
-        <div class="header-brand">
-          <button
-            class="menu-button"
-            type="button"
-            onclick="toggleNav()"
-            aria-label="Open navigation"
-          >
-            <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
-          </button>
-          <a href="../"
-            ><img
-              src="../images/NDMU-Logo.png"
-              alt=""
-              width="44"
-              height="44"
-            /><span
-              ><strong>Notre Dame of Marbel University</strong
-              ><small>Student Assessment of Teacher's Performance</small></span
-            ></a
-          >
-        </div>
-        <div class="header-context">
-          <span>Student portal</span><strong>Teacher assessment</strong>
-        </div>
-      </header>
 
-      <main class="workspace assessment-workspace">
-        <section class="page-heading">
-          <div>
-            <p class="eyebrow">Confidential assessment</p>
-            <h1>Rate your teacher</h1>
-            <p>Answer every item based on your experience in this course.</p>
-          </div>
-          <a class="secondary-button back-button" href="../rating/index.html"
-            ><svg viewBox="0 0 24 24"><path d="m10 6-6 6 6 6M4 12h16" /></svg
-            >Back to courses</a
-          >
-        </section>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#075c3b" />
+  <title>SATP | Rate Teacher</title>
+  <link rel="icon" href="../images/NDMU-Logo.png" />
+  <link rel="stylesheet" href="../tailwind.css" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
 
-        <section class="assessment-meta" aria-label="Assessment information">
-          <div><span>School year</span><strong id="schoolYear">—</strong></div>
-          <div><span>Semester</span><strong id="semester">—</strong></div>
-          <div><span>Teacher</span><strong id="teacherRatee">—</strong></div>
-          <div>
-            <span>Course</span><strong id="subjectCode">—</strong
-            ><small id="subjectName"></small>
-          </div>
-          <div><span>Rater</span><strong id="studentRater">—</strong></div>
-        </section>
-
-        <section class="guidance-card">
-          <div>
-            <p class="eyebrow">Before you begin</p>
-            <h2>Your honest feedback supports better teaching.</h2>
-            <div class="guidance-copy">
-              <p>
-                Dear students, we are asking you to help us assess the teaching
-                performance of your teachers. Please provide us with valuable
-                feedback on their performance. Your honest answers will benefit
-                both your instructors and you because this information will
-                hopefully help them improve their weak points and maintain their
-                strong points.
-              </p>
-              <p>
-                Using the scale described, please rate your teacher in
-                this course based on your own experience with them. Read each
-                item carefully and choose your response at the end of each item.
-                Please try to answer all items. Whatever answers you give will
-                not affect you in any way in relation to your grades. Rest
-                assured that your answers are kept confidential.
-              </p>
-            </div>
-          </div>
-          <div class="scale-legend" aria-label="Rating scale">
-            <span><strong>1</strong><small>Very rarely</small></span
-            ><span><strong>2</strong><small>Sometimes</small></span
-            ><span><strong>3</strong><small>Regularly</small></span
-            ><span><strong>4</strong><small>Often</small></span
-            ><span><strong>5</strong><small>Very often</small></span>
-          </div>
-        </section>
-
-        <form id="ratingForm">
-          <div id="questionGroups" class="question-groups"></div>
-          <section class="comment-card">
-            <div>
-              <label for="comment"
-                >Additional comment <span>Optional</span></label
-              >
-              <p>Share constructive feedback without including emojis.</p>
-            </div>
-            <textarea
-              id="comment"
-              rows="4"
-              maxlength="2000"
-              placeholder="Write your comment here..."
-            ></textarea>
-            <div class="comment-meta">
-              <span id="commentCount">0 / 2000</span>
-            </div>
-          </section>
-          <div class="submit-bar">
-            <div>
-              <strong id="progressText">0 of 0 answered</strong
-              ><span class="progress-track"
-                ><span id="progressFill"></span
-              ></span>
-            </div>
-            <button id="submitButton" class="primary-button" type="submit">
-              <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>Submit
-              assessment
-            </button>
-          </div>
-        </form>
-      </main>
-
-      <footer class="site-footer">
-        <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
-        <span></span>
-        <p>Developed by the MIS Department</p>
-      </footer>
-    </div>
-
-    <div
-      id="successModal"
-      class="room-modal invisible"
-      role="dialog"
-      aria-modal="true"
-    >
-      <div id="successModalCard" class="success-card scale-95">
-        <span class="success-icon"
-          ><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg
-        ></span>
-        <p class="eyebrow">Assessment complete</p>
-        <h2>Thank you for your feedback.</h2>
-        <p>Your teacher assessment was submitted successfully.</p>
-        <button class="primary-button" type="button" onclick="closeRating()">
-          Return to courses
+<body>
+  <div id="sidebar-container"></div>
+  <div id="main">
+    <header class="site-header">
+      <div class="header-brand">
+        <button class="menu-button" type="button" onclick="toggleNav()" aria-label="Open navigation">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
         </button>
+        <a href="../"><img src="../images/NDMU-Logo.png" alt="" width="44" height="44" /><span><strong>Notre Dame of
+              Marbel University</strong><small>Student Assessment of Teacher's Performance</small></span></a>
       </div>
-    </div>
-    <div
-      id="loadingOverlay"
-      class="room-modal"
-      role="status"
-      aria-live="polite"
-      aria-hidden="false"
-    >
-      <div class="loading-card" aria-label="Loading assessment">
-        <span class="loader"></span>
-        <div class="loading-copy">
-          <p id="loadingLabel" class="loading-label">Please wait</p>
-          <strong id="loadingTitle">Preparing assessment</strong>
-          <p id="loadingMessage">Loading the assessment questions...</p>
+      <div class="header-context">
+        <span>Student portal</span><strong>Teacher assessment</strong>
+      </div>
+    </header>
+
+    <main class="workspace assessment-workspace">
+      <section class="page-heading">
+        <div>
+          <p class="eyebrow">Confidential assessment</p>
+          <h1>Rate your teacher</h1>
+          <p>Answer every item based on your experience in this course.</p>
         </div>
-        <span class="upload-progress" aria-hidden="true"><span></span></span>
-        <p id="loadingNotice" class="loading-notice invisible">
-          Please do not close or refresh this page.
-        </p>
-      </div>
+        <a class="secondary-button back-button" href="../rating/index.html"><svg viewBox="0 0 24 24">
+            <path d="m10 6-6 6 6 6M4 12h16" />
+          </svg>Back to courses</a>
+      </section>
+
+      <section class="assessment-meta" aria-label="Assessment information">
+        <div><span>School year</span><strong id="schoolYear">—</strong></div>
+        <div><span>Semester</span><strong id="semester">—</strong></div>
+        <div><span>Teacher</span><strong id="teacherRatee">—</strong></div>
+        <div>
+          <span>Course</span><strong id="subjectCode">—</strong><small id="subjectName"></small>
+        </div>
+        <div><span>Rater</span><strong id="studentRater">—</strong></div>
+      </section>
+
+      <section class="guidance-card">
+        <div>
+          <p class="eyebrow">Before you begin</p>
+          <h2>Your honest feedback supports better teaching.</h2>
+          <div class="guidance-copy">
+            <p>
+              Dear students, we are asking you to help us assess the teaching
+              performance of your teachers. Please provide us with valuable
+              feedback on their performance. Your honest answers will benefit
+              both your instructors and you because this information will
+              hopefully help them improve their weak points and maintain their
+              strong points.
+            </p>
+            <p>
+              Using the scale described, please rate your teacher in
+              this course based on your own experience with them. Read each
+              item carefully and choose your response at the end of each item.
+              Please try to answer all items. Whatever answers you give will
+              not affect you in any way in relation to your grades. Rest
+              assured that your answers are kept confidential.
+            </p>
+          </div>
+        </div>
+        <div class="scale-legend" aria-label="Rating scale">
+          <span><strong>1</strong><small>Very
+              rarely</small></span><span><strong>2</strong><small>Sometimes</small></span><span><strong>3</strong><small>Regularly</small></span><span><strong>4</strong><small>Often</small></span><span><strong>5</strong><small>Very
+              often</small></span>
+        </div>
+      </section>
+
+      <form id="ratingForm">
+        <div id="questionGroups" class="question-groups"></div>
+        <section class="comment-card">
+          <div>
+            <label for="comment">Additional comment <span>Optional</span></label>
+            <p>Share constructive feedback without including emojis.</p>
+          </div>
+          <textarea id="comment" rows="4" maxlength="2000" placeholder="Write your comment here..."></textarea>
+          <div class="comment-meta">
+            <span id="commentCount">0 / 2000</span>
+          </div>
+        </section>
+        <div class="submit-bar">
+          <div>
+            <strong id="progressText">0 of 0 answered</strong><span class="progress-track"><span
+                id="progressFill"></span></span>
+          </div>
+          <button id="submitButton" class="primary-button" type="submit">
+            <svg viewBox="0 0 24 24">
+              <path d="m5 12 4 4L19 6" />
+            </svg>Submit
+            assessment
+          </button>
+        </div>
+      </form>
+    </main>
+
+    <footer class="site-footer">
+      <p>&copy; <span id="year"></span> Notre Dame of Marbel University</p>
+      <span></span>
+      <p>Developed by the MIS Department</p>
+    </footer>
+  </div>
+
+  <div id="successModal" class="room-modal invisible" role="dialog" aria-modal="true">
+    <div id="successModalCard" class="success-card scale-95">
+      <span class="success-icon"><svg viewBox="0 0 24 24">
+          <path d="m5 12 4 4L19 6" />
+        </svg></span>
+      <p class="eyebrow">Assessment complete</p>
+      <h2>Thank you for your feedback.</h2>
+      <p>Your teacher assessment was submitted successfully.</p>
+      <button class="primary-button" type="button" onclick="closeRating()">
+        Return to courses
+      </button>
     </div>
-    <div id="toast-container" class="toast-container" aria-live="polite"></div>
-    <script src="./script.js"></script>
-    <script src="/auth-session.js"></script>
-  </body>
+  </div>
+  <div id="loadingOverlay" class="room-modal" role="status" aria-live="polite" aria-hidden="false">
+    <div class="loading-card" aria-label="Loading assessment">
+      <span class="loader"></span>
+      <div class="loading-copy">
+        <p id="loadingLabel" class="loading-label">Please wait</p>
+        <strong id="loadingTitle">Preparing assessment</strong>
+        <p id="loadingMessage">Loading the assessment questions...</p>
+      </div>
+      <span class="upload-progress" aria-hidden="true"><span></span></span>
+      <p id="loadingNotice" class="loading-notice invisible">
+        Please do not close or refresh this page.
+      </p>
+    </div>
+  </div>
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+  <script src="./script.js"></script>
+  <script src="/shared-ui.js"></script>
+  <script src="/auth-session.js"></script>
+</body>
+
 </html>
