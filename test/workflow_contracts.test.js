@@ -75,19 +75,16 @@ test("Student Course supports one rating per teacher on the same schedule for CH
   );
   const importScript = read("client/maintenance/student_subject/script.js");
   const studentModel = read("api/maintenance/student/student.model.js");
-  const serverEnrollment = read(
-    "api/maintenance/serverenrollment/serverenrollment.controller.js",
-  );
 
   assert.match(studentModel, /colleges\.code AS college/);
   assert.match(enrollmentModel, /college_code/);
   assert.match(enrollmentModel, /=== "CHS"/);
   assert.match(importScript, /isChsStudent/);
-  assert.match(serverEnrollment, /row\.StudentCollegeCode/);
-  assert.doesNotMatch(
-    serverEnrollment,
-    /is_chs:\s*normalize\(row\.CollegeCode\)/,
+  assert.match(
+    importScript,
+    /normalizeImportValue\(student\?\.college\) === "chs"/,
   );
+  assert.doesNotMatch(importScript, /normalizeImportValue\(raw\.CollegeCode\)/);
   assert.match(controller, /subject\.schedule_code/);
   assert.match(controller, /subject\.teacher_id/);
   assert.match(enrollmentModel, /existingByEnrollment/);
