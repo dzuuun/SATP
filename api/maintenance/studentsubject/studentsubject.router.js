@@ -9,8 +9,10 @@ const {
   addStudentSubjects,
   updateStudentSubject,
   deactivateStudentSubject,
+  restoreStudentSubject,
   getActiveScheduleAssignments,
   reassignScheduleTeacher,
+  setScheduleDissolved,
 } = require("./studentsubject.controller");
 const router = require("express").Router();
 
@@ -37,6 +39,8 @@ router.post("/add", addStudentSubject);
 router.post("/add-many", addStudentSubjects);
 router.put("/update", updateStudentSubject);
 router.put("/deactivate", deactivateStudentSubject);
+router.put("/restore", restoreStudentSubject);
 router.put("/schedule-assignments/reassign", reassignScheduleTeacher);
+router.put("/schedule-assignments/dissolve", setScheduleDissolved);
 
 module.exports = router;

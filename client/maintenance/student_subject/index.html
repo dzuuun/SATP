@@ -329,6 +329,34 @@
     </div>
   </div>
 
+  <div id="restoreModal" class="room-modal invisible" role="dialog" aria-modal="true"
+    aria-labelledby="restoreModalTitle">
+    <div id="restoreModalCard" class="modal-card confirmation-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Enrollment action</p>
+          <h2 id="restoreModalTitle">Restore course?</h2>
+        </div>
+        <button type="button" class="modal-close" onclick="closeRestoreModal()" aria-label="Close restore confirmation">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+        </button>
+      </header>
+      <div class="modal-body confirmation-body">
+        <span class="confirmation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 9V4m0 0h5M4 4l4 4a7 7 0 1 1-1.5 7.5" /></svg>
+        </span>
+        <div>
+          <strong id="restoreSubjectCode">Selected course</strong>
+          <p>This course will return to the student's included courses and become available for assessment.</p>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="secondary-button" onclick="closeRestoreModal()">Cancel</button>
+        <button type="button" class="primary-button" onclick="confirmRestoreStudentSubject()">Restore course</button>
+      </footer>
+    </div>
+  </div>
+
   <div id="importFileModal" class="room-modal invisible">
     <div id="importFileModalCard" class="modal-card scale-95">
       <header class="modal-header">

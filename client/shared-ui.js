@@ -17,7 +17,10 @@
   }
 
   function disableHeaderBrandNavigation(root = document) {
-    root.querySelectorAll?.(".header-brand > a").forEach((brand) => {
+    const brands = [];
+    if (root.matches?.(".header-brand > a")) brands.push(root);
+    root.querySelectorAll?.(".header-brand > a").forEach((brand) => brands.push(brand));
+    brands.forEach((brand) => {
       brand.removeAttribute("href");
       brand.removeAttribute("aria-label");
       brand.removeAttribute("target");
@@ -43,7 +46,10 @@
       `;
       document.head.appendChild(style);
     }
-    root.querySelectorAll?.(".site-header .menu-button").forEach((button) => {
+    const buttons = [];
+    if (root.matches?.(".site-header .menu-button")) buttons.push(root);
+    root.querySelectorAll?.(".site-header .menu-button").forEach((button) => buttons.push(button));
+    buttons.forEach((button) => {
       if (button.dataset.menuAnimationReady === "true") return;
       button.dataset.menuAnimationReady = "true";
       button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="satp-menu-line satp-menu-line-top" d="M4 7h16" /><path class="satp-menu-line satp-menu-line-middle" d="M4 12h16" /><path class="satp-menu-line satp-menu-line-bottom" d="M4 17h16" /></svg>`;
@@ -76,9 +82,9 @@
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
         if (node instanceof Element) {
-          disableSelectPlaceholders(node.parentElement || node);
-          disableHeaderBrandNavigation(node.parentElement || node);
-          installHeaderMenuAnimation(node.parentElement || node);
+          disableSelectPlaceholders(node);
+          disableHeaderBrandNavigation(node);
+          installHeaderMenuAnimation(node);
         }
       });
     });

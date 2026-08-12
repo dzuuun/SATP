@@ -17,7 +17,15 @@ const recordSelect = `
     semesters.name AS semester,
     subjects.code AS subject_code,
     subjects.name AS subject_name,
-    CONCAT_WS(' ', teachers.givenname, teachers.surname) AS teacher_name,
+    CONCAT(
+      IFNULL(CONCAT(NULLIF(TRIM(teachers.prefix), ''), ' '), ''),
+      teachers.givenname, ' ', teachers.surname,
+      IF(
+        teachers.suffix IS NOT NULL AND TRIM(teachers.suffix) <> '',
+        CONCAT(', ', TRIM(teachers.suffix)),
+        ''
+      )
+    ) AS teacher_name,
     records.schedule_code,
     records.time_start,
     records.time_end,
@@ -97,7 +105,9 @@ module.exports = {
                   ''
                 )
               ) AS teacher_name,
-              COUNT(DISTINCT arc.student_id) AS student_count
+              COUNT(DISTINCT arc.student_id) AS student_count,
+              MIN(arc.is_excluded) AS is_excluded,
+              SUM(arc.reason = 'DISSOLVED') AS dissolved_count
        FROM ${TABLE} AS arc
        INNER JOIN school_years AS sy ON sy.id = arc.school_year_id
        INNER JOIN semesters AS sem ON sem.id = arc.semester_id
@@ -180,6 +190,47 @@ module.exports = {
     }
   },
 
+  setScheduleDissolved: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+      const dissolved = data.dissolved === true;
+      const [result] = dissolved
+        ? await connection.query(
+          `UPDATE ${TABLE}
+           SET is_excluded = 1, reason = 'DISSOLVED'
+           WHERE school_year_id = ? AND semester_id = ? AND subject_id = ?
+             AND schedule_code = ? AND is_excluded = 0`,
+          [data.school_year_id, data.semester_id, data.subject_id, data.schedule_code],
+        )
+        : await connection.query(
+          `UPDATE ${TABLE}
+           SET is_excluded = 0, reason = NULL
+           WHERE school_year_id = ? AND semester_id = ? AND subject_id = ?
+             AND schedule_code = ? AND reason = 'DISSOLVED'`,
+          [data.school_year_id, data.semester_id, data.subject_id, data.schedule_code],
+        );
+      if (!result.affectedRows) {
+        throw new Error(dissolved
+          ? "This schedule is already dissolved."
+          : "This schedule is already active.");
+      }
+      await connection.query(
+        "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+        [data.user_id,
+          `${dissolved ? "Dissolved" : "Restored"} schedule ${data.schedule_code}`],
+      );
+      await connection.commit();
+      return callBack(null, { enrollments_updated: result.affectedRows });
+    } catch (error) {
+      if (connection) await connection.rollback();
+      return callBack(error);
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
   getStudentsByPeriod: (data, callBack) => {
     pool.query(
       `SELECT
@@ -188,18 +239,23 @@ module.exports = {
          CONCAT_WS(' ', user_info.givenname, user_info.surname) AS student_name,
          colleges.code AS college,
          courses.code AS course,
-         SUM(CASE WHEN records.is_excluded = 0 THEN 1 ELSE 0 END) AS included_count,
-         SUM(CASE WHEN records.is_excluded = 1 THEN 1 ELSE 0 END) AS excluded_count,
-         COUNT(*) AS total_count
-       FROM ${TABLE} AS records
+         records.included_count,
+         records.excluded_count,
+         records.included_count AS total_count
+       FROM (
+         SELECT
+           student_id,
+           SUM(is_excluded = 0) AS included_count,
+           SUM(is_excluded = 1) AS excluded_count
+         FROM ${TABLE}
+         WHERE school_year_id = ? AND semester_id = ?
+         GROUP BY student_id
+       ) AS records
        INNER JOIN users ON users.id = records.student_id
        INNER JOIN user_info ON user_info.user_id = records.student_id
        INNER JOIN courses ON courses.id = user_info.course_id
        INNER JOIN departments ON departments.id = courses.department_id
        INNER JOIN colleges ON colleges.id = departments.college_id
-       WHERE records.school_year_id = ? AND records.semester_id = ?
-       GROUP BY records.student_id, users.username, user_info.givenname,
-         user_info.surname, colleges.code, courses.code
        ORDER BY user_info.surname, user_info.givenname`,
       [data.school_year_id, data.semester_id],
       callBack,
@@ -515,14 +571,39 @@ module.exports = {
           return callBack(error, results);
         }
         describeRecord(data.id, (describeError, records) => {
-          if (!describeError && records[0]) {
+          const record = !describeError && records[0] ? records[0] : null;
+          if (record) {
             logActivity(
               data.user_id,
-              `Excluded student's subject: ${activityDescription(records[0])}`,
+              `Excluded student course for ${record.student_number}: ${record.subject_code} | ${record.schedule_code || "No schedule code"} | ${record.teacher_name}`,
             );
           }
+          return callBack(null, { ...results, record });
         });
-        return callBack(null, results);
+      },
+    );
+  },
+
+  restoreStudentSubject: (data, callBack) => {
+    pool.query(
+      `UPDATE ${TABLE}
+       SET is_excluded = 0, reason = NULL
+       WHERE id = ? AND is_excluded = 1`,
+      [data.id],
+      (error, results) => {
+        if (error || results.changedRows !== 1) {
+          return callBack(error, results);
+        }
+        describeRecord(data.id, (describeError, records) => {
+          const record = !describeError && records[0] ? records[0] : null;
+          if (record) {
+            logActivity(
+              data.user_id,
+              `Restored student course for ${record.student_number}: ${record.subject_code} | ${record.schedule_code || "No schedule code"} | ${record.teacher_name}`,
+            );
+          }
+          return callBack(null, { ...results, record });
+        });
       },
     );
   },

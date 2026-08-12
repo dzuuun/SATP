@@ -81,6 +81,32 @@ module.exports = {
     });
   },
 
+  setScheduleDissolved: (req, res) => {
+    const data = { ...req.body, user_id: req.user.id };
+    if (
+      !hasValidIds(data, ["school_year_id", "semester_id", "subject_id"]) ||
+      !String(data.schedule_code || "").trim() ||
+      typeof data.dissolved !== "boolean"
+    ) {
+      return res.status(400).json({
+        success: 0,
+        message: "A valid schedule and dissolved status are required.",
+      });
+    }
+    return model.setScheduleDissolved(data, (error, results) => {
+      if (error) {
+        return res.status(400).json({ success: 0, message: error.message });
+      }
+      return res.json({
+        success: 1,
+        message: data.dissolved
+          ? "Schedule dissolved successfully."
+          : "Schedule restored successfully.",
+        data: results,
+      });
+    });
+  },
+
   getStudentsByPeriod: (req, res) => {
     if (!hasValidIds(req.params, ["school_year_id", "semester_id"])) {
       return res.status(400).json({
@@ -326,7 +352,8 @@ module.exports = {
         message: "A valid record ID and exclusion reason are required.",
       });
     }
-    return model.deactivateStudentSubject(req.body, (error, results) => {
+    const data = { ...req.body, user_id: req.user.id };
+    return model.deactivateStudentSubject(data, (error, results) => {
       if (error) {
         return databaseError(
           res,
@@ -342,7 +369,36 @@ module.exports = {
       }
       return res.json({
         success: 1,
-        message: "Student course excluded successfully.",
+        message: results.record
+          ? `Excluded student course for ${results.record.student_number}: ${results.record.subject_code} | ${results.record.schedule_code || "No schedule code"} | ${results.record.teacher_name}`
+          : "Student course excluded successfully.",
+      });
+    });
+  },
+
+  restoreStudentSubject: (req, res) => {
+    const data = { ...req.body, user_id: req.user.id };
+    if (!isPositiveId(data.id)) {
+      return res.status(400).json({
+        success: 0,
+        message: "A valid student course record is required.",
+      });
+    }
+    return model.restoreStudentSubject(data, (error, results) => {
+      if (error) {
+        return databaseError(res, error, "Unable to restore the student course.");
+      }
+      if (!results.changedRows) {
+        return res.status(404).json({
+          success: 0,
+          message: "Student course not found or already included.",
+        });
+      }
+      return res.json({
+        success: 1,
+        message: results.record
+          ? `Restored student course for ${results.record.student_number}: ${results.record.subject_code} | ${results.record.schedule_code || "No schedule code"} | ${results.record.teacher_name}`
+          : "Student course restored successfully.",
       });
     });
   },

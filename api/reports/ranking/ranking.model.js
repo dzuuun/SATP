@@ -14,6 +14,8 @@ module.exports = {
          ROUND(AVG(CAST(trans_item.rate AS float)), 2) AS mean
        FROM teachers
        INNER JOIN transactions ON teachers.id = transactions.teacher_id
+       INNER JOIN academic_records_consolidated AS arc
+         ON arc.id = transactions.id AND arc.is_excluded = 0
        INNER JOIN trans_item ON transactions.id = trans_item.transaction_id
        INNER JOIN school_years ON transactions.school_year_id = school_years.id
        INNER JOIN semesters ON transactions.semester_id = semesters.id
@@ -56,6 +58,8 @@ module.exports = {
          ROUND(AVG(CAST(trans_item.rate AS float)), 2) AS mean
        FROM teachers
        INNER JOIN transactions ON teachers.id = transactions.teacher_id
+       INNER JOIN academic_records_consolidated AS arc
+         ON arc.id = transactions.id AND arc.is_excluded = 0
        INNER JOIN trans_item ON transactions.id = trans_item.transaction_id
        INNER JOIN school_years ON transactions.school_year_id = school_years.id
        INNER JOIN semesters ON transactions.semester_id = semesters.id
@@ -98,6 +102,8 @@ module.exports = {
          ROUND(AVG(CAST(trans_item.rate AS float)), 2) AS mean
        FROM teachers
        INNER JOIN transactions ON teachers.id = transactions.teacher_id
+       INNER JOIN academic_records_consolidated AS arc
+         ON arc.id = transactions.id AND arc.is_excluded = 0
        INNER JOIN trans_item ON transactions.id = trans_item.transaction_id
        INNER JOIN school_years ON transactions.school_year_id = school_years.id
        INNER JOIN semesters ON transactions.semester_id = semesters.id
@@ -145,6 +151,8 @@ module.exports = {
          ROUND(AVG(CAST(trans_item.rate AS float)), 2) AS mean
        FROM teachers
        INNER JOIN transactions ON teachers.id = transactions.teacher_id
+       INNER JOIN academic_records_consolidated AS arc
+         ON arc.id = transactions.id AND arc.is_excluded = 0
        INNER JOIN trans_item ON transactions.id = trans_item.transaction_id
        INNER JOIN school_years ON transactions.school_year_id = school_years.id
        INNER JOIN semesters ON transactions.semester_id = semesters.id

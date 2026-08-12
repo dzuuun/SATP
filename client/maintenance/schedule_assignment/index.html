@@ -83,6 +83,27 @@
           assignment</button></footer>
     </form>
   </div>
+  <div id="confirmActionModal" class="room-modal invisible" role="dialog" aria-modal="true"
+    aria-labelledby="confirmActionTitle">
+    <div class="modal-card confirmation-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Confirm action</p>
+          <h2 id="confirmActionTitle">Confirm schedule action</h2>
+        </div>
+        <button type="button" class="modal-close" aria-label="Close confirmation"
+          onclick="resolveActionConfirmation(false)">×</button>
+      </header>
+      <div class="modal-body confirmation-body">
+        <p id="confirmActionMessage"></p>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="secondary-button" onclick="resolveActionConfirmation(false)">Cancel</button>
+        <button id="confirmActionButton" type="button" class="primary-button"
+          onclick="resolveActionConfirmation(true)">Confirm</button>
+      </footer>
+    </div>
+  </div>
   <div id="loadingModal" class="room-modal progress-modal opacity-100" role="status" aria-live="polite">
     <div class="modal-card progress-card scale-100">
       <span class="progress-spinner"></span>

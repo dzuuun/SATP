@@ -13,6 +13,7 @@ let importSemestersByName = new Map();
 let importSemesterIds = new Map();
 let importSubjectsByCode = new Map();
 let importRoomsByCode = new Map();
+let pendingRestore = null;
 
 const teacherImportKey = (firstName, lastName) =>
   normalizeImportValue(`${firstName || ""} ${lastName || ""}`);
@@ -92,38 +93,37 @@ let tableExcluded = $("#tableExcluded").DataTable({
   columnDefs: [{ className: "dt-center", targets: "_all" }],
   ordering: false,
   columns: [
-    { data: "subject_code" },
-    { data: "subject_name" },
-    { data: "teacher_name" },
-    { data: "schedule_code" },
-    { data: "time_start" },
-    { data: "time_end" },
-    { data: "day" },
-    { data: "room" },
+    { data: "subject_code", title: "Course code" },
+    { data: "subject_name", title: "Course name" },
+    { data: "teacher_name", title: "Teacher" },
+    { data: "schedule_code", title: "Schedule" },
+    { data: "time_start", title: "Starts" },
+    { data: "time_end", title: "Ends" },
+    { data: "day", title: "Day" },
+    { data: "room", title: "Room" },
     {
+      title: "Excluded",
       width: "5%",
-      data: "null",
+      data: "is_excluded",
       render: function (data, type, row) {
-        return `<td class="text-center fw-medium">${
-          row.is_excluded
-            ? `<span  style="color: red">Yes</span>`
-            : "<span>No</span>"
-        }
-                </td>`;
+        return row.is_excluded
+          ? '<span class="exclusion-value">Yes</span>'
+          : "<span>No</span>";
       },
     },
-    { data: "reason" },
+    { data: "reason", title: "Reason" },
     {
       title: "Actions",
       width: "6%",
       orderable: false,
       data: null,
       render: (data, type, row) =>
-        `<button type="button" class="table-edit-button" onclick="editStudentSubject(${row.id})" aria-label="Edit ${row.subject_code}" title="Edit course">
-          <svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l3.5-.8L19 7.7a2.1 2.1 0 0 0-3-3L4.8 16.2 4 20Z"/></svg>
+        `<button type="button" class="table-restore-button" onclick="openRestoreModal(${row.id})" aria-label="Restore ${row.subject_code}" title="Restore course">
+          Restore
         </button>`,
     },
   ],
+  autoWidth: false,
 });
 
 const searchData = document.querySelector("#loadDataForm");
@@ -169,6 +169,53 @@ function loadExcludedData() {
         response.data?.filter((row) => Number(row.is_excluded)).length || 0;
     })
     .fail(function (jqXHR, textStatus, errorThrown) {});
+}
+
+function openRestoreModal(id) {
+  const record = tableExcluded
+    .rows()
+    .data()
+    .toArray()
+    .find((row) => Number(row.id) === Number(id));
+  pendingRestore = {
+    id: Number(id),
+    subjectCode: String(record?.subject_code || ""),
+  };
+  document.getElementById("restoreSubjectCode").textContent =
+    pendingRestore.subjectCode || "Selected course";
+  toggleModal("restoreModal", true);
+}
+
+function closeRestoreModal() {
+  toggleModal("restoreModal", false);
+  pendingRestore = null;
+}
+
+async function confirmRestoreStudentSubject() {
+  if (!pendingRestore?.id) return;
+  const id = pendingRestore.id;
+  toggleModal("restoreModal", false);
+  pendingRestore = null;
+  loadSpinner("Restoring student course");
+  try {
+    const response = await fetch("/api/studentsubject/restore", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.message || "Unable to restore the student course.");
+    await Promise.all([
+      loadIncludedData(),
+      loadExcludedData(),
+      loadPeriodStudents(school_year_id, semester_id),
+    ]);
+    setSuccessMessage(payload.message);
+  } catch (error) {
+    setErrorMessage(error.message || "Unable to restore the student course.");
+  } finally {
+    hideSpinner();
+  }
 }
 
 async function loadCurrentPeriodData() {

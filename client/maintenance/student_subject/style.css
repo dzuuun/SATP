@@ -339,6 +339,20 @@
   white-space: normal;
 }
 
+#tableExcluded {
+  min-width: 1040px;
+}
+
+#tableExcluded th,
+#tableExcluded td {
+  vertical-align: middle;
+}
+
+.exclusion-value {
+  color: #c33b32;
+  font-weight: 750;
+}
+
 .table-action-group {
   display: inline-flex;
   align-items: center;
@@ -346,7 +360,8 @@
 }
 
 .table-edit-button,
-.table-deactivate-button {
+.table-deactivate-button,
+.table-restore-button {
   width: 34px;
   height: 34px;
   padding: 0;
@@ -356,6 +371,55 @@
   background: #fff0ef;
   border: 0;
   border-radius: 7px;
+}
+
+.confirmation-card {
+  width: min(500px, calc(100vw - 32px));
+}
+
+.confirmation-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.confirmation-body p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.confirmation-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  color: var(--green-800);
+  background: var(--green-100);
+  border-radius: 50%;
+}
+
+.confirmation-icon svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.table-restore-button {
+  width: auto;
+  min-width: 76px;
+  padding: 0 14px;
+  color: var(--green-800);
+  background: var(--green-100);
+  font-size: 0.7rem;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .table-edit-button {

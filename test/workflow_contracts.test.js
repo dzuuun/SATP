@@ -215,6 +215,128 @@ test("Schedule reassignment excludes teachers already assigned to the section", 
   assert.match(script, /!option\.hidden/);
 });
 
+test("Schedule Assignment can dissolve and restore a schedule", () => {
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
+  const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
+  const router = read("api/maintenance/studentsubject/studentsubject.router.js");
+  const script = read("client/maintenance/schedule_assignment/script.js");
+  assert.match(router, /schedule-assignments\/dissolve/);
+  assert.match(controller, /setScheduleDissolved/);
+  assert.match(model, /SET is_excluded = 1, reason = 'DISSOLVED'/);
+  assert.match(model, /SET is_excluded = 0, reason = NULL/);
+  assert.match(model, /schedule_code = \? AND reason = 'DISSOLVED'/);
+  assert.match(model, /beginTransaction/);
+  assert.match(script, /section-dissolve-button/);
+  assert.match(script, /dissolved: !dissolved/);
+  assert.match(script, /Restore/);
+  const style = read("client/maintenance/schedule_assignment/style.css");
+  assert.match(style, /\.schedule-status[\s\S]*white-space: nowrap/);
+  assert.match(style, /\.schedule-actions[\s\S]*min-width: 190px/);
+  assert.match(style, /#table \{ min-width: 980px; \}/);
+});
+
+test("Schedule Assignment confirms actions with an app modal", () => {
+  const page = read("client/maintenance/schedule_assignment/index.html");
+  const script = read("client/maintenance/schedule_assignment/script.js");
+  assert.match(page, /id="confirmActionModal"/);
+  assert.match(page, /id="confirmActionMessage"/);
+  assert.match(script, /confirmScheduleAction/);
+  assert.match(script, /resolveActionConfirmation/);
+  assert.doesNotMatch(script, /\bconfirm\s*\(/);
+});
+
+test("Excluded rated enrollments do not count in report scores", () => {
+  const rating = read("api/reports/rating/rating.model.js");
+  const ranking = read("api/reports/ranking/ranking.model.js");
+  assert.match(rating, /AND arc\.is_excluded = 0/);
+  assert.match(rating, /AND is_excluded = 0/);
+  const ratingFilters = rating.match(/arc\.is_excluded = 0/g) || [];
+  assert.ok(ratingFilters.length >= 10);
+  const rankingJoins = ranking.match(/arc\.id = transactions\.id AND arc\.is_excluded = 0/g) || [];
+  assert.equal(rankingJoins.length, 4);
+});
+
+test("Excluded courses are hidden from rating lists and transaction totals", () => {
+  const model = read("api/transaction/studentRatingStatus/srs.model.js");
+  const filters = model.match(/COALESCE\((?:academic_records_consolidated\.)?(?:ar\.)?is_excluded, 0\) = 0/g) || [];
+  assert.ok(filters.length >= 6);
+  assert.match(model, /COUNT\(academic_records_consolidated\.subject_id\) AS TotalSubjects[\s\S]*COALESCE\(academic_records_consolidated\.is_excluded, 0\) = 0/);
+  assert.match(model, /PendingStatusCount[\s\S]*COALESCE\(is_excluded, 0\) = 0/);
+  assert.match(model, /WHERE ar\.id = \?[\s\S]*COALESCE\(ar\.is_excluded, 0\) = 0/);
+});
+
+test("Student Course counts only included enrollments", () => {
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
+  assert.match(model, /records\.included_count AS total_count/);
+});
+
+test("Student Course aggregates the period before joining student details", () => {
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
+  const migration = read("database/migrations/2026-08-12_student_course_period_index.sql");
+  assert.match(model, /FROM \([\s\S]*WHERE school_year_id = \? AND semester_id = \?[\s\S]*GROUP BY student_id[\s\S]*\) AS records/);
+  assert.match(model, /SUM\(is_excluded = 0\) AS included_count/);
+  assert.match(migration, /idx_arc_period_student_excluded/);
+});
+
+test("Student Course detail loading has a student-first covering index", () => {
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
+  const migration = read("database/migrations/2026-08-12_student_course_detail_index.sql");
+  assert.match(
+    model,
+    /records\.student_id = \? AND records\.school_year_id = \?[\s\S]*records\.semester_id = \? AND records\.is_excluded = [01]/,
+  );
+  assert.match(migration, /idx_arc_student_period_excluded_course/);
+  assert.match(
+    migration,
+    /student_id,\s*school_year_id,\s*semester_id,\s*is_excluded,\s*subject_id/,
+  );
+});
+
+test("Student Course excluded table has complete aligned headers", () => {
+  const script = read("client/maintenance/student_subject/script.js");
+  ["Course code", "Course name", "Teacher", "Schedule", "Starts", "Ends", "Day", "Room", "Excluded", "Reason", "Actions"].forEach((title) => {
+    assert.match(script, new RegExp(`title: ["']${title}["']`));
+  });
+  assert.doesNotMatch(script, /return `<td class="text-center fw-medium">/);
+});
+
+test("Student Course tables display teacher prefixes and suffixes", () => {
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
+  const recordSelect = model.slice(model.indexOf("const recordSelect"), model.indexOf("const insertSql"));
+  assert.match(recordSelect, /teachers\.prefix/);
+  assert.match(recordSelect, /teachers\.givenname/);
+  assert.match(recordSelect, /teachers\.surname/);
+  assert.match(recordSelect, /teachers\.suffix/);
+  assert.match(recordSelect, /AS teacher_name/);
+});
+
+test("Student Course excluded rows can be restored instead of edited", () => {
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
+  const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
+  const router = read("api/maintenance/studentsubject/studentsubject.router.js");
+  const script = read("client/maintenance/student_subject/script.js");
+  assert.match(router, /router\.put\("\/restore", restoreStudentSubject\)/);
+  assert.match(controller, /restoreStudentSubject/);
+  assert.match(model, /SET is_excluded = 0, reason = NULL/);
+  assert.match(model, /WHERE id = \? AND is_excluded = 1/);
+  assert.match(model, /Restored student course for \$\{record\.student_number\}/);
+  assert.match(model, /Excluded student course for \$\{record\.student_number\}/);
+  assert.match(model, /record\.subject_code/);
+  assert.match(model, /record\.schedule_code/);
+  assert.match(model, /record\.teacher_name/);
+  assert.match(controller, /Restored student course for \$\{results\.record\.student_number\}/);
+  assert.match(controller, /Excluded student course for \$\{results\.record\.student_number\}/);
+  assert.match(script, /table-restore-button/);
+  assert.match(script, />\s*Restore\s*<\/button>/);
+  assert.match(script, /openRestoreModal/);
+  assert.match(script, /confirmRestoreStudentSubject/);
+  assert.doesNotMatch(script, /confirm\("Restore this course/);
+  const page = read("client/maintenance/student_subject/index.html");
+  assert.match(page, /id="restoreModal"/);
+  assert.match(page, /Restore course\?/);
+  assert.match(script, /Restoring student course/);
+});
+
 test("Schedule Assignment sidebar offsets the main page on desktop", () => {
   const script = read("client/maintenance/schedule_assignment/script.js");
   assert.match(script, /const main = document\.getElementById\("main"\)/);
@@ -317,8 +439,9 @@ test("Empty Select and Choose dropdown prompts cannot be selected", () => {
   assert.match(sharedUi, /option\.disabled = true/);
   assert.match(
     sharedUi,
-    /disableSelectPlaceholders\(node\.parentElement \|\| node\)/,
+    /disableSelectPlaceholders\(node\)/,
   );
+  assert.doesNotMatch(sharedUi, /disableSelectPlaceholders\(node\.parentElement/);
   assert.doesNotMatch(session, /disableSelectPlaceholders/);
 
   const authenticatedPages = walk(path.join(root, "client")).filter((file) => {

@@ -6,6 +6,7 @@ else if (maintenanceAccess == 0) history.back();
 
 let table;
 let selectedAssignment;
+let actionConfirmationResolver;
 
 function toggleModal(id, show) {
   const modal = document.getElementById(id);
@@ -35,6 +36,25 @@ function toast(message, error = false) {
 function setLoading(show, message = "Loading...") {
   document.getElementById("loadingMessage").textContent = message;
   toggleModal("loadingModal", show);
+}
+
+function confirmScheduleAction({ title, message, confirmLabel, destructive = false }) {
+  document.getElementById("confirmActionTitle").textContent = title;
+  document.getElementById("confirmActionMessage").textContent = message;
+  const button = document.getElementById("confirmActionButton");
+  button.textContent = confirmLabel;
+  button.classList.toggle("danger-button", destructive);
+  toggleModal("confirmActionModal", true);
+  return new Promise((resolve) => {
+    actionConfirmationResolver = resolve;
+  });
+}
+
+function resolveActionConfirmation(confirmed) {
+  toggleModal("confirmActionModal", false);
+  const resolve = actionConfirmationResolver;
+  actionConfirmationResolver = null;
+  resolve?.(confirmed);
 }
 
 async function loadTeachers() {
@@ -194,14 +214,69 @@ $(document).ready(async () => {
       { data: "subject_code", title: "Course code" },
       { data: "subject_name", title: "Course" },
       { data: "teacher_name", title: "Assigned teacher" },
-      { data: "student_count", title: "Students", className: "dt-center" },
-      { data: null, title: "Actions", orderable: false, className: "dt-center", render: () => `<button type="button" class="section-reassign-button" aria-label="Reassign teacher">Reassign</button>` },
+      { data: "student_count", title: "Students", className: "dt-center", width: "72px" },
+      {
+        data: null,
+        title: "Status",
+        className: "dt-center",
+        width: "100px",
+        render: (record) => Number(record.dissolved_count) > 0
+          ? '<span class="schedule-status dissolved">Dissolved</span>'
+          : '<span class="schedule-status active">Active</span>',
+      },
+      {
+        data: null,
+        title: "Actions",
+        orderable: false,
+        className: "dt-center schedule-actions",
+        width: "190px",
+        render: (record) => {
+          const dissolved = Number(record.dissolved_count) > 0;
+          return `<button type="button" class="section-reassign-button" aria-label="Reassign teacher"${dissolved ? " disabled" : ""}>Reassign</button><button type="button" class="section-dissolve-button${dissolved ? " restore" : ""}" aria-label="${dissolved ? "Restore" : "Dissolve"} schedule">${dissolved ? "Restore" : "Dissolve"}</button>`;
+        },
+      },
     ],
     pageLength: 10,
     language: { search: "", searchPlaceholder: "Search schedule codes…" },
   });
   $("#table tbody").on("click", ".section-reassign-button", function () {
     openReassign(table.row($(this).closest("tr")).data());
+  });
+  $("#table tbody").on("click", ".section-dissolve-button", async function () {
+    const assignment = table.row($(this).closest("tr")).data();
+    const dissolved = Number(assignment.dissolved_count) > 0;
+    const action = dissolved ? "restore" : "dissolve";
+    const confirmed = await confirmScheduleAction({
+      title: dissolved ? "Restore schedule?" : "Dissolve schedule?",
+      message: dissolved
+        ? `Restore ${assignment.schedule_code} and include its student courses again?`
+        : `Dissolve ${assignment.schedule_code} and exclude its student courses from rating and reports?`,
+      confirmLabel: dissolved ? "Restore schedule" : "Dissolve schedule",
+      destructive: !dissolved,
+    });
+    if (!confirmed) return;
+    setLoading(true, `${dissolved ? "Restoring" : "Dissolving"} schedule...`);
+    try {
+      const response = await fetch("/api/studentsubject/schedule-assignments/dissolve", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          school_year_id: assignment.school_year_id,
+          semester_id: assignment.semester_id,
+          subject_id: assignment.subject_id,
+          schedule_code: assignment.schedule_code,
+          dissolved: !dissolved,
+        }),
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.message || `Unable to ${action} schedule.`);
+      await new Promise((resolve) => table.ajax.reload(resolve, false));
+      toast(`${payload.data.enrollments_updated} enrollment(s) ${dissolved ? "restored" : "dissolved"}.`);
+    } catch (error) {
+      toast(error.message || `Unable to ${action} schedule.`, true);
+    } finally {
+      setLoading(false);
+    }
   });
   ["schoolYearSelect", "semesterSelect"].forEach((id) => {
     document.getElementById(id).addEventListener("change", () => {
@@ -218,7 +293,13 @@ document.getElementById("reassignForm").addEventListener("submit", async (event)
   const teacherId = Number(document.getElementById("teacherSelect").value);
   if (!teacherId) return toast("Select a teacher from the list.", true);
   if (teacherId === Number(selectedAssignment.teacher_id)) return toast("That teacher is already assigned to this section.", true);
-  if (!confirm(`Reassign ${selectedAssignment.schedule_code} to the selected teacher?`)) return;
+  const selectedTeacher = document.getElementById("teacherSelect").selectedOptions[0]?.textContent || "the selected teacher";
+  const confirmed = await confirmScheduleAction({
+    title: "Reassign teacher?",
+    message: `Reassign ${selectedAssignment.schedule_code} to ${selectedTeacher}?`,
+    confirmLabel: "Reassign teacher",
+  });
+  if (!confirmed) return;
   toggleModal("reassignModal", false);
   setLoading(true, "Reassigning teacher...");
   try {

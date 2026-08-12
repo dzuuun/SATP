@@ -14,6 +14,7 @@ module.exports = {
          ON arc.teacher_id = t.id
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
+         AND arc.is_excluded = 0
          AND arc.teacher_id IS NOT NULL
          AND arc.subject_id IS NOT NULL
        GROUP BY t.id, t.prefix, t.surname, t.givenname, t.suffix
@@ -68,6 +69,7 @@ module.exports = {
          WHERE school_year_id = ?
            AND semester_id = ?
            AND status = 1
+           AND is_excluded = 0
            ${teacherFilter}
          GROUP BY teacher_id, subject_id
        ) AS rc
@@ -92,6 +94,7 @@ module.exports = {
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND arc.status = 1
+         AND arc.is_excluded = 0
          ${outerTeacherFilter}
        GROUP BY
          arc.teacher_id,
@@ -131,6 +134,7 @@ module.exports = {
            WHERE arc.school_year_id = ?
              AND arc.semester_id = ?
              AND arc.status = 1
+             AND arc.is_excluded = 0
              ${outerTeacherFilter}
              AND arc.comment IS NOT NULL
              AND TRIM(arc.comment) <> ''
@@ -184,6 +188,7 @@ module.exports = {
          AND arc.semester_id = ?
          AND arc.teacher_id = ?
          AND arc.subject_id = ?
+         AND arc.is_excluded = 0
        GROUP BY
          i.id,
          sy.name,
@@ -247,6 +252,7 @@ module.exports = {
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND d.id = ?
+         AND arc.is_excluded = 0
        GROUP BY
          i.id,
          sy.name,
@@ -304,6 +310,7 @@ module.exports = {
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND c.id = ?
+         AND arc.is_excluded = 0
        GROUP BY
          i.id,
          sy.name,
@@ -334,6 +341,7 @@ module.exports = {
          AND arc.semester_id = ?
          AND arc.subject_id = ?
          AND arc.teacher_id = ?
+         AND arc.is_excluded = 0
          AND arc.comment IS NOT NULL
          AND TRIM(arc.comment) <> ''`,
       [data.school_year_id, data.semester_id, data.subject_id, data.teacher_id],
@@ -358,6 +366,7 @@ module.exports = {
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND d.id = ?
+         AND arc.is_excluded = 0
          AND arc.comment IS NOT NULL
          AND TRIM(arc.comment) <> ''`,
       [data.school_year_id, data.semester_id, data.department_id],
@@ -384,6 +393,7 @@ module.exports = {
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND c.id = ?
+         AND arc.is_excluded = 0
          AND arc.comment IS NOT NULL
          AND TRIM(arc.comment) <> ''`,
       [data.school_year_id, data.semester_id, data.college_id],
@@ -425,6 +435,7 @@ module.exports = {
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND arc.teacher_id = ?
+         AND arc.is_excluded = 0
        GROUP BY
          s.id,
          sy.name,
@@ -476,6 +487,7 @@ module.exports = {
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND arc.teacher_id = ?
+         AND arc.is_excluded = 0
        GROUP BY
          sy.name,
          sem.name,
