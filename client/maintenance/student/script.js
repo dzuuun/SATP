@@ -161,6 +161,9 @@ async function editFormCall(id) {
       .trim()
       .toUpperCase();
     document.getElementById("editCourseSelect").value = s.course_id;
+    document.getElementById("editCourseSelect").dispatchEvent(
+      new Event("change", { bubbles: true }),
+    );
     document.getElementById("editYearLevel").value = s.year_level;
     document.getElementById("editIsStudentStatusActive").checked =
       s.is_active == 1;

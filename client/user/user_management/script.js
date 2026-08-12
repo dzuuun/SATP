@@ -556,7 +556,11 @@ async function requestJson(url, options = {}) {
   return response.json();
 }
 function setValue(id, value) {
-  document.getElementById(id).value = value ?? "";
+  const field = document.getElementById(id);
+  field.value = value ?? "";
+  if (field.matches("select[data-searchable-select]")) {
+    field.dispatchEvent(new Event("change", { bubbles: true }));
+  }
 }
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));

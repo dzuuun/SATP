@@ -456,6 +456,23 @@ test("Empty Select and Choose dropdown prompts cannot be selected", () => {
   });
 });
 
+test("Program dropdowns provide search inside the option panel", () => {
+  const shared = read("client/shared-ui.js");
+  const student = read("client/maintenance/student/index.html");
+  const users = read("client/user/user_management/index.html");
+  const registration = read("client/register/index.html");
+  ["courseSelect", "editCourseSelect"].forEach((id) => {
+    assert.match(student, new RegExp(`id=["']${id}["'][^>]*data-searchable-select=["']program["']`));
+  });
+  ["addCourse", "editCourse"].forEach((id) => {
+    assert.match(users, new RegExp(`id=["']${id}["'][^>]*data-searchable-select=["']program["']`));
+  });
+  assert.match(registration, /id="course"[^>]*data-live-search="true"/);
+  assert.match(shared, /satp-search-select-search/);
+  assert.match(student, /data-search-placeholder="Search programs\.\.\."/);
+  assert.match(users, /data-search-placeholder="Search programs\.\.\."/);
+});
+
 test("Grad School remains excluded from automated page and server QA", () => {
   assert.match(
     read("test/pages.smoke.test.js"),
