@@ -137,6 +137,23 @@ test("Student rating access is separated for SHS and non-SHS students", () => {
   assert.match(model, /departments\.code/);
 });
 
+test("SHS and College use independent current academic terms", () => {
+  const migration = read("database/migrations/2026-08-13_separate_shs_college_terms.sql");
+  const semesterModel = read("api/maintenance/semester/semester.model.js");
+  const semesterRouter = read("api/maintenance/semester/semester.router.js");
+  const rating = read("client/rating/script.js");
+  const semesterPage = read("client/maintenance/semester/index.html");
+  assert.match(migration, /is_current_college/);
+  assert.match(migration, /is_current_shs/);
+  assert.match(semesterModel, /departments\.code\)\) = 'SHS'/);
+  assert.match(semesterModel, /semesters\.is_current_shs = 1/);
+  assert.match(semesterModel, /semesters\.is_current_college = 1/);
+  assert.match(semesterRouter, /router\.get\("\/current\/student", getCurrentSemesterForStudent\)/);
+  assert.match(rating, /\/api\/semester\/current\/student/);
+  assert.match(semesterPage, /Current for College/);
+  assert.match(semesterPage, /Current for SHS/);
+});
+
 test("Student rating displays teacher prefixes and suffixes", () => {
   const model = read("api/transaction/studentRatingStatus/srs.model.js");
   assert.match(model, /teachers\.prefix/);

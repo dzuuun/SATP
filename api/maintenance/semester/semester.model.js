@@ -34,6 +34,23 @@ module.exports = {
     );
   },
 
+  getCurrentSemesterForStudent: (userId, callBack) => {
+    pool.query(
+      `SELECT semesters.*,
+        CASE WHEN UPPER(TRIM(departments.code)) = 'SHS' THEN 'shs' ELSE 'college' END AS academic_group
+       FROM user_info
+       INNER JOIN courses ON courses.id = user_info.course_id
+       INNER JOIN departments ON departments.id = courses.department_id
+       INNER JOIN semesters ON semesters.is_active = 1
+         AND ((UPPER(TRIM(departments.code)) = 'SHS' AND semesters.is_current_shs = 1)
+           OR (UPPER(TRIM(departments.code)) <> 'SHS' AND semesters.is_current_college = 1))
+       WHERE user_info.user_id = ?
+       LIMIT 1`,
+      [userId],
+      (error, results) => callBack(error, results?.[0]),
+    );
+  },
+
   getSemesterById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM semesters WHERE id = ?",
@@ -47,60 +64,70 @@ module.exports = {
     );
   },
 
-  addSemester: (data, callBack) => {
-    pool.query(
-      "SELECT name FROM semesters WHERE name=?",
-      [data.name],
-      (error, results) => {
-        if (results.length === 0) {
-          pool.query(
-            "INSERT INTO semesters (name, in_use, is_active) VALUES (?,?,?)",
-            [data.name, data.in_use, data.is_active],
-            (error, results) => {
-              pool.query(
-                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Added Semester: " + data.name],
-                (error, results) => {
-                  if (error) {
-                    console.log(error);
-                  }
-                }
-              );
-              if (error) {
-                callBack(error);
-              }
-              return callBack(null, results);
-            }
-          );
-        } else {
-          return callBack(results);
-        }
+  addSemester: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+      const [existing] = await connection.query("SELECT id FROM semesters WHERE name = ?", [data.name]);
+      if (existing.length) {
+        const duplicateError = new Error("Semester already exists.");
+        duplicateError.code = "ER_DUP_ENTRY";
+        throw duplicateError;
       }
-    );
+      if (Number(data.is_current_college) === 1) {
+        await connection.query("UPDATE semesters SET is_current_college = 0");
+      }
+      if (Number(data.is_current_shs) === 1) {
+        await connection.query("UPDATE semesters SET is_current_shs = 0");
+      }
+      const [results] = await connection.query(
+        "INSERT INTO semesters (name, in_use, is_current_college, is_current_shs, is_active) VALUES (?,?,?,?,?)",
+        [data.name, data.in_use, data.is_current_college, data.is_current_shs, data.is_active],
+      );
+      await connection.query(
+        "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+        [data.user_id, `Added Semester: ${data.name}`],
+      );
+      await connection.commit();
+      return callBack(null, results);
+    } catch (error) {
+      if (connection) await connection.rollback();
+      return callBack(error);
+    } finally {
+      connection?.release();
+    }
   },
 
-  updateSemester: (data, callBack) => {
-    pool.query(
-      "UPDATE semesters SET name = ?, in_use = ?, is_active = ? WHERE id = ?",
-      [data.name, data.in_use, data.is_active, data.id],
-      (error, results) => {
-        if (results.changedRows == 1) {
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated Semester: " + data.name],
-            (error, results) => {
-              if (error) {
-                console.log(error);
-              }
-            }
-          );
-        }
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
+  updateSemester: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+      if (Number(data.is_current_college) === 1) {
+        await connection.query("UPDATE semesters SET is_current_college = 0 WHERE id <> ?", [data.id]);
       }
-    );
+      if (Number(data.is_current_shs) === 1) {
+        await connection.query("UPDATE semesters SET is_current_shs = 0 WHERE id <> ?", [data.id]);
+      }
+      const [results] = await connection.query(
+        "UPDATE semesters SET name = ?, in_use = ?, is_current_college = ?, is_current_shs = ?, is_active = ? WHERE id = ?",
+        [data.name, data.in_use, data.is_current_college, data.is_current_shs, data.is_active, data.id],
+      );
+      if (results.changedRows === 1) {
+        await connection.query(
+          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+          [data.user_id, `Updated Semester: ${data.name}`],
+        );
+      }
+      await connection.commit();
+      return callBack(null, results);
+    } catch (error) {
+      if (connection) await connection.rollback();
+      return callBack(error);
+    } finally {
+      connection?.release();
+    }
   },
 
   deleteSemester: (data, callBack) => {

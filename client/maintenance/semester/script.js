@@ -29,6 +29,18 @@ $(document).ready(() => {
             : '<span class="status-badge inactive">Not in use</span>',
       },
       {
+        data: "is_current_college",
+        title: "College current",
+        className: "dt-center",
+        render: (v) => v ? '<span class="status-badge active">Current</span>' : "—",
+      },
+      {
+        data: "is_current_shs",
+        title: "SHS current",
+        className: "dt-center",
+        render: (v) => v ? '<span class="status-badge active">Current</span>' : "—",
+      },
+      {
         data: "is_active",
         title: "Status",
         width: "14%",
@@ -61,7 +73,7 @@ document
     await save(
       "/api/semester/add",
       "POST",
-      payload(e.currentTarget, "isSemesterInUse", "isSemesterActive"),
+      payload(e.currentTarget, "isSemesterInUse", "isSemesterActive", "isCurrentCollege", "isCurrentShs"),
       "addNewModal",
     );
   });
@@ -74,15 +86,19 @@ document
       e.currentTarget,
       "isSemesterInUseEdit",
       "isSemesterActiveEdit",
+      "isCurrentCollegeEdit",
+      "isCurrentShsEdit",
     );
     data.id = rowIdToUpdate;
     await save("/api/semester/update", "PUT", data, "editModal");
   });
-function payload(form, inUseId, activeId) {
+function payload(form, inUseId, activeId, collegeId, shsId) {
   return {
     ...Object.fromEntries(new FormData(form)),
     in_use: document.getElementById(inUseId).checked ? 1 : 0,
     is_active: document.getElementById(activeId).checked ? 1 : 0,
+    is_current_college: document.getElementById(collegeId).checked ? 1 : 0,
+    is_current_shs: document.getElementById(shsId).checked ? 1 : 0,
     user_id: state.userId,
   };
 }
@@ -96,6 +112,10 @@ async function editFormCall(id) {
       semester.in_use == 1;
     document.getElementById("isSemesterActiveEdit").checked =
       semester.is_active == 1;
+    document.getElementById("isCurrentCollegeEdit").checked =
+      semester.is_current_college == 1;
+    document.getElementById("isCurrentShsEdit").checked =
+      semester.is_current_shs == 1;
     toggleModal("editModal", true);
   } catch (e) {
     setErrorMessage("Unable to load the semester.");
