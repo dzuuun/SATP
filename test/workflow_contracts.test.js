@@ -495,6 +495,19 @@ test("Google-only accounts may omit a local password", () => {
   assert.match(migration, /password VARCHAR\(255\) NULL/);
 });
 
+test("Admin Maintenance supports optional institutional emails", () => {
+  const page = read("client/maintenance/admin/index.html");
+  const script = read("client/maintenance/admin/script.js");
+  const model = read("api/maintenance/admin/admin.model.js");
+
+  assert.match(page, /name="google_email"/);
+  assert.doesNotMatch(page, /name="google_email"[^>]*required/);
+  assert.match(script, /data:\s*"google_email"/);
+  assert.match(model, /users\.google_email/);
+  assert.match(model, /!plainTextPassword && !String\(data\.google_email/);
+  assert.match(model, /UPDATE users SET google_email=\?, permission_id=\?/);
+});
+
 test("Google login keeps the MIS support message inside the fixed login card", () => {
   const page = read("client/login/index.html");
   const style = read("client/login/style.css");
