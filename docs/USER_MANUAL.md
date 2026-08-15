@@ -3,7 +3,7 @@
 Student Assessment of Teacher's Performance  
 Notre Dame of Marbel University
 
-Version: August 2026
+Version: August 15, 2026
 
 ## 1. About SATP
 
@@ -17,10 +17,15 @@ The pages shown in the sidebar depend on the signed-in user's permissions. A use
 
 1. Open the SATP landing page.
 2. Select **Log in to SATP**.
-3. Enter your username and password.
-4. Select **Sign in**.
+3. Use one of the available methods:
+   - Enter the SATP username and password, then select **Sign in**.
+   - Select **Sign in with Google** and choose the institutional Google account linked to the SATP account.
 
 If the credentials are invalid or the account is inactive, SATP displays an error message. Contact the MIS Department if access cannot be restored.
+
+Google login accepts only the configured institutional Google Workspace domain. The institutional email must be linked to an active SATP account by an authorized administrator. Accounts with an institutional email can use Google login; accounts with a local password can continue using username and password. SHS students without an institutional email use their username and password.
+
+Google-only accounts do not require a local SATP password. Accounts without an institutional email must have a local password. For SSO deployment and Google Cloud configuration, administrators should follow `docs/GOOGLE_SSO_SETUP.md`.
 
 ### Sign out
 
@@ -36,7 +41,7 @@ Use a password that follows the guidance displayed on the page. Do not share acc
 
 ## 3. Student assessment
 
-Student accounts open the **Courses to rate** workspace after login. The page separates pending assessments from completed assessments and uses the current active academic period. A student can only open the rating form when a pending course is available and student rating access is open.
+Student accounts open the **Courses to rate** workspace after login. The page separates pending assessments from completed assessments and uses the current active academic period for the student's academic group. College and SHS can have different active terms at the same time; SHS supports three terms. A student can only open the rating form when a pending course is available and student rating access is open for College or SHS, as applicable.
 
 ### View courses to rate
 
@@ -66,9 +71,8 @@ The **Transactions** module monitors student assessment progress for a selected 
 2. Load the matching students.
 3. Use search and table controls to locate a student.
 4. Open a student's detail view to review assigned, pending, and completed courses.
-5. Use the unrated view when a list of incomplete assessments is required.
 
-Authorized administrators can open or close student rating access. When rating access is closed, students cannot submit assessments.
+Authorized administrators can open or close student rating access separately for **SHS students** and **College students**. Closing one group does not close the other group.
 
 ## 5. Maintenance
 
@@ -124,6 +128,8 @@ If the code or identifying value already exists, edit the existing record instea
 6. Enable **Show inactive** when verifying a deactivated record.
 
 Changes to academic structure can affect later dropdowns and reports. Confirm the correct parent College, Department, or Program before saving.
+
+Changing a College's active status cascades to its Departments and Programs only when the College status actually changes. Changing a Department's status likewise cascades to linked Programs. Reactivating a parent also reactivates its linked descendants.
 
 ### College
 
@@ -187,11 +193,14 @@ Teacher prefix and suffix values appear in schedule assignment, logs, and report
 3. Enter the username or student ID number.
 4. Enter the student's name and required profile information.
 5. Select the Program and year level.
-6. Enter a password only when creating an account or intentionally resetting it.
-7. Set the account status and save.
-8. Search by username to verify the account.
+6. Enter the optional institutional Google email when Google login should be available.
+7. For a new account, enter either a password or an institutional email. A student without institutional email requires a password.
+8. Set the account status and save.
+9. Search by username to verify the account.
 
-For workbook uploads, passwords for new accounts are securely hashed. Existing accounts are updated only when imported values differ; unchanged students are skipped.
+For workbook uploads, `google_email` is optional. A password is required only for a new student without an institutional email. A regular student import never changes an existing password, even when the workbook contains a password; use the dedicated password-update import to change it. Existing accounts are updated only when imported values differ, and unchanged students are skipped.
+
+Use **Export students** to create an import-ready XLSX file with columns in this order: `username`, `password`, `surname`, `givenname`, `middlename`, `google_email`, `year_level`, `gender`, and `course_code`. The password column is intentionally blank. Exported numeric year levels use labels such as `1st Year`, `2nd Year`, and `3rd Year`.
 
 ### Admin
 
@@ -200,10 +209,13 @@ Users who require an administrator account must request one from an authorized s
 1. Open **Maintenance > Admin**.
 2. Select **Add admin** or edit an account.
 3. Enter the username and administrator's profile information.
-4. Assign the correct permission role.
-5. Set the temporary-password and active-account options as required.
-6. Enter a password for a new account or an intentional reset.
-7. Save and confirm the account appears in the directory.
+4. Optionally enter the administrator's unique institutional Google email to enable Google login.
+5. Assign the correct permission role.
+6. Set the temporary-password and active-account options as required.
+7. For a new account, provide either a temporary password, an institutional email, or both.
+8. Save and confirm the username and institutional email appear correctly in the directory.
+
+An administrator with both a password and institutional email can use either login method. An administrator with only an institutional email uses Google login, while an administrator without institutional email must have a local password. Editing the administrator's profile or institutional email does not change the existing password.
 
 Never reuse a shared administrator account. Give each administrator an individual username and the least-permissive suitable role.
 
@@ -225,7 +237,7 @@ More than one historical school year can remain in use, but the active flag dete
 4. Set the active status.
 5. Save and verify the result.
 
-The system can retain multiple semesters. Use the active flag carefully because transaction and schedule pages load the current period by default.
+The system can retain multiple semesters. College uses its active semester, while SHS can independently use First, Second, or Third Term. Transaction, student rating, Student Course, and schedule pages resolve the current period for the applicable academic group.
 
 ### Room
 
@@ -276,7 +288,7 @@ Re-uploading an unchanged workbook should not create duplicates or report unchan
 
 ### Student and admin passwords during import
 
-New account passwords are securely hashed before storage. Existing accounts are updated only when imported values actually differ.
+New local passwords are securely hashed before storage. A new account may omit its password only when an institutional Google email is supplied. Regular user and student imports preserve every existing password, regardless of whether the workbook password cell is blank or populated. Only the dedicated **Update Password** import changes existing passwords.
 
 ### Student Course maintenance
 
@@ -287,7 +299,7 @@ To add an enrollment manually:
 1. Open **Maintenance > Student Course**.
 2. Select the school year and semester to load.
 3. Search for and select the student.
-4. Select **Add course**.
+4. Select **Add student course**.
 5. Select the Course, teacher, schedule code, and other required assignment information.
 6. Use the search field inside the teacher dropdown when needed.
 7. Review the selected period and assignment.
@@ -299,7 +311,7 @@ To edit or exclude an enrollment:
 1. Load the correct period and student.
 2. Open the student's assigned courses.
 3. Select the action for the target enrollment.
-4. Correct the assignment or change its exclusion status.
+4. Correct the assignment, exclude the course with a reason, or use **Restore** on the Excluded courses tab.
 5. Save and verify the updated row.
 
 To upload enrollments:
@@ -314,9 +326,13 @@ To upload enrollments:
 
 Student Course upload logs identify students by username and identify assignments by schedule code rather than internal database IDs.
 
+Before workbook validation, Student Course refreshes its database references so recently added students, teachers, Programs, Courses, and Rooms can be recognized without refreshing the browser. If a Course or Room from the configured server view is missing locally, the import creates it from `SubjectCode` and `Description`, or `RoomCode`, before creating the enrollment.
+
+For CHS students, one schedule code can have multiple assigned teachers and produces one rating opportunity per teacher. For non-CHS students, a schedule code has one teacher; importing a different teacher updates that assignment.
+
 ### Schedule assignment
 
-Use **Schedule assignment** to reassign the teacher handling a schedule code.
+Use **Schedule assignment** to reassign the teacher handling a schedule code or mark a schedule as dissolved.
 
 1. Select the school year and semester. The page initially loads the current period.
 2. Search for the schedule code.
@@ -325,7 +341,9 @@ Use **Schedule assignment** to reassign the teacher handling a schedule code.
 5. Select the new teacher.
 6. Confirm the reassignment and wait for the loading and success messages.
 
-The table and activity log display teacher names with available prefixes and suffixes.
+The current teacher is excluded from the replacement list. The table and activity log display teacher names with available prefixes and suffixes.
+
+To dissolve a schedule, select **Dissolve** and confirm in the SATP modal. Dissolved schedules are excluded from student rating lists, transaction course totals, rating calculations, institutional results, and ranking results, including ratings submitted before the schedule was dissolved. Select **Restore** and confirm to reverse the action.
 
 ## 6. Rating reports
 
@@ -350,7 +368,7 @@ Only available completed assessment records matching the filters are included. T
 
 ### Download and ZIP export
 
-- Use **Download PDF** on a generated report to save that report.
+- Use **Download PDF** on a generated report when the button is available. College Rating PDF download is temporarily disabled.
 - Use **Export ZIP** to export reports for all teachers in a period or all courses for a selected teacher.
 - Wait for export progress to finish before closing the page.
 
@@ -379,7 +397,9 @@ Select **Generate report**. Only completed assessments matching the filters are 
 
 Authorized users can create, edit, activate, deactivate, search, and import accounts in **Users & Access > User management**.
 
-Assign the correct permission role when creating or editing an account. Deactivated users cannot sign in.
+Assign the correct permission role when creating or editing an account. Deactivated users cannot sign in. Institutional Google email is optional and must be unique when provided.
+
+Use **Import users** for account creation and profile updates. Existing passwords are always retained. Use **Update passwords** only for intentional password changes. Use the username-based deactivation workbook to deactivate multiple accounts.
 
 ### Permissions
 
@@ -404,6 +424,8 @@ The activity log records important actions such as:
 - Student Course uploads
 - Schedule reassignment
 - Rating-access changes
+- Google login
+- Schedule dissolution and restoration
 
 Use the displayed filters and search field to locate an event. Logs use student usernames, schedule codes, course codes, and formatted teacher names where applicable.
 
@@ -416,6 +438,10 @@ The account's role does not have permission for that module. Ask an authorized a
 ### No courses appear for a student
 
 Confirm that the enrollment exists, is not excluded, and belongs to the selected or active school year and semester.
+
+### Google login is unavailable or rejected
+
+Confirm that the user selected the institutional Google account and that its email is linked to an active SATP account. Administrators should confirm `GOOGLE_CLIENT_ID`, `GOOGLE_WORKSPACE_DOMAIN`, the authorized HTTPS JavaScript origin, and Workspace app-access policy. A raw LAN IP cannot be registered as a Google web origin; use the registered HTTPS hostname. See `docs/GOOGLE_SSO_SETUP.md`.
 
 ### A workbook contains errors
 

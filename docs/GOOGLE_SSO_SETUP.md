@@ -12,6 +12,18 @@ This guide configures the existing **Sign in with Google** button in SATP for th
 
 The production hostname must use HTTPS. `http://localhost:3000` may be used for local testing, but a LAN IP such as `http://192.168.1.10:3000` should not be registered as the production Google origin.
 
+### Local IP and in-house access
+
+Google does not allow a raw LAN IP such as `http://192.168.1.18:3000` or `https://192.168.1.18` as an authorized JavaScript origin for a Web application Client ID. Only loopback origins such as `http://localhost:3000` and `http://127.0.0.1:3000` receive the localhost exception.
+
+For Google login on the campus network, configure internal DNS so the registered SATP hostname resolves to the server's LAN IP:
+
+```text
+satp.ndmu.edu.ph -> 192.168.1.18
+```
+
+Users should then open `https://satp.ndmu.edu.ph`. Direct `http://SERVER-LAN-IP:3000` access may remain available to trusted in-house clients for username/password login, but Google login will not work from that raw-IP origin.
+
 ## 1. Create or select a Google Cloud project
 
 1. Sign in to [Google Cloud Console](https://console.cloud.google.com/) using an authorized institutional administrator account.
