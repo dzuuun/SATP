@@ -59,6 +59,7 @@ module.exports = {
 
   updateUser: (req, res) => {
     const body = { ...req.body };
+    body.google_email = String(body.google_email || "").trim().toLowerCase() || null;
     if (
       !body.id ||
       !body.username ||
@@ -106,8 +107,17 @@ module.exports = {
 
   addUser: (req, res) => {
     const body = req.body;
-    const salt = genSaltSync(10);
-    body.password = hashSync(body.password, salt);
+    body.google_email = String(body.google_email || "").trim().toLowerCase() || null;
+    const plainPassword = String(body.password || "").trim();
+    if (!plainPassword && !body.google_email) {
+      return res.status(400).json({
+        success: 0,
+        message: "A password or institutional email is required.",
+      });
+    }
+    body.password = plainPassword
+      ? hashSync(plainPassword, genSaltSync(10))
+      : null;
     addUser(body, (err, results) => {
       if (err) {
         return res.json({

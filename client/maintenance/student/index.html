@@ -92,9 +92,13 @@
             <label for="addUsername">Username</label><input id="addUsername" name="username" placeholder="ID number"
               required />
           </div>
+          <div class="field">
+            <label for="addGoogleEmail">School Google email <span class="optional-label">Optional</span></label><input
+              id="addGoogleEmail" name="google_email" type="email" placeholder="College students only" />
+          </div>
           <div class="field password-wrap">
             <label for="addPassword">Temporary password</label><input id="addPassword" name="password" type="password"
-              required /><button type="button" class="password-toggle" onclick="togglePassword()"
+              /><button type="button" class="password-toggle" onclick="togglePassword()"
               aria-label="Show password">
               <svg viewBox="0 0 24 24">
                 <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z" />
@@ -181,6 +185,10 @@
             <label for="editLastName">Last name</label><input id="editLastName" name="surname" required />
           </div>
           <div class="field">
+            <label for="editGoogleEmail">School Google email <span class="optional-label">Optional</span></label><input
+              id="editGoogleEmail" name="google_email" type="email" placeholder="College students only" />
+          </div>
+          <div class="field">
             <label for="editGenderSelect">Gender</label><select id="editGenderSelect" name="gender" required>
               <option value="MALE">Male</option>
               <option value="FEMALE">Female</option>
@@ -234,7 +242,9 @@
               </svg></span><strong>Choose an Excel file</strong>
             <p>
               Required: username, surname, givenname, year_level, gender,
-              course_code. Password is required for new students only.
+              course_code. Password is required for new students without an
+              institutional email only.
+              google_email is optional.
               Year level accepts 1st Year through 5th Year.
             </p>
           </label><input type="file" id="xlsxInput" accept=".xlsx,.xls" class="hidden" required />

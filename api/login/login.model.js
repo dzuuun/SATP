@@ -116,6 +116,25 @@ module.exports = {
     );
   },
 
+  getUserByGoogleEmail: (email, callBack) => {
+    pool.query(
+      `SELECT users.id AS user_id, users.username, users.google_email,
+         users.password, users.is_temp_pass, users.is_student_rater,
+         users.is_admin_rater, users.is_active,
+         permissions.id AS permission_id, permissions.name AS permission_name,
+         permissions.transaction_access, permissions.maintenance_access,
+         permissions.reports_access, permissions.users_access,
+         permissions.is_active AS permission_is_active,
+         CONCAT(user_info.givenname, ' ', user_info.surname) AS full_name
+       FROM users
+       LEFT JOIN user_info ON users.id = user_info.user_id
+       INNER JOIN permissions ON users.permission_id = permissions.id
+       WHERE LOWER(users.google_email) = LOWER(?) LIMIT 1`,
+      [email],
+      (error, results) => callBack(error, results?.[0]),
+    );
+  },
+
   logActivity: (userId, action, callBack = () => {}) => {
     pool.query(
       "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",

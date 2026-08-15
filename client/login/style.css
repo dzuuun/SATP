@@ -204,7 +204,7 @@ main {
 }
 
 .sign-in {
-    padding: clamp(38px, 6vw, 72px);
+    padding: 26px clamp(38px, 6vw, 72px);
     display: grid;
     place-items: center;
 }
@@ -216,7 +216,7 @@ main {
 .icon {
     width: 52px;
     height: 52px;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
     display: grid;
     place-items: center;
     color: var(--green-900);
@@ -247,8 +247,8 @@ main {
 }
 
 .message {
-    min-height: 40px;
-    margin: 18px 0 4px;
+    height: 54px;
+    margin: 12px 0 4px;
     padding: 9px 12px;
     display: flex;
     align-items: center;
@@ -275,7 +275,7 @@ main {
 
 form {
     display: grid;
-    gap: 20px;
+    gap: 14px;
 }
 
 .field {
@@ -312,7 +312,7 @@ label,
 
 input {
     width: 100%;
-    min-height: 50px;
+    min-height: 48px;
     padding: 0 14px;
     color: var(--ink);
     background: #fbfcfb;
@@ -346,7 +346,7 @@ input:focus {
 
 .password-toggle {
     width: 46px;
-    height: 46px;
+    height: 44px;
     position: absolute;
     top: 2px;
     right: 2px;
@@ -373,7 +373,7 @@ input:focus {
 }
 
 .login-button {
-    min-height: 54px;
+    min-height: 52px;
     margin-top: 4px;
     padding: 0 20px;
     display: flex;
@@ -418,8 +418,8 @@ input:focus {
 }
 
 .support {
-    margin: 24px 0 0;
-    padding-top: 20px;
+    margin: 10px 0 0;
+    padding-top: 10px;
     color: var(--muted);
     border-top: 1px solid var(--line);
     font-size: .75rem;
@@ -547,3 +547,8 @@ footer > span {
         transition-duration: .01ms !important;
     }
 }
+.google-login-section { margin-top: 10px; display: grid; justify-items: center; gap: 6px; }
+.google-login-section[hidden] { display: none; }
+.google-login-section > span { width: 100%; display: flex; align-items: center; gap: 12px; color: #718078; font-size: .75rem; text-transform: uppercase; }
+.google-login-section > span::before, .google-login-section > span::after { content: ""; height: 1px; flex: 1; background: #d8e3dd; }
+.google-login-section > p { margin: 0; color: var(--muted); font-size: .76rem; text-align: center; }

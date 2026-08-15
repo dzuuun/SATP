@@ -119,7 +119,12 @@ test("Student Maintenance exposes a filtered XLSX export with username", () => {
   const script = read("client/maintenance/student/script.js");
   assert.match(html, /id=["']exportStudentsButton["']/);
   assert.match(script, /rows\(\{\s*search:\s*["']applied["']\s*\}\)/);
-  assert.match(script, /Username:\s*student\.username/);
+  assert.match(script, /username:\s*student\.username/);
+  assert.match(script, /password:\s*["']["']/);
+  assert.match(script, /google_email:\s*student\.google_email/);
+  assert.match(script, /course_code:\s*student\.course/);
+  assert.match(script, /year_level:\s*formatYearLevel\(student\.year_level\)/);
+  assert.match(script, /1:\s*["']1st Year["']/);
   assert.match(script, /XLSX\.writeFile/);
 });
 
@@ -410,6 +415,94 @@ test("Production deployment enforces proxy HTTPS and secure sessions", () => {
   assert.match(guide, /pm2 start ecosystem\.config\.cjs --env production/);
   assert.match(guide, /PM2\/SATP and Caddy return automatically/);
   assert.match(guide, /Remote IP address/);
+});
+
+test("Google Workspace SSO verifies domain and links existing SATP users", () => {
+  const controller = read("api/login/login.controller.js");
+  const model = read("api/login/login.model.js");
+  const router = read("api/login/login.router.js");
+  const loginPage = read("client/login/index.html");
+  const usersPage = read("client/user/user_management/index.html");
+  const migration = read("database/migrations/2026-08-15_google_workspace_sso.sql");
+  assert.match(controller, /verifyIdToken/);
+  assert.match(controller, /identity\?\.email_verified/);
+  assert.match(controller, /identity\.hd/);
+  assert.match(controller, /GOOGLE_WORKSPACE_DOMAIN/);
+  assert.match(model, /LOWER\(users\.google_email\) = LOWER\(\?\)/);
+  assert.match(router, /router\.post\("\/google", googleLogin\)/);
+  assert.match(loginPage, /accounts\.google\.com\/gsi\/client/);
+  assert.match(loginPage, /Sign in using your institutional email\./);
+  assert.match(usersPage, /name="google_email"/);
+  assert.doesNotMatch(usersPage, /name="google_email"[^>]*required/);
+  assert.match(usersPage, /School Google email <span class="optional-label">Optional<\/span>/);
+  assert.match(migration, /UNIQUE INDEX uq_users_google_email/);
+});
+
+test("Student Maintenance treats school Google email as optional", () => {
+  const page = read("client/maintenance/student/index.html");
+  const script = read("client/maintenance/student/script.js");
+  const model = read("api/maintenance/student/student.model.js");
+
+  assert.match(page, /name="google_email"/);
+  assert.doesNotMatch(page, /name="google_email"[^>]*required/);
+  assert.match(page, /google_email is optional/);
+  assert.match(script, /google_email: item\.google_email/);
+  assert.match(script, /raw\.google_email \|\| raw\.email/);
+  assert.match(model, /String\(data\.google_email \|\| ""\)\.trim\(\) \|\| null/);
+});
+
+test("User Management import treats school Google email as optional", () => {
+  const page = read("client/user/user_management/index.html");
+  const script = read("client/user/user_management/script.js");
+
+  assert.match(page, /google_email is optional/);
+  assert.match(script, /google_email: "juan\.delacruz@ndmu\.edu\.ph"/);
+  assert.match(script, /row\.google_email \|\| row\.email/);
+  assert.doesNotMatch(
+    script,
+    /const required =[\s\S]{0,300}["']google_email["']/,
+  );
+});
+
+test("Regular account imports preserve existing passwords", () => {
+  const users = read("client/user/user_management/script.js");
+  const students = read("client/maintenance/student/script.js");
+
+  assert.match(users, /Password or institutional email is required for a new user/);
+  assert.match(users, /password: existing \? "" : row\.password/);
+  assert.match(users, /existing \? "\/api\/user\/update" : "\/api\/user\/add"/);
+  assert.match(
+    students,
+    /Password or institutional email is required when creating a new student/,
+  );
+  assert.doesNotMatch(
+    students,
+    /requestJson\("\/api\/student\/update\/password"/,
+  );
+});
+
+test("Google-only accounts may omit a local password", () => {
+  const login = read("api/login/login.controller.js");
+  const users = read("api/user/user_management/user_management.controller.js");
+  const students = read("api/maintenance/student/student.model.js");
+  const migration = read(
+    "database/migrations/2026-08-15_users_optional_password.sql",
+  );
+
+  assert.match(users, /!plainPassword && !body\.google_email/);
+  assert.match(students, /!plainTextPassword && !String\(data\.google_email/);
+  assert.match(login, /Boolean\(results\.password\)/);
+  assert.match(migration, /password VARCHAR\(255\) NULL/);
+});
+
+test("Google login keeps the MIS support message inside the fixed login card", () => {
+  const page = read("client/login/index.html");
+  const style = read("client/login/style.css");
+  assert.match(page, /class="support"/);
+  assert.match(page, /MIS Department/);
+  assert.match(style, /\.sign-in\s*\{[\s\S]*padding: 26px clamp\(38px, 6vw, 72px\)/);
+  assert.match(style, /\.message\s*\{[\s\S]*height: 54px/);
+  assert.match(style, /\.support\s*\{[\s\S]*margin: 10px 0 0;[\s\S]*padding-top: 10px;/);
 });
 
 test("Transaction course modal remains stable across short DataTable pages", () => {

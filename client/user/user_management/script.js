@@ -151,6 +151,9 @@ document
     event.preventDefault();
     if (!confirm("Create this user?")) return;
     const payload = Object.fromEntries(new FormData(event.currentTarget));
+    if (!String(payload.password || "").trim() && !String(payload.google_email || "").trim()) {
+      return showToast("Enter a temporary password or an institutional email.");
+    }
     const student = document.getElementById("addRole").value === "student";
     Object.assign(payload, {
       is_student_rater: student ? 1 : 0,
@@ -179,6 +182,7 @@ async function editUser(id) {
     setValue("editCourse", row.course_id ?? "");
     setValue("editYearLevel", row.year_level ?? "");
     setValue("editUsername", row.username);
+    setValue("editGoogleEmail", row.google_email);
     setValue("editPassword", "");
     setValue("editPermissionSelect", row.permission_id);
     setValue("editRole", Number(row.is_student_rater) ? "student" : "admin");
@@ -268,6 +272,7 @@ document
         {
           username: "2026-00001",
           password: "Temporary123",
+          google_email: "juan.delacruz@ndmu.edu.ph",
           givenname: "Juan",
           middlename: "",
           surname: "Dela Cruz",
@@ -325,7 +330,6 @@ async function prepareImport(event, mode) {
       mode === "users"
         ? [
             "username",
-            "password",
             "givenname",
             "surname",
             "gender",
@@ -336,7 +340,7 @@ async function prepareImport(event, mode) {
           ? ["username", "password"]
           : ["username"];
     let usersByUsername = new Map();
-    if (mode === "deactivate") {
+    if (mode === "users" || mode === "deactivate") {
       const response = await requestJson("/api/user");
       usersByUsername = new Map(
         (response.data || []).map((user) => [
@@ -351,6 +355,9 @@ async function prepareImport(event, mode) {
     const seenUsernames = new Set();
     rows.forEach((original, index) => {
       const row = normalizeRow(original);
+      row.google_email = String(row.google_email || row.email || "")
+        .trim()
+        .toLowerCase();
       const missing = required.filter((key) => !String(row[key] ?? "").trim());
       const usernameKey = String(row.username || "").trim().toLowerCase();
       const role = String(row.role || "").toLowerCase();
@@ -363,11 +370,24 @@ async function prepareImport(event, mode) {
       }
       const invalidRole =
         mode === "users" && !["student", "admin"].includes(role);
+      const invalidEmail =
+        mode === "users" &&
+        row.google_email &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.google_email);
       const uploadedUser = usersByUsername.get(usernameKey);
+      const missingNewPassword =
+        mode === "users" &&
+        !uploadedUser &&
+        !row.google_email &&
+        !String(row.password || "").trim();
       const error = missing.length
         ? `Missing: ${[...new Set(missing)].join(", ")}`
+        : missingNewPassword
+          ? "Password or institutional email is required for a new user"
         : invalidRole
           ? "Role must be Student or Admin"
+          : invalidEmail
+            ? "School Google email is invalid"
           : mode === "deactivate" && seenUsernames.has(usernameKey)
             ? "Duplicate username in file"
             : mode === "deactivate" && !uploadedUser
@@ -380,7 +400,12 @@ async function prepareImport(event, mode) {
       if (mode === "deactivate" && usernameKey) seenUsernames.add(usernameKey);
       if (error)
         state.errorRows.push({ ...original, Error: error, __row: index + 2 });
-      else state.validRows.push({ ...row, __row: index + 2 });
+      else
+        state.validRows.push({
+          ...row,
+          __row: index + 2,
+          __existingId: uploadedUser?.id || null,
+        });
     });
     renderPreview();
     toggleModal(modalIds[mode], false);
@@ -449,19 +474,30 @@ document
         let response;
         if (state.importMode === "users") {
           const student = String(row.role).toLowerCase() === "student";
-          response = await requestJson("/api/user/add", {
-            method: "POST",
+          const existing = Boolean(row.__existingId);
+          const payload = {
+            ...row,
+            id: row.__existingId,
+            password: existing ? "" : row.password,
+            is_student_rater: student ? 1 : 0,
+            is_admin_rater: student ? 0 : 1,
+            is_active: row.is_active ?? 1,
+            is_temp_pass: existing ? Number(row.is_temp_pass ?? 0) : 1,
+            course_id: student ? row.course_id : null,
+            year_level: student ? row.year_level : null,
+            user_id: state.userId,
+          };
+          delete payload.__row;
+          delete payload.__existingId;
+          response = await requestJson(
+            existing ? "/api/user/update" : "/api/user/add",
+            {
+            method: existing ? "PUT" : "POST",
             body: JSON.stringify({
-              ...row,
-              is_student_rater: student ? 1 : 0,
-              is_admin_rater: student ? 0 : 1,
-              is_active: row.is_active ?? 1,
-              is_temp_pass: 1,
-              course_id: student ? row.course_id : null,
-              year_level: student ? row.year_level : null,
-              user_id: state.userId,
+              ...payload,
             }),
-          });
+            },
+          );
         } else {
           const found = await requestJson("/api/user/get", {
             method: "POST",
@@ -519,7 +555,7 @@ function previewTable(rows) {
   if (!rows.length)
     return '<p class="preview-empty">No rows in this section.</p>';
   const keys = Object.keys(rows[0])
-    .filter((key) => key !== "__row")
+    .filter((key) => !key.startsWith("__"))
     .slice(0, 8);
   return `<table class="preview-table"><thead><tr>${keys.map((key) => `<th>${escapeHtml(key)}</th>`).join("")}</tr></thead><tbody>${rows
     .slice(0, 100)

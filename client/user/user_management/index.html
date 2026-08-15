@@ -108,9 +108,13 @@
             </div>
             <div class="field">
               <label for="addPassword">Temporary password</label><input id="addPassword" name="password" type="text"
-                required /><label class="inline-check"><input id="showAddPassword" type="checkbox" checked />Show
+                /><label class="inline-check"><input id="showAddPassword" type="checkbox" checked />Show
                 password</label>
             </div>
+          </div>
+          <div class="field">
+            <label for="addGoogleEmail">School Google email <span class="optional-label">Optional</span></label><input
+              id="addGoogleEmail" name="google_email" type="email" placeholder="College and admin accounts only" />
           </div>
           <h3>Personal information</h3>
           <div class="three-column">
@@ -221,6 +225,10 @@
                 <label for="editLastName">Last name</label><input id="editLastName" name="surname" required />
               </div>
             </div>
+            <div class="field">
+              <label for="editGoogleEmail">School Google email <span class="optional-label">Optional</span></label><input
+                id="editGoogleEmail" name="google_email" type="email" placeholder="College and admin accounts only" />
+            </div>
             <div class="three-column">
               <div class="field">
                 <label for="editGender">Gender</label><select id="editGender" name="gender" required>
@@ -329,8 +337,10 @@
               </svg></span>
             <strong>Choose an Excel file</strong>
             <p>
-              Required: username, password, givenname, surname, gender, role,
-              and permission_id
+              Required: username, givenname, surname, gender, role, and
+              permission_id. Password is required for new users without an
+              institutional email and is
+              never changed here for existing users. google_email is optional.
             </p>
           </label>
           <input id="userXlsxInput" type="file" accept=".xlsx,.xls" class="hidden" required />

@@ -3,9 +3,11 @@ const {
   checkPassword,
   getUsers,
   getUserByUserName,
+  getUserByGoogleEmail,
   logActivity,
   updatePassword,
 } = require("./login.model");
+const { OAuth2Client } = require("google-auth-library");
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 const {
   createSessionToken,
@@ -16,6 +18,16 @@ const {
 const failedLogins = new Map();
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_ATTEMPTS = 5;
+
+function sendAuthenticatedUser(req, res, user, action) {
+  const token = createSessionToken(user.user_id, user.password);
+  setSessionCookie(req, res, token);
+  logActivity(user.user_id, action, (error) => {
+    if (error) console.error("Unable to log sign in:", error);
+  });
+  const { password: _password, permission_is_active: _active, ...safeUser } = user;
+  return res.json({ success: 1, message: "User logged in successfully.", user_id: user.user_id, data: safeUser });
+}
 
 function loginKey(req, username) {
   return `${req.ip}:${String(username || "").trim().toLowerCase()}`;
@@ -41,6 +53,36 @@ function recordFailedLogin(key) {
 }
 
 module.exports = {
+  googleConfig: (_req, res) => {
+    const clientId = String(process.env.GOOGLE_CLIENT_ID || "").trim();
+    const domain = String(process.env.GOOGLE_WORKSPACE_DOMAIN || "").trim();
+    return res.json({ success: 1, data: { enabled: Boolean(clientId && domain), client_id: clientId } });
+  },
+
+  googleLogin: async (req, res) => {
+    const clientId = String(process.env.GOOGLE_CLIENT_ID || "").trim();
+    const allowedDomain = String(process.env.GOOGLE_WORKSPACE_DOMAIN || "").trim().toLowerCase();
+    const credential = String(req.body?.credential || "");
+    if (!clientId || !allowedDomain) return res.status(503).json({ success: 0, message: "Google sign-in is not configured." });
+    if (!credential) return res.status(400).json({ success: 0, message: "Google sign-in credential is required." });
+    try {
+      const ticket = await new OAuth2Client(clientId).verifyIdToken({ idToken: credential, audience: clientId });
+      const identity = ticket.getPayload();
+      if (!identity?.email_verified || String(identity.hd || "").toLowerCase() !== allowedDomain) {
+        return res.status(403).json({ success: 0, message: "Use your authorized school Google Workspace account." });
+      }
+      return getUserByGoogleEmail(identity.email, (error, user) => {
+        if (error) return res.status(500).json({ success: 0, message: "Unable to sign in with Google." });
+        if (!user || Number(user.is_active) !== 1 || Number(user.permission_is_active) !== 1) {
+          return res.status(403).json({ success: 0, message: "This school email is not linked to an active SATP account. Contact the administrator." });
+        }
+        return sendAuthenticatedUser(req, res, user, `Logged in with Google: ${identity.email}`);
+      });
+    } catch (error) {
+      console.error("Google sign-in verification failed:", error.message);
+      return res.status(401).json({ success: 0, message: "Google sign-in could not be verified." });
+    }
+  },
   createUser: (req, res) => {
     const body = req.body;
     const salt = genSaltSync(10);
@@ -70,7 +112,10 @@ module.exports = {
           message: "Unable to verify the password.",
         });
       }
-      if (!results || !compareSync(req.body?.password || "", results.password)) {
+      if (
+        !results?.password ||
+        !compareSync(req.body?.password || "", results.password)
+      ) {
         return res.status(401).json({
           success: 0,
           passwordMatched: "false",
@@ -142,7 +187,9 @@ module.exports = {
         Number(results.is_active) === 1 &&
         Number(results.permission_is_active) === 1;
       const passwordMatches =
-        validAccount && compareSync(password, results.password);
+        validAccount &&
+        Boolean(results.password) &&
+        compareSync(password, results.password);
 
       if (!passwordMatches) {
         recordFailedLogin(key);
@@ -153,19 +200,7 @@ module.exports = {
       }
 
       failedLogins.delete(key);
-      const token = createSessionToken(results.user_id, results.password);
-      setSessionCookie(req, res, token);
-      logActivity(results.user_id, "Logged in", (logError) => {
-        if (logError) console.error("Unable to log sign in:", logError);
-      });
-      const { password: _password, permission_is_active: _active, ...user } =
-        results;
-      return res.json({
-        success: 1,
-        message: "User logged in successfully.",
-        user_id: results.user_id,
-        data: user,
-      });
+      return sendAuthenticatedUser(req, res, results, "Logged in");
     });
   },
 
@@ -214,7 +249,10 @@ module.exports = {
           message: "Unable to verify the current password.",
         });
       }
-      if (!account || !compareSync(currentPassword, account.password)) {
+      if (
+        !account?.password ||
+        !compareSync(currentPassword, account.password)
+      ) {
         recordFailedLogin(passwordAttemptKey);
         return res.status(400).json({
           success: 0,

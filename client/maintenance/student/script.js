@@ -21,6 +21,18 @@ const normalize = (v) =>
     .trim()
     .replace(/\s+/g, " ")
     .toLowerCase();
+const formatYearLevel = (value) => {
+  const normalized = String(value ?? "").trim();
+  const ordinalYears = {
+    1: "1st Year",
+    2: "2nd Year",
+    3: "3rd Year",
+    4: "4th Year",
+    5: "5th Year",
+    6: "6th Year",
+  };
+  return ordinalYears[normalized] || normalized;
+};
 $(document).ready(() => {
   table = $("#table").DataTable({
     ajax: { url: "/api/student", dataSrc: "data", cache: true },
@@ -66,14 +78,15 @@ document
     const students = table.rows({ search: "applied" }).data().toArray();
     if (!students.length) return setErrorMessage("No students to export.");
     const exportRows = students.map((student) => ({
-      Username: student.username || "",
-      Surname: student.surname || "",
-      "Given name": student.givenname || "",
-      "Middle name": student.middlename || "",
-      Gender: student.gender || "",
-      "Program code": student.course || "",
-      "Year level": student.year_level || "",
-      Status: Number(student.is_active) === 1 ? "Active" : "Inactive",
+      username: student.username || "",
+      password: "",
+      surname: student.surname || "",
+      givenname: student.givenname || "",
+      middlename: student.middlename || "",
+      google_email: student.google_email || "",
+      year_level: formatYearLevel(student.year_level),
+      gender: student.gender || "",
+      course_code: student.course || "",
     }));
     const sheet = XLSX.utils.json_to_sheet(exportRows);
     const book = XLSX.utils.book_new();
@@ -128,11 +141,15 @@ document
   .getElementById("newStudentForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
+    const payload = addPayload(e.currentTarget);
+    if (!String(payload.password || "").trim() && !String(payload.google_email || "").trim()) {
+      return setErrorMessage("Enter a temporary password or an institutional email.");
+    }
     if (!confirm("Create this student?")) return;
     try {
       const r = await requestJson("/api/student/add", {
         method: "POST",
-        body: JSON.stringify(addPayload(e.currentTarget)),
+        body: JSON.stringify(payload),
       });
       if (!r.success) return setErrorMessage(r.message);
       setSuccessMessage(r.message);
@@ -165,6 +182,7 @@ async function editFormCall(id) {
       new Event("change", { bubbles: true }),
     );
     document.getElementById("editYearLevel").value = s.year_level;
+    document.getElementById("editGoogleEmail").value = s.google_email || "";
     document.getElementById("editIsStudentStatusActive").checked =
       s.is_active == 1;
     toggleModal("editModal", true);
@@ -236,6 +254,7 @@ document.getElementById("downloadLink").addEventListener("click", (e) => {
         surname: "Dela Cruz",
         givenname: "Juan",
         middlename: "Santos",
+        google_email: "juan.delacruz@ndmu.edu.ph",
         year_level: "1st Year",
         gender: "Male",
         course_code: "BSIT",
@@ -316,6 +335,7 @@ function classifyRows(rows, existing) {
       surname = String(raw.surname || "").trim(),
       givenname = String(raw.givenname || "").trim(),
       middlename = String(raw.middlename || "").trim(),
+      google_email = String(raw.google_email || raw.email || "").trim(),
       suppliedYearLevel = String(raw.year_level || "").trim(),
       year_level =
         yearLevelAliases.get(normalize(suppliedYearLevel)) || suppliedYearLevel,
@@ -335,6 +355,7 @@ function classifyRows(rows, existing) {
         surname,
         givenname,
         middlename,
+        google_email,
         year_level,
         gender,
         courseCode,
@@ -361,6 +382,14 @@ function classifyRows(rows, existing) {
       });
     else if (!["male", "female"].includes(normalize(gender)))
       result.errors.push({ ...base, reason: "Gender must be Male or Female" });
+    else if (
+      google_email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(google_email)
+    )
+      result.errors.push({
+        ...base,
+        reason: "School Google email is invalid",
+      });
     else if (!course)
       result.errors.push({
         ...base,
@@ -372,10 +401,11 @@ function classifyRows(rows, existing) {
       seen.add(key);
       const current = byUsername.get(key);
       if (current) result.updated.push({ ...base, id: current.id });
-      else if (!password)
+      else if (!password && !google_email)
         result.errors.push({
           ...base,
-          reason: "Password is required when creating a new student",
+          reason:
+            "Password or institutional email is required when creating a new student",
         });
       else result.created.push(base);
     }
@@ -449,6 +479,7 @@ document
                   surname: item.surname,
                   givenname: item.givenname,
                   middlename: item.middlename,
+                  google_email: item.google_email,
                   course_id: item.course_id,
                   year_level: item.year_level,
                   gender: item.gender,
@@ -464,6 +495,7 @@ document
                   surname: item.surname,
                   givenname: item.givenname,
                   middlename: item.middlename,
+                  google_email: item.google_email,
                   course_id: item.course_id,
                   year_level: item.year_level,
                   gender: item.gender,

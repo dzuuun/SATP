@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 module.exports = {
   getAllStudent: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, user_info.surname, user_info.givenname, user_info.middlename, user_info.gender, user_info.year_level, CONCAT(user_info.surname, ', ', user_info.givenname) AS name, courses.code AS course, colleges.code AS college, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id INNER JOIN departments ON courses.department_id=departments.id INNER JOIN colleges ON departments.college_id=colleges.id WHERE users.is_student_rater = 1",
+      "SELECT users.id, users.username, users.google_email, user_info.surname, user_info.givenname, user_info.middlename, user_info.gender, user_info.year_level, CONCAT(user_info.surname, ', ', user_info.givenname) AS name, courses.code AS course, colleges.code AS college, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id INNER JOIN departments ON courses.department_id=departments.id INNER JOIN colleges ON departments.college_id=colleges.id WHERE users.is_student_rater = 1",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -29,7 +29,7 @@ module.exports = {
 
   getStudentById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, user_info.givenname, user_info.surname, user_info.middlename, courses.id AS course_id, user_info.gender, user_info.year_level, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.id = ?",
+      "SELECT users.id, users.username, users.google_email, user_info.givenname, user_info.surname, user_info.middlename, courses.id AS course_id, user_info.gender, user_info.year_level, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id=courses.id WHERE users.is_student_rater = 1 AND users.id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -59,11 +59,13 @@ module.exports = {
     try {
       const plainTextPassword = String(data.password || "");
 
-      if (!plainTextPassword) {
-        return callBack(new Error("Password is required."));
+      if (!plainTextPassword && !String(data.google_email || "").trim()) {
+        return callBack(new Error("A password or institutional email is required."));
       }
 
-      password = bcrypt.hashSync(plainTextPassword, 10);
+      password = plainTextPassword
+        ? bcrypt.hashSync(plainTextPassword, 10)
+        : null;
     } catch (error) {
       return callBack(error);
     }
@@ -74,10 +76,11 @@ module.exports = {
       (error, results) => {
         if (results.length === 0) {
           pool.query(
-            "INSERT INTO users (username, password, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO users (username, password, google_email, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?,?)",
             [
               data.username,
               password,
+              String(data.google_email || "").trim() || null,
               data.permission_id,
               data.is_temp_pass,
               1,
@@ -132,8 +135,9 @@ module.exports = {
       (error, result) => {
         if (result.length == 1) {
           pool.query(
-            "UPDATE user_info SET surname=?, givenname=?, middlename=?, course_id=?, year_level=?, gender=? WHERE user_id=?",
+            "UPDATE users INNER JOIN user_info ON users.id = user_info.user_id SET users.google_email=?, user_info.surname=?, user_info.givenname=?, user_info.middlename=?, user_info.course_id=?, user_info.year_level=?, user_info.gender=? WHERE users.id=?",
             [
+              String(data.google_email || "").trim() || null,
               data.surname,
               data.givenname,
               data.middlename,

@@ -32,6 +32,65 @@ const updateStatus = (text = "&nbsp;", colorClass = "") => {
   if (colorClass) messageEl.classList.add(colorClass);
 };
 
+function completeLogin(response) {
+  updateStatus(response.message, "text-green-600");
+  const { data, user_id } = response;
+  localStorage.clear();
+  const storageData = {
+    user_id,
+    username: data.username,
+    permission_id: data.permission_id,
+    permission_name: data.permission_name,
+    is_student_rater: data.is_student_rater,
+    transactionAccess: data.transaction_access,
+    maintenanceAccess: data.maintenance_access,
+    reportsAccess: data.reports_access,
+    usersAccess: data.users_access,
+    fullname: data.full_name,
+  };
+  Object.entries(storageData).forEach(([key, value]) => localStorage.setItem(key, value));
+  setTimeout(() => {
+    if ([1, 2].includes(data.is_student_rater)) location.href = "../rating/index.html";
+    else if (data.transaction_access == 1) location.href = "../transaction/index.html";
+    else location.href = "../user/user_management/index.html";
+  }, 500);
+}
+
+window.handleGoogleCredential = async ({ credential }) => {
+  updateStatus("Verifying school Google account...");
+  try {
+    const result = await fetch("/api/login/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential }),
+    });
+    const response = await result.json();
+    if (!result.ok || !response.success) throw new Error(response.message || "Google sign-in failed.");
+    completeLogin(response);
+  } catch (error) {
+    updateStatus(error.message, "text-red-600");
+  }
+};
+
+async function initializeGoogleLogin() {
+  try {
+    const response = await fetch("/api/login/google/config").then((result) => result.json());
+    if (!response.data?.enabled) return;
+    for (let attempt = 0; attempt < 50 && !window.google?.accounts?.id; attempt++) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    if (!window.google?.accounts?.id) return;
+    google.accounts.id.initialize({ client_id: response.data.client_id, callback: handleGoogleCredential });
+    google.accounts.id.renderButton(document.getElementById("googleSignInButton"), {
+      theme: "outline", size: "large", width: 360, text: "signin_with",
+    });
+    document.getElementById("googleLoginSection").hidden = false;
+  } catch (_error) {
+    // Password login remains available when Google is unavailable.
+  }
+}
+initializeGoogleLogin();
+
 /** * Event: Password Toggle
  */
 showPasswordBtn.addEventListener("click", () => {
@@ -80,44 +139,7 @@ form.addEventListener("submit", async (e) => {
       return;
     }
 
-    // Success UI
-    updateStatus(response.message, "text-green-600");
-
-    // Bulk store data
-    const { data, user_id } = response;
-
-    localStorage.clear();
-    const storageData = {
-      user_id,
-      username: data.username,
-      permission_id: data.permission_id,
-      permission_name: data.permission_name,
-      is_student_rater: data.is_student_rater,
-      transactionAccess: data.transaction_access,
-      maintenanceAccess: data.maintenance_access,
-      reportsAccess: data.reports_access,
-      usersAccess: data.users_access,
-      fullname: data.full_name,
-    };
-
-    Object.entries(storageData).forEach(([key, val]) =>
-      localStorage.setItem(key, val),
-    );
-
-    // Optional legacy calls
-    if (typeof getSchoolYear === "function") getSchoolYear();
-    if (typeof getSemester === "function") getSemester();
-
-    // Redirect Logic
-    setTimeout(() => {
-      if ([1, 2].includes(data.is_student_rater)) {
-        window.location.href = "../rating/index.html";
-      } else if (data.transaction_access == 1) {
-        window.location.href = "../transaction/index.html";
-      } else {
-        window.location.href = "../user/user_management/index.html";
-      }
-    }, 800);
+    completeLogin(response);
   } catch (err) {
     updateStatus("Server error. Please try again.", "text-red-600");
     loginButton.disabled = false;

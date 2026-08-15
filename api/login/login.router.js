@@ -3,11 +3,15 @@ const {
   updatePassword,
   session,
   logout,
+  googleConfig,
+  googleLogin,
 } = require("./login.controller");
 const router = require("express").Router();
 const { checkToken } = require("../../auth/auth_validation");
 
 router.post("/", login);
+router.get("/google/config", googleConfig);
+router.post("/google", googleLogin);
 router.get("/session", checkToken, session);
 router.post("/logout", checkToken, logout);
 router.put("/update/password", checkToken, updatePassword);
