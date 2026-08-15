@@ -107,10 +107,14 @@
             </div>
             <div class="field">
               <label for="addPassword">Temporary password</label>
-              <input id="addPassword" name="password" type="text" required />
+              <input id="addPassword" name="password" type="text" />
               <label class="inline-check"><input type="checkbox" onclick="showPassword()" checked />
                 Show password</label>
             </div>
+          </div>
+          <div class="field">
+            <label for="addGoogleEmail">School Google email <span class="optional-label">Optional</span></label>
+            <input id="addGoogleEmail" name="google_email" type="email" placeholder="Institutional email" />
           </div>
           <h3>Personal information</h3>
           <div class="field-row">
@@ -202,6 +206,10 @@
                   name="permission_id" required>
                   <option value="" disabled>Select permission</option>
                 </select>
+              </div>
+              <div class="field">
+                <label for="editGoogleEmail">School Google email <span class="optional-label">Optional</span></label>
+                <input id="editGoogleEmail" name="google_email" type="email" placeholder="Institutional email" />
               </div>
             </div>
             <footer class="modal-footer">

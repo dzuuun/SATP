@@ -4,6 +4,16 @@ body {
   margin: 0 !important;
 }
 
+.optional-label {
+  display: inline-block;
+  margin-left: 0.35rem;
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 .records-heading > .primary-button {
   flex: 0 0 auto;
 }

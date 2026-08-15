@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 module.exports = {
   getAllAdmin: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, permissions.name AS permission, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE users.is_admin_rater = 1",
+      "SELECT users.id, users.username, users.google_email, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, permissions.name AS permission, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE users.is_admin_rater = 1",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -28,7 +28,7 @@ module.exports = {
 
   getAdminById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, user_info.givenname, user_info.surname, user_info.middlename, user_info.gender, users.permission_id, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE users.is_admin_rater = 1 AND users.id=?",
+      "SELECT users.id, users.username, users.google_email, user_info.givenname, user_info.surname, user_info.middlename, user_info.gender, users.permission_id, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE users.is_admin_rater = 1 AND users.id=?",
       [Id],
       (error, results) => {
         if (error) {
@@ -45,11 +45,13 @@ module.exports = {
     try {
       const plainTextPassword = String(data.password || "");
 
-      if (!plainTextPassword) {
-        return callBack(new Error("Password is required."));
+      if (!plainTextPassword && !String(data.google_email || "").trim()) {
+        return callBack(new Error("A password or institutional email is required."));
       }
 
-      password = bcrypt.hashSync(plainTextPassword, 10);
+      password = plainTextPassword
+        ? bcrypt.hashSync(plainTextPassword, 10)
+        : null;
     } catch (error) {
       return callBack(error);
     }
@@ -60,10 +62,11 @@ module.exports = {
       (error, results) => {
         if (results.length === 0) {
           pool.query(
-            "INSERT INTO users (username, password, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?)",
+            "INSERT INTO users (username, password, google_email, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?,?)",
             [
               data.username,
               password,
+              String(data.google_email || "").trim().toLowerCase() || null,
               data.permission_id,
               data.is_temp_pass,
               0,
@@ -146,8 +149,12 @@ module.exports = {
               (profileError, profileResult) => {
                 if (profileError) return rollback(profileError);
                 connection.query(
-                  "UPDATE users SET permission_id=? WHERE id=?",
-                  [data.permission_id, data.id],
+                  "UPDATE users SET google_email=?, permission_id=? WHERE id=?",
+                  [
+                    String(data.google_email || "").trim().toLowerCase() || null,
+                    data.permission_id,
+                    data.id,
+                  ],
                   (permissionError, permissionResult) => {
                     if (permissionError) return rollback(permissionError);
                     const changedRows =

@@ -19,10 +19,16 @@ let data = $("#table").DataTable({
     url: `/api/admin`,
     cache: true,
   },
-  columnDefs: [{ className: "dt-center", targets: [3, 4] }],
+  columnDefs: [{ className: "dt-center", targets: [4, 5] }],
   columns: [
     { width: "15%", data: "username", title: "Username" },
     { data: "name", title: "Admin name" },
+    {
+      width: "20%",
+      data: "google_email",
+      title: "Institutional email",
+      defaultContent: "",
+    },
     { width: "20%", data: "permission", title: "Permission" },
     {
       width: "10%",
@@ -115,6 +121,9 @@ formAddAdmin.addEventListener("submit", async (event) => {
   formData.append("is_temp_pass", "0");
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
+  if (!String(data.password || "").trim() && !String(data.google_email || "").trim()) {
+    return setErrorMessage("Enter a temporary password or an institutional email.");
+  }
   if (confirm("This action cannot be undone.") == true) {
     await fetch(`/api/admin/add`, {
       method: "POST",
@@ -182,6 +191,8 @@ async function edit(id) {
       document.getElementById("editGenderSelect").value = data.gender;
       document.getElementById("editPermissionSelect").value =
         String(data.permission_id);
+      document.getElementById("editGoogleEmail").value =
+        data.google_email || "";
       if (data.is_active == 0) {
         document.getElementById("editIsAdminStatusActive").checked = false;
       } else {
