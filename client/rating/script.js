@@ -19,7 +19,7 @@ let table;
 async function initializeSubjects() {
   try {
     const [schoolYearResponse, semesterResponse, ratingAccessResponse] = await Promise.all([
-      requestJson("/api/schoolyear/inuse/active"),
+      requestJson("/api/schoolyear/current"),
       requestJson("/api/semester/current/student"),
       requestJson("/api/transaction/rating-access/status"),
     ]);
@@ -29,9 +29,7 @@ async function initializeSubjects() {
       ? "Rating open"
       : "Rating closed";
     availability.classList.toggle("open", state.ratingEnabled);
-    const schoolYear = (schoolYearResponse.data || []).find(
-      (row) => Number(row.is_active) === 1,
-    );
+    const schoolYear = schoolYearResponse.data;
     const semester = semesterResponse.data;
     if (!schoolYear || !semester) {
       throw new Error("No active academic period is configured.");

@@ -25,13 +25,13 @@ $(document).ready(() => {
       { data: "name", title: "School year" },
       {
         data: "in_use",
-        title: "In use",
+        title: "Current",
         width: "14%",
         className: "dt-center",
         render: (value) =>
           value
-            ? '<span class="status-badge active">In use</span>'
-            : '<span class="status-badge inactive">Not in use</span>',
+            ? '<span class="status-badge active">Current</span>'
+            : "—",
       },
       {
         data: "is_active",

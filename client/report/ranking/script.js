@@ -55,7 +55,7 @@ async function loadReportOptions() {
   showLoading("Loading report options...");
   try {
     const [schoolYears, semesters, colleges, departments] = await Promise.all([
-      requestJson("/api/schoolyear/inuse/active"),
+      requestJson("/api/schoolyear/all/active"),
       requestJson("/api/semester/all/active"),
       requestJson("/api/college/all/active"),
       requestJson("/api/department/all/active"),

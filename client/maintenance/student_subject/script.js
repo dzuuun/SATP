@@ -716,27 +716,13 @@ const getSchoolYear = async () => {
   const schoolYearList = document.querySelector("#selectSchoolYear");
   const schoolYearList2 = document.querySelector("#loadSchoolYear");
   const [allResponse, currentResponse] = await Promise.all([
-    fetch("/api/schoolyear/"),
-    fetch("/api/schoolyear/inuse/active"),
+    fetch("/api/schoolyear/all/active"),
+    fetch("/api/schoolyear/current"),
   ]);
   const data = await allResponse.json();
   const currentData = await currentResponse.json();
   const rows = data.data || [];
-  const endpointRows = Array.isArray(currentData.data)
-    ? currentData.data
-    : [currentData.data].filter(Boolean);
-  const activeInUse = rows
-    .filter((row) => Number(row.in_use) === 1 && Number(row.is_active) === 1)
-    .sort((a, b) => {
-      const startYearA = Number(String(a.name).match(/\d{4}/)?.[0] || 0);
-      const startYearB = Number(String(b.name).match(/\d{4}/)?.[0] || 0);
-      return startYearB - startYearA || Number(b.id) - Number(a.id);
-    });
-  const current =
-    activeInUse[0] ||
-    endpointRows
-      .filter((row) => Number(row.is_active) === 1)
-      .sort((a, b) => Number(b.id) - Number(a.id))[0];
+  const current = currentData.data;
   currentSchoolYearId = current?.id;
 
   rows.forEach((row) => {

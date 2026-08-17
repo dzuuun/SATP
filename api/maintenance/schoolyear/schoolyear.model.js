@@ -37,6 +37,17 @@ module.exports = {
     );
   },
 
+  getCurrentSchoolYear: (callBack) => {
+    pool.query(
+      `SELECT *
+       FROM school_years
+       WHERE in_use = 1 AND is_active = 1
+       ORDER BY id DESC
+       LIMIT 1`,
+      (error, results) => callBack(error, results?.[0]),
+    );
+  },
+
   getSchoolYearById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM school_years WHERE id = ?",
@@ -63,60 +74,64 @@ module.exports = {
     );
   },
 
-  addSchoolYear: (data, callBack) => {
-    pool.query(
-      "SELECT name FROM school_years WHERE name=?",
-      [data.name],
-      (error, results) => {
-        if (results.length === 0) {
-          pool.query(
-            "INSERT INTO school_years (name, in_use, is_active) VALUES (?,?,?)",
-            [data.name, data.in_use, data.is_active],
-            (error, results) => {
-              pool.query(
-                "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [data.user_id, "Added School Year: " + data.name],
-                (error, results) => {
-                  if (error) {
-                    console.log(error);
-                  }
-                }
-              );
-              if (error) {
-                callBack(error);
-              }
-              return callBack(null, results);
-            }
-          );
-        } else {
-          return callBack(results);
-        }
+  addSchoolYear: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+      const [existing] = await connection.query("SELECT id FROM school_years WHERE name = ?", [data.name]);
+      if (existing.length) {
+        const error = new Error("School year already exists.");
+        error.code = "ER_DUP_ENTRY";
+        throw error;
       }
-    );
+      const isActive = Number(data.is_active) === 1 ? 1 : 0;
+      const isInUse = isActive && Number(data.in_use) === 1 ? 1 : 0;
+      if (isInUse) await connection.query("UPDATE school_years SET in_use = 0");
+      const [results] = await connection.query(
+        "INSERT INTO school_years (name, in_use, is_active) VALUES (?,?,?)",
+        [data.name, isInUse, isActive],
+      );
+      await connection.query(
+        "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+        [data.user_id, "Added School Year: " + data.name],
+      );
+      await connection.commit();
+      return callBack(null, results);
+    } catch (error) {
+      if (connection) await connection.rollback();
+      return callBack(error);
+    } finally {
+      connection?.release();
+    }
   },
 
-  updateSchoolYear: (data, callBack) => {
-    pool.query(
-      "UPDATE school_years SET name = ?, in_use = ?, is_active = ? WHERE id = ?",
-      [data.name, data.in_use, data.is_active, data.id],
-      (error, results) => {
-        if (results.changedRows == 1) {
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, "Updated School Year: " + data.name],
-            (error, results) => {
-              if (error) {
-                console.log(error);
-              }
-            }
-          );
-        }
-        if (error) {
-          callBack(error);
-        }
-        return callBack(null, results);
+  updateSchoolYear: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+      const isActive = Number(data.is_active) === 1 ? 1 : 0;
+      const isInUse = isActive && Number(data.in_use) === 1 ? 1 : 0;
+      if (isInUse) await connection.query("UPDATE school_years SET in_use = 0 WHERE id <> ?", [data.id]);
+      const [results] = await connection.query(
+        "UPDATE school_years SET name = ?, in_use = ?, is_active = ? WHERE id = ?",
+        [data.name, isInUse, isActive, data.id],
+      );
+      if (results.changedRows === 1) {
+        await connection.query(
+          "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+          [data.user_id, "Updated School Year: " + data.name],
+        );
       }
-    );
+      await connection.commit();
+      return callBack(null, results);
+    } catch (error) {
+      if (connection) await connection.rollback();
+      return callBack(error);
+    } finally {
+      connection?.release();
+    }
   },
 
   deleteSchoolYear: (data, callBack) => {

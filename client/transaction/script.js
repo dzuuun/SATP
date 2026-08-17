@@ -33,9 +33,14 @@ const API = {
 
   async fetchOptions(endpoint, elementId) {
     try {
-      const res = await fetch(`/api/${endpoint}/all/active`);
+      const isSchoolYear = endpoint === "schoolyear";
+      const [res, currentRes] = await Promise.all([
+        fetch(`/api/${endpoint}/all/active`),
+        isSchoolYear ? fetch("/api/schoolyear/current") : Promise.resolve(null),
+      ]);
       const result = await res.json();
       const data = result.data || [];
+      const currentResult = currentRes?.ok ? await currentRes.json() : null;
       const select = document.getElementById(elementId);
 
       if (!select) return;
@@ -48,11 +53,9 @@ const API = {
         opt.textContent = row.name;
         select.appendChild(opt);
       });
-      const currentOption = endpoint.includes("semester")
-        ? null
-        : data.find(
-              (row) => Number(row.in_use) === 1 && Number(row.is_active) === 1,
-            ) || data[0];
+      const currentOption = isSchoolYear
+        ? data.find((row) => Number(row.id) === Number(currentResult?.data?.id)) || null
+        : null;
       if (currentOption) select.value = String(currentOption.id);
       return currentOption || null;
     } catch (err) {

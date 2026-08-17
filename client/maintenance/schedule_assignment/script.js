@@ -72,17 +72,19 @@ async function loadTeachers() {
 }
 
 async function loadPeriods() {
-  const [schoolYearResponse, semesterResponse, currentSemesterResponse] = await Promise.all([
-    fetch("/api/schoolyear"),
-    fetch("/api/semester"),
+  const [schoolYearResponse, currentSchoolYearResponse, semesterResponse, currentSemesterResponse] = await Promise.all([
+    fetch("/api/schoolyear/all/active"),
+    fetch("/api/schoolyear/current"),
+    fetch("/api/semester/all/active"),
     fetch("/api/semester/current/admin"),
   ]);
-  const [schoolYearPayload, semesterPayload, currentSemesterPayload] = await Promise.all([
+  const [schoolYearPayload, currentSchoolYearPayload, semesterPayload, currentSemesterPayload] = await Promise.all([
     schoolYearResponse.json(),
+    currentSchoolYearResponse.json(),
     semesterResponse.json(),
     currentSemesterResponse.json(),
   ]);
-  const populate = (selectId, rows, currentId = null, requireCurrent = false) => {
+  const populate = (selectId, rows, currentId = null) => {
     const select = document.getElementById(selectId);
     rows.forEach((row) => {
       const option = document.createElement("option");
@@ -90,19 +92,21 @@ async function loadPeriods() {
       option.textContent = row.name;
       select.appendChild(option);
     });
-    const current = requireCurrent
-      ? rows.find((row) => Number(row.id) === Number(currentId))
-      : currentId
-        ? rows.find((row) => Number(row.id) === Number(currentId))
-        : rows.find((row) => Number(row.is_active) === 1) || rows[0];
+    const current =
+      rows.find((row) => Number(row.id) === Number(currentId)) ||
+      rows.find((row) => Number(row.is_active) === 1) ||
+      rows[0];
     if (current) select.value = String(current.id);
   };
-  populate("schoolYearSelect", schoolYearPayload.data || []);
+  populate(
+    "schoolYearSelect",
+    schoolYearPayload.data || [],
+    currentSchoolYearPayload.data?.id,
+  );
   populate(
     "semesterSelect",
     semesterPayload.data || [],
     currentSemesterPayload.data?.id,
-    true,
   );
 }
 

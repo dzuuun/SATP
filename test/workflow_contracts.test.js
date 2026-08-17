@@ -145,6 +145,7 @@ test("Student rating access is separated for SHS and non-SHS students", () => {
 test("SHS and College use independent current academic terms", () => {
   const migration = read("database/migrations/2026-08-13_separate_shs_college_terms.sql");
   const semesterModel = read("api/maintenance/semester/semester.model.js");
+  const schoolYearModel = read("api/maintenance/schoolyear/schoolyear.model.js");
   const semesterRouter = read("api/maintenance/semester/semester.router.js");
   const rating = read("client/rating/script.js");
   const studentCourse = read("client/maintenance/student_subject/script.js");
@@ -154,6 +155,8 @@ test("SHS and College use independent current academic terms", () => {
   assert.match(semesterModel, /departments\.code\)\) = 'SHS'/);
   assert.match(semesterModel, /semesters\.is_current_shs = 1/);
   assert.match(semesterModel, /semesters\.is_current_college = 1/);
+  assert.match(schoolYearModel, /UPDATE school_years SET in_use = 0/);
+  assert.match(schoolYearModel, /isActive && Number\(data\.in_use\) === 1/);
   assert.match(semesterRouter, /router\.get\("\/current\/student", getCurrentSemesterForStudent\)/);
   assert.match(rating, /\/api\/semester\/current\/student/);
   assert.match(studentCourse, /\/api\/semester\/current\/admin/);
@@ -839,6 +842,34 @@ test("Semester dropdowns list active terms instead of legacy in-use terms", () =
     assert.match(source, /\/api\/semester\/all\/active/);
     assert.doesNotMatch(source, /\/api\/semester\/inuse\/active/);
   });
+});
+
+test("School-year dropdowns list active years and select the current year", () => {
+  const reportScripts = [
+    "client/report/ranking/script.js",
+    "client/report/rating/script.js",
+  ];
+  reportScripts.forEach((file) => {
+    const source = read(file);
+    assert.match(source, /\/api\/schoolyear\/all\/active/);
+    assert.match(source, /\/api\/schoolyear\/current/);
+    assert.doesNotMatch(source, /\/api\/schoolyear\/inuse\/active/);
+  });
+
+  const studentCourse = read("client/maintenance/student_subject/script.js");
+  assert.match(studentCourse, /\/api\/schoolyear\/all\/active/);
+  assert.match(studentCourse, /\/api\/schoolyear\/current/);
+  assert.doesNotMatch(studentCourse, /\/api\/schoolyear\/inuse\/active/);
+  assert.match(read("client/rating/script.js"), /\/api\/schoolyear\/current/);
+  const transactions = read("client/transaction/script.js");
+  assert.match(transactions, /fetch\(`\/api\/\$\{endpoint\}\/all\/active`\)/);
+  assert.match(transactions, /fetch\("\/api\/schoolyear\/current"\)/);
+  assert.doesNotMatch(transactions, /\/api\/\$\{endpoint\}\/inuse\/active/);
+  const scheduleAssignment = read("client/maintenance/schedule_assignment/script.js");
+  assert.match(scheduleAssignment, /fetch\("\/api\/schoolyear\/all\/active"\)/);
+  assert.match(scheduleAssignment, /fetch\("\/api\/schoolyear\/current"\)/);
+  assert.doesNotMatch(scheduleAssignment, /fetch\("\/api\/schoolyear"\)(?!\/)/);
+  assert.match(read("api/maintenance/schoolyear/schoolyear.router.js"), /router\.get\("\/current", getCurrentSchoolYear\)/);
 });
 
 test("Program dropdowns provide search inside the option panel", () => {

@@ -19,16 +19,6 @@ $(document).ready(() => {
     columns: [
       { data: "name", title: "Semester" },
       {
-        data: "in_use",
-        title: "In use",
-        width: "14%",
-        className: "dt-center",
-        render: (v) =>
-          v
-            ? '<span class="status-badge active">In use</span>'
-            : '<span class="status-badge inactive">Not in use</span>',
-      },
-      {
         data: "is_current_college",
         title: "College current",
         className: "dt-center",

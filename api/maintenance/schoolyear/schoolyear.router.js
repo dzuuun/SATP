@@ -3,6 +3,7 @@ const {
   getSchoolYearByName,
   getActiveSchoolYears,
   getInUseSchoolYear,
+  getCurrentSchoolYear,
   getSchoolYears,
   addSchoolYear,
   updateSchoolYear,
@@ -11,6 +12,7 @@ const {
 const router = require("express").Router();
 
 router.post("/add", addSchoolYear);
+router.get("/current", getCurrentSchoolYear);
 router.get("/:id", getSchoolYearById);
 router.get("/all/active", getActiveSchoolYears);
 router.get("/", getSchoolYears);
