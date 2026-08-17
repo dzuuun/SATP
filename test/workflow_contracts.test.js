@@ -282,8 +282,11 @@ test("Excluded rated enrollments do not count in report scores", () => {
   assert.match(rating, /AND is_excluded = 0/);
   const ratingFilters = rating.match(/arc\.is_excluded = 0/g) || [];
   assert.ok(ratingFilters.length >= 10);
-  const rankingJoins = ranking.match(/arc\.id = transactions\.id AND arc\.is_excluded = 0/g) || [];
+  const rankingJoins = ranking.match(/trans_item\.transaction_id = arc\.id/g) || [];
   assert.equal(rankingJoins.length, 4);
+  assert.doesNotMatch(ranking, /\btransactions\b/);
+  assert.match(ranking, /UPPER\(TRIM\(student_departments\.code\)\) <> 'SHS'/);
+  assert.match(ranking, /UPPER\(TRIM\(student_departments\.code\)\) = 'SHS'/);
 });
 
 test("Excluded courses are hidden from rating lists and transaction totals", () => {

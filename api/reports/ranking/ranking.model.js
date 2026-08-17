@@ -12,19 +12,21 @@ module.exports = {
          departments.name AS department, 
          colleges.name AS college, 
          ROUND(AVG(CAST(trans_item.rate AS float)), 2) AS mean
-       FROM teachers
-       INNER JOIN transactions ON teachers.id = transactions.teacher_id
-       INNER JOIN academic_records_consolidated AS arc
-         ON arc.id = transactions.id AND arc.is_excluded = 0
-       INNER JOIN trans_item ON transactions.id = trans_item.transaction_id
-       INNER JOIN school_years ON transactions.school_year_id = school_years.id
-       INNER JOIN semesters ON transactions.semester_id = semesters.id
+       FROM academic_records_consolidated AS arc
+       INNER JOIN trans_item ON trans_item.transaction_id = arc.id
+       INNER JOIN teachers ON teachers.id = arc.teacher_id
+       INNER JOIN user_info AS student_info ON student_info.user_id = arc.student_id
+       INNER JOIN courses AS student_courses ON student_courses.id = student_info.course_id
+       INNER JOIN departments AS student_departments ON student_departments.id = student_courses.department_id
+       INNER JOIN school_years ON arc.school_year_id = school_years.id
+       INNER JOIN semesters ON arc.semester_id = semesters.id
        INNER JOIN departments ON teachers.department_id = departments.id
        INNER JOIN colleges ON departments.college_id = colleges.id
-       WHERE transactions.school_year_id = ?
-         AND transactions.semester_id = ?
+       WHERE arc.school_year_id = ?
+         AND arc.semester_id = ?
+         AND arc.is_excluded = 0
          AND teachers.is_part_time = ?
-         AND NOT departments.code = 'SHS'
+         AND UPPER(TRIM(student_departments.code)) <> 'SHS'
        GROUP BY 
          teachers.id,
          school_years.name,
@@ -56,19 +58,21 @@ module.exports = {
          departments.name AS department, 
          colleges.name AS college, 
          ROUND(AVG(CAST(trans_item.rate AS float)), 2) AS mean
-       FROM teachers
-       INNER JOIN transactions ON teachers.id = transactions.teacher_id
-       INNER JOIN academic_records_consolidated AS arc
-         ON arc.id = transactions.id AND arc.is_excluded = 0
-       INNER JOIN trans_item ON transactions.id = trans_item.transaction_id
-       INNER JOIN school_years ON transactions.school_year_id = school_years.id
-       INNER JOIN semesters ON transactions.semester_id = semesters.id
+       FROM academic_records_consolidated AS arc
+       INNER JOIN trans_item ON trans_item.transaction_id = arc.id
+       INNER JOIN teachers ON teachers.id = arc.teacher_id
+       INNER JOIN user_info AS student_info ON student_info.user_id = arc.student_id
+       INNER JOIN courses AS student_courses ON student_courses.id = student_info.course_id
+       INNER JOIN departments AS student_departments ON student_departments.id = student_courses.department_id
+       INNER JOIN school_years ON arc.school_year_id = school_years.id
+       INNER JOIN semesters ON arc.semester_id = semesters.id
        INNER JOIN departments ON teachers.department_id = departments.id
        INNER JOIN colleges ON departments.college_id = colleges.id
-       WHERE transactions.school_year_id = ?
-         AND transactions.semester_id = ?
+       WHERE arc.school_year_id = ?
+         AND arc.semester_id = ?
+         AND arc.is_excluded = 0
          AND teachers.is_part_time = ?
-         AND departments.code = 'SHS'
+         AND UPPER(TRIM(student_departments.code)) = 'SHS'
        GROUP BY 
          teachers.id,
          school_years.name,
@@ -100,17 +104,16 @@ module.exports = {
          departments.name AS department, 
          colleges.name AS college, 
          ROUND(AVG(CAST(trans_item.rate AS float)), 2) AS mean
-       FROM teachers
-       INNER JOIN transactions ON teachers.id = transactions.teacher_id
-       INNER JOIN academic_records_consolidated AS arc
-         ON arc.id = transactions.id AND arc.is_excluded = 0
-       INNER JOIN trans_item ON transactions.id = trans_item.transaction_id
-       INNER JOIN school_years ON transactions.school_year_id = school_years.id
-       INNER JOIN semesters ON transactions.semester_id = semesters.id
+       FROM academic_records_consolidated AS arc
+       INNER JOIN trans_item ON trans_item.transaction_id = arc.id
+       INNER JOIN teachers ON teachers.id = arc.teacher_id
+       INNER JOIN school_years ON arc.school_year_id = school_years.id
+       INNER JOIN semesters ON arc.semester_id = semesters.id
        INNER JOIN departments ON teachers.department_id = departments.id
        INNER JOIN colleges ON departments.college_id = colleges.id
-       WHERE transactions.school_year_id = ?
-         AND transactions.semester_id = ?
+       WHERE arc.school_year_id = ?
+         AND arc.semester_id = ?
+         AND arc.is_excluded = 0
          AND teachers.is_part_time = ?
          AND colleges.id = ?
        GROUP BY 
@@ -149,17 +152,16 @@ module.exports = {
          departments.name AS department, 
          colleges.name AS college, 
          ROUND(AVG(CAST(trans_item.rate AS float)), 2) AS mean
-       FROM teachers
-       INNER JOIN transactions ON teachers.id = transactions.teacher_id
-       INNER JOIN academic_records_consolidated AS arc
-         ON arc.id = transactions.id AND arc.is_excluded = 0
-       INNER JOIN trans_item ON transactions.id = trans_item.transaction_id
-       INNER JOIN school_years ON transactions.school_year_id = school_years.id
-       INNER JOIN semesters ON transactions.semester_id = semesters.id
+       FROM academic_records_consolidated AS arc
+       INNER JOIN trans_item ON trans_item.transaction_id = arc.id
+       INNER JOIN teachers ON teachers.id = arc.teacher_id
+       INNER JOIN school_years ON arc.school_year_id = school_years.id
+       INNER JOIN semesters ON arc.semester_id = semesters.id
        INNER JOIN departments ON teachers.department_id = departments.id
        INNER JOIN colleges ON departments.college_id = colleges.id
-       WHERE transactions.school_year_id = ?
-         AND transactions.semester_id = ?
+       WHERE arc.school_year_id = ?
+         AND arc.semester_id = ?
+         AND arc.is_excluded = 0
          AND teachers.is_part_time = ?
          AND departments.id = ?
        GROUP BY 
