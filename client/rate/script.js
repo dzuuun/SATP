@@ -106,9 +106,10 @@ document
       return;
     }
     if (
-      !confirm(
+      !(await satpConfirm(
         "Submit this assessment? Your answers cannot be changed afterward.",
-      )
+        { title: "Submit assessment", confirmText: "Submit" },
+      ))
     )
       return;
 

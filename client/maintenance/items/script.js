@@ -66,11 +66,12 @@ document
   .getElementById("newItemForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this item?")) return;
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this item?"))) return;
     await saveItem(
       "/api/item/add",
       "POST",
-      formPayload(event.currentTarget, "isQuestionActive"),
+      formPayload(form, "isQuestionActive"),
       "addNewModal",
     );
   });
@@ -79,8 +80,9 @@ document
   .getElementById("editItemForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these item changes?")) return;
-    const payload = formPayload(event.currentTarget, "isQuestionActiveEdit");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Save these item changes?"))) return;
+    const payload = formPayload(form, "isQuestionActiveEdit");
     payload.id = rowIdToUpdate;
     await saveItem("/api/item/update", "PUT", payload, "editModal");
   });

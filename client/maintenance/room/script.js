@@ -157,7 +157,7 @@ formAddRoom.addEventListener("submit", async (event) => {
 
   const payload = Object.fromEntries(formData);
 
-  if (confirm("Create this new room?")) {
+  if (await satpConfirm("Create this new room?")) {
     try {
       const response = await fetch(`/api/room/add`, {
         method: "POST",
@@ -218,7 +218,7 @@ formEditRoom.addEventListener("submit", async (event) => {
   formData.append("id", rowIdToUpdate);
   formData.append("user_id", state.user);
 
-  if (confirm("Save changes to this room?")) {
+  if (await satpConfirm("Save changes to this room?")) {
     const response = await fetch(`/api/room/update`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

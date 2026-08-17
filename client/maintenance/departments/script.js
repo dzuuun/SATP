@@ -57,8 +57,9 @@ document
   .getElementById("newDepartmentForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this department?")) return;
-    const payload = formPayload(event.currentTarget, "isDepartmentActive");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this department?"))) return;
+    const payload = formPayload(form, "isDepartmentActive");
     await saveDepartment("/api/department/add", "POST", payload, "addNewModal");
   });
 
@@ -82,8 +83,9 @@ document
   .getElementById("editDepartmentForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these department changes?")) return;
-    const payload = formPayload(event.currentTarget, "isDepartmentActiveEdit");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Save these department changes?"))) return;
+    const payload = formPayload(form, "isDepartmentActiveEdit");
     payload.id = rowIdToUpdate;
     await saveDepartment("/api/department/update", "PUT", payload, "editModal");
   });

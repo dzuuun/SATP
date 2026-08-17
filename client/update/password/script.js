@@ -47,7 +47,7 @@ form.addEventListener("submit", async (event) => {
   if (!checkMatch()) return showToast("The new passwords do not match.");
   if (currentPassword.value === newPassword.value)
     return showToast("Choose a password different from your current password.");
-  if (!confirm("Update your password?")) return;
+  if (!(await satpConfirm("Update your password?"))) return;
 
   setSubmitting(true);
   try {

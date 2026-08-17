@@ -145,7 +145,7 @@ document
     if (!String(payload.password || "").trim() && !String(payload.google_email || "").trim()) {
       return setErrorMessage("Enter a temporary password or an institutional email.");
     }
-    if (!confirm("Create this student?")) return;
+    if (!(await satpConfirm("Create this student?"))) return;
     try {
       const r = await requestJson("/api/student/add", {
         method: "POST",
@@ -194,9 +194,10 @@ document
   .getElementById("editStudentForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!confirm("Save these student changes?")) return;
+    const form = e.currentTarget;
+    if (!(await satpConfirm("Save these student changes?"))) return;
     const info = {
-        ...Object.fromEntries(new FormData(e.currentTarget)),
+        ...Object.fromEntries(new FormData(form)),
         id: rowIdToUpdate,
         user_id: state.userId,
       },

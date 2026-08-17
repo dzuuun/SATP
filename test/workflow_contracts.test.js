@@ -147,6 +147,7 @@ test("SHS and College use independent current academic terms", () => {
   const semesterModel = read("api/maintenance/semester/semester.model.js");
   const semesterRouter = read("api/maintenance/semester/semester.router.js");
   const rating = read("client/rating/script.js");
+  const studentCourse = read("client/maintenance/student_subject/script.js");
   const semesterPage = read("client/maintenance/semester/index.html");
   assert.match(migration, /is_current_college/);
   assert.match(migration, /is_current_shs/);
@@ -155,6 +156,14 @@ test("SHS and College use independent current academic terms", () => {
   assert.match(semesterModel, /semesters\.is_current_college = 1/);
   assert.match(semesterRouter, /router\.get\("\/current\/student", getCurrentSemesterForStudent\)/);
   assert.match(rating, /\/api\/semester\/current\/student/);
+  assert.match(
+    studentCourse,
+    /activeSemesters\.find\(\(row\) => Number\(row\.is_current_college\) === 1\)/,
+  );
+  assert.doesNotMatch(
+    studentCourse,
+    /const currentSemester = rows[\s\S]{0,180}Number\(b\.id\) - Number\(a\.id\)/,
+  );
   assert.match(semesterPage, /Current for College/);
   assert.match(semesterPage, /Current for SHS/);
 });
@@ -436,6 +445,105 @@ test("Google Workspace SSO verifies domain and links existing SATP users", () =>
   assert.doesNotMatch(usersPage, /name="google_email"[^>]*required/);
   assert.match(usersPage, /School Google email <span class="optional-label">Optional<\/span>/);
   assert.match(migration, /UNIQUE INDEX uq_users_google_email/);
+});
+
+test("Equivalent maintenance import pages use the same review and progress workflow", () => {
+  const pages = [
+    "college",
+    "course",
+    "departments",
+    "items",
+    "room",
+    "student",
+    "subject",
+    "teacher",
+  ];
+  pages.forEach((page) => {
+    const html = read(`client/maintenance/${page}/index.html`);
+    [
+      "importFileModal",
+      "importPreviewModal",
+      "spinnerStatusModal",
+      "runImportButton",
+      "createdPreview",
+      "updatedPreview",
+      "errorPreview",
+      "toast-container",
+    ].forEach((id) =>
+      assert.match(
+        html,
+        new RegExp(`id=["']${id}["']`),
+        `${page} is missing ${id}`,
+      ),
+    );
+    assert.match(html, /Validation complete/i, `${page} needs the standard validation result heading`);
+    assert.match(html, /Import in progress/i, `${page} needs the standard import progress heading`);
+  });
+});
+
+test("Standard maintenance tables hide inactive records by default", () => {
+  const pages = [
+    "admin",
+    "category",
+    "college",
+    "course",
+    "departments",
+    "items",
+    "room",
+    "school_year",
+    "semester",
+    "student",
+    "subject",
+    "teacher",
+  ];
+  pages.forEach((page) => {
+    const html = read(`client/maintenance/${page}/index.html`);
+    assert.match(
+      html,
+      /<script\s+src=["']\.\.\/active-filter\.js["']\s*>\s*<\/script>/,
+      `${page} must provide the shared Show inactive toggle`,
+    );
+  });
+});
+
+test("Authenticated non-Grad School pages share the same shell services", () => {
+  const authenticatedPages = walk(path.join(root, "client")).filter((file) => {
+    if (!file.endsWith(".html") || file.toLowerCase().includes("gradschool"))
+      return false;
+    const html = fs.readFileSync(file, "utf8");
+    return (
+      html.includes("/auth-session.js") &&
+      /class=["'][^"']*site-header/.test(html)
+    );
+  });
+  authenticatedPages.forEach((file) => {
+    const html = fs.readFileSync(file, "utf8");
+    const relative = path.relative(root, file);
+    assert.match(html, /id=["']sidebar-container["']/, `${relative} needs the shared sidebar host`);
+    assert.match(html, /<script\s+src=["']\/shared-ui\.js["']\s*>\s*<\/script>/, `${relative} needs shared UI behavior`);
+  });
+});
+
+test("Non-Grad School confirmations use the shared SATP modal", () => {
+  const scripts = walk(path.join(root, "client")).filter(
+    (file) =>
+      file.endsWith(".js") &&
+      !file.toLowerCase().includes("gradschool") &&
+      !file.includes(`${path.sep}vendor${path.sep}`),
+  );
+  scripts.forEach((file) => {
+    const script = fs.readFileSync(file, "utf8");
+    assert.doesNotMatch(
+      script,
+      /(?:window\.)?confirm\s*\(/,
+      `${path.relative(root, file)} still uses a browser confirmation`,
+    );
+  });
+  const shared = read("client/shared-ui.js");
+  assert.match(shared, /window\.satpConfirm\s*=/);
+  assert.match(shared, /role", "dialog"/);
+  assert.match(shared, /aria-modal/);
+  assert.match(shared, /event\.key === "Escape"/);
 });
 
 test("Student Maintenance treats school Google email as optional", () => {

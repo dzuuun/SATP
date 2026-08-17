@@ -124,7 +124,7 @@ formAddAdmin.addEventListener("submit", async (event) => {
   if (!String(data.password || "").trim() && !String(data.google_email || "").trim()) {
     return setErrorMessage("Enter a temporary password or an institutional email.");
   }
-  if (confirm("This action cannot be undone.") == true) {
+  if (await satpConfirm("Create this administrator account?")) {
     await fetch(`/api/admin/add`, {
       method: "POST",
       headers: {
@@ -211,7 +211,7 @@ formEditAdmin.addEventListener("submit", async (event) => {
   formData.append("id", rowIdToUpdate);
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
-  if (confirm("This action cannot be undone.") == true) {
+  if (await satpConfirm("Save these administrator changes?")) {
     await fetch(`/api/admin/update/info`, {
       method: "PUT",
       headers: {
@@ -244,7 +244,7 @@ formEditAdminStatus.addEventListener("submit", async (event) => {
     status = { is_active: 1, id: rowIdToUpdate, user_id: user };
   }
 
-  if (confirm("This action cannot be undone.") == true) {
+  if (await satpConfirm("Change this administrator's status?")) {
     await fetch(`/api/admin/update/status`, {
       method: "PUT",
       headers: {
@@ -274,7 +274,12 @@ function deleteRow(id) {
 
 async function confirmDelete() {
   const data = { id: rowIdToDelete, user_id: user };
-  if (confirm("This action cannot be undone.") == true) {
+  if (
+    await satpConfirm("Delete this administrator account?", {
+      title: "Delete administrator",
+      confirmText: "Delete",
+    })
+  ) {
     await fetch(`/api/admin/delete`, {
       method: "DELETE",
       headers: {

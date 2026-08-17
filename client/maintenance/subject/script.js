@@ -55,8 +55,9 @@ document
   .getElementById("newSubjectForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this course?")) return;
-    const payload = formPayload(event.currentTarget, "isSubjectActive");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this course?"))) return;
+    const payload = formPayload(form, "isSubjectActive");
     await saveSubject("/api/subject/add", "POST", payload, "addNewModal");
   });
 
@@ -79,8 +80,9 @@ document
   .getElementById("editSubjectForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these course changes?")) return;
-    const payload = formPayload(event.currentTarget, "isSubjectActiveEdit");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Save these course changes?"))) return;
+    const payload = formPayload(form, "isSubjectActiveEdit");
     payload.id = rowIdToUpdate;
     await saveSubject("/api/subject/update", "PUT", payload, "editModal");
   });

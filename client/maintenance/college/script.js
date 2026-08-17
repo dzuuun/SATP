@@ -55,8 +55,9 @@ document
   .getElementById("newCollegeForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this college?")) return;
-    const payload = formPayload(event.currentTarget, "isCollegeActive");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this college?"))) return;
+    const payload = formPayload(form, "isCollegeActive");
     await saveCollege("/api/college/add", "POST", payload, "addNewModal");
   });
 
@@ -79,8 +80,9 @@ document
   .getElementById("editCollegeForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these college changes?")) return;
-    const payload = formPayload(event.currentTarget, "isCollegeActiveEdit");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Save these college changes?"))) return;
+    const payload = formPayload(form, "isCollegeActiveEdit");
     payload.id = rowIdToUpdate;
     await saveCollege("/api/college/update", "PUT", payload, "editModal");
   });

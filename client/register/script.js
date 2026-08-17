@@ -50,22 +50,20 @@ raterId();
 const registerForm = document.querySelector("#registerForm");
 registerForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  const formData = new FormData(registerForm);
+  const form = event.currentTarget;
   var createPassword = document.getElementById("createPassword").value;
   var confirmPassword = document.getElementById("confirmPassword").value;
-
-  formData.append("permission_id", permission_id);
-  formData.append("is_student_rater", 1);
-  formData.append("is_admin_rater", 0);
-
-  formData.append("is_active", "1");
-  formData.append("is_temp_pass", "1");
-
-  const data = Object.fromEntries(formData);
   if (createPassword === confirmPassword) {
     document.getElementById("passwordMatchField").innerHTML = "";
-    if (confirm("This action cannot be undone.") == true) {
+    if (await satpConfirm("Create this account?")) {
+      const formData = new FormData(form);
+      formData.append("permission_id", permission_id);
+      formData.append("is_student_rater", 1);
+      formData.append("is_admin_rater", 0);
+      formData.append("is_active", "1");
+      formData.append("is_temp_pass", "1");
+      const data = Object.fromEntries(formData);
+
       await fetch(`/api/login/register`, {
         method: "POST",
         headers: {

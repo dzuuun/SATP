@@ -149,8 +149,9 @@ document
   .getElementById("newUserForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this user?")) return;
-    const payload = Object.fromEntries(new FormData(event.currentTarget));
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this user?"))) return;
+    const payload = Object.fromEntries(new FormData(form));
     if (!String(payload.password || "").trim() && !String(payload.google_email || "").trim()) {
       return showToast("Enter a temporary password or an institutional email.");
     }
@@ -222,7 +223,7 @@ document
   });
 
 async function save(url, method, payload, modalId) {
-  if (!confirm("Save these changes?")) return;
+  if (!(await satpConfirm("Save these changes?"))) return;
   try {
     const response = await requestJson(url, {
       method,
@@ -443,7 +444,10 @@ document
   .addEventListener("click", async () => {
     if (
       state.importMode === "deactivate" &&
-      !confirm(`Deactivate ${state.validRows.length} uploaded user account${state.validRows.length === 1 ? "" : "s"}?`)
+      !(await satpConfirm(`Deactivate ${state.validRows.length} uploaded user account${state.validRows.length === 1 ? "" : "s"}?`, {
+        title: "Deactivate accounts",
+        confirmText: "Deactivate",
+      }))
     ) return;
     toggleModal("importPreviewModal", false);
     await delay(260);

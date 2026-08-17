@@ -63,12 +63,13 @@ document
   .getElementById("newSchoolYearForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this school year?")) return;
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this school year?"))) return;
     await saveSchoolYear(
       "/api/schoolyear/add",
       "POST",
       formPayload(
-        event.currentTarget,
+        form,
         "isSchoolYearInUse",
         "isSchoolYearActive",
       ),
@@ -80,9 +81,10 @@ document
   .getElementById("editSchoolYearForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these school year changes?")) return;
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Save these school year changes?"))) return;
     const payload = formPayload(
-      event.currentTarget,
+      form,
       "isSchoolYearInUseEdit",
       "isSchoolYearActiveEdit",
     );

@@ -64,10 +64,11 @@ document
   .getElementById("newCategoryForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this category?")) return;
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this category?"))) return;
 
     const payload = {
-      ...Object.fromEntries(new FormData(event.currentTarget)),
+      ...Object.fromEntries(new FormData(form)),
       is_active: document.getElementById("isCategoryActive").checked ? 1 : 0,
       user_id: state.userId,
     };
@@ -112,10 +113,11 @@ document
   .getElementById("editCategoryForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these category changes?")) return;
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Save these category changes?"))) return;
 
     const payload = {
-      ...Object.fromEntries(new FormData(event.currentTarget)),
+      ...Object.fromEntries(new FormData(form)),
       id: rowIdToUpdate,
       is_active: document.getElementById("isCategoryActiveEdit").checked
         ? 1

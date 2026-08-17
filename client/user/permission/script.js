@@ -101,11 +101,12 @@ document
   .getElementById("newPermissionForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this permission?")) return;
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this permission?"))) return;
     await savePermission(
       "/api/permission/add",
       "POST",
-      permissionPayload(event.currentTarget),
+        permissionPayload(form),
       "addNewModal",
     );
   });
@@ -133,8 +134,9 @@ document
   .getElementById("editPermissionForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these permission changes?")) return;
-    const payload = permissionPayload(event.currentTarget, "Edit");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Save these permission changes?"))) return;
+    const payload = permissionPayload(form, "Edit");
     payload.id = rowIdToUpdate;
     await savePermission("/api/permission/update", "PUT", payload, "editModal");
   });

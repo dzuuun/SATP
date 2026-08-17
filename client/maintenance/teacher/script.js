@@ -102,8 +102,9 @@ document
   .getElementById("newTeacherForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Create this teacher?")) return;
-    const payload = formPayload(event.currentTarget, "isTeacherActive");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this teacher?"))) return;
+    const payload = formPayload(form, "isTeacherActive");
     await saveTeacher("/api/teacher/add", "POST", payload, "addNewModal");
   });
 
@@ -133,8 +134,9 @@ document
   .getElementById("editTeacherForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!confirm("Save these teacher changes?")) return;
-    const payload = formPayload(event.currentTarget, "isTeacherActiveEdit");
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Save these teacher changes?"))) return;
+    const payload = formPayload(form, "isTeacherActiveEdit");
     payload.id = rowIdToUpdate;
     await saveTeacher("/api/teacher/update", "PUT", payload, "editModal");
   });

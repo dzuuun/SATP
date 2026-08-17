@@ -81,10 +81,18 @@ async function initializeGoogleLogin() {
     }
     if (!window.google?.accounts?.id) return;
     google.accounts.id.initialize({ client_id: response.data.client_id, callback: handleGoogleCredential });
-    google.accounts.id.renderButton(document.getElementById("googleSignInButton"), {
-      theme: "outline", size: "large", width: 360, text: "signin_with",
+    const googleSection = document.getElementById("googleLoginSection");
+    const googleButton = document.getElementById("googleSignInButton");
+    const availableWidth = Math.floor(
+      googleButton.closest(".sign-in-content").clientWidth,
+    );
+    google.accounts.id.renderButton(googleButton, {
+      theme: "outline",
+      size: "large",
+      width: Math.min(360, availableWidth),
+      text: "signin_with",
     });
-    document.getElementById("googleLoginSection").hidden = false;
+    googleSection.hidden = false;
   } catch (_error) {
     // Password login remains available when Google is unavailable.
   }

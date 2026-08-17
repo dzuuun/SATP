@@ -306,7 +306,10 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
   const rows = [...document.querySelectorAll(".subject-entry")];
   if (
     !rows.length ||
-    !confirm(`Add ${rows.length} course${rows.length === 1 ? "" : "s"}?`)
+    !(await satpConfirm(
+      `Add ${rows.length} course${rows.length === 1 ? "" : "s"}?`,
+      { title: "Add student courses", confirmText: "Add courses" },
+    ))
   )
     return;
   const shared = {
@@ -628,8 +631,13 @@ document
   .getElementById("editStudentSubjectForm")
   .addEventListener("submit", async (event) => {
     event.preventDefault();
-    if (!editingSubjectRecord || !confirm("Save these course changes?")) return;
-    const values = Object.fromEntries(new FormData(event.currentTarget));
+    const form = event.currentTarget;
+    if (
+      !editingSubjectRecord ||
+      !(await satpConfirm("Save these course changes?"))
+    )
+      return;
+    const values = Object.fromEntries(new FormData(form));
     try {
       const response = await fetch("/api/studentsubject/update", {
         method: "PUT",
@@ -671,7 +679,12 @@ formDeactivateSubject.addEventListener("submit", async (event) => {
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
 
-  if (confirm("This action cannot be undone.") == true) {
+  if (
+    await satpConfirm("Exclude this student's course?", {
+      title: "Exclude student course",
+      confirmText: "Exclude",
+    })
+  ) {
     await fetch(`/api/studentsubject/deactivate`, {
       method: "PUT",
       headers: {
@@ -749,9 +762,13 @@ const getSemester = async () => {
     semesterList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     semesterList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
-  const currentSemester = rows
-    .filter((row) => Number(row.is_active) === 1)
-    .sort((a, b) => Number(b.id) - Number(a.id))[0];
+  const activeSemesters = rows.filter(
+    (row) => Number(row.is_active) === 1 && Number(row.in_use) === 1,
+  );
+  const currentSemester =
+    activeSemesters.find((row) => Number(row.is_current_college) === 1) ||
+    activeSemesters.find((row) => Number(row.is_current_shs) === 1) ||
+    activeSemesters[0];
   currentSemesterId = currentSemester?.id;
   if (currentSemesterId) {
     semesterList.value = currentSemesterId;

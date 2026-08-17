@@ -69,11 +69,18 @@ document
   .getElementById("newSemesterForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!confirm("Create this semester?")) return;
+    const form = e.currentTarget;
+    if (!(await satpConfirm("Create this semester?"))) return;
     await save(
       "/api/semester/add",
       "POST",
-      payload(e.currentTarget, "isSemesterInUse", "isSemesterActive", "isCurrentCollege", "isCurrentShs"),
+      payload(
+        form,
+        "isSemesterInUse",
+        "isSemesterActive",
+        "isCurrentCollege",
+        "isCurrentShs",
+      ),
       "addNewModal",
     );
   });
@@ -81,9 +88,10 @@ document
   .getElementById("editSemesterForm")
   .addEventListener("submit", async (e) => {
     e.preventDefault();
-    if (!confirm("Save these semester changes?")) return;
+    const form = e.currentTarget;
+    if (!(await satpConfirm("Save these semester changes?"))) return;
     const data = payload(
-      e.currentTarget,
+      form,
       "isSemesterInUseEdit",
       "isSemesterActiveEdit",
       "isCurrentCollegeEdit",
