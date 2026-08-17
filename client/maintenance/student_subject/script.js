@@ -754,7 +754,7 @@ const getSemester = async () => {
   const semesterList = document.querySelector("#selectSemester");
   const semesterList2 = document.querySelector("#loadSemester");
   const [response, currentResponse] = await Promise.all([
-    fetch("/api/semester/inuse/active"),
+    fetch("/api/semester/all/active"),
     fetch("/api/semester/current/admin"),
   ]);
   const [data, currentData] = await Promise.all([
@@ -884,7 +884,7 @@ async function refreshWorkbookReferences() {
     "/api/subject",
     "/api/room",
     "/api/schoolyear/",
-    "/api/semester/inuse/active",
+    "/api/semester/all/active",
   ];
   const responses = await Promise.all(endpoints.map((endpoint) => fetch(endpoint)));
   const failed = responses.find((response) => !response.ok);

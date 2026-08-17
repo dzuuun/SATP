@@ -3,7 +3,7 @@
 Student Assessment of Teacher's Performance  
 Notre Dame of Marbel University
 
-Version: August 15, 2026
+Version: August 17, 2026
 
 ## 1. About SATP
 
@@ -67,6 +67,8 @@ If every assigned course is already marked completed, no **Rate now** action is 
 
 The **Transactions** module monitors student assessment progress for a selected school year and semester.
 
+For administrator accounts, SATP automatically selects and filters the page according to the account's academic scope. **College** scope loads the current College term and shows only College students. **SHS** scope loads the current SHS term and shows only SHS students. **All** defaults to the current College term but permits both College and SHS data. The same restriction applies to the transaction table, dashboard totals, student course details, and pending-transaction workbook export.
+
 1. Select the school year and semester.
 2. Load the matching students.
 3. Use search and table controls to locate a student.
@@ -92,6 +94,8 @@ Maintenance pages are only available to roles with maintenance permission. The s
 - Item
 - Student Course
 - Schedule assignment
+
+Administrator academic scope controls the initial period and visible student data in **Student Course** and **Schedule assignment**. College administrators see College records, SHS administrators see SHS records, and administrators with All scope see both groups. Scope is enforced by the server and is not only a visual table filter.
 
 ### Common maintenance controls
 
@@ -211,9 +215,30 @@ Users who require an administrator account must request one from an authorized s
 3. Enter the username and administrator's profile information.
 4. Optionally enter the administrator's unique institutional Google email to enable Google login.
 5. Assign the correct permission role.
-6. Set the temporary-password and active-account options as required.
-7. For a new account, provide either a temporary password, an institutional email, or both.
-8. Save and confirm the username and institutional email appear correctly in the directory.
+6. Select the academic scope: **College**, **Senior High School**, or **All academic groups**.
+7. Set the temporary-password and active-account options as required.
+8. For a new account, provide either a temporary password, an institutional email, or both.
+9. Save and confirm the username and institutional email appear correctly in the directory.
+
+Academic scope determines the default semester and visible student records in Transactions, Student Course, and Schedule assignment:
+
+- **College** uses the current College term and College students.
+- **Senior High School** uses the current SHS term and SHS students.
+- **All academic groups** defaults to the current College term and permits both groups.
+
+To import administrator accounts:
+
+1. Select **Import admins**.
+2. Download the template when preparing a new workbook.
+3. Supply `username`, `givenname`, `surname`, `gender`, and `permission_id` for every row.
+4. Optionally supply `password`, `middlename`, `google_email`, `admin_academic_scope`, and `is_active`.
+5. Use `COLLEGE`, `SHS`, or `ALL` for `admin_academic_scope`. A blank scope defaults to `ALL`.
+6. Select the workbook and choose **Validate file**.
+7. Review the Created, Updated, Unchanged, and Errors sections.
+8. Select **Run import** and keep the page open until processing finishes.
+9. If errors are detected, open the downloaded error workbook, correct the indicated rows, and upload it again.
+
+Admin imports match existing accounts by username. They create missing administrators, update changed profile, permission, scope, email, and status values, and skip unchanged accounts. Active permissions are accepted except **Rater**, which is reserved for student accounts. A regular admin import never replaces an existing password, even when the workbook contains a password; the password is only used when creating a new account.
 
 An administrator with both a password and institutional email can use either login method. An administrator with only an institutional email uses Google login, while an administrator without institutional email must have a local password. Editing the administrator's profile or institutional email does not change the existing password.
 
@@ -238,6 +263,8 @@ More than one historical school year can remain in use, but the active flag dete
 5. Save and verify the result.
 
 The system can retain multiple semesters. College uses its active semester, while SHS can independently use First, Second, or Third Term. Transaction, student rating, Student Course, and schedule pages resolve the current period for the applicable academic group.
+
+For an administrator with **All academic groups** scope, Transactions, Student Course, and Schedule assignment default to the current College term. The administrator may manually select another available period afterward.
 
 ### Room
 
@@ -294,6 +321,8 @@ New local passwords are securely hashed before storage. A new account may omit i
 
 Use this page to assign courses and schedules to students or import enrollment workbooks. Teacher matching during import uses the teacher's first and last name. An existing enrollment is detected using its academic assignment details and is not created again.
 
+The student directory and the student list inside **Add student course** follow the signed-in administrator's academic scope. SHS scope shows only students whose Program belongs to the SHS Department; College scope shows students from other Departments; All scope shows both. Included and excluded course counts and detail records use the same server-side restriction.
+
 To add an enrollment manually:
 
 1. Open **Maintenance > Student Course**.
@@ -333,6 +362,8 @@ For CHS students, one schedule code can have multiple assigned teachers and prod
 ### Schedule assignment
 
 Use **Schedule assignment** to reassign the teacher handling a schedule code or mark a schedule as dissolved.
+
+Schedule rows and student counts follow the signed-in administrator's academic scope. The system identifies the group through each enrolled student's Program and Department: Department code `SHS` is treated as SHS, and other Department codes are treated as College. Reassign, Dissolve, and Restore requests are restricted by the same rule, including direct API requests.
 
 1. Select the school year and semester. The page initially loads the current period.
 2. Search for the schedule code.
@@ -399,7 +430,11 @@ Authorized users can create, edit, activate, deactivate, search, and import acco
 
 Assign the correct permission role when creating or editing an account. Deactivated users cannot sign in. Institutional Google email is optional and must be unique when provided.
 
+Select the account type before selecting a permission. **Student** accounts automatically use **Rater** and cannot select an administrator permission. **Admin** accounts can select any active permission except Rater. Admin accounts also require an academic scope of College, SHS, or All. The account-type and permission rules are also checked during workbook validation.
+
 Use **Import users** for account creation and profile updates. Existing passwords are always retained. Use **Update passwords** only for intentional password changes. Use the username-based deactivation workbook to deactivate multiple accounts.
+
+For User Management imports, the optional `admin_academic_scope` column accepts `COLLEGE`, `SHS`, or `ALL`. A blank scope for an admin defaults to `ALL`; student rows always store no administrator scope.
 
 ### Permissions
 

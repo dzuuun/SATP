@@ -26,7 +26,7 @@ test("Student Course refreshes database references before workbook classificatio
     "/api/subject",
     "/api/room",
     "/api/schoolyear/",
-    "/api/semester/inuse/active",
+    "/api/semester/all/active",
   ].forEach((endpoint) =>
     assert.match(script, new RegExp(endpoint.replaceAll("/", "\\/"))),
   );
@@ -824,6 +824,20 @@ test("Empty Select and Choose dropdown prompts cannot be selected", () => {
       /<script\s+src="\/shared-ui\.js"\s*>\s*<\/script>/,
       path.relative(root, file),
     );
+  });
+});
+
+test("Semester dropdowns list active terms instead of legacy in-use terms", () => {
+  const dropdownScripts = [
+    "client/report/ranking/script.js",
+    "client/report/rating/script.js",
+    "client/maintenance/student_subject/script.js",
+  ];
+
+  dropdownScripts.forEach((file) => {
+    const source = read(file);
+    assert.match(source, /\/api\/semester\/all\/active/);
+    assert.doesNotMatch(source, /\/api\/semester\/inuse\/active/);
   });
 });
 

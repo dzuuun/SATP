@@ -33,7 +33,7 @@ const API = {
 
   async fetchOptions(endpoint, elementId) {
     try {
-      const res = await fetch(`/api/${endpoint}/inuse/active`);
+      const res = await fetch(`/api/${endpoint}/all/active`);
       const result = await res.json();
       const data = result.data || [];
       const select = document.getElementById(elementId);
