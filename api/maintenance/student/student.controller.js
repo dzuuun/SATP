@@ -16,4 +16,29 @@ const controller = createStandardController(model, {
   },
 });
 
+function scopedStudentList(method, message) {
+  return (req, res) => {
+    method({ requesting_user_id: req.user.id }, (error, results) => {
+      if (error) {
+        console.error("Unable to retrieve scoped students:", error);
+        return res.status(500).json({
+          success: 0,
+          message: "Unable to retrieve students.",
+        });
+      }
+      const data = results || [];
+      return res.json({ success: 1, message, count: data.length, data });
+    });
+  };
+}
+
+controller.getAllStudent = scopedStudentList(
+  model.getAllStudent,
+  "Students retrieved successfully.",
+);
+controller.getAllActiveStudent = scopedStudentList(
+  model.getAllActiveStudent,
+  "Active students retrieved successfully.",
+);
+
 module.exports = controller;

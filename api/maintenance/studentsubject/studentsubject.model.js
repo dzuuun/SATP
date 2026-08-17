@@ -1,6 +1,9 @@
 const pool = require("../../../db/db");
 
 const TABLE = "academic_records_consolidated";
+const academicScopeFilter = `(COALESCE(requesting_admin.admin_academic_scope, 'ALL') = 'ALL'
+  OR (requesting_admin.admin_academic_scope = 'SHS' AND UPPER(TRIM(departments.code)) = 'SHS')
+  OR (requesting_admin.admin_academic_scope = 'COLLEGE' AND UPPER(TRIM(departments.code)) <> 'SHS'))`;
 
 const recordSelect = `
   SELECT
@@ -42,6 +45,8 @@ const recordSelect = `
   INNER JOIN teachers ON teachers.id = records.teacher_id
   INNER JOIN user_info ON user_info.user_id = records.student_id
   INNER JOIN users ON users.id = records.student_id
+  INNER JOIN courses ON courses.id = user_info.course_id
+  INNER JOIN departments ON departments.id = courses.department_id
   LEFT JOIN rooms ON rooms.id = records.room_id
 `;
 
@@ -66,6 +71,16 @@ function logActivity(userId, action) {
 
 function describeRecord(id, callBack) {
   pool.query(`${recordSelect} WHERE records.id = ? LIMIT 1`, [id], callBack);
+}
+
+function describeScopedRecord(data, callBack) {
+  pool.query(
+    `${recordSelect}
+     INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
+     WHERE records.id = ? AND ${academicScopeFilter} LIMIT 1`,
+    [data.requesting_user_id, data.id],
+    callBack,
+  );
 }
 
 function insertValues(data) {
@@ -113,14 +128,19 @@ module.exports = {
        INNER JOIN semesters AS sem ON sem.id = arc.semester_id
        INNER JOIN subjects ON subjects.id = arc.subject_id
        INNER JOIN teachers ON teachers.id = arc.teacher_id
+       INNER JOIN user_info ON user_info.user_id = arc.student_id
+       INNER JOIN courses ON courses.id = user_info.course_id
+       INNER JOIN departments ON departments.id = courses.department_id
+       INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
        WHERE arc.school_year_id = ? AND arc.semester_id = ?
          AND arc.schedule_code IS NOT NULL AND TRIM(arc.schedule_code) <> ''
+         AND ${academicScopeFilter}
        GROUP BY arc.school_year_id, sy.name, arc.semester_id, sem.name,
                 arc.subject_id, subjects.code, subjects.name,
                 arc.schedule_code, arc.teacher_id, teachers.prefix,
                 teachers.givenname, teachers.surname, teachers.suffix
        ORDER BY arc.schedule_code, subjects.code, teacher_name`,
-      [data.school_year_id, data.semester_id],
+      [data.requesting_user_id, data.school_year_id, data.semester_id],
       callBack,
     );
   },
@@ -155,19 +175,29 @@ module.exports = {
           AND arc.school_year_id = transactions.school_year_id
           AND arc.semester_id = transactions.semester_id
           AND arc.subject_id = transactions.subject_id
+         INNER JOIN user_info ON user_info.user_id = arc.student_id
+         INNER JOIN courses ON courses.id = user_info.course_id
+         INNER JOIN departments ON departments.id = courses.department_id
+         INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
          SET transactions.teacher_id = ?
          WHERE arc.school_year_id = ? AND arc.semester_id = ?
            AND arc.subject_id = ? AND arc.teacher_id = ?
-           AND arc.schedule_code = ?`,
-        [data.teacher_id, data.school_year_id, data.semester_id, data.subject_id,
-          data.current_teacher_id, data.schedule_code],
+           AND arc.schedule_code = ? AND ${academicScopeFilter}`,
+        [data.user_id, data.teacher_id, data.school_year_id, data.semester_id,
+          data.subject_id, data.current_teacher_id, data.schedule_code],
       );
       const [enrollmentResult] = await connection.query(
-        `UPDATE ${TABLE} SET teacher_id = ?
-         WHERE school_year_id = ? AND semester_id = ? AND subject_id = ?
-           AND teacher_id = ? AND schedule_code = ?`,
-        [data.teacher_id, data.school_year_id, data.semester_id, data.subject_id,
-          data.current_teacher_id, data.schedule_code],
+        `UPDATE ${TABLE} AS arc
+         INNER JOIN user_info ON user_info.user_id = arc.student_id
+         INNER JOIN courses ON courses.id = user_info.course_id
+         INNER JOIN departments ON departments.id = courses.department_id
+         INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
+         SET arc.teacher_id = ?
+         WHERE arc.school_year_id = ? AND arc.semester_id = ?
+           AND arc.subject_id = ? AND arc.teacher_id = ?
+           AND arc.schedule_code = ? AND ${academicScopeFilter}`,
+        [data.user_id, data.teacher_id, data.school_year_id, data.semester_id,
+          data.subject_id, data.current_teacher_id, data.schedule_code],
       );
       if (!enrollmentResult.affectedRows) {
         throw new Error("No matching section assignments were found.");
@@ -198,18 +228,28 @@ module.exports = {
       const dissolved = data.dissolved === true;
       const [result] = dissolved
         ? await connection.query(
-          `UPDATE ${TABLE}
-           SET is_excluded = 1, reason = 'DISSOLVED'
-           WHERE school_year_id = ? AND semester_id = ? AND subject_id = ?
-             AND schedule_code = ? AND is_excluded = 0`,
-          [data.school_year_id, data.semester_id, data.subject_id, data.schedule_code],
+          `UPDATE ${TABLE} AS arc
+           INNER JOIN user_info ON user_info.user_id = arc.student_id
+           INNER JOIN courses ON courses.id = user_info.course_id
+           INNER JOIN departments ON departments.id = courses.department_id
+           INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
+           SET arc.is_excluded = 1, arc.reason = 'DISSOLVED'
+           WHERE arc.school_year_id = ? AND arc.semester_id = ? AND arc.subject_id = ?
+             AND arc.schedule_code = ? AND arc.is_excluded = 0
+             AND ${academicScopeFilter}`,
+          [data.user_id, data.school_year_id, data.semester_id, data.subject_id, data.schedule_code],
         )
         : await connection.query(
-          `UPDATE ${TABLE}
-           SET is_excluded = 0, reason = NULL
-           WHERE school_year_id = ? AND semester_id = ? AND subject_id = ?
-             AND schedule_code = ? AND reason = 'DISSOLVED'`,
-          [data.school_year_id, data.semester_id, data.subject_id, data.schedule_code],
+          `UPDATE ${TABLE} AS arc
+           INNER JOIN user_info ON user_info.user_id = arc.student_id
+           INNER JOIN courses ON courses.id = user_info.course_id
+           INNER JOIN departments ON departments.id = courses.department_id
+           INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
+           SET arc.is_excluded = 0, arc.reason = NULL
+           WHERE arc.school_year_id = ? AND arc.semester_id = ? AND arc.subject_id = ?
+             AND arc.schedule_code = ? AND arc.reason = 'DISSOLVED'
+             AND ${academicScopeFilter}`,
+          [data.user_id, data.school_year_id, data.semester_id, data.subject_id, data.schedule_code],
         );
       if (!result.affectedRows) {
         throw new Error(dissolved
@@ -256,8 +296,10 @@ module.exports = {
        INNER JOIN courses ON courses.id = user_info.course_id
        INNER JOIN departments ON departments.id = courses.department_id
        INNER JOIN colleges ON colleges.id = departments.college_id
+       INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
+       WHERE ${academicScopeFilter}
        ORDER BY user_info.surname, user_info.givenname`,
-      [data.school_year_id, data.semester_id],
+      [data.school_year_id, data.semester_id, data.requesting_user_id],
       callBack,
     );
   },
@@ -265,9 +307,11 @@ module.exports = {
   getSubjectsByPeriod: (data, callBack) => {
     pool.query(
       `${recordSelect}
+       INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
        WHERE records.school_year_id = ? AND records.semester_id = ?
+         AND ${academicScopeFilter}
        ORDER BY user_info.surname, user_info.givenname, subjects.code`,
-      [data.school_year_id, data.semester_id],
+      [data.requesting_user_id, data.school_year_id, data.semester_id],
       callBack,
     );
   },
@@ -275,23 +319,37 @@ module.exports = {
   getIncludedSubjectsByStudent: (data, callBack) => {
     pool.query(
       `${recordSelect}
+       INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
        WHERE records.student_id = ? AND records.school_year_id = ?
          AND records.semester_id = ? AND records.is_excluded = 0
+         AND ${academicScopeFilter}
        ORDER BY subjects.code`,
-      [data.student_id, data.school_year_id, data.semester_id],
+      [
+        data.requesting_user_id,
+        data.student_id,
+        data.school_year_id,
+        data.semester_id,
+      ],
       callBack,
     );
   },
 
-  getIncludedSubjectsByStudentById: describeRecord,
+  getIncludedSubjectsByStudentById: describeScopedRecord,
 
   getAllSubjectsByStudent: (data, callBack) => {
     pool.query(
       `${recordSelect}
+       INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
        WHERE records.student_id = ? AND records.school_year_id = ?
          AND records.semester_id = ? AND records.is_excluded = 1
+         AND ${academicScopeFilter}
        ORDER BY subjects.code`,
-      [data.student_id, data.school_year_id, data.semester_id],
+      [
+        data.requesting_user_id,
+        data.student_id,
+        data.school_year_id,
+        data.semester_id,
+      ],
       callBack,
     );
   },

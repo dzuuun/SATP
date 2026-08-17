@@ -9,6 +9,7 @@ const state = {
   importMode: null,
   validRows: [],
   errorRows: [],
+  permissions: [],
 };
 
 if (!state.userId) {
@@ -86,6 +87,9 @@ function openAddModal() {
   document.getElementById("showAddPassword").checked = true;
   document.getElementById("addPassword").type = "text";
   document.getElementById("studentFields").classList.add("hidden");
+  document.getElementById("adminScopeField").classList.add("hidden");
+  document.getElementById("addRole").value = "";
+  configurePermissionSelect("permissionSelect", "");
   generatePassword();
   toggleModal("addNewModal", true);
 }
@@ -105,11 +109,41 @@ document
       : "password";
   });
 document.getElementById("addRole").addEventListener("change", (event) => {
-  const student = event.target.value === "student";
+  const role = event.target.value;
+  const student = role === "student";
   document.getElementById("studentFields").classList.toggle("hidden", !student);
+  document
+    .getElementById("adminScopeField")
+    .classList.toggle("hidden", role !== "admin");
   document.getElementById("addCourse").required = student;
   document.getElementById("addYearLevel").required = student;
+  configurePermissionSelect("permissionSelect", role);
 });
+
+function configurePermissionSelect(selectId, role, selectedId = "") {
+  const select = document.getElementById(selectId);
+  const permissions = state.permissions.filter((permission) => {
+    const isRater = String(permission.name).trim().toLowerCase() === "rater";
+    return role === "student" ? isRater : role === "admin" ? !isRater : false;
+  });
+  select.replaceChildren();
+  const prompt = document.createElement("option");
+  prompt.value = "";
+  prompt.textContent = role ? "Select permission" : "Select account type first";
+  prompt.disabled = true;
+  prompt.selected = true;
+  select.appendChild(prompt);
+  permissions.forEach((permission) => {
+    const option = document.createElement("option");
+    option.value = permission.id;
+    option.textContent = permission.name;
+    select.appendChild(option);
+  });
+  if (role === "student" && permissions[0]) select.value = permissions[0].id;
+  else if (selectedId && permissions.some((item) => String(item.id) === String(selectedId)))
+    select.value = selectedId;
+  select.disabled = !role || role === "student";
+}
 
 async function loadOptions() {
   try {
@@ -129,17 +163,9 @@ async function loadOptions() {
     document
       .getElementById("editCourse")
       .insertAdjacentHTML("beforeend", courseOptions);
-    const permissionOptions = (permissionResponse.data || [])
-      .map(
-        (row) => `<option value="${row.id}">${escapeHtml(row.name)}</option>`,
-      )
-      .join("");
-    document
-      .getElementById("permissionSelect")
-      .insertAdjacentHTML("beforeend", permissionOptions);
-    document
-      .getElementById("editPermissionSelect")
-      .insertAdjacentHTML("beforeend", permissionOptions);
+    state.permissions = permissionResponse.data || [];
+    configurePermissionSelect("permissionSelect", "");
+    configurePermissionSelect("editPermissionSelect", "");
   } catch {
     showToast("Unable to load program or permission options.");
   }
@@ -156,9 +182,13 @@ document
       return showToast("Enter a temporary password or an institutional email.");
     }
     const student = document.getElementById("addRole").value === "student";
+    payload.permission_id = document.getElementById("permissionSelect").value;
     Object.assign(payload, {
       is_student_rater: student ? 1 : 0,
       is_admin_rater: student ? 0 : 1,
+      admin_academic_scope: student
+        ? null
+        : document.getElementById("addAdminAcademicScope").value || "ALL",
       is_active: document.getElementById("isUserActive").checked ? 1 : 0,
       is_temp_pass: 1,
       user_id: state.userId,
@@ -185,8 +215,13 @@ async function editUser(id) {
     setValue("editUsername", row.username);
     setValue("editGoogleEmail", row.google_email);
     setValue("editPassword", "");
-    setValue("editPermissionSelect", row.permission_id);
-    setValue("editRole", Number(row.is_student_rater) ? "student" : "admin");
+    const role = Number(row.is_student_rater) ? "student" : "admin";
+    setValue("editRole", role);
+    configurePermissionSelect("editPermissionSelect", role, row.permission_id);
+    setValue("editAdminAcademicScope", row.admin_academic_scope || "ALL");
+    document
+      .getElementById("editAdminScopeField")
+      .classList.toggle("hidden", Number(row.is_student_rater) === 1);
     document.getElementById("editTemporaryPassword").checked =
       Number(row.is_temp_pass) === 1;
     document.getElementById("editIsUserActive").checked =
@@ -203,6 +238,7 @@ document
     event.preventDefault();
     const payload = Object.fromEntries(new FormData(event.currentTarget));
     const student = payload.role === "student";
+    payload.permission_id = document.getElementById("editPermissionSelect").value;
     Object.assign(payload, {
       id: state.editId,
       user_id: state.userId,
@@ -210,6 +246,9 @@ document
       year_level: payload.year_level || null,
       is_student_rater: student ? 1 : 0,
       is_admin_rater: student ? 0 : 1,
+      admin_academic_scope: student
+        ? null
+        : document.getElementById("editAdminAcademicScope").value || "ALL",
       is_temp_pass: document.getElementById("editTemporaryPassword").checked
         ? 1
         : 0,
@@ -221,6 +260,13 @@ document
     }
     await save("/api/user/update", "PUT", payload, "editModal");
   });
+
+document.getElementById("editRole").addEventListener("change", (event) => {
+  configurePermissionSelect("editPermissionSelect", event.target.value);
+  document
+    .getElementById("editAdminScopeField")
+    .classList.toggle("hidden", event.target.value === "student");
+});
 
 async function save(url, method, payload, modalId) {
   if (!(await satpConfirm("Save these changes?"))) return;
@@ -279,7 +325,8 @@ document
           surname: "Dela Cruz",
           gender: "MALE",
           role: "student",
-          permission_id: 1,
+          permission_id: 5,
+          admin_academic_scope: "",
           course_id: 1,
           year_level: 1,
           is_active: 1,
@@ -342,7 +389,13 @@ async function prepareImport(event, mode) {
           : ["username"];
     let usersByUsername = new Map();
     if (mode === "users" || mode === "deactivate") {
-      const response = await requestJson("/api/user");
+      const [response, permissionResponse] = await Promise.all([
+        requestJson("/api/user"),
+        mode === "users"
+          ? requestJson("/api/permission/all/active")
+          : Promise.resolve(null),
+      ]);
+      if (permissionResponse) state.permissions = permissionResponse.data || [];
       usersByUsername = new Map(
         (response.data || []).map((user) => [
           String(user.username || "").trim().toLowerCase(),
@@ -362,6 +415,13 @@ async function prepareImport(event, mode) {
       const missing = required.filter((key) => !String(row[key] ?? "").trim());
       const usernameKey = String(row.username || "").trim().toLowerCase();
       const role = String(row.role || "").toLowerCase();
+      const requestedAdminScope = String(
+        row.admin_academic_scope || row.academic_scope || "",
+      )
+        .trim()
+        .toUpperCase();
+      row.admin_academic_scope =
+        role === "admin" ? requestedAdminScope || "ALL" : null;
       if (
         mode === "users" &&
         role === "student" &&
@@ -371,6 +431,22 @@ async function prepareImport(event, mode) {
       }
       const invalidRole =
         mode === "users" && !["student", "admin"].includes(role);
+      const invalidAdminScope =
+        mode === "users" &&
+        role === "admin" &&
+        !["COLLEGE", "SHS", "ALL"].includes(row.admin_academic_scope);
+      const selectedPermission = state.permissions.find(
+        (permission) => String(permission.id) === String(row.permission_id),
+      );
+      const selectedPermissionIsRater =
+        String(selectedPermission?.name || "")
+          .trim()
+          .toLowerCase() === "rater";
+      const invalidPermission =
+        mode === "users" &&
+        (!selectedPermission ||
+          (role === "student" && !selectedPermissionIsRater) ||
+          (role === "admin" && selectedPermissionIsRater));
       const invalidEmail =
         mode === "users" &&
         row.google_email &&
@@ -387,6 +463,12 @@ async function prepareImport(event, mode) {
           ? "Password or institutional email is required for a new user"
         : invalidRole
           ? "Role must be Student or Admin"
+        : invalidAdminScope
+          ? "Admin academic scope must be COLLEGE, SHS, or ALL"
+        : invalidPermission
+          ? role === "student"
+            ? "Student accounts must use the Rater permission"
+            : "Admin accounts cannot use the Rater permission"
           : invalidEmail
             ? "School Google email is invalid"
           : mode === "deactivate" && seenUsernames.has(usernameKey)
@@ -485,6 +567,9 @@ document
             password: existing ? "" : row.password,
             is_student_rater: student ? 1 : 0,
             is_admin_rater: student ? 0 : 1,
+            admin_academic_scope: student
+              ? null
+              : row.admin_academic_scope || "ALL",
             is_active: row.is_active ?? 1,
             is_temp_pass: existing ? Number(row.is_temp_pass ?? 0) : 1,
             course_id: student ? row.course_id : null,

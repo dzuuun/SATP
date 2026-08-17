@@ -7,11 +7,13 @@ const {
   updateSemester,
   deleteSemester,
   getCurrentSemesterForStudent,
+  getCurrentSemesterForAdmin,
 } = require("./semester.controller");
 const router = require("express").Router();
 
 router.post("/add", addSemester);
 router.get("/current/student", getCurrentSemesterForStudent);
+router.get("/current/admin", getCurrentSemesterForAdmin);
 router.get("/:id", getSemesterById);
 router.get("/all/active", getActiveSemesters);
 router.get("/", getSemesters);

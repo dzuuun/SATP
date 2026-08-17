@@ -42,7 +42,7 @@ module.exports = {
       });
     }
     return model.getActiveScheduleAssignments(
-      req.query,
+      { ...req.query, requesting_user_id: req.user.id },
       listResponse(
         res,
         "Schedule assignments retrieved successfully.",
@@ -115,7 +115,7 @@ module.exports = {
       });
     }
     return model.getStudentsByPeriod(
-      req.params,
+      { ...req.params, requesting_user_id: req.user.id },
       listResponse(
         res,
         "Students retrieved successfully.",
@@ -132,7 +132,7 @@ module.exports = {
       });
     }
     return model.getSubjectsByPeriod(
-      req.params,
+      { ...req.params, requesting_user_id: req.user.id },
       listResponse(
         res,
         "Student courses retrieved successfully.",
@@ -151,7 +151,7 @@ module.exports = {
       });
     }
     return model.getIncludedSubjectsByStudent(
-      req.params,
+      { ...req.params, requesting_user_id: req.user.id },
       listResponse(
         res,
         "Student courses retrieved successfully.",
@@ -167,7 +167,7 @@ module.exports = {
         .json({ success: 0, message: "A valid record ID is required." });
     }
     return model.getIncludedSubjectsByStudentById(
-      req.params.id,
+      { id: req.params.id, requesting_user_id: req.user.id },
       (error, results) => {
         if (error) {
           return databaseError(
@@ -200,7 +200,7 @@ module.exports = {
       });
     }
     return model.getAllSubjectsByStudent(
-      req.params,
+      { ...req.params, requesting_user_id: req.user.id },
       listResponse(
         res,
         "Excluded student courses retrieved successfully.",

@@ -20,6 +20,17 @@ if (!state.user_id) {
 
 // 2. API & DATA SERVICES
 const API = {
+  async fetchCurrentAdminSemester() {
+    try {
+      const response = await fetch("/api/semester/current/admin");
+      const payload = await response.json();
+      return response.ok && payload.success ? payload.data : null;
+    } catch (error) {
+      console.error("Error loading the administrator's current term:", error);
+      return null;
+    }
+  },
+
   async fetchOptions(endpoint, elementId) {
     try {
       const res = await fetch(`/api/${endpoint}/inuse/active`);
@@ -37,10 +48,11 @@ const API = {
         opt.textContent = row.name;
         select.appendChild(opt);
       });
-      const currentOption =
-        data.find(
-          (row) => Number(row.in_use) === 1 && Number(row.is_active) === 1,
-        ) || data[0];
+      const currentOption = endpoint.includes("semester")
+        ? null
+        : data.find(
+              (row) => Number(row.in_use) === 1 && Number(row.is_active) === 1,
+            ) || data[0];
       if (currentOption) select.value = String(currentOption.id);
       return currentOption || null;
     } catch (err) {
@@ -414,16 +426,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("year").textContent = new Date().getFullYear();
   showSpinner();
   try {
-    const [, , , canManageRatingAccess] = await Promise.all([
+    const [, , , canManageRatingAccess, currentSemester] = await Promise.all([
       loadSidebar(),
       API.fetchOptions("schoolyear", "loadSchoolYear"),
       API.fetchOptions("semester", "loadSemester"),
       loadRatingAccess(),
+      API.fetchCurrentAdminSemester(),
     ]);
 
     const loadSchoolYear = document.getElementById("loadSchoolYear");
     const loadSemester = document.getElementById("loadSemester");
     const filterRefresh = document.getElementById("filterRefresh");
+
+    if (currentSemester?.id) {
+      loadSemester.value = String(currentSemester.id);
+    }
 
     if (canManageRatingAccess) {
       [

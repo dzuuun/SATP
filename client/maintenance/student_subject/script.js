@@ -753,22 +753,23 @@ const getSchoolYear = async () => {
 const getSemester = async () => {
   const semesterList = document.querySelector("#selectSemester");
   const semesterList2 = document.querySelector("#loadSemester");
-  const endpoint = `/api/semester/inuse/active`,
-    response = await fetch(endpoint),
-    data = await response.json(),
-    rows = data.data;
+  const [response, currentResponse] = await Promise.all([
+    fetch("/api/semester/inuse/active"),
+    fetch("/api/semester/current/admin"),
+  ]);
+  const [data, currentData] = await Promise.all([
+    response.json(),
+    currentResponse.json(),
+  ]);
+  const rows = data.data || [];
 
   rows.forEach((row) => {
     semesterList.innerHTML += `<option value="${row.id}">${row.name}</option>`;
     semesterList2.innerHTML += `<option value="${row.id}">${row.name}</option>`;
   });
-  const activeSemesters = rows.filter(
-    (row) => Number(row.is_active) === 1 && Number(row.in_use) === 1,
+  const currentSemester = rows.find(
+    (row) => Number(row.id) === Number(currentData.data?.id),
   );
-  const currentSemester =
-    activeSemesters.find((row) => Number(row.is_current_college) === 1) ||
-    activeSemesters.find((row) => Number(row.is_current_shs) === 1) ||
-    activeSemesters[0];
   currentSemesterId = currentSemester?.id;
   if (currentSemesterId) {
     semesterList.value = currentSemesterId;

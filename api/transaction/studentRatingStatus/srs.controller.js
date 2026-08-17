@@ -125,7 +125,7 @@ module.exports = {
   },
 
   getTransactions: (req, res) => {
-    const body = req.params;
+    const body = { ...req.params, requesting_user_id: req.user.id };
     getTransactions(body, (err, results) => {
       if (err) {
         console.log(err);
@@ -147,7 +147,7 @@ module.exports = {
   },
 
   getTransactionsByStudent: (req, res) => {
-    const body = req.params;
+    const body = { ...req.params, requesting_user_id: req.user.id };
     getTransactionsByStudent(body, (err, results) => {
       if (err) {
         console.log(err);
@@ -191,7 +191,7 @@ module.exports = {
   },
 
   getSYSemData: (req, res) => {
-    const body = req.params;
+    const body = { ...req.params, requesting_user_id: req.user.id };
     getSYSemData(body, (err, results) => {
       if (err) {
         console.log(err);
@@ -399,7 +399,7 @@ module.exports = {
   },
 
   getNotRatedTransactions: (req, res) => {
-    const body = req.body;
+    const body = { ...req.body, requesting_user_id: req.user.id };
     getNotRatedTransactions(body, (err, results) => {
       if (err) {
         console.log(err);

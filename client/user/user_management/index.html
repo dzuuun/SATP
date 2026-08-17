@@ -138,14 +138,14 @@
             </div>
             <div class="field">
               <label for="addRole">Account type</label><select id="addRole" required>
-                <option value="">Select type</option>
+                <option value="" selected>Select type</option>
                 <option value="student">Student</option>
                 <option value="admin">Admin</option>
               </select>
             </div>
             <div class="field">
               <label for="permissionSelect">Permission</label><select id="permissionSelect" name="permission_id"
-                required>
+                required disabled>
                 <option value="">Select permission</option>
               </select>
             </div>
@@ -169,6 +169,14 @@
                 <option value="Grade 12">Grade 12</option>
               </select>
             </div>
+          </div>
+          <div id="adminScopeField" class="field hidden">
+            <label for="addAdminAcademicScope">Academic scope</label>
+            <select id="addAdminAcademicScope" name="admin_academic_scope">
+              <option value="COLLEGE">College</option>
+              <option value="SHS">Senior High School</option>
+              <option value="ALL" selected>All academic groups</option>
+            </select>
           </div>
           <label class="status-control" for="isUserActive"><span><strong>Active user</strong><small>Allow this account
                 to access SATP</small></span><input id="isUserActive" type="checkbox" checked /><span
@@ -227,7 +235,7 @@
             </div>
             <div class="field">
               <label for="editGoogleEmail">School Google email <span class="optional-label">Optional</span></label><input
-                id="editGoogleEmail" name="google_email" type="email" placeholder="College and admin accounts only" />
+                id="editGoogleEmail" name="google_email" type="email" placeholder="College and admin accounts only." />
             </div>
             <div class="three-column">
               <div class="field">
@@ -277,6 +285,14 @@
                   <option value="admin">Admin</option>
                 </select>
               </div>
+            </div>
+            <div id="editAdminScopeField" class="field hidden">
+              <label for="editAdminAcademicScope">Academic scope</label>
+              <select id="editAdminAcademicScope" name="admin_academic_scope">
+                <option value="COLLEGE">College</option>
+                <option value="SHS">Senior High School</option>
+                <option value="ALL">All academic groups</option>
+              </select>
             </div>
           </section>
           <section class="editor-section">
@@ -341,6 +357,8 @@
               permission_id. Password is required for new users without an
               institutional email and is
               never changed here for existing users. google_email is optional.
+              For admins, admin_academic_scope may be COLLEGE, SHS, or ALL;
+              a blank value defaults to ALL. Student scope is always ignored.
             </p>
           </label>
           <input id="userXlsxInput" type="file" accept=".xlsx,.xls" class="hidden" required />

@@ -332,6 +332,7 @@ CREATE TABLE `users` (
   `google_email` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `permission_id` int(10) unsigned DEFAULT NULL,
+  `admin_academic_scope` enum('COLLEGE','SHS','ALL') DEFAULT NULL,
   `is_temp_pass` tinyint(3) unsigned NOT NULL,
   `is_student_rater` tinyint(3) unsigned NOT NULL,
   `is_admin_rater` tinyint(3) unsigned NOT NULL,
@@ -454,7 +455,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'superadmin','mis@ndmu.edu.ph','$2b$10$.4kmAN9sylWpMevPDxs6aOqftVCFEfPnZUqIXps72efkMcc3JDXhK',4,0,0,1,1);
+INSERT INTO `users` VALUES (1,'superadmin','mis@ndmu.edu.ph','$2b$10$.4kmAN9sylWpMevPDxs6aOqftVCFEfPnZUqIXps72efkMcc3JDXhK',4,'ALL',0,0,1,1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 module.exports = {
   getAllAdmin: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, users.google_email, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, permissions.name AS permission, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE users.is_admin_rater = 1",
+      "SELECT users.id, users.username, users.google_email, users.admin_academic_scope, users.permission_id, user_info.surname, user_info.givenname, user_info.middlename, user_info.gender, CONCAT( user_info.givenname, ' ', user_info.surname ) AS name, permissions.name AS permission, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id = permissions.id WHERE users.is_admin_rater = 1",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -28,7 +28,7 @@ module.exports = {
 
   getAdminById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, users.google_email, user_info.givenname, user_info.surname, user_info.middlename, user_info.gender, users.permission_id, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE users.is_admin_rater = 1 AND users.id=?",
+      "SELECT users.id, users.username, users.google_email, users.admin_academic_scope, user_info.givenname, user_info.surname, user_info.middlename, user_info.gender, users.permission_id, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id WHERE users.is_admin_rater = 1 AND users.id=?",
       [Id],
       (error, results) => {
         if (error) {
@@ -62,12 +62,15 @@ module.exports = {
       (error, results) => {
         if (results.length === 0) {
           pool.query(
-            "INSERT INTO users (username, password, google_email, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT INTO users (username, password, google_email, permission_id, admin_academic_scope, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?,?,?)",
             [
               data.username,
               password,
               String(data.google_email || "").trim().toLowerCase() || null,
               data.permission_id,
+              ["COLLEGE", "SHS", "ALL"].includes(data.admin_academic_scope)
+                ? data.admin_academic_scope
+                : "ALL",
               data.is_temp_pass,
               0,
               1,
@@ -149,10 +152,15 @@ module.exports = {
               (profileError, profileResult) => {
                 if (profileError) return rollback(profileError);
                 connection.query(
-                  "UPDATE users SET google_email=?, permission_id=? WHERE id=?",
+                  "UPDATE users SET google_email=?, permission_id=?, admin_academic_scope=? WHERE id=?",
                   [
                     String(data.google_email || "").trim().toLowerCase() || null,
                     data.permission_id,
+                    ["COLLEGE", "SHS", "ALL"].includes(
+                      data.admin_academic_scope,
+                    )
+                      ? data.admin_academic_scope
+                      : "ALL",
                     data.id,
                   ],
                   (permissionError, permissionResult) => {

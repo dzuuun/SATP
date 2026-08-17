@@ -1,5 +1,13 @@
 const pool = require("../../../db/db");
 
+const adminScope = (data) =>
+  Number(data.is_admin_rater) === 1 &&
+  ["COLLEGE", "SHS", "ALL"].includes(data.admin_academic_scope)
+    ? data.admin_academic_scope
+    : Number(data.is_admin_rater) === 1
+      ? "ALL"
+      : null;
+
 module.exports = {
   bulkDeactivateUsers: (data, callBack) => {
     pool.getConnection((connectionError, connection) => {
@@ -63,7 +71,7 @@ module.exports = {
 
   getUsers: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, users.google_email, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id",
+      "SELECT users.id, users.username, users.google_email, users.admin_academic_scope, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -75,7 +83,7 @@ module.exports = {
 
   getUserById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, users.google_email, users.password, user_info.givenname, user_info.middlename, user_info.surname,user_info.gender, user_info.course_id, user_info.year_level, users.permission_id, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
+      "SELECT users.id, users.username, users.google_email, users.password, users.admin_academic_scope, user_info.givenname, user_info.middlename, user_info.surname,user_info.gender, user_info.course_id, user_info.year_level, users.permission_id, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -110,6 +118,7 @@ module.exports = {
           data.is_temp_pass,
           data.is_student_rater,
           data.is_admin_rater,
+          adminScope(data),
           data.is_active,
         ];
         const passwordClause = data.password ? ", password=?" : "";
@@ -117,7 +126,7 @@ module.exports = {
         userFields.push(data.id);
 
         connection.query(
-          `UPDATE users SET username=?, google_email=?, permission_id=?, is_temp_pass=?, is_student_rater=?, is_admin_rater=?, is_active=?${passwordClause} WHERE id=?`,
+          `UPDATE users SET username=?, google_email=?, permission_id=?, is_temp_pass=?, is_student_rater=?, is_admin_rater=?, admin_academic_scope=?, is_active=?${passwordClause} WHERE id=?`,
           userFields,
           (userError, userResult) => {
             if (userError) return fail(userError);
@@ -172,7 +181,7 @@ module.exports = {
       (error, results) => {
         if (results.length === 0) {
           pool.query(
-            "INSERT INTO users (username, google_email, password, permission_id, is_temp_pass, is_student_rater, is_admin_rater, is_active) VALUES (?,?,?,?,?,?,?,?)",
+            "INSERT INTO users (username, google_email, password, permission_id, is_temp_pass, is_student_rater, is_admin_rater, admin_academic_scope, is_active) VALUES (?,?,?,?,?,?,?,?,?)",
             [
               data.username,
               data.google_email || null,
@@ -181,6 +190,7 @@ module.exports = {
               data.is_temp_pass,
               data.is_student_rater,
               data.is_admin_rater,
+              adminScope(data),
               data.is_active,
             ],
             (error, results) => {
@@ -230,11 +240,12 @@ module.exports = {
       (error, result) => {
         if (result.length == 1) {
           pool.query(
-            "UPDATE users SET permission_id=?, is_student_rater=?, is_admin_rater=? WHERE id=?",
+            "UPDATE users SET permission_id=?, is_student_rater=?, is_admin_rater=?, admin_academic_scope=? WHERE id=?",
             [
               data.permission_id,
               data.is_student_rater,
               data.is_admin_rater,
+              adminScope(data),
               data.id,
             ],
             (error, results) => {

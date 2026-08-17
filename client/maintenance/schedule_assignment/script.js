@@ -72,15 +72,17 @@ async function loadTeachers() {
 }
 
 async function loadPeriods() {
-  const [schoolYearResponse, semesterResponse] = await Promise.all([
+  const [schoolYearResponse, semesterResponse, currentSemesterResponse] = await Promise.all([
     fetch("/api/schoolyear"),
     fetch("/api/semester"),
+    fetch("/api/semester/current/admin"),
   ]);
-  const [schoolYearPayload, semesterPayload] = await Promise.all([
+  const [schoolYearPayload, semesterPayload, currentSemesterPayload] = await Promise.all([
     schoolYearResponse.json(),
     semesterResponse.json(),
+    currentSemesterResponse.json(),
   ]);
-  const populate = (selectId, rows) => {
+  const populate = (selectId, rows, currentId = null, requireCurrent = false) => {
     const select = document.getElementById(selectId);
     rows.forEach((row) => {
       const option = document.createElement("option");
@@ -88,11 +90,20 @@ async function loadPeriods() {
       option.textContent = row.name;
       select.appendChild(option);
     });
-    const current = rows.find((row) => Number(row.is_active) === 1) || rows[0];
+    const current = requireCurrent
+      ? rows.find((row) => Number(row.id) === Number(currentId))
+      : currentId
+        ? rows.find((row) => Number(row.id) === Number(currentId))
+        : rows.find((row) => Number(row.is_active) === 1) || rows[0];
     if (current) select.value = String(current.id);
   };
   populate("schoolYearSelect", schoolYearPayload.data || []);
-  populate("semesterSelect", semesterPayload.data || []);
+  populate(
+    "semesterSelect",
+    semesterPayload.data || [],
+    currentSemesterPayload.data?.id,
+    true,
+  );
 }
 
 function selectedPeriodUrl() {

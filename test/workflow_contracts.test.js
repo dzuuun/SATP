@@ -156,10 +156,9 @@ test("SHS and College use independent current academic terms", () => {
   assert.match(semesterModel, /semesters\.is_current_college = 1/);
   assert.match(semesterRouter, /router\.get\("\/current\/student", getCurrentSemesterForStudent\)/);
   assert.match(rating, /\/api\/semester\/current\/student/);
-  assert.match(
-    studentCourse,
-    /activeSemesters\.find\(\(row\) => Number\(row\.is_current_college\) === 1\)/,
-  );
+  assert.match(studentCourse, /\/api\/semester\/current\/admin/);
+  assert.match(studentCourse, /Number\(currentData\.data\?\.id\)/);
+  assert.doesNotMatch(studentCourse, /activeSemesters\.find/);
   assert.doesNotMatch(
     studentCourse,
     /const currentSemester = rows[\s\S]{0,180}Number\(b\.id\) - Number\(a\.id\)/,
@@ -250,9 +249,9 @@ test("Schedule Assignment can dissolve and restore a schedule", () => {
   const script = read("client/maintenance/schedule_assignment/script.js");
   assert.match(router, /schedule-assignments\/dissolve/);
   assert.match(controller, /setScheduleDissolved/);
-  assert.match(model, /SET is_excluded = 1, reason = 'DISSOLVED'/);
-  assert.match(model, /SET is_excluded = 0, reason = NULL/);
-  assert.match(model, /schedule_code = \? AND reason = 'DISSOLVED'/);
+  assert.match(model, /SET arc\.is_excluded = 1, arc\.reason = 'DISSOLVED'/);
+  assert.match(model, /SET arc\.is_excluded = 0, arc\.reason = NULL/);
+  assert.match(model, /arc\.schedule_code = \? AND arc\.reason = 'DISSOLVED'/);
   assert.match(model, /beginTransaction/);
   assert.match(script, /section-dissolve-button/);
   assert.match(script, /dissolved: !dissolved/);
@@ -289,7 +288,10 @@ test("Excluded courses are hidden from rating lists and transaction totals", () 
   const filters = model.match(/COALESCE\((?:academic_records_consolidated\.)?(?:ar\.)?is_excluded, 0\) = 0/g) || [];
   assert.ok(filters.length >= 6);
   assert.match(model, /COUNT\(academic_records_consolidated\.subject_id\) AS TotalSubjects[\s\S]*COALESCE\(academic_records_consolidated\.is_excluded, 0\) = 0/);
-  assert.match(model, /PendingStatusCount[\s\S]*COALESCE\(is_excluded, 0\) = 0/);
+  assert.match(
+    model,
+    /PendingStatusCount[\s\S]*COALESCE\((?:academic_records_consolidated\.)?is_excluded, 0\) = 0/,
+  );
   assert.match(model, /WHERE ar\.id = \?[\s\S]*COALESCE\(ar\.is_excluded, 0\) = 0/);
 });
 
@@ -445,6 +447,144 @@ test("Google Workspace SSO verifies domain and links existing SATP users", () =>
   assert.doesNotMatch(usersPage, /name="google_email"[^>]*required/);
   assert.match(usersPage, /School Google email <span class="optional-label">Optional<\/span>/);
   assert.match(migration, /UNIQUE INDEX uq_users_google_email/);
+});
+
+test("Administrator academic scope selects the default maintenance term", () => {
+  const migration = read(
+    "database/migrations/2026-08-17_admin_academic_scope.sql",
+  );
+  const semesterModel = read("api/maintenance/semester/semester.model.js");
+  const semesterRouter = read("api/maintenance/semester/semester.router.js");
+  const studentCourse = read("client/maintenance/student_subject/script.js");
+  const scheduleAssignment = read(
+    "client/maintenance/schedule_assignment/script.js",
+  );
+  const transactions = read("client/transaction/script.js");
+  const adminPage = read("client/maintenance/admin/index.html");
+  const userImport = read("client/user/user_management/script.js");
+  const studentImportModel = read("api/maintenance/student/student.model.js");
+  const schema = read("db.sql");
+
+  assert.match(migration, /admin_academic_scope/);
+  assert.match(migration, /ENUM\('COLLEGE', 'SHS', 'ALL'\)/);
+  assert.match(semesterModel, /users\.admin_academic_scope = 'SHS'/);
+  assert.match(semesterModel, /semesters\.is_current_shs = 1/);
+  assert.match(semesterModel, /semesters\.is_current_college = 1/);
+  assert.match(semesterRouter, /router\.get\("\/current\/admin"/);
+  assert.match(studentCourse, /fetch\("\/api\/semester\/current\/admin"\)/);
+  assert.match(scheduleAssignment, /fetch\("\/api\/semester\/current\/admin"\)/);
+  assert.match(transactions, /fetch\("\/api\/semester\/current\/admin"\)/);
+  assert.match(transactions, /loadSemester\.value = String\(currentSemester\.id\)/);
+  assert.match(adminPage, /name="admin_academic_scope"/);
+  assert.match(userImport, /\["COLLEGE", "SHS", "ALL"\]/);
+  assert.match(userImport, /row\.admin_academic_scope \|\| "ALL"/);
+  assert.match(userImport, /admin_academic_scope: student[\s\S]*?\? null/);
+  assert.match(
+    studentImportModel,
+    /is_admin_rater, admin_academic_scope, is_active/,
+  );
+  assert.match(schema, /`admin_academic_scope` enum\('COLLEGE','SHS','ALL'\)/);
+});
+
+test("Transactions restrict visible data to the administrator academic scope", () => {
+  const controller = read(
+    "api/transaction/studentRatingStatus/srs.controller.js",
+  );
+  const model = read("api/transaction/studentRatingStatus/srs.model.js");
+
+  assert.match(controller, /requesting_user_id: req\.user\.id/g);
+  assert.ok(
+    (model.match(/requesting_admin\.admin_academic_scope = 'SHS'/g) || [])
+      .length >= 4,
+  );
+  assert.ok(
+    (model.match(/requesting_admin\.admin_academic_scope = 'COLLEGE'/g) || [])
+      .length >= 4,
+  );
+  assert.ok(
+    (model.match(/COALESCE\(requesting_admin\.admin_academic_scope, 'ALL'\) = 'ALL'/g) || [])
+      .length >= 4,
+  );
+});
+
+test("Student Course restricts visible students to the administrator academic scope", () => {
+  const controller = read(
+    "api/maintenance/studentsubject/studentsubject.controller.js",
+  );
+  const model = read(
+    "api/maintenance/studentsubject/studentsubject.model.js",
+  );
+
+  assert.ok((controller.match(/requesting_user_id: req\.user\.id/g) || []).length >= 5);
+  assert.match(model, /requesting_admin\.admin_academic_scope = 'SHS'/);
+  assert.match(model, /requesting_admin\.admin_academic_scope = 'COLLEGE'/);
+  assert.ok((model.match(/\$\{academicScopeFilter\}/g) || []).length >= 5);
+  assert.match(model, /getIncludedSubjectsByStudentById: describeScopedRecord/);
+
+  const studentController = read("api/maintenance/student/student.controller.js");
+  const studentModel = read("api/maintenance/student/student.model.js");
+  assert.match(studentController, /requesting_user_id: req\.user\.id/);
+  assert.ok(
+    (studentModel.match(/requesting_admin\.admin_academic_scope = 'SHS'/g) || [])
+      .length >= 2,
+  );
+  assert.ok(
+    (studentModel.match(/requesting_admin\.admin_academic_scope = 'COLLEGE'/g) || [])
+      .length >= 2,
+  );
+});
+
+test("Schedule Assignment restricts reads and actions to the administrator scope", () => {
+  const controller = read(
+    "api/maintenance/studentsubject/studentsubject.controller.js",
+  );
+  const model = read(
+    "api/maintenance/studentsubject/studentsubject.model.js",
+  );
+
+  assert.match(
+    controller,
+    /getActiveScheduleAssignments\([\s\S]*requesting_user_id: req\.user\.id/,
+  );
+  assert.match(model, /COUNT\(DISTINCT arc\.student_id\) AS student_count/);
+  assert.ok((model.match(/UPDATE \$\{TABLE\} AS arc/g) || []).length >= 3);
+  assert.ok((model.match(/AND \$\{academicScopeFilter\}/g) || []).length >= 8);
+});
+
+test("User Management restricts permissions by account type", () => {
+  const page = read("client/user/user_management/index.html");
+  const script = read("client/user/user_management/script.js");
+
+  assert.match(page, /id="addRole" required>[\s\S]*?<option value="" selected>Select type<\/option>/);
+  assert.match(page, /id="permissionSelect"[\s\S]*?required disabled/);
+  assert.match(script, /function configurePermissionSelect/);
+  assert.match(script, /role === "student" \? isRater/);
+  assert.match(script, /role === "admin" \? !isRater/);
+  assert.match(script, /Student accounts must use the Rater permission/);
+  assert.match(script, /Admin accounts cannot use the Rater permission/);
+});
+
+test("Admin Maintenance provides a reviewed XLSX import workflow", () => {
+  const page = read("client/maintenance/admin/index.html");
+  const script = read("client/maintenance/admin/script.js");
+  const model = read("api/maintenance/admin/admin.model.js");
+
+  [
+    "importFileModal",
+    "importPreviewModal",
+    "spinnerStatusModal",
+    "createdPreview",
+    "updatedPreview",
+    "unchangedPreview",
+    "errorPreview",
+    "runAdminImportButton",
+  ].forEach((id) => assert.match(page, new RegExp(`id="${id}"`)));
+  assert.match(page, /xlsx\.full\.min\.js/);
+  assert.match(script, /function classifyAdminImport/);
+  assert.match(script, /admin_academic_scope/);
+  assert.match(script, /type === "created" \? item\.password : ""/);
+  assert.match(script, /Permission is inactive, Rater, or not found/);
+  assert.match(model, /user_info\.gender/);
 });
 
 test("Equivalent maintenance import pages use the same review and progress workflow", () => {

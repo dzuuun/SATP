@@ -51,6 +51,24 @@ module.exports = {
     );
   },
 
+  getCurrentSemesterForAdmin: (userId, callBack) => {
+    pool.query(
+      `SELECT semesters.*,
+         COALESCE(users.admin_academic_scope, 'ALL') AS academic_scope
+       FROM users
+       INNER JOIN semesters ON semesters.is_active = 1
+         AND (
+           (users.admin_academic_scope = 'SHS' AND semesters.is_current_shs = 1)
+           OR (COALESCE(users.admin_academic_scope, 'ALL') IN ('COLLEGE', 'ALL')
+             AND semesters.is_current_college = 1)
+         )
+       WHERE users.id = ? AND users.is_admin_rater = 1
+       LIMIT 1`,
+      [userId],
+      (error, results) => callBack(error, results?.[0]),
+    );
+  },
+
   getSemesterById: (Id, callBack) => {
     pool.query(
       "SELECT * FROM semesters WHERE id = ?",

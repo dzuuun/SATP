@@ -42,6 +42,7 @@ function completeLogin(response) {
     permission_id: data.permission_id,
     permission_name: data.permission_name,
     is_student_rater: data.is_student_rater,
+    adminAcademicScope: data.admin_academic_scope || "",
     transactionAccess: data.transaction_access,
     maintenanceAccess: data.maintenance_access,
     reportsAccess: data.reports_access,

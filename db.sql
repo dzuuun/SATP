@@ -332,6 +332,7 @@ CREATE TABLE `users` (
   `google_email` varchar(255) DEFAULT NULL,
   `password` varchar(255) DEFAULT NULL,
   `permission_id` int(10) unsigned DEFAULT NULL,
+  `admin_academic_scope` enum('COLLEGE','SHS','ALL') DEFAULT NULL,
   `is_temp_pass` tinyint(3) unsigned NOT NULL,
   `is_student_rater` tinyint(3) unsigned NOT NULL,
   `is_admin_rater` tinyint(3) unsigned NOT NULL,

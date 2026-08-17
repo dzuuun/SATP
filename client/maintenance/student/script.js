@@ -487,6 +487,7 @@ document
                   is_active: 1,
                   permission_id: 5,
                   is_temp_pass: 1,
+                  admin_academic_scope: null,
                 }),
               })
             : await requestJson("/api/student/update/info", {

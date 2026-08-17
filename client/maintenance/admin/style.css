@@ -18,6 +18,12 @@ body {
   flex: 0 0 auto;
 }
 
+.records-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .admin-modal-card {
   width: min(620px, 100%);
 }
@@ -239,6 +245,15 @@ body {
 }
 
 @media (max-width: 620px) {
+  .records-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .records-actions button {
+    width: 100%;
+  }
+
   .field-row {
     grid-template-columns: 1fr;
   }

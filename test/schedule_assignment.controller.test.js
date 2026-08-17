@@ -96,7 +96,7 @@ test("active assignment list returns records from the model", () => {
   try {
     const res = responseDouble();
     controller.getActiveScheduleAssignments(
-      { query: { school_year_id: 1, semester_id: 2 } },
+      { query: { school_year_id: 1, semester_id: 2 }, user: { id: 7 } },
       res,
     );
     assert.equal(res.statusCode, 200);
