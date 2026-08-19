@@ -5,7 +5,6 @@ const {
   getTransactionInfoById,
   getSYSemData,
   getCommentByTransactionId,
-  addTransaction,
   submitRating,
   submitCommentStatus,
   submitAssessment,
@@ -267,49 +266,6 @@ module.exports = {
       return res.json({
         success: 1,
         message: "Item retrieved successfully.",
-        data: results,
-      });
-    });
-  },
-  addTransaction: (req, res) => {
-    const body = { ...req.body, user_id: req.user.id };
-    const requiredIds = [
-      body.school_year_id,
-      body.semester_id,
-      body.subject_id,
-      body.teacher_id,
-      body.id,
-    ];
-    if (requiredIds.some((value) => !Number.isInteger(Number(value)) || Number(value) < 1)) {
-      return res.status(400).json({
-        success: 0,
-        message: "A valid student, period, subject, and teacher are required.",
-      });
-    }
-
-    addTransaction(body, (err, results) => {
-      if (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({
-          success: 0,
-          message: "Database error occurred.",
-        });
-      }
-
-      if (!results) {
-        return res.status(400).json({
-          success: 0,
-          message: "Invalid or missing data.",
-        });
-      }
-
-      return res.json({
-        success: 1,
-        message: results.skipped
-          ? "Transaction already exists; no changes were required."
-          : results.updated
-            ? "Transaction updated successfully."
-            : "Transaction added successfully.",
         data: results,
       });
     });

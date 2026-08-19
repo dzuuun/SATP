@@ -5,7 +5,6 @@ const {
   getSYSemData,
   getTransactionInfoById,
   getCommentByTransactionId,
-  addTransaction,
   submitRating,
   submitCommentStatus,
   submitAssessment,
@@ -40,7 +39,6 @@ router.get("/rating-access/status", getRatingAccess);
 router.put("/rating-access/status", setRatingAccess);
 router.get("/:id", getTransactionInfoById);
 router.get("/comment/:id", getCommentByTransactionId);
-router.post("/add", requireTransactionAccess, addTransaction);
 router.post("/add/rating", submitRating);
 router.post("/submit-assessment", submitAssessment);
 router.put("/submit/:id", submitCommentStatus);
