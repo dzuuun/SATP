@@ -347,9 +347,6 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
     const createdRecords = response.data?.created || [];
     const updatedCount = response.data?.updated?.length || 0;
     const skippedCount = response.data?.skipped?.length || 0;
-    await Promise.all(
-      createdRecords.map((record) => confirmGenerateTransaction(record.id)),
-    );
 
     if (createdRecords.length || updatedCount) {
       toggleModal("addNewModal", false);
@@ -519,42 +516,6 @@ function showToast(message, success) {
   toast.lastElementChild.textContent = message;
   document.getElementById("toast-container").replaceChildren(toast);
   setTimeout(() => toast.remove(), 4000);
-}
-
-// create transaction function
-var rowId;
-function generateTransaction(id) {
-  rowId = id;
-  // $("#transactionModal").modal("show");
-}
-
-var body;
-async function confirmGenerateTransaction(rowId) {
-  const recordResponse = await fetch(`/api/studentsubject/` + rowId, {
-    method: "GET",
-  }).then((res) => res.json());
-  const record = recordResponse.data?.[0];
-  if (!record) throw new Error("Unable to prepare the student transaction.");
-
-  const transactionResponse = await fetch(`/api/transaction/add`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      school_year_id: record.school_year_id,
-      semester_id: record.semester_id,
-      subject_id: record.subject_id,
-      teacher_id: record.teacher_id,
-      user_id: user,
-      id: record.student_id,
-    }),
-  }).then((res) => res.json());
-  if (!transactionResponse.success) {
-    throw new Error(
-      transactionResponse.message || "Unable to generate the transaction.",
-    );
-  }
 }
 
 // update status on the API
@@ -1220,21 +1181,25 @@ async function classifySubjectRows(rows) {
             if (!response.ok) {
               throw new Error("Unable to check existing enrollments.");
             }
-            return response.json();
+            const payload = await response.json();
+            const recordsByStudent = new Map();
+            (payload.data || []).forEach((record) => {
+              const studentId = Number(record.student_id);
+              if (!recordsByStudent.has(studentId)) recordsByStudent.set(studentId, []);
+              recordsByStudent.get(studentId).push(record);
+            });
+            return recordsByStudent;
           }),
         );
       }
-      const payload = await periodRequests.get(periodKey);
+      const recordsByStudent = await periodRequests.get(periodKey);
       const isChsStudent = Boolean(sample.is_chs);
       const enrollmentKey = (record) => isChsStudent
         ? [Number(record.subject_id), normalizeImportValue(record.schedule_code),
           Number(record.teacher_id)].join("|")
         : String(Number(record.subject_id));
       const existingByEnrollment = new Map(
-        (payload.data || [])
-          .filter(
-            (record) => Number(record.student_id) === Number(sample.student_id),
-          )
+        (recordsByStudent.get(Number(sample.student_id)) || [])
           .map((record) => [enrollmentKey(record), record]),
       );
       items.forEach((item) => {
@@ -1548,10 +1513,12 @@ document
     let created = 0;
     let updated = 0;
     let skipped = 0;
-    let transactionFailures = 0;
     const groupEntries = [...groups.values()];
-    for (let index = 0; index < groupEntries.length; index++) {
-      const items = groupEntries[index];
+    const IMPORT_CONCURRENCY = 6;
+    let nextGroupIndex = 0;
+    let completedGroups = 0;
+
+    const processGroup = async (items) => {
       const shared = {
         student_id: items[0].student_id,
         school_year_id: items[0].school_year_id,
@@ -1565,20 +1532,12 @@ document
           body: JSON.stringify({ ...shared, subjects: items }),
         });
         const payload = await response.json();
-        const createdRows = payload.data?.created || [];
-        created += createdRows.length;
-        updated += (payload.data?.updated || []).length;
-        skipped += (payload.data?.skipped || []).length;
-        const transactionResults = await Promise.allSettled(
-          createdRows.map((record) => confirmGenerateTransaction(record.id)),
-        );
-        transactionResults.forEach((result) => {
-          if (result.status === "fulfilled") return;
-          transactionFailures++;
-        });
         if (!response.ok) {
           throw new Error(payload.message || "Server rejected rows");
         }
+        created += (payload.data?.created || []).length;
+        updated += (payload.data?.updated || []).length;
+        skipped += (payload.data?.skipped || []).length;
       } catch (error) {
         items.forEach((item) =>
           errors.push({
@@ -1586,10 +1545,30 @@ document
             Error: error.message || "Import request failed",
           }),
         );
+      } finally {
+        completedGroups++;
+        const progress = Math.round((completedGroups / groupEntries.length) * 100);
+        setImportProgress(
+          "Import in progress",
+          `${progress}%`,
+          `${completedGroups} of ${groupEntries.length} student enrollment groups processed.`,
+        );
       }
-      document.getElementById("statusMessage").textContent =
-        `${Math.round(((index + 1) / groupEntries.length) * 100)}%`;
-    }
+    };
+
+    const worker = async () => {
+      while (nextGroupIndex < groupEntries.length) {
+        const index = nextGroupIndex++;
+        await processGroup(groupEntries[index]);
+      }
+    };
+
+    await Promise.all(
+      Array.from(
+        { length: Math.min(IMPORT_CONCURRENCY, groupEntries.length) },
+        () => worker(),
+      ),
+    );
 
     toggleModal("spinnerStatusModal", false);
     if (errors.length) downloadSubjectImportErrors(errors);
@@ -1599,10 +1578,6 @@ document
         setSuccessMessage(
           `${created} created, ${updated} updated, ${skipped} unchanged${
             errors.length ? `, ${errors.length} failed rows exported` : ""
-          }${
-            transactionFailures
-              ? `; ${transactionFailures} transaction generations failed`
-              : ""
           }.`,
         ),
       350,

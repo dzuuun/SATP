@@ -168,24 +168,6 @@ module.exports = {
       );
       if (!newRows.length) throw new Error("The selected teacher is unavailable.");
 
-      const [transactionResult] = await connection.query(
-        `UPDATE transactions AS transactions
-         INNER JOIN ${TABLE} AS arc
-           ON arc.student_id = transactions.user_id
-          AND arc.school_year_id = transactions.school_year_id
-          AND arc.semester_id = transactions.semester_id
-          AND arc.subject_id = transactions.subject_id
-         INNER JOIN user_info ON user_info.user_id = arc.student_id
-         INNER JOIN courses ON courses.id = user_info.course_id
-         INNER JOIN departments ON departments.id = courses.department_id
-         INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
-         SET transactions.teacher_id = ?
-         WHERE arc.school_year_id = ? AND arc.semester_id = ?
-           AND arc.subject_id = ? AND arc.teacher_id = ?
-           AND arc.schedule_code = ? AND ${academicScopeFilter}`,
-        [data.user_id, data.teacher_id, data.school_year_id, data.semester_id,
-          data.subject_id, data.current_teacher_id, data.schedule_code],
-      );
       const [enrollmentResult] = await connection.query(
         `UPDATE ${TABLE} AS arc
          INNER JOIN user_info ON user_info.user_id = arc.student_id
@@ -210,7 +192,6 @@ module.exports = {
       await connection.commit();
       return callBack(null, {
         enrollments_updated: enrollmentResult.affectedRows,
-        transactions_updated: transactionResult.affectedRows,
       });
     } catch (error) {
       if (connection) await connection.rollback();
