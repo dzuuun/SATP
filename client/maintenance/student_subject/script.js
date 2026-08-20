@@ -817,6 +817,10 @@ function waitForPaint() {
   );
 }
 
+function yieldToMainThread() {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 async function refreshWorkbookReferences() {
   setImportProgress(
     "Refreshing database records",
@@ -919,7 +923,7 @@ uploadFileForm.addEventListener("submit", async (event) => {
   toggleModal("importFileModal", false);
   setImportProgress(
     "Validating workbook",
-    "",
+    "0%",
     "Checking the spreadsheet and resolving its records.",
   );
   setTimeout(() => toggleModal("spinnerStatusModal", true), 200);
@@ -929,7 +933,19 @@ uploadFileForm.addEventListener("submit", async (event) => {
     await refreshWorkbookReferences();
     const rows = await parseWorkbook(selectedFile);
     pendingSubjectImport = await classifySubjectRows(rows);
+    setImportProgress(
+      "Preparing review",
+      "97%",
+      "Building the workbook validation summary.",
+    );
+    await waitForPaint();
     renderSubjectImportPreview();
+    setImportProgress(
+      "Validation complete",
+      "100%",
+      `${rows.length} row${rows.length === 1 ? "" : "s"} checked.`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 220));
     toggleModal("spinnerStatusModal", false);
     setTimeout(() => toggleModal("importPreviewModal", true), 250);
   } catch (error) {
@@ -1032,21 +1048,31 @@ function optionMap(selectId, valueReader = (option) => option.textContent) {
 async function classifySubjectRows(rows) {
   const seen = new Set();
   const result = { created: [], updated: [], errors: [] };
+  const rowProgressStep = Math.max(1, Math.ceil(rows.length / 40));
 
   for (let index = 0; index < rows.length; index++) {
     const raw = rows[index];
-    if (index % 25 === 0 || index === rows.length - 1) {
+    const processed = index + 1;
+    const shouldReportProgress =
+      index === 0 ||
+      processed === rows.length ||
+      processed % rowProgressStep === 0;
+    if (shouldReportProgress) {
       const progress = rows.length
-        ? 10 + Math.round((index / rows.length) * 60)
-        : 70;
-      const remaining = rows.length - index;
+        ? 10 + Math.round((processed / rows.length) * 55)
+        : 65;
+      const remaining = rows.length - processed;
       setImportProgress(
         "Validating workbook",
         `${progress}%`,
-        `Checking row ${Math.min(index + 1, rows.length)} of ${rows.length}; ${remaining} remaining.`,
+        `Checking row ${Math.min(index + 1, rows.length)} of ${rows.length};\n${remaining} remaining.`,
       );
-      await waitForPaint();
     }
+    if (
+      shouldReportProgress ||
+      (processed < rows.length && processed % 250 === 0)
+    )
+      await yieldToMainThread();
     const studentNumber = readImportColumn(raw, "StudentID", "IDNumber");
     const student = importStudentsByNumber.get(
       normalizeImportValue(studentNumber),
@@ -1159,40 +1185,44 @@ async function classifySubjectRows(rows) {
   });
 
   const existingKeys = new Set();
-  const periodRequests = new Map();
   const enrollmentBatches = [...enrollmentGroups.values()];
+  const periodSamples = new Map();
+  enrollmentBatches.forEach((items) => {
+    const sample = items[0];
+    const periodKey = `${sample.school_year_id}|${sample.semester_id}`;
+    if (!periodSamples.has(periodKey)) periodSamples.set(periodKey, sample);
+  });
+  const periodRecords = new Map();
   let checkedBatches = 0;
   setImportProgress(
     "Checking existing enrollments",
-    "70%",
+    "65%",
     `${enrollmentBatches.length} enrollment group${enrollmentBatches.length === 1 ? "" : "s"} remaining.`,
   );
   await waitForPaint();
   await Promise.all(
-    enrollmentBatches.map(async (items) => {
+    [...periodSamples.entries()].map(async ([periodKey, sample]) => {
+      const response = await fetch(
+        `/api/studentsubject/period/school_year_id=${sample.school_year_id}&semester_id=${sample.semester_id}`,
+      );
+      if (!response.ok)
+        throw new Error("Unable to check existing enrollments.");
+      const payload = await response.json();
+      const recordsByStudent = new Map();
+      (payload.data || []).forEach((record) => {
+        const studentId = Number(record.student_id);
+        if (!recordsByStudent.has(studentId))
+          recordsByStudent.set(studentId, []);
+        recordsByStudent.get(studentId).push(record);
+      });
+      periodRecords.set(periodKey, recordsByStudent);
+    }),
+  );
+  let lastEnrollmentProgress = 65;
+  for (const items of enrollmentBatches) {
       const sample = items[0];
       const periodKey = `${sample.school_year_id}|${sample.semester_id}`;
-      if (!periodRequests.has(periodKey)) {
-        periodRequests.set(
-          periodKey,
-          fetch(
-            `/api/studentsubject/period/school_year_id=${sample.school_year_id}&semester_id=${sample.semester_id}`,
-          ).then(async (response) => {
-            if (!response.ok) {
-              throw new Error("Unable to check existing enrollments.");
-            }
-            const payload = await response.json();
-            const recordsByStudent = new Map();
-            (payload.data || []).forEach((record) => {
-              const studentId = Number(record.student_id);
-              if (!recordsByStudent.has(studentId)) recordsByStudent.set(studentId, []);
-              recordsByStudent.get(studentId).push(record);
-            });
-            return recordsByStudent;
-          }),
-        );
-      }
-      const recordsByStudent = await periodRequests.get(periodKey);
+      const recordsByStudent = periodRecords.get(periodKey) || new Map();
       const isChsStudent = Boolean(sample.is_chs);
       const enrollmentKey = (record) => isChsStudent
         ? [Number(record.subject_id), normalizeImportValue(record.schedule_code),
@@ -1227,16 +1257,25 @@ async function classifySubjectRows(rows) {
       checkedBatches++;
       const remaining = enrollmentBatches.length - checkedBatches;
       const progress = enrollmentBatches.length
-        ? 70 + Math.round((checkedBatches / enrollmentBatches.length) * 30)
-        : 100;
-      setImportProgress(
-        "Checking existing enrollments",
-        `${progress}%`,
-        `${remaining} enrollment group${remaining === 1 ? "" : "s"} remaining.`,
-      );
-      await waitForPaint();
-    }),
-  );
+        ? 65 + Math.floor((checkedBatches / enrollmentBatches.length) * 30)
+        : 95;
+      const shouldReportProgress =
+        progress > lastEnrollmentProgress || remaining === 0;
+      if (shouldReportProgress) {
+        lastEnrollmentProgress = progress;
+        setImportProgress(
+          "Checking existing enrollments",
+          `${progress}%`,
+          `${remaining} enrollment group${remaining === 1 ? "" : "s"} remaining.`,
+        );
+      }
+      if (
+        shouldReportProgress ||
+        (checkedBatches < enrollmentBatches.length &&
+          checkedBatches % 200 === 0)
+      )
+        await yieldToMainThread();
+  }
   result.created = result.created.filter(
     (item) =>
       !existingKeys.has(
@@ -1247,13 +1286,10 @@ async function classifySubjectRows(rows) {
       ),
   );
 
-  setImportProgress(
-    "Validation complete",
-    "100%",
-    `${rows.length} row${rows.length === 1 ? "" : "s"} checked.`,
-  );
   return result;
 }
+
+const PREVIEW_BATCH_SIZE = 250;
 
 function renderSubjectImportPreview() {
   [
@@ -1272,7 +1308,13 @@ function renderSubjectImportPreview() {
       list.appendChild(empty);
       return;
     }
-    items.forEach((item) => {
+    let visibleCount = 0;
+    const appendBatch = () => {
+      list.querySelector(".preview-load-more")?.remove();
+      const fragment = document.createDocumentFragment();
+      items
+        .slice(visibleCount, visibleCount + PREVIEW_BATCH_SIZE)
+        .forEach((item) => {
       const row = document.createElement("div");
       row.className = "preview-row";
       row.innerHTML =
@@ -1284,8 +1326,26 @@ function renderSubjectImportPreview() {
         "IDNumber",
       )} — ${readImportColumn(item.originalRow, "SubjectCode")}`;
       row.children[2].textContent = item.reason || detail;
-      list.appendChild(row);
-    });
+          fragment.appendChild(row);
+        });
+      list.appendChild(fragment);
+      visibleCount = Math.min(
+        visibleCount + PREVIEW_BATCH_SIZE,
+        items.length,
+      );
+      if (visibleCount < items.length) {
+        const loadMore = document.createElement("button");
+        loadMore.type = "button";
+        loadMore.className = "preview-load-more";
+        loadMore.textContent = `Show ${Math.min(
+          PREVIEW_BATCH_SIZE,
+          items.length - visibleCount,
+        )} more · ${items.length - visibleCount} remaining`;
+        loadMore.addEventListener("click", appendBatch);
+        list.appendChild(loadMore);
+      }
+    };
+    appendBatch();
   });
   document.getElementById("runImportButton").disabled =
     !pendingSubjectImport.created.length &&

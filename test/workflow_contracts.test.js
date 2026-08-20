@@ -70,11 +70,13 @@ test("Student Course supports one rating per teacher on the same schedule for CH
   const enrollmentModel = read(
     "api/maintenance/studentsubject/studentsubject.model.js",
   );
-  const transactionModel = read(
+  const ratingModel = read(
     "api/transaction/studentRatingStatus/srs.model.js",
   );
   const importScript = read("client/maintenance/student_subject/script.js");
   const studentModel = read("api/maintenance/student/student.model.js");
+  const ratingClient = read("client/rate/script.js");
+  const schema = read("db.sql");
 
   assert.match(studentModel, /colleges\.code AS college/);
   assert.match(enrollmentModel, /college_code/);
@@ -90,13 +92,74 @@ test("Student Course supports one rating per teacher on the same schedule for CH
   assert.match(enrollmentModel, /existingByEnrollment/);
   assert.match(importScript, /existingByEnrollment/);
   assert.match(
-    transactionModel,
-    /subject_id=\? AND teacher_id=\? AND user_id=\?/,
+    schema,
+    /UNIQUE KEY `uq_arc_student_course_teacher_schedule` \(`student_id`,`school_year_id`,`semester_id`,`subject_id`,`teacher_id`,`schedule_code`\)/,
+  );
+  assert.match(ratingClient, /academic_record_id: state\.recordId/);
+  assert.match(ratingModel, /WHERE academic_records_consolidated\.id = \?/);
+  assert.match(
+    ratingModel,
+    /Number\(records\[0\]\.student_id\) !== Number\(data\.user_id\)/,
+  );
+  assert.match(ratingModel, /return saveRatings\(records\[0\]\.id\)/);
+  assert.match(
+    ratingModel,
+    /INSERT INTO trans_item \(transaction_id, item_id, rate\) VALUES \?/,
+  );
+  assert.doesNotMatch(importScript, /confirmGenerateTransaction/);
+  assert.doesNotMatch(enrollmentModel, /UPDATE transactions AS transactions/);
+});
+
+test("Student Course import indexes validation data and uses bounded concurrency", () => {
+  const script = read("client/maintenance/student_subject/script.js");
+  const style = read("client/maintenance/student_subject/style.css");
+
+  assert.match(script, /const recordsByStudent = new Map\(\)/);
+  assert.match(script, /recordsByStudent\.get\(Number\(sample\.student_id\)\)/);
+  assert.match(script, /const IMPORT_CONCURRENCY = 6/);
+  assert.match(
+    script,
+    /length: Math\.min\(IMPORT_CONCURRENCY, groupEntries\.length\)/,
+  );
+  assert.match(script, /await processGroup\(groupEntries\[index\]\)/);
+  assert.match(script, /if \(!response\.ok\)[\s\S]*created \+=/);
+  assert.match(
+    script,
+    /Checking row \$\{Math\.min\(index \+ 1, rows\.length\)\} of \$\{rows\.length\};\\n\$\{remaining\} remaining\./,
+  );
+  assert.match(style, /#spinnerStatusModalCard #progressDetail[\s\S]*white-space: pre-line/);
+});
+
+test("Student Course validation progress is throttled and completes after preview rendering", () => {
+  const script = read("client/maintenance/student_subject/script.js");
+
+  assert.match(script, /Math\.ceil\(rows\.length \/ 40\)/);
+  assert.match(script, /10 \+ Math\.round\(\(processed \/ rows\.length\) \* 55\)/);
+  assert.match(script, /65 \+ Math\.floor\(\(checkedBatches \/ enrollmentBatches\.length\) \* 30\)/);
+  assert.match(
+    script,
+    /const shouldReportProgress =\s*progress > lastEnrollmentProgress \|\| remaining === 0/,
   );
   assert.match(
-    transactionModel,
-    /AND subject_id = \?\s+AND teacher_id = \?\s+AND user_id = \?/,
+    script,
+    /renderSubjectImportPreview\(\);[\s\S]*?"Validation complete",\s*"100%"/,
   );
+  assert.match(script, /document\.createDocumentFragment\(\)/);
+});
+
+test("Student Course validation yields work and batches large previews", () => {
+  const script = read("client/maintenance/student_subject/script.js");
+  const style = read("client/maintenance/student_subject/style.css");
+
+  assert.match(script, /function yieldToMainThread\(\)/);
+  assert.match(script, /processed % 250 === 0/);
+  assert.match(script, /checkedBatches % 200 === 0/);
+  assert.match(script, /const periodSamples = new Map\(\)/);
+  assert.match(script, /const periodRecords = new Map\(\)/);
+  assert.doesNotMatch(script, /enrollmentBatches\.map\(async \(items\)/);
+  assert.match(script, /const PREVIEW_BATCH_SIZE = 250/);
+  assert.match(script, /\.slice\(visibleCount, visibleCount \+ PREVIEW_BATCH_SIZE\)/);
+  assert.match(style, /\.preview-load-more/);
 });
 
 test("User Management exposes username deactivation upload end to end", () => {
@@ -481,6 +544,10 @@ test("Administrator academic scope selects the default maintenance term", () => 
   assert.match(scheduleAssignment, /fetch\("\/api\/semester\/current\/admin"\)/);
   assert.match(transactions, /fetch\("\/api\/semester\/current\/admin"\)/);
   assert.match(transactions, /loadSemester\.value = String\(currentSemester\.id\)/);
+  assert.match(
+    transactions,
+    /loadSemester\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\)/,
+  );
   assert.match(adminPage, /name="admin_academic_scope"/);
   assert.match(userImport, /\["COLLEGE", "SHS", "ALL"\]/);
   assert.match(userImport, /row\.admin_academic_scope \|\| "ALL"/);
@@ -791,6 +858,20 @@ test("Transaction course modal remains stable across short DataTable pages", () 
   assert.match(script, /return isRated \? 1 : 0/);
 });
 
+test("Transaction table and dashboard totals render in one loading cycle", () => {
+  const transactions = read("client/transaction/script.js");
+
+  assert.match(
+    transactions,
+    /const \[res, stats\] = await Promise\.all\(\[[\s\S]*?API\.loadDashboardStats\(\{ render: false \}\)/,
+  );
+  assert.match(
+    transactions,
+    /mainTable[\s\S]*?\.draw\(\);[\s\S]*?API\.renderDashboardStats\(stats\);/,
+  );
+  assert.match(transactions, /async loadDashboardStats\(\{ render = true \} = \{\}\)/);
+});
+
 test("Activity Log search accepts student ID numbers", () => {
   const model = read("api/user/activity_log/log.model.js");
   const script = read("client/user/activity_log/script.js");
@@ -833,6 +914,19 @@ test("Empty Select and Choose dropdown prompts cannot be selected", () => {
   });
 });
 
+test("Schedule Assignment loads the current period initially and reloads on demand", () => {
+  const page = read("client/maintenance/schedule_assignment/index.html");
+  const script = read("client/maintenance/schedule_assignment/script.js");
+  assert.match(page, /id="loadRecordsButton"[^>]*>Load records<\/button>/);
+  assert.match(script, /ajax:\s*\{\s*url: selectedPeriodUrl\(\)/);
+  assert.match(script, /function loadSelectedPeriod\(\)/);
+  assert.match(script, /getElementById\("loadRecordsButton"\)[\s\S]*addEventListener\("click", loadSelectedPeriod\)/);
+  assert.doesNotMatch(script, /getElementById\(id\)\.addEventListener\("change"/);
+  assert.match(script, /enhanceSearchableSelect\(document\.getElementById\("schoolYearSelect"\)\)/);
+  assert.match(script, /enhanceSearchableSelect\(document\.getElementById\("semesterSelect"\)\)/);
+  assert.match(script, /select\.dataset\.searchable = "true"/);
+});
+
 test("Semester dropdowns list active terms instead of legacy in-use terms", () => {
   const dropdownScripts = [
     "client/report/ranking/script.js",
@@ -847,7 +941,7 @@ test("Semester dropdowns list active terms instead of legacy in-use terms", () =
   });
 });
 
-test("School-year dropdowns list active years and select the current year", () => {
+test("School-year dropdowns list active years and select the current year where required", () => {
   const reportScripts = [
     "client/report/ranking/script.js",
     "client/report/rating/script.js",
@@ -855,8 +949,12 @@ test("School-year dropdowns list active years and select the current year", () =
   reportScripts.forEach((file) => {
     const source = read(file);
     assert.match(source, /\/api\/schoolyear\/all\/active/);
-    assert.match(source, /\/api\/schoolyear\/current/);
+    assert.doesNotMatch(source, /\/api\/schoolyear\/current/);
     assert.doesNotMatch(source, /\/api\/schoolyear\/inuse\/active/);
+    assert.doesNotMatch(
+      source,
+      /if \(rows\.length === 1\) select\.value = rows\[0\]\.id/,
+    );
   });
 
   const studentCourse = read("client/maintenance/student_subject/script.js");
@@ -875,6 +973,31 @@ test("School-year dropdowns list active years and select the current year", () =
   assert.match(read("api/maintenance/schoolyear/schoolyear.router.js"), /router\.get\("\/current", getCurrentSchoolYear\)/);
 });
 
+test("Report dropdown panels are not clipped by the report card", () => {
+  const rankingStyle = read("client/report/ranking/style.css");
+  const ratingStyle = read("client/report/rating/style.css");
+
+  assert.match(rankingStyle, /\.report-card\s*\{[\s\S]*?overflow:\s*visible/);
+  assert.match(
+    rankingStyle,
+    /\.report-form \.search-select\.open,[\s\S]*?z-index:\s*400/,
+  );
+  assert.match(ratingStyle, /@import url\("\.\.\/ranking\/style\.css"\)/);
+});
+
+test("Rating report dropdowns remain open for clicks inside the control", () => {
+  const ratingScript = read("client/report/rating/script.js");
+
+  assert.match(
+    ratingScript,
+    /document\.addEventListener\("click", \(event\) => \{\s*if \(event\.target\.closest\("\.search-select"\)\) return;/,
+  );
+  assert.doesNotMatch(
+    ratingScript,
+    /document\.addEventListener\("click", \(\) => \{\s*document\s*\.querySelectorAll\("\.search-select\.open"\)/,
+  );
+});
+
 test("Program dropdowns provide search inside the option panel", () => {
   const shared = read("client/shared-ui.js");
   const student = read("client/maintenance/student/index.html");
@@ -890,6 +1013,42 @@ test("Program dropdowns provide search inside the option panel", () => {
   assert.match(shared, /satp-search-select-search/);
   assert.match(student, /data-search-placeholder="Search programs\.\.\."/);
   assert.match(users, /data-search-placeholder="Search programs\.\.\."/);
+});
+
+test("All non-Grad School form dropdowns receive the shared searchable control", () => {
+  const shared = read("client/shared-ui.js");
+  assert.match(shared, /root\.querySelectorAll\?\.\("select"\)/);
+  assert.match(shared, /select\.closest\("\.dataTables_length, \.search-select, \.satp-search-select"\)/);
+  assert.match(shared, /select\.dataset\.searchable = "true"/);
+  assert.match(shared, /location\.pathname\.toLowerCase\(\)\.includes\("gradschool"\)/);
+  assert.match(shared, /search-select-search satp-search-select-search/);
+});
+
+test("Teacher Maintenance safely merges duplicate teachers and their schedules", () => {
+  const model = read("api/maintenance/teacher/teacher.model.js");
+  const router = read("api/maintenance/teacher/teacher.router.js");
+  const page = read("client/maintenance/teacher/index.html");
+  const script = read("client/maintenance/teacher/script.js");
+
+  assert.match(router, /router\.put\("\/merge", mergeTeacher\)/);
+  assert.match(model, /beginTransaction\(\)/);
+  assert.match(model, /UPDATE academic_records_consolidated[\s\S]*SET teacher_id = \?/);
+  assert.match(model, /UPDATE trans_item SET transaction_id = \?/);
+  assert.match(model, /UPDATE student_subject SET teacher_id = \?/);
+  assert.match(model, /UPDATE transactions SET teacher_id = \?/);
+  assert.match(model, /DELETE FROM teachers WHERE id = \?/);
+  assert.match(model, /commit\(\)/);
+  assert.match(model, /rollback\(\)/);
+  assert.match(page, /id="mergeTeacherForm"/);
+  assert.match(page, /onclick="openMergeFromEdit\(\)"/);
+  assert.match(page, /id="mergeDuplicateTeacher"/);
+  assert.match(page, /Teacher record to keep/);
+  assert.match(page, /id="mergeLoadingModal"/);
+  assert.match(script, /const retainedTeacherId = Number\(rowIdToUpdate\)/);
+  assert.match(script, /This action is irreversible and cannot be undone/);
+  assert.match(script, /confirmText: "Merge permanently"/);
+  assert.match(script, /satpConfirm\([\s\S]*Permanently merge teachers/);
+  assert.match(script, /fetch|requestJson\("\/api\/teacher\/merge"/);
 });
 
 test("Grad School remains excluded from automated page and server QA", () => {

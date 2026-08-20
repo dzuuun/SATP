@@ -18,6 +18,9 @@ table.dataTable td { white-space: normal; overflow-wrap: anywhere; }
 .period-filters .field { min-width: 180px; gap: 6px; }
 .period-filters label { color: var(--muted); font-size: .65rem; font-weight: 800; text-transform: uppercase; }
 .period-filters select { width: 100%; min-height: 42px; padding: 0 34px 0 11px; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 9px; }
+.period-load-button { min-height: 42px; padding-inline: 18px; white-space: nowrap; }
+.period-filters .search-select { width: 100%; margin-top: 0; }
+.period-filters .search-select-input { min-height: 42px; background-position-y: 18px; }
 
 .search-select { margin-top: 7px; position: relative; }
 .search-select > select { width: 1px; height: 1px; position: absolute; opacity: 0; pointer-events: none; }

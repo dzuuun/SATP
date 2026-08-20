@@ -299,6 +299,27 @@
   align-items: flex-start;
   justify-content: center;
   text-align: center;
+  white-space: pre-line;
+}
+
+.preview-load-more {
+  width: calc(100% - 20px);
+  min-height: 38px;
+  margin: 10px;
+  color: var(--green-800);
+  background: var(--green-100);
+  border: 1px solid var(--green-200);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.preview-load-more:hover,
+.preview-load-more:focus-visible {
+  background: #dcefe4;
+  outline: none;
 }
 
 #importPreviewModal .preview-body,

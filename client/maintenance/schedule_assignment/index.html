@@ -44,11 +44,12 @@
           </div>
           <div class="period-filters">
             <div class="field"><label for="schoolYearSelect">School year</label><select id="schoolYearSelect">
-                <option value="">Select school year</option>
+                <option value="" disabled>Select school year</option>
               </select></div>
             <div class="field"><label for="semesterSelect">Semester</label><select id="semesterSelect">
-                <option value="">Select semester</option>
+                <option value="" disabled>Select semester</option>
               </select></div>
+            <button id="loadRecordsButton" type="button" class="primary-button period-load-button">Load records</button>
           </div>
         </div>
         <div class="table-shell">
@@ -75,7 +76,7 @@
             id="currentTeacher"></small></div>
         <label for="teacherSelect">New teacher</label>
         <select id="teacherSelect" required>
-          <option value="">Select a teacher</option>
+          <option value="" disabled>Select a teacher</option>
         </select>
       </div>
       <footer class="modal-footer"><button type="button" class="secondary-button"

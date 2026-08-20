@@ -44,7 +44,7 @@
 .report-card {
   width: min(1120px, 100%);
   margin: 0 auto;
-  overflow: hidden;
+  overflow: visible;
   display: grid;
   grid-template-columns: minmax(330px, 0.82fr) minmax(520px, 1.18fr);
   background: white;
@@ -60,6 +60,7 @@
   overflow: hidden;
   color: white;
   background: linear-gradient(145deg, var(--green-950), var(--green-800));
+  border-radius: 16px 0 0 16px;
 }
 
 .report-intro::after {
@@ -100,6 +101,12 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-content: center;
   gap: 22px 17px;
+  border-radius: 0 16px 16px 0;
+}
+
+.report-form .search-select.open,
+.report-form .satp-search-select.open {
+  z-index: 400;
 }
 
 .full-field {
@@ -156,6 +163,11 @@
   .report-intro {
     min-height: 0;
     padding: 27px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .report-form {
+    border-radius: 0 0 16px 16px;
   }
 
   .report-intro h2,

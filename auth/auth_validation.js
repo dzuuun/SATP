@@ -106,6 +106,7 @@ function checkToken(req, res, next) {
            u.is_temp_pass,
            u.is_student_rater,
            u.is_admin_rater,
+           u.admin_academic_scope,
            p.id AS permission_id,
            p.name AS permission_name,
            p.transaction_access,

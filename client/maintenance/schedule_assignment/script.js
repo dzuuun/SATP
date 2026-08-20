@@ -108,6 +108,8 @@ async function loadPeriods() {
     semesterPayload.data || [],
     currentSemesterPayload.data?.id,
   );
+  enhanceSearchableSelect(document.getElementById("schoolYearSelect"));
+  enhanceSearchableSelect(document.getElementById("semesterSelect"));
 }
 
 function selectedPeriodUrl() {
@@ -117,7 +119,19 @@ function selectedPeriodUrl() {
   return `/api/studentsubject/schedule-assignments?school_year_id=${encodeURIComponent(schoolYearId)}&semester_id=${encodeURIComponent(semesterId)}`;
 }
 
+function loadSelectedPeriod() {
+  const url = selectedPeriodUrl();
+  if (!url) {
+    toast("Select a school year and semester first.", true);
+    return;
+  }
+  setLoading(true, "Loading schedule assignments...");
+  table.ajax.url(url).load();
+}
+
 function enhanceSearchableSelect(select) {
+  if (!select || select.dataset.searchable === "true") return;
+  select.dataset.searchable = "true";
   const wrapper = document.createElement("div");
   wrapper.className = "search-select";
   select.parentNode.insertBefore(wrapper, select);
@@ -126,13 +140,23 @@ function enhanceSearchableSelect(select) {
   display.type = "text";
   display.readOnly = true;
   display.className = "search-select-input";
-  display.placeholder = "Select a teacher";
+  display.placeholder =
+    select.options[0]?.disabled && select.options[0]?.textContent
+      ? select.options[0].textContent
+      : "Search and select";
+  display.autocomplete = "off";
   const list = document.createElement("div");
   list.className = "search-select-list";
   const search = document.createElement("input");
   search.type = "search";
   search.className = "search-select-search";
-  search.placeholder = "Search teachers...";
+  search.placeholder =
+    select.id === "teacherSelect"
+      ? "Search teachers..."
+      : select.id === "schoolYearSelect"
+        ? "Search school years..."
+        : "Search semesters...";
+  search.autocomplete = "off";
   const options = document.createElement("div");
   options.className = "search-select-options";
   list.append(search, options);
@@ -142,9 +166,8 @@ function enhanceSearchableSelect(select) {
     const query = search.value.trim().toLowerCase();
     const matches = [...select.options].filter(
       (option) =>
-        option.value &&
-        !option.hidden &&
         !option.disabled &&
+        !option.hidden &&
         (!query || option.textContent.toLowerCase().includes(query)),
     );
     options.replaceChildren();
@@ -152,7 +175,8 @@ function enhanceSearchableSelect(select) {
       const empty = document.createElement("p");
       empty.className = "search-select-empty";
       empty.textContent = "No matching teachers";
-      return options.appendChild(empty);
+      options.appendChild(empty);
+      return;
     }
     matches.forEach((option) => {
       const button = document.createElement("button");
@@ -173,9 +197,30 @@ function enhanceSearchableSelect(select) {
     render();
     search.focus();
   });
+  display.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Enter" ||
+      event.key === " " ||
+      event.key === "ArrowDown"
+    ) {
+      event.preventDefault();
+      display.click();
+    }
+  });
   search.addEventListener("input", render);
   wrapper.addEventListener("click", (event) => event.stopPropagation());
+  syncSearchableSelect(select);
   document.addEventListener("click", () => wrapper.classList.remove("open"));
+}
+
+function syncSearchableSelect(select) {
+  const input = select
+    ?.closest(".search-select")
+    ?.querySelector(".search-select-input");
+  if (!input) return;
+  input.value = select.selectedOptions[0]?.disabled
+    ? ""
+    : select.selectedOptions[0]?.textContent || "";
 }
 
 function openReassign(assignment) {
@@ -203,7 +248,7 @@ function openReassign(assignment) {
   document.getElementById("sectionSubject").textContent = `${selectedAssignment.subject_code} — ${selectedAssignment.subject_name}`;
   document.getElementById("currentTeacher").textContent = `Current teacher: ${selectedAssignment.teacher_name}`;
   document.getElementById("teacherSelect").value = "";
-  document.querySelector(".search-select-input").value = "";
+  syncSearchableSelect(document.getElementById("teacherSelect"));
   toggleModal("reassignModal", true);
 }
 
@@ -293,14 +338,9 @@ $(document).ready(async () => {
       setLoading(false);
     }
   });
-  ["schoolYearSelect", "semesterSelect"].forEach((id) => {
-    document.getElementById(id).addEventListener("change", () => {
-      const url = selectedPeriodUrl();
-      if (!url) return;
-      setLoading(true, "Loading schedule assignments...");
-      table.ajax.url(url).load();
-    });
-  });
+  document
+    .getElementById("loadRecordsButton")
+    .addEventListener("click", loadSelectedPeriod);
 });
 
 document.getElementById("reassignForm").addEventListener("submit", async (event) => {

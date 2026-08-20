@@ -7,8 +7,122 @@
 }
 
 #addNewModalCard,
-#editModalCard {
+#editModalCard,
+#mergeModalCard {
   width: min(820px, calc(100vw - 32px));
+}
+
+.merge-entry-button {
+  min-height: 34px;
+  padding: 0 13px;
+  color: #a7352d;
+  background: #fff;
+  border: 1px solid #e6b8b3;
+  border-radius: 9px;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.merge-entry-button:hover {
+  color: #fff;
+  background: #a7352d;
+  border-color: #a7352d;
+}
+
+.merge-card {
+  max-width: 620px;
+}
+
+.merge-source {
+  margin-bottom: 18px;
+  padding: 16px;
+  display: grid;
+  gap: 5px;
+  color: var(--ink);
+  background: var(--green-100);
+  border: 1px solid #cfe3d9;
+  border-radius: 11px;
+}
+
+.merge-source span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.merge-warning {
+  margin: 18px 0 0;
+  padding: 13px 14px;
+  color: #7a2e28;
+  background: #fff4f2;
+  border: 1px solid #efcbc6;
+  border-radius: 9px;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.danger-button {
+  min-height: 44px;
+  padding: 0 18px;
+  color: #fff;
+  background: #b63b32;
+  border: 1px solid #b63b32;
+  border-radius: 9px;
+  font-weight: 800;
+}
+
+.danger-button:hover {
+  background: #982f28;
+  border-color: #982f28;
+}
+
+.progress-modal {
+  z-index: 110;
+}
+
+.progress-card {
+  width: min(330px, calc(100vw - 32px));
+  min-height: 0;
+  padding: 24px;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+  overflow: hidden;
+  border-radius: 15px;
+}
+
+.progress-spinner {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 5px;
+  border: 5px solid var(--green-100);
+  border-top-color: var(--green-800);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+.progress-card h2 {
+  margin: 0 0 8px;
+  color: var(--green-900);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+#spinnerStatusModalCard h2 {
+  font-size: 3rem;
+}
+
+.progress-card > p:last-child {
+  max-width: 260px;
+  margin: 2px auto 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.45;
 }
 
 .field select {

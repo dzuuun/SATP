@@ -120,31 +120,48 @@
   }
 
   function installSearchableSelect(select) {
-    if (!(select instanceof HTMLSelectElement) || select.dataset.searchReady === "true") return;
+    if (
+      !(select instanceof HTMLSelectElement) ||
+      select.multiple ||
+      select.dataset.noSearch === "true" ||
+      select.dataset.searchReady === "true" ||
+      select.dataset.searchable === "true" ||
+      select.closest(".dataTables_length, .search-select, .satp-search-select")
+    )
+      return;
     select.dataset.searchReady = "true";
+    select.dataset.searchable = "true";
     const wrapper = document.createElement("div");
-    wrapper.className = "satp-search-select";
+    wrapper.className = "search-select satp-search-select";
     select.parentNode.insertBefore(wrapper, select);
     wrapper.appendChild(select);
 
-    const trigger = document.createElement("button");
-    trigger.type = "button";
-    trigger.className = "satp-search-select-trigger";
+    const trigger = document.createElement("input");
+    trigger.type = "text";
+    trigger.readOnly = true;
+    trigger.autocomplete = "off";
+    trigger.className = "search-select-input satp-search-select-trigger";
     const panel = document.createElement("div");
-    panel.className = "satp-search-select-panel";
+    panel.className = "search-select-list satp-search-select-panel";
     const search = document.createElement("input");
     search.type = "search";
-    search.className = "satp-search-select-search";
+    search.autocomplete = "off";
+    search.className = "search-select-search satp-search-select-search";
     search.placeholder = select.dataset.searchPlaceholder || "Search...";
     search.setAttribute("aria-label", search.placeholder);
     const options = document.createElement("div");
-    options.className = "satp-search-select-options";
+    options.className = "search-select-options satp-search-select-options";
     panel.append(search, options);
     wrapper.append(trigger, panel);
 
     const syncTrigger = () => {
       const selected = select.selectedOptions[0];
-      trigger.textContent = selected?.textContent?.trim() || "Select an option";
+      trigger.placeholder =
+        select.options[0]?.textContent?.trim() || "Search and select";
+      trigger.value = selected?.value
+        ? selected.textContent?.trim() || ""
+        : "";
+      trigger.disabled = select.disabled;
       trigger.classList.toggle("is-placeholder", !selected?.value);
     };
     const render = () => {
@@ -156,15 +173,15 @@
       options.replaceChildren();
       if (!matches.length) {
         const empty = document.createElement("p");
-        empty.className = "satp-search-select-empty";
-        empty.textContent = "No matching programs";
+        empty.className = "search-select-empty satp-search-select-empty";
+        empty.textContent = "No matching options";
         options.appendChild(empty);
         return;
       }
       matches.forEach((option) => {
         const button = document.createElement("button");
         button.type = "button";
-        button.className = `satp-search-select-option${option.selected ? " selected" : ""}`;
+        button.className = `search-select-option satp-search-select-option${option.selected ? " selected" : ""}`;
         button.textContent = option.textContent;
         button.addEventListener("click", () => {
           select.value = option.value;
@@ -185,6 +202,12 @@
         search.focus();
       }
     });
+    trigger.addEventListener("keydown", (event) => {
+      if (["Enter", " ", "ArrowDown"].includes(event.key)) {
+        event.preventDefault();
+        trigger.click();
+      }
+    });
     search.addEventListener("input", render);
     select.addEventListener("change", () => {
       syncTrigger();
@@ -193,7 +216,12 @@
     new MutationObserver(() => {
       syncTrigger();
       render();
-    }).observe(select, { childList: true, subtree: true });
+    }).observe(select, {
+      attributes: true,
+      attributeFilter: ["disabled"],
+      childList: true,
+      subtree: true,
+    });
     syncTrigger();
     render();
   }
@@ -219,8 +247,8 @@
       document.head.appendChild(style);
     }
     const selects = [];
-    if (root.matches?.("select[data-searchable-select]")) selects.push(root);
-    root.querySelectorAll?.("select[data-searchable-select]").forEach((select) => selects.push(select));
+    if (root.matches?.("select")) selects.push(root);
+    root.querySelectorAll?.("select").forEach((select) => selects.push(select));
     selects.forEach(installSearchableSelect);
   }
 
@@ -264,7 +292,9 @@
   disableSelectPlaceholders();
   disableHeaderBrandNavigation();
   installHeaderMenuAnimation();
-  installSearchableSelects();
+  if (!location.pathname.toLowerCase().includes("gradschool")) {
+    installSearchableSelects();
+  }
   syncHeaderMenuState();
   document.addEventListener("click", (event) => {
     if (event.target.closest?.('[onclick*="toggleNav"]')) {
@@ -278,7 +308,9 @@
           disableSelectPlaceholders(node);
           disableHeaderBrandNavigation(node);
           installHeaderMenuAnimation(node);
-          installSearchableSelects(node);
+          if (!location.pathname.toLowerCase().includes("gradschool")) {
+            installSearchableSelects(node);
+          }
         }
       });
     });

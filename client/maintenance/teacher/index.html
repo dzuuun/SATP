@@ -223,9 +223,50 @@
                 throughout the system</small></span><input type="checkbox" id="isTeacherActiveEdit" /><span
               class="switch"></span></label>
         </div>
+        <footer class="modal-footer split">
+          <button type="button" class="merge-entry-button" onclick="openMergeFromEdit()">Merge duplicate</button>
+          <div>
+            <button type="button" class="secondary-button" onclick="toggleModal('editModal', false)">
+              Cancel</button><button class="primary-button" type="submit">Save changes</button>
+          </div>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <div id="mergeModal" class="room-modal invisible" role="dialog" aria-modal="true" aria-labelledby="merge-title">
+    <div id="mergeModalCard" class="modal-card merge-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">Duplicate record</p>
+          <h2 id="merge-title">Merge teachers</h2>
+        </div>
+        <button class="modal-close" type="button" onclick="toggleModal('mergeModal', false)" aria-label="Close">
+          <svg viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+      </header>
+      <form id="mergeTeacherForm">
+        <div class="modal-body">
+          <div class="merge-source">
+            <span>Teacher record to keep</span>
+            <strong id="mergeRetainedName"></strong>
+          </div>
+          <div class="field">
+            <label for="mergeDuplicateTeacher">Duplicate teacher to remove</label>
+            <select id="mergeDuplicateTeacher" required data-search-placeholder="Search duplicate teachers...">
+              <option value="" disabled selected>Select the duplicate teacher</option>
+            </select>
+          </div>
+          <p class="merge-warning">
+            Student courses, schedules, and saved ratings will be transferred to the teacher you keep. The duplicate
+            teacher record will then be removed. This action cannot be undone.
+          </p>
+        </div>
         <footer class="modal-footer">
-          <button type="button" class="secondary-button" onclick="toggleModal('editModal', false)">
-            Cancel</button><button class="primary-button" type="submit">Save changes</button>
+          <button type="button" class="secondary-button" onclick="toggleModal('mergeModal', false)">Cancel</button>
+          <button class="danger-button" type="submit">Merge teachers</button>
         </footer>
       </form>
     </div>
@@ -322,6 +363,14 @@
       <p class="eyebrow">Import in progress</p>
       <h2 id="statusMessage">0%</h2>
       <p>Please keep this page open while teacher records are processed.</p>
+    </div>
+  </div>
+  <div id="mergeLoadingModal" class="room-modal progress-modal invisible" role="status" aria-live="polite">
+    <div id="mergeLoadingModalCard" class="modal-card progress-card scale-95">
+      <span class="progress-spinner"></span>
+      <p class="eyebrow">Teacher maintenance</p>
+      <h2>Merging teachers</h2>
+      <p>Please keep this page open while schedules and ratings are transferred.</p>
     </div>
   </div>
   <div id="toast-container" class="toast-container" aria-live="polite"></div>

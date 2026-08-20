@@ -12,6 +12,7 @@ module.exports = createStandardController(model, {
     addTeacher: ["addTeacher", "create", "body"],
     updateTeacher: ["updateTeacher", "update", "body"],
     activateTeacher: ["activateTeacher", "update", "body"],
+    mergeTeacher: ["mergeTeacher", "update", "body"],
     deleteTeacher: ["deleteTeacher", "delete", "body"],
   },
 });

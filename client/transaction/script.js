@@ -72,9 +72,12 @@ const API = {
 
     showSpinner();
     try {
-      const res = await fetch(
-        `/api/transaction/all/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`,
-      );
+      const [res, stats] = await Promise.all([
+        fetch(
+          `/api/transaction/all/school_year_id=${state.school_year_id}&semester_id=${state.semester_id}`,
+        ),
+        API.loadDashboardStats({ render: false }),
+      ]);
       const response = await res.json();
       document.getElementById("generateList")?.classList.remove("hidden");
       document.getElementById("refresh")?.classList.remove("hidden");
@@ -87,7 +90,7 @@ const API = {
           .draw();
       }
 
-      API.loadDashboardStats();
+      API.renderDashboardStats(stats);
     } catch (err) {
       alert("Failed to load table data.");
     } finally {
@@ -95,8 +98,8 @@ const API = {
     }
   },
 
-  async loadDashboardStats() {
-    if (!state.semester_id || !state.school_year_id) return;
+  async loadDashboardStats({ render = true } = {}) {
+    if (!state.semester_id || !state.school_year_id) return null;
 
     try {
       const res = await fetch(
@@ -106,17 +109,24 @@ const API = {
 
       if (response.success && response.data && response.data.length > 0) {
         const stats = response.data[0];
-        const totalEl = document.getElementById("totalTransactions");
-        const accEl = document.getElementById("TransactionsAccomplished");
-        const toAccEl = document.getElementById("transactionsToAccomplish");
-
-        if (totalEl) totalEl.textContent = stats.TotalStudents || 0;
-        if (accEl) accEl.textContent = stats.FullyRatedCount || 0;
-        if (toAccEl) toAccEl.textContent = stats.IncompleteCount || 0;
+        if (render) API.renderDashboardStats(stats);
+        return stats;
       }
     } catch (err) {
       console.error("Dashboard Stat Error:", err);
     }
+    return null;
+  },
+
+  renderDashboardStats(stats) {
+    if (!stats) return;
+    const totalEl = document.getElementById("totalTransactions");
+    const accEl = document.getElementById("TransactionsAccomplished");
+    const toAccEl = document.getElementById("transactionsToAccomplish");
+
+    if (totalEl) totalEl.textContent = stats.TotalStudents || 0;
+    if (accEl) accEl.textContent = stats.FullyRatedCount || 0;
+    if (toAccEl) toAccEl.textContent = stats.IncompleteCount || 0;
   },
 };
 
@@ -443,6 +453,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (currentSemester?.id) {
       loadSemester.value = String(currentSemester.id);
+      loadSemester.dispatchEvent(new Event("change", { bubbles: true }));
     }
 
     if (canManageRatingAccess) {

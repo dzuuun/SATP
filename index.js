@@ -191,6 +191,18 @@ app.use('/register', (req, res) => {
 
 // --- Serve frontend (HTML/JS/CSS) ---
 const clientPath = path.join(__dirname, "client");
+
+// Keep directory index files out of the browser address bar.
+// For example, /maintenance/student/index.html becomes /maintenance/student/.
+app.get(/\/index\.html$/i, (req, res) => {
+  const queryStart = req.originalUrl.indexOf("?");
+  const queryString =
+    queryStart === -1 ? "" : req.originalUrl.slice(queryStart);
+  const cleanPath = req.path.replace(/index\.html$/i, "");
+
+  return res.redirect(302, `${cleanPath}${queryString}`);
+});
+
 app.use(express.static(clientPath));
 
 // Return the branded error page for every unknown frontend route.

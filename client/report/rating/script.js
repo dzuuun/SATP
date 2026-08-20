@@ -72,7 +72,6 @@ function appendOptions(selectId, rows, label, secondaryLabel) {
       })
       .join(""),
   );
-  if (rows.length === 1) select.value = rows[0].id;
 }
 
 async function loadReportOptions() {
@@ -332,7 +331,8 @@ document.getElementById("teacher").addEventListener("change", () => {
   updateTeacherExportState();
   updateSubjects();
 });
-document.addEventListener("click", () => {
+document.addEventListener("click", (event) => {
+  if (event.target.closest(".search-select")) return;
   document
     .querySelectorAll(".search-select.open")
     .forEach((wrapper) => wrapper.classList.remove("open"));

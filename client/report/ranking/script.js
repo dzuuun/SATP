@@ -48,7 +48,6 @@ function appendOptions(selectId, rows, label, secondaryLabel) {
       })
       .join(""),
   );
-  if (rows.length === 1) select.value = rows[0].id;
 }
 
 async function loadReportOptions() {

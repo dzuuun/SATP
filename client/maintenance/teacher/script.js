@@ -17,6 +17,7 @@ if (!state.userId) {
 
 let table;
 let rowIdToUpdate;
+let duplicateTeacherId;
 let pendingImport = { created: [], updated: [], errors: [] };
 const departmentsByCode = new Map();
 
@@ -88,6 +89,93 @@ async function loadDepartments() {
     setErrorMessage("Unable to load departments.");
   }
 }
+
+function getLoadedTeachers() {
+  return table?.rows().data().toArray() || [];
+}
+
+function openMergeFromEdit() {
+  const teachers = getLoadedTeachers();
+  const retainedTeacher = teachers.find(
+    (teacher) => Number(teacher.id) === Number(rowIdToUpdate),
+  );
+  if (!retainedTeacher) return setErrorMessage("Unable to load the teacher.");
+
+  document.getElementById("mergeRetainedName").textContent =
+    retainedTeacher.name;
+  const duplicateSelect = document.getElementById("mergeDuplicateTeacher");
+  duplicateSelect.replaceChildren();
+  const placeholder = document.createElement("option");
+  placeholder.value = "";
+  placeholder.disabled = true;
+  placeholder.selected = true;
+  placeholder.textContent = "Select the duplicate teacher";
+  duplicateSelect.appendChild(placeholder);
+  teachers
+    .filter((teacher) => Number(teacher.id) !== Number(rowIdToUpdate))
+    .forEach((teacher) => {
+      const option = document.createElement("option");
+      option.value = teacher.id;
+      option.textContent = `${teacher.name} — ${teacher.department_code}`;
+      duplicateSelect.appendChild(option);
+    });
+  duplicateSelect.dispatchEvent(new Event("change", { bubbles: true }));
+  toggleModal("editModal", false);
+  setTimeout(() => toggleModal("mergeModal", true), 250);
+}
+
+document
+  .getElementById("mergeTeacherForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    duplicateTeacherId = Number(
+      document.getElementById("mergeDuplicateTeacher").value,
+    );
+    const retainedTeacherId = Number(rowIdToUpdate);
+    const retainedTeacher = getLoadedTeachers().find(
+      (teacher) => Number(teacher.id) === retainedTeacherId,
+    );
+    const duplicateTeacher = getLoadedTeachers().find(
+      (teacher) => Number(teacher.id) === duplicateTeacherId,
+    );
+    if (!retainedTeacher || !duplicateTeacher) {
+      return setErrorMessage("Select the duplicate teacher to remove.");
+    }
+    if (
+      !(await satpConfirm(
+        `This action is irreversible and cannot be undone. ${duplicateTeacher.name} will be permanently merged into ${retainedTeacher.name}, and ${retainedTeacher.name} will be kept. Do you want to continue?`,
+        {
+          title: "Permanently merge teachers?",
+          confirmText: "Merge permanently",
+        },
+      ))
+    )
+      return;
+
+    toggleModal("mergeModal", false);
+    toggleModal("mergeLoadingModal", true);
+    try {
+      const response = await requestJson("/api/teacher/merge", {
+        method: "PUT",
+        body: JSON.stringify({
+          duplicate_teacher_id: duplicateTeacherId,
+          retained_teacher_id: retainedTeacherId,
+        }),
+      });
+      if (!response.success) {
+        throw new Error(response.message || "Unable to merge the teachers.");
+      }
+      table.ajax.reload(null, false);
+      setSuccessMessage(
+        `Merged ${duplicateTeacher.name} into ${retainedTeacher.name}. Schedules and ratings were transferred.`,
+      );
+      duplicateTeacherId = null;
+    } catch (error) {
+      setErrorMessage(error.message || "Unable to merge the teachers.");
+    } finally {
+      toggleModal("mergeLoadingModal", false);
+    }
+  });
 
 async function refreshImportDepartments() {
   const response = await requestJson("/api/department/all/active");
@@ -548,6 +636,7 @@ document.addEventListener("keydown", (event) => {
     [
       "addNewModal",
       "editModal",
+      "mergeModal",
       "importFileModal",
       "importPreviewModal",
     ].forEach((id) => {

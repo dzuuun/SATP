@@ -6,6 +6,7 @@ const {
   addTeacher,
   updateTeacher,
   activateTeacher,
+  mergeTeacher,
   deleteTeacher,
 } = require("./teacher.controller");
 const router = require("express").Router();
@@ -16,6 +17,7 @@ router.get("/all/active", getActiveTeachers);
 router.get("/:id", getTeacherById);
 router.put("/update", updateTeacher);
 router.put("/activate", activateTeacher);
+router.put("/merge", mergeTeacher);
 router.delete("/delete", deleteTeacher);
 router.post("/get", getTeacherByName);
 

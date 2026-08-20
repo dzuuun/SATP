@@ -9,6 +9,15 @@ const showPasswordBtn = document.getElementById("showPassword");
 const forgotPasswordBtn = document.getElementById("forgotPassword");
 const eyeIconContainer = document.getElementById("eyeIcon");
 
+function getAuthorizedHome(user) {
+  if ([1, 2].includes(Number(user.is_student_rater))) return "/rating/";
+  if (Number(user.transaction_access) === 1) return "/transaction/";
+  if (Number(user.reports_access) === 1) return "/report/ranking/";
+  if (Number(user.maintenance_access) === 1) return "/maintenance/admin/";
+  if (Number(user.users_access) === 1) return "/user/activity_log/";
+  return "/";
+}
+
 // Set footer year immediately
 document.getElementById("year").textContent = new Date().getFullYear();
 
@@ -51,9 +60,7 @@ function completeLogin(response) {
   };
   Object.entries(storageData).forEach(([key, value]) => localStorage.setItem(key, value));
   setTimeout(() => {
-    if ([1, 2].includes(data.is_student_rater)) location.href = "../rating/index.html";
-    else if (data.transaction_access == 1) location.href = "../transaction/index.html";
-    else location.href = "../user/user_management/index.html";
+    window.location.replace(getAuthorizedHome(data));
   }, 500);
 }
 
