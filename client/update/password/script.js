@@ -4,11 +4,14 @@ const state = {
   userId: localStorage.getItem("user_id"),
   username: localStorage.getItem("username"),
   fullname: localStorage.getItem("fullname"),
+  permissionName: localStorage.getItem("permission_name"),
 };
 
 if (!state.userId) {
   alert("Log in to continue.");
   location.href = "../../index.html";
+} else if (String(state.permissionName || "").trim().toLowerCase() === "rater") {
+  location.replace("/404.html");
 }
 
 const form = document.getElementById("passwordForm");

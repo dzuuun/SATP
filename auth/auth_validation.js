@@ -170,6 +170,15 @@ function requirePermission(permission) {
   };
 }
 
+function requireNonRater(req, res, next) {
+  if (String(req.user?.permission_name || "").trim().toLowerCase() !== "rater")
+    return next();
+  return res.status(403).json({
+    success: 0,
+    message: "Rater accounts cannot access the password-change page.",
+  });
+}
+
 function protectMaintenanceChanges(req, res, next) {
   if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return next();
   return requirePermission("maintenance_access")(req, res, next);
@@ -178,6 +187,7 @@ function protectMaintenanceChanges(req, res, next) {
 module.exports = {
   checkToken,
   requirePermission,
+  requireNonRater,
   protectMaintenanceChanges,
   createSessionToken,
   setSessionCookie,

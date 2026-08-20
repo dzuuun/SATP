@@ -16,8 +16,7 @@
     root.querySelectorAll?.("[data-required-access]").forEach((item) => {
       const accessKey = item.dataset.requiredAccess;
       const permitted = Number(localStorage.getItem(accessKey)) === 1;
-      item.hidden = !permitted;
-      item.setAttribute("aria-hidden", String(!permitted));
+      if (!permitted) item.remove();
     });
   }
 

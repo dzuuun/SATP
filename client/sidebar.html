@@ -410,7 +410,8 @@
     <nav class="sidebar-nav">
       <p class="nav-label">Workspace</p>
       <ul class="nav-list">
-        <li id="student-rating-nav" style="display: none">
+        <!-- permission:rater:start -->
+        <li id="student-rating-nav">
           <a href="/rating/index.html" class="nav-link">
             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M5 4h14v16H5zM8 8h8M8 12h5M8 16h3" />
@@ -418,7 +419,9 @@
             <span>Courses to rate</span>
           </a>
         </li>
+        <!-- permission:rater:end -->
 
+        <!-- access:transaction_access:start -->
         <li data-required-access="transactionAccess">
           <a href="/transaction/index.html" class="nav-link">
             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -429,7 +432,9 @@
             <span>Transactions</span>
           </a>
         </li>
+        <!-- access:transaction_access:end -->
 
+        <!-- access:reports_access:start -->
         <li data-required-access="reportsAccess">
           <button
             type="button"
@@ -455,7 +460,9 @@
             <li><a href="/report/rating/index.html">Rating</a></li>
           </ul>
         </li>
+        <!-- access:reports_access:end -->
 
+        <!-- access:maintenance_access:start -->
         <li data-required-access="maintenanceAccess">
           <button
             type="button"
@@ -506,7 +513,9 @@
             <li><a href="/maintenance/teacher/index.html">Teacher</a></li>
           </ul>
         </li>
+        <!-- access:maintenance_access:end -->
 
+        <!-- access:users_access:start -->
         <li data-required-access="usersAccess">
           <button
             type="button"
@@ -537,6 +546,7 @@
             </li>
           </ul>
         </li>
+        <!-- access:users_access:end -->
       </ul>
     </nav>
 
@@ -547,17 +557,16 @@
           alt=""
           width="38"
           height="38"
-          onload="document.getElementById('update-password-action').style.display = localStorage.getItem('is_student_rater') === '0' ? 'inline-flex' : 'none'"
         />
         <div class="profile-info">
           <p id="sidebar-fullname">User</p>
         </div>
         <div class="profile-actions">
+          <!-- permission:non-rater:start -->
           <a
             class="profile-action"
             id="update-password-action"
             href="/update/password/index.html"
-            style="display: none"
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path
@@ -566,6 +575,7 @@
             </svg>
             Password
           </a>
+          <!-- permission:non-rater:end -->
           <button
             class="profile-action"
             type="button"

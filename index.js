@@ -191,6 +191,65 @@ app.use('/register', (req, res) => {
 
 // --- Serve frontend (HTML/JS/CSS) ---
 const clientPath = path.join(__dirname, "client");
+const sidebarTemplate = fs.readFileSync(
+  path.join(clientPath, "sidebar.html"),
+  "utf8",
+);
+
+function escapeRegularExpression(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function removeSidebarBlock(html, marker) {
+  const escapedMarker = escapeRegularExpression(marker);
+  return html.replace(
+    new RegExp(
+      `\\s*<!-- ${escapedMarker}:start -->[\\s\\S]*?<!-- ${escapedMarker}:end -->\\s*`,
+      "g",
+    ),
+    "\n",
+  );
+}
+
+// Build the sidebar for the authenticated account so inaccessible navigation
+// is absent from the HTML response, rather than merely hidden in the browser.
+app.get("/sidebar.html", checkToken, (req, res) => {
+  let html = sidebarTemplate;
+  const accessBlocks = [
+    ["access:transaction_access", "transaction_access"],
+    ["access:reports_access", "reports_access"],
+    ["access:maintenance_access", "maintenance_access"],
+    ["access:users_access", "users_access"],
+  ];
+
+  accessBlocks.forEach(([marker, field]) => {
+    if (Number(req.user?.[field]) !== 1) html = removeSidebarBlock(html, marker);
+  });
+
+  const isRater =
+    String(req.user?.permission_name || "").trim().toLowerCase() === "rater";
+  html = removeSidebarBlock(
+    html,
+    isRater ? "permission:non-rater" : "permission:rater",
+  );
+  html = html.replace(
+    /<!-- (?:access:[\w-]+|permission:[\w-]+):(start|end) -->\s*/g,
+    "",
+  );
+
+  return res
+    .status(200)
+    .type("html")
+    .set("Cache-Control", "no-store")
+    .send(html);
+});
+
+// Do not serve the self-service password page or its assets to Raters.
+app.use("/update/password", checkToken, (req, res, next) => {
+  if (String(req.user?.permission_name || "").trim().toLowerCase() === "rater")
+    return res.redirect(302, "/404.html");
+  return next();
+});
 
 // Keep directory index files out of the browser address bar.
 // For example, /maintenance/student/index.html becomes /maintenance/student/.

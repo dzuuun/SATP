@@ -802,6 +802,67 @@ test("Regular account imports preserve existing passwords", () => {
   );
 });
 
+test("Rater accounts cannot see or open the self-service password page", () => {
+  const sidebar = read("client/sidebar.html");
+  const passwordPage = read("client/update/password/script.js");
+  const auth = read("auth/auth_validation.js");
+  const loginRouter = read("api/login/login.router.js");
+  const server = read("index.js");
+
+  assert.match(
+    sidebar,
+    /<!-- permission:non-rater:start -->[\s\S]*id="update-password-action"/,
+  );
+  assert.match(
+    passwordPage,
+    /permissionName: localStorage\.getItem\("permission_name"\)/,
+  );
+  assert.match(passwordPage, /toLowerCase\(\) === "rater"/);
+  assert.match(auth, /function requireNonRater\(req, res, next\)/);
+  assert.match(auth, /permission_name[\s\S]*?toLowerCase\(\) !== "rater"/);
+  assert.match(
+    loginRouter,
+    /"\/update\/password",\s*checkToken,\s*requireNonRater,\s*updatePassword/,
+  );
+  assert.match(
+    server,
+    /app\.use\("\/update\/password", checkToken, \(req, res, next\) =>/,
+  );
+  assert.match(server, /return res\.redirect\(302, "\/404\.html"\)/);
+  assert.match(passwordPage, /location\.replace\("\/404\.html"\)/);
+  assert.ok(
+    server.indexOf(
+      'app.use("/update/password", checkToken, (req, res, next) =>',
+    ) <
+      server.indexOf("app.use(express.static(clientPath))"),
+  );
+});
+
+test("Sidebar HTML omits modules the authenticated account cannot access", () => {
+  const sidebar = read("client/sidebar.html");
+  const session = read("client/auth-session.js");
+  const server = read("index.js");
+
+  for (const access of [
+    "transaction_access",
+    "reports_access",
+    "maintenance_access",
+    "users_access",
+  ]) {
+    assert.match(sidebar, new RegExp(`<!-- access:${access}:start -->`));
+    assert.match(server, new RegExp(`\\["access:${access}", "${access}"\\]`));
+  }
+
+  assert.match(server, /app\.get\("\/sidebar\.html", checkToken/);
+  assert.match(server, /function removeSidebarBlock\(html, marker\)/);
+  assert.match(server, /\.set\("Cache-Control", "no-store"\)/);
+  assert.match(session, /if \(!permitted\) item\.remove\(\)/);
+  assert.ok(
+    server.indexOf('app.get("/sidebar.html", checkToken') <
+      server.indexOf("app.use(express.static(clientPath))"),
+  );
+});
+
 test("Google-only accounts may omit a local password", () => {
   const login = read("api/login/login.controller.js");
   const users = read("api/user/user_management/user_management.controller.js");
@@ -1049,6 +1110,20 @@ test("Teacher Maintenance safely merges duplicate teachers and their schedules",
   assert.match(script, /confirmText: "Merge permanently"/);
   assert.match(script, /satpConfirm\([\s\S]*Permanently merge teachers/);
   assert.match(script, /fetch|requestJson\("\/api\/teacher\/merge"/);
+});
+
+test("Teacher edit waits for departments and synchronizes searchable dropdowns", () => {
+  const teacher = read("client/maintenance/teacher/script.js");
+
+  assert.match(teacher, /let departmentsLoadPromise;/);
+  assert.match(
+    teacher,
+    /const \[, response\] = await Promise\.all\(\[\s*loadDepartments\(\),\s*requestJson\(`\/api\/teacher\/\$\{id\}`\)/,
+  );
+  assert.match(
+    teacher,
+    /departmentSelect\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\)/,
+  );
 });
 
 test("Grad School remains excluded from automated page and server QA", () => {

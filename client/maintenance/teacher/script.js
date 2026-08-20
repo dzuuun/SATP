@@ -20,6 +20,7 @@ let rowIdToUpdate;
 let duplicateTeacherId;
 let pendingImport = { created: [], updated: [], errors: [] };
 const departmentsByCode = new Map();
+let departmentsLoadPromise;
 
 $(document).ready(() => {
   table = $("#table").DataTable({
@@ -70,11 +71,17 @@ $(document).ready(() => {
   });
 });
 
-async function loadDepartments() {
-  try {
+function loadDepartments() {
+  if (departmentsLoadPromise) return departmentsLoadPromise;
+
+  departmentsLoadPromise = (async () => {
     const response = await requestJson("/api/department/all/active");
     const addSelect = document.getElementById("departmentSelect");
     const editSelect = document.getElementById("editDepartmentSelect");
+    [addSelect, editSelect].forEach((select) => {
+      [...select.options].slice(1).forEach((option) => option.remove());
+    });
+    departmentsByCode.clear();
     (response.data || []).forEach((department) => {
       const code = department.department_code || department.code;
       departmentsByCode.set(normalize(code), department);
@@ -85,9 +92,14 @@ async function loadDepartments() {
         select.appendChild(option);
       });
     });
-  } catch (error) {
+    return response.data || [];
+  })().catch((error) => {
+    departmentsLoadPromise = null;
     setErrorMessage("Unable to load departments.");
-  }
+    return [];
+  });
+
+  return departmentsLoadPromise;
 }
 
 function getLoadedTeachers() {
@@ -198,7 +210,10 @@ document
 
 async function editFormCall(id) {
   try {
-    const response = await requestJson(`/api/teacher/${id}`);
+    const [, response] = await Promise.all([
+      loadDepartments(),
+      requestJson(`/api/teacher/${id}`),
+    ]);
     const teacher = response.data;
     rowIdToUpdate = teacher.id;
     document.getElementById("editPrefix").value = teacher.prefix || "";
@@ -206,10 +221,14 @@ async function editFormCall(id) {
     document.getElementById("editMiddleName").value = teacher.middlename || "";
     document.getElementById("editLastName").value = teacher.surname || "";
     document.getElementById("editSuffix").value = teacher.suffix || "";
-    document.getElementById("editDepartmentSelect").value =
-      teacher.department_id;
-    document.getElementById("editTeachingStatusSelect").value =
-      teacher.is_part_time;
+    const departmentSelect = document.getElementById("editDepartmentSelect");
+    departmentSelect.value = String(teacher.department_id ?? "");
+    departmentSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    const teachingStatusSelect = document.getElementById(
+      "editTeachingStatusSelect",
+    );
+    teachingStatusSelect.value = String(teacher.is_part_time ?? "");
+    teachingStatusSelect.dispatchEvent(new Event("change", { bubbles: true }));
     document.getElementById("isTeacherActiveEdit").checked =
       teacher.is_active == 1;
     toggleModal("editModal", true);
