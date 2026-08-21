@@ -1126,6 +1126,51 @@ test("Teacher edit waits for departments and synchronizes searchable dropdowns",
   );
 });
 
+test("Shared pages and report exports include Safari compatibility safeguards", () => {
+  const sharedUi = read("client/shared-ui.js");
+  const sidebar = read("client/sidebar.html");
+  const rating = read("client/rate/script.js");
+  const pdfExport = read("client/report/html2pdf-export.js");
+  const bulkExport = read("client/report/rating/bulk-export.js");
+
+  assert.match(sharedUi, /visualViewport/);
+  assert.match(sharedUi, /--satp-viewport-height/);
+  assert.match(sharedUi, /-webkit-overflow-scrolling: touch/);
+  assert.match(sidebar, /height: 100vh;[\s\S]*height: 100dvh;/);
+  assert.match(sidebar, /body\.satp-sidebar-present #main/);
+  assert.doesNotMatch(sidebar, /body:has\(/);
+  assert.doesNotMatch(rating, /querySelector\([^\n]*:has\(/);
+  assert.match(pdfExport, /16000000/);
+  assert.match(pdfExport, /safariAreaLimitedScale/);
+  assert.match(bulkExport, /document\.body\.appendChild\(link\)/);
+});
+
+test("Report generation writes one transparent activity-log entry", () => {
+  const server = read("index.js");
+  const model = read("api/reports/report_log.model.js");
+  const controller = read("api/reports/report_log.controller.js");
+  const sharedUi = read("client/shared-ui.js");
+  const rating = read("client/report/rating/script.js");
+  const ranking = read("client/report/ranking/script.js");
+  const bulk = read("client/report/rating/bulk-export.js");
+
+  assert.match(server, /"\/api\/report\/log"[\s\S]*requirePermission\("reports_access"\)/);
+  assert.match(model, /INSERT INTO activity_log/);
+  assert.match(model, /FROM school_years/);
+  assert.match(model, /FROM semesters/);
+  assert.match(model, /FROM teachers/);
+  assert.match(controller, /Generated a bulk report export/);
+  assert.match(controller, /School year:/);
+  assert.match(controller, /Semester:/);
+  assert.match(controller, /Teaching status:/);
+  assert.match(controller, /Teacher: All teachers/);
+  assert.match(sharedUi, /fetch\("\/api\/report\/log"/);
+  assert.match(rating, /reportType: data\.ratingReport/);
+  assert.match(rating, /teacherId: data\.teacher \|\| null/);
+  assert.match(ranking, /teachingStatus: data\.teaching_status/);
+  assert.equal((bulk.match(/satpLogReportGeneration/g) || []).length, 1);
+});
+
 test("Grad School remains excluded from automated page and server QA", () => {
   assert.match(
     read("test/pages.smoke.test.js"),

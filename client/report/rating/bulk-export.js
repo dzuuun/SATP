@@ -316,8 +316,13 @@ function saveZipBlob(blob, fileName) {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = fileName;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
-  setTimeout(() => URL.revokeObjectURL(link.href), 0);
+  setTimeout(() => {
+    URL.revokeObjectURL(link.href);
+    link.remove();
+  }, 30000);
 }
 
 function bulkEscapeHtml(value) {
@@ -462,6 +467,14 @@ async function exportIndividualRatings({
       zipBlob,
       `SATP ${reportLabel} Rating Reports - ${teacherId ? safeFileName(teacherName, "Teacher") : "All Teachers"} - ${safeFileName(schoolYearName)} - ${safeFileName(semesterName)}.zip`,
     );
+    await window.satpLogReportGeneration?.({
+      category: "rating",
+      reportType: ratingType,
+      bulk: true,
+      schoolYearId,
+      semesterId,
+      teacherId,
+    });
     showToast(
       teacherId
         ? `${reports.length} course reports for ${teacherName} were exported successfully.`

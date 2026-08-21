@@ -4,7 +4,9 @@
     --side-green-light: #075c3b;
     --side-gold: #f3c94d;
     width: 0;
+    height: 100vh;
     height: 100dvh;
+    height: var(--satp-viewport-height, 100dvh);
     position: fixed;
     inset: 0 auto 0 0;
     z-index: 1000;
@@ -367,8 +369,8 @@
       width: min(280px, 86vw);
     }
 
-    body:has(.satp-sidebar) #main,
-    body:has(.satp-sidebar) #main .site-footer {
+    body.satp-sidebar-present #main,
+    body.satp-sidebar-present #main .site-footer {
       width: 100%;
       margin-left: 0 !important;
     }

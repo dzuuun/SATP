@@ -530,6 +530,7 @@ table.dataTable tbody tr:hover {
   z-index: 100;
   opacity: 0;
   background: rgba(7, 25, 17, 0.68);
+  -webkit-backdrop-filter: blur(5px);
   backdrop-filter: blur(5px);
   transition:
     opacity 0.25s ease,
@@ -540,7 +541,7 @@ table.dataTable tbody tr:hover {
 }
 .modal-card {
   width: min(540px, 100%);
-  max-height: calc(100vh - 36px);
+  max-height: calc(var(--satp-viewport-height, 100vh) - 36px);
   overflow: auto;
   background: #fff;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -784,7 +785,7 @@ table.dataTable tbody tr:hover {
 
 .preview-card {
   width: min(820px, 100%);
-  height: min(720px, calc(100vh - 36px));
+  height: min(720px, calc(var(--satp-viewport-height, 100vh) - 36px));
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -900,6 +901,7 @@ table.dataTable tbody tr:hover {
   inset: 0;
   z-index: 9999;
   background: rgba(244, 247, 245, 0.88);
+  -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
 }
 .loader {
@@ -1048,7 +1050,7 @@ table.dataTable tbody tr:hover {
     flex: 1;
   }
   .preview-card {
-    height: calc(100vh - 20px);
+    height: calc(var(--satp-viewport-height, 100vh) - 20px);
   }
   .preview-intro,
   .preview-body {
@@ -1076,7 +1078,7 @@ table.dataTable tbody tr:hover {
     padding: 10px;
   }
   .modal-card {
-    max-height: calc(100vh - 20px);
+    max-height: calc(var(--satp-viewport-height, 100vh) - 20px);
   }
   .modal-header,
   .modal-body,

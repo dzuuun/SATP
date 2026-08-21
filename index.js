@@ -93,6 +93,7 @@ const transactionRouter = require("./api/transaction/studentRatingStatus/srs.rou
 // Reports
 const rankingRouter = require("./api/reports/ranking/ranking.router");
 const ratingRouter = require("./api/reports/rating/rating.router");
+const reportLogRouter = require("./api/reports/report_log.router");
 
 // --- API Route Implementation ---
 app.use("/api/login", loginRouter);
@@ -153,6 +154,11 @@ app.use(
   "/api/report/rating",
   requirePermission("reports_access"),
   ratingRouter,
+);
+app.use(
+  "/api/report/log",
+  requirePermission("reports_access"),
+  reportLogRouter,
 );
 app.use("/api", apiNotFound);
 

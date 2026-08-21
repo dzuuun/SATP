@@ -269,6 +269,7 @@
   border: 1px solid var(--line);
   border-radius: 13px;
   box-shadow: 0 15px 40px rgba(25, 53, 40, 0.13);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 .submit-bar > div {

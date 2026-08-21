@@ -140,9 +140,28 @@ async function renderReportPdf({
     await new Promise((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(resolve)),
     );
-    const effectiveCanvasScale = maxCanvasHeight
-      ? Math.min(canvasScale, maxCanvasHeight / Math.max(clone.scrollHeight, 1))
+    const isSafari =
+      /Safari/i.test(navigator.userAgent) &&
+      !/(Chrome|Chromium|CriOS|Edg|OPR|Android)/i.test(navigator.userAgent);
+    const heightLimitedScale = maxCanvasHeight
+      ? maxCanvasHeight / Math.max(clone.scrollHeight, 1)
       : canvasScale;
+    // WebKit rejects oversized canvases and can otherwise produce an empty PDF.
+    // Keep Safari below its conservative 16-megapixel canvas boundary.
+    const safariAreaLimitedScale = isSafari
+      ? Math.sqrt(
+          16000000 / Math.max(clone.scrollWidth * clone.scrollHeight, 1),
+        )
+      : canvasScale;
+    const safariDimensionLimitedScale = isSafari
+      ? 16000 / Math.max(clone.scrollHeight, clone.scrollWidth, 1)
+      : canvasScale;
+    const effectiveCanvasScale = Math.min(
+      canvasScale,
+      heightLimitedScale,
+      safariAreaLimitedScale,
+      safariDimensionLimitedScale,
+    );
 
     const worker = html2pdf()
       .set({
@@ -154,6 +173,7 @@ async function renderReportPdf({
           useCORS: true,
           allowTaint: false,
           backgroundColor: "#ffffff",
+          imageTimeout: 20000,
           logging: false,
           scrollX: 0,
           scrollY: 0,

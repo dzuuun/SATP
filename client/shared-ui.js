@@ -6,13 +6,70 @@
 
   let activeConfirmation = null;
 
+  function installBrowserCompatibility() {
+    const isSafari =
+      /Safari/i.test(navigator.userAgent) &&
+      !/(Chrome|Chromium|CriOS|Edg|OPR|Android)/i.test(navigator.userAgent);
+    document.documentElement.classList.toggle("satp-safari", isSafari);
+
+    const syncViewportHeight = () => {
+      const height = window.visualViewport?.height || window.innerHeight;
+      document.documentElement.style.setProperty(
+        "--satp-viewport-height",
+        `${Math.round(height)}px`,
+      );
+    };
+    syncViewportHeight();
+    window.addEventListener("resize", syncViewportHeight, { passive: true });
+    window.visualViewport?.addEventListener("resize", syncViewportHeight, {
+      passive: true,
+    });
+
+    if (!document.getElementById("satp-browser-compatibility-style")) {
+      const style = document.createElement("style");
+      style.id = "satp-browser-compatibility-style";
+      style.textContent = `
+        html { -webkit-text-size-adjust: 100%; }
+        button, input, select, textarea { font-family: inherit; }
+        button, [role="button"], a, input, select, textarea { -webkit-tap-highlight-color: transparent; }
+        input[type="search"] { -webkit-appearance: none; appearance: none; }
+        input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
+        .modal, .modal-content, .preview-body, .preview-list,
+        .satp-search-select-options, .dataTables_scrollBody, .table-responsive {
+          -webkit-overflow-scrolling: touch;
+        }
+        .satp-confirm-modal { -webkit-backdrop-filter: blur(5px); }
+        .satp-safari .satp-search-select-trigger,
+        .satp-safari .satp-search-select-search { font-size: 16px; }
+        body.satp-sidebar-present #main,
+        body.satp-sidebar-present #main .site-footer { min-width: 0; }
+        @media (max-width: 1100px) {
+          body.satp-sidebar-present #main,
+          body.satp-sidebar-present #main .site-footer {
+            width: 100%;
+            margin-left: 0 !important;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  }
+
+  function syncSidebarPresence(root = document) {
+    const hasSidebar =
+      root.matches?.(".satp-sidebar") ||
+      root.querySelector?.(".satp-sidebar") ||
+      document.querySelector(".satp-sidebar");
+    if (hasSidebar) document.body?.classList.add("satp-sidebar-present");
+  }
+
   function installConfirmationModal() {
     if (document.getElementById("satp-confirm-modal")) return;
     const style = document.createElement("style");
     style.id = "satp-confirm-modal-style";
     style.textContent = `
       .satp-confirm-modal[hidden] { display: none; }
-      .satp-confirm-modal { position: fixed; inset: 0; z-index: 10000; padding: 20px; display: grid; place-items: center; background: rgba(10, 31, 23, .62); backdrop-filter: blur(5px); }
+      .satp-confirm-modal { position: fixed; inset: 0; z-index: 10000; padding: 20px; display: grid; place-items: center; background: rgba(10, 31, 23, .62); -webkit-backdrop-filter: blur(5px); backdrop-filter: blur(5px); }
       .satp-confirm-card { width: min(430px, 100%); overflow: hidden; color: var(--ink, #183128); background: #fff; border: 1px solid var(--line, #d8e3dd); border-radius: 18px; box-shadow: 0 24px 70px rgba(7, 35, 24, .28); }
       .satp-confirm-header { padding: 24px 26px 14px; }
       .satp-confirm-eyebrow { margin: 0 0 7px; color: var(--green-800, #087247); font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
@@ -89,6 +146,40 @@
       };
       requestAnimationFrame(() => accept.focus());
     });
+  };
+
+  window.satpLogReportGeneration = async ({
+    category,
+    reportType = "",
+    bulk = false,
+    schoolYearId,
+    semesterId,
+    teachingStatus = "",
+    teacherId = null,
+  }) => {
+    try {
+      const response = await fetch("/api/report/log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          category,
+          report_type: reportType,
+          bulk: Boolean(bulk),
+          school_year_id: schoolYearId,
+          semester_id: semesterId,
+          teaching_status: teachingStatus,
+          teacher_id: teacherId,
+        }),
+      });
+      if (!response.ok) {
+        const result = await response.json().catch(() => ({}));
+        throw new Error(result.message || "Unable to log report generation.");
+      }
+      return true;
+    } catch (error) {
+      console.error("Report activity logging failed:", error);
+      return false;
+    }
   };
 
   function disableSelectPlaceholders(root = document) {
@@ -239,7 +330,7 @@
         .satp-search-select-panel { display: none; padding: 7px; position: absolute; inset: calc(100% + 5px) 0 auto; z-index: 300; background: #fff; border: 1px solid var(--line, #d8e3dd); border-radius: 10px; box-shadow: 0 14px 35px rgba(20,48,35,.16); }
         .satp-search-select.open .satp-search-select-panel { display: block; }
         .satp-search-select-search { width: 100%; min-height: 39px; margin: 0 0 6px; padding: 0 10px; border: 1px solid var(--line, #d8e3dd); border-radius: 7px; }
-        .satp-search-select-options { max-height: 220px; display: grid; overflow-y: auto; }
+        .satp-search-select-options { max-height: 220px; display: grid; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .satp-search-select-option { padding: 9px 10px; color: var(--ink, #183128); background: transparent; border: 0; border-radius: 7px; text-align: left; cursor: pointer; }
         .satp-search-select-option:hover, .satp-search-select-option.selected { background: var(--green-100, #e9f6ef); }
         .satp-search-select-empty { margin: 0; padding: 10px; color: var(--muted, #718078); text-align: center; }
@@ -289,6 +380,8 @@
     });
   }
 
+  installBrowserCompatibility();
+  syncSidebarPresence();
   disableSelectPlaceholders();
   disableHeaderBrandNavigation();
   installHeaderMenuAnimation();
@@ -305,6 +398,7 @@
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
         if (node instanceof Element) {
+          syncSidebarPresence(node);
           disableSelectPlaceholders(node);
           disableHeaderBrandNavigation(node);
           installHeaderMenuAnimation(node);

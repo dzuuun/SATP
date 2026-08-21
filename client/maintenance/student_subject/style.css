@@ -43,7 +43,7 @@
 
 .subject-detail-card {
   width: min(1180px, calc(100vw - 32px));
-  height: min(760px, calc(100vh - 32px));
+  height: min(760px, calc(var(--satp-viewport-height, 100vh) - 32px));
 }
 
 .subject-detail-body {

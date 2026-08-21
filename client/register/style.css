@@ -1,7 +1,8 @@
 :root { --green-950:#043b2a; --green-900:#075c3b; --green-800:#087247; --green-100:#e8f5ee; --gold:#f3c94d; --ink:#15231d; --muted:#65736c; --line:#dce6e0; --danger:#b42318; }
 * { box-sizing:border-box; }
 html { min-width:320px; background:#edf3ef; }
-body { min-height:100vh; margin:0; display:grid; grid-template-rows:auto 1fr auto; color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(circle at 8% 20%,rgba(8,114,71,.12),transparent 28rem),radial-gradient(circle at 92% 82%,rgba(243,201,77,.15),transparent 24rem),#f4f7f5; }
+html { height:-webkit-fill-available; -webkit-text-size-adjust:100%; }
+body { min-height:100vh; min-height:-webkit-fill-available; min-height:100svh; margin:0; display:grid; grid-template-rows:auto 1fr auto; color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; background:radial-gradient(circle at 8% 20%,rgba(8,114,71,.12),transparent 28rem),radial-gradient(circle at 92% 82%,rgba(243,201,77,.15),transparent 24rem),#f4f7f5; }
 button,input,select { font:inherit; }
 a { color:inherit; }
 .site-header { position:sticky; top:0; z-index:1100; min-height:76px; padding:12px clamp(20px,5vw,72px); display:flex; align-items:center; justify-content:space-between; gap:28px; color:#fff; background:rgba(4,59,42,.97); box-shadow:0 1px 0 rgba(255,255,255,.1),0 8px 24px rgba(4,59,42,.12); }

@@ -440,8 +440,18 @@ document
       localStorage.setItem("genReportDepartment", data.department);
 
     const reportWindow = window.open(destination, "_blank");
-    if (reportWindow) reportWindow.opener = null;
-    else showToast("Allow pop-ups for SATP to open the report in a new tab.");
+    if (reportWindow) {
+      reportWindow.opener = null;
+      void window.satpLogReportGeneration?.({
+        category: "rating",
+        reportType: data.ratingReport,
+        schoolYearId: data.school_year,
+        semesterId: data.semester,
+        teacherId: data.teacher || null,
+      });
+    } else {
+      showToast("Allow pop-ups for SATP to open the report in a new tab.");
+    }
   });
 
 function showLoading(message) {

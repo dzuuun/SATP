@@ -81,7 +81,7 @@
       #session-expired-prompt {
         position: fixed; inset: 0; z-index: 2147483647;
         display: grid; place-items: center; padding: 24px;
-        background: rgba(20, 38, 31, .72); backdrop-filter: blur(7px);
+        background: rgba(20, 38, 31, .72); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px);
         font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
       #session-expired-prompt .session-expired-card {

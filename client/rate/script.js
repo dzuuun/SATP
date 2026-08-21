@@ -100,8 +100,8 @@ document
     const ratings = collectRatings();
     if (ratings.length !== state.items.length) {
       showToast("Please answer every assessment item.");
-      document
-        .querySelector(".question-row:not(:has(input:checked))")
+      [...document.querySelectorAll(".question-row")]
+        .find((row) => !row.querySelector("input:checked"))
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
