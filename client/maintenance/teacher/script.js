@@ -20,6 +20,11 @@ let rowIdToUpdate;
 let duplicateTeacherId;
 let pendingImport = { created: [], updated: [], errors: [] };
 const departmentsByCode = new Map();
+const departmentAssignmentState = {
+  additionalDepartments: new Map(),
+  editAdditionalDepartments: new Map(),
+};
+let availableDepartments = [];
 let departmentsLoadPromise;
 
 $(document).ready(() => {
@@ -34,16 +39,27 @@ $(document).ready(() => {
         className: "dt-center",
       },
       {
-        data: "is_part_time",
-        title: "Teaching status",
+        data: null,
+        title: "Teaching status by department",
         width: "18%",
         className: "dt-center",
-        render: (value) =>
-          Number(value) === 0
-            ? "Full Time"
-            : Number(value) === 1
-              ? "Part Time"
-              : "NTPO & Admin",
+        render: (row) => {
+          const labels = { 0: "Full Time", 1: "Part Time", 2: "NTPO & Admin" };
+          const codes = String(row.department_codes || row.department_code || "")
+            .split(",")
+            .map((value) => value.trim());
+          const statuses = String(
+            row.department_teaching_statuses ?? row.is_part_time,
+          )
+            .split(",")
+            .map(Number);
+          return codes
+            .map(
+              (code, index) =>
+                `${code}: ${labels[statuses[index]] || "Unknown"}`,
+            )
+            .join("<br>");
+        },
       },
       {
         data: "is_active",
@@ -78,20 +94,35 @@ function loadDepartments() {
     const response = await requestJson("/api/department/all/active");
     const addSelect = document.getElementById("departmentSelect");
     const editSelect = document.getElementById("editDepartmentSelect");
-    [addSelect, editSelect].forEach((select) => {
+    const addPicker = document.getElementById("additionalDepartmentPicker");
+    const editPicker = document.getElementById(
+      "editAdditionalDepartmentPicker",
+    );
+    [addSelect, editSelect, addPicker, editPicker].forEach((select) => {
       [...select.options].slice(1).forEach((option) => option.remove());
     });
     departmentsByCode.clear();
-    (response.data || []).forEach((department) => {
+    availableDepartments = response.data || [];
+    availableDepartments.forEach((department) => {
       const code = department.department_code || department.code;
       departmentsByCode.set(normalize(code), department);
-      [addSelect, editSelect].forEach((select) => {
+        [addSelect, editSelect, addPicker, editPicker].forEach((select) => {
         const option = document.createElement("option");
         option.value = department.id;
         option.textContent = `${code} — ${department.name}`;
         select.appendChild(option);
       });
     });
+    renderDepartmentChecklist("additionalDepartments");
+    renderDepartmentChecklist("editAdditionalDepartments");
+    [addSelect, editSelect].forEach((select) =>
+      select.addEventListener("change", syncPrimaryDepartmentCheckboxes),
+    );
+    ["teachingStatusSelect", "editTeachingStatusSelect"].forEach((id) =>
+      document
+        .getElementById(id)
+        ?.addEventListener("change", syncPrimaryDepartmentCheckboxes),
+    );
     return response.data || [];
   })().catch((error) => {
     departmentsLoadPromise = null;
@@ -100,6 +131,126 @@ function loadDepartments() {
   });
 
   return departmentsLoadPromise;
+}
+
+function renderDepartmentChecklist(containerId, selectedAssignments) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const assignments = departmentAssignmentState[containerId];
+
+  if (selectedAssignments) {
+    assignments.clear();
+    selectedAssignments.forEach((assignment) => {
+      const departmentId = Number(assignment.department_id ?? assignment);
+      if (departmentId) {
+        assignments.set(
+          departmentId,
+          Number(assignment.teaching_status ?? 0),
+        );
+      }
+    });
+  }
+
+  const isEdit = containerId === "editAdditionalDepartments";
+  const primaryId = Number(
+    document.getElementById(
+      isEdit ? "editDepartmentSelect" : "departmentSelect",
+    )?.value,
+  );
+  container.replaceChildren();
+
+  [...assignments.entries()]
+    .filter(([departmentId]) => departmentId !== primaryId)
+    .forEach(([departmentId, teachingStatus]) => {
+      const department = availableDepartments.find(
+        (item) => Number(item.id) === departmentId,
+      );
+      if (!department) return;
+
+      const row = document.createElement("div");
+      row.className = "department-assignment-row";
+      row.dataset.departmentId = String(departmentId);
+      const name = document.createElement("span");
+      name.textContent = `${department.department_code || department.code} — ${department.name}`;
+      const status = document.createElement("select");
+      status.className = "department-teaching-status";
+      status.dataset.noSearch = "true";
+      status.innerHTML =
+        '<option value="0">Full Time</option><option value="1">Part Time</option><option value="2">NTPO &amp; Admin</option>';
+      status.value = String(teachingStatus);
+      status.setAttribute("aria-label", `Teaching status for ${name.textContent}`);
+      status.addEventListener("change", () => {
+        assignments.set(departmentId, Number(status.value));
+      });
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.className = "department-remove-button";
+      remove.textContent = "Remove";
+      remove.addEventListener("click", () => {
+        assignments.delete(departmentId);
+        renderDepartmentChecklist(containerId);
+      });
+      row.append(name, status, remove);
+      container.appendChild(row);
+    });
+
+  if (!container.children.length) {
+    const empty = document.createElement("p");
+    empty.className = "department-assignment-empty";
+    empty.textContent = "No additional departments selected.";
+    container.appendChild(empty);
+  }
+  syncDepartmentPicker(containerId);
+}
+
+function syncDepartmentPicker(containerId) {
+  const isEdit = containerId === "editAdditionalDepartments";
+  const picker = document.getElementById(
+    isEdit ? "editAdditionalDepartmentPicker" : "additionalDepartmentPicker",
+  );
+  const primaryId = Number(
+    document.getElementById(
+      isEdit ? "editDepartmentSelect" : "departmentSelect",
+    )?.value,
+  );
+  const assignments = departmentAssignmentState[containerId];
+  [...picker.options].slice(1).forEach((option) => {
+    const departmentId = Number(option.value);
+    option.disabled =
+      departmentId === primaryId || assignments.has(departmentId);
+  });
+  picker.value = "";
+  picker.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function addDepartmentAssignment(containerId, pickerId) {
+  const departmentId = Number(document.getElementById(pickerId)?.value);
+  if (!departmentId) {
+    setErrorMessage("Select a department to add.");
+    return;
+  }
+  departmentAssignmentState[containerId].set(departmentId, 0);
+  renderDepartmentChecklist(containerId);
+}
+
+function syncPrimaryDepartmentCheckboxes() {
+  [
+    ["departmentSelect", "teachingStatusSelect", "additionalDepartments"],
+    [
+      "editDepartmentSelect",
+      "editTeachingStatusSelect",
+      "editAdditionalDepartments",
+    ],
+  ].forEach(([selectId, statusId, containerId]) => {
+    const primaryId = Number(document.getElementById(selectId)?.value);
+    if (primaryId) {
+      departmentAssignmentState[containerId].set(
+        primaryId,
+        Number(document.getElementById(statusId)?.value || 0),
+      );
+    }
+    renderDepartmentChecklist(containerId);
+  });
 }
 
 function getLoadedTeachers() {
@@ -223,11 +374,24 @@ async function editFormCall(id) {
     document.getElementById("editSuffix").value = teacher.suffix || "";
     const departmentSelect = document.getElementById("editDepartmentSelect");
     departmentSelect.value = String(teacher.department_id ?? "");
-    departmentSelect.dispatchEvent(new Event("change", { bubbles: true }));
     const teachingStatusSelect = document.getElementById(
       "editTeachingStatusSelect",
     );
-    teachingStatusSelect.value = String(teacher.is_part_time ?? "");
+    teachingStatusSelect.value = String(teacher.is_part_time ?? "0");
+    renderDepartmentChecklist(
+      "editAdditionalDepartments",
+      String(teacher.department_ids || teacher.department_id || "")
+        .split(",")
+        .map((departmentId, index) => ({
+          department_id: Number(departmentId),
+          teaching_status: Number(
+            String(
+              teacher.department_teaching_statuses ?? teacher.is_part_time,
+            ).split(",")[index] ?? teacher.is_part_time,
+          ),
+        })),
+    );
+    departmentSelect.dispatchEvent(new Event("change", { bubbles: true }));
     teachingStatusSelect.dispatchEvent(new Event("change", { bubbles: true }));
     document.getElementById("isTeacherActiveEdit").checked =
       teacher.is_active == 1;
@@ -249,8 +413,31 @@ document
   });
 
 function formPayload(form, checkboxId) {
+  const checklistId =
+    form.id === "editTeacherForm"
+      ? "editAdditionalDepartments"
+      : "additionalDepartments";
+  const primaryDepartmentId = Number(
+    form.querySelector('[name="department_id"]')?.value,
+  );
+  const primaryTeachingStatus = Number(
+    form.querySelector('[name="is_part_time"]')?.value,
+  );
+  const assignments = departmentAssignmentState[checklistId];
+  assignments.set(primaryDepartmentId, primaryTeachingStatus);
+  const departmentAssignments = [...assignments.entries()]
+    .filter(([departmentId]) => Boolean(departmentId))
+    .map(([departmentId, teachingStatus]) => ({
+      department_id: departmentId,
+      teaching_status:
+        departmentId === primaryDepartmentId
+          ? primaryTeachingStatus
+          : teachingStatus,
+    }));
   return {
     ...Object.fromEntries(new FormData(form)),
+    department_ids: departmentAssignments.map((item) => item.department_id),
+    department_assignments: departmentAssignments,
     is_active: document.getElementById(checkboxId).checked ? 1 : 0,
     user_id: state.userId,
   };
@@ -288,7 +475,8 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
       givenname: "Juan",
       middlename: "Reyes",
       suffix: "PhD",
-      department_code: "ENG",
+      department_code: "ENG, SHS",
+      department_teaching_statuses: "Full Time, Part Time",
       is_part_time: "Full Time",
     },
   ]);
@@ -384,16 +572,29 @@ function classifyRows(rows, existing) {
     const suffix = String(raw.suffix || "")
       .trim()
       .replace(/\s+/g, " ");
-    const departmentCode = String(raw.department_code || "")
-      .trim()
-      .toUpperCase();
-    const department = departmentsByCode.get(normalize(departmentCode));
+    const departmentCodes = String(raw.department_code || "")
+      .split(",")
+      .map((code) => code.trim().toUpperCase())
+      .filter(Boolean);
+    const departmentCode = departmentCodes.join(", ");
+    const departments = departmentCodes.map((code) =>
+      departmentsByCode.get(normalize(code)),
+    );
+    const department = departments[0];
     const teachingStatusValue = String(raw.is_part_time ?? "").trim();
     const teachingStatusKey = normalize(teachingStatusValue).replace(
       /[-_]+/g,
       " ",
     );
     const isPartTime = teachingStatuses.get(teachingStatusKey);
+    const departmentStatusSource = String(
+      raw.department_teaching_statuses || "",
+    ).trim();
+    const departmentTeachingStatuses = departmentStatusSource
+      ? departmentStatusSource.split(",").map((value) =>
+          teachingStatuses.get(normalize(value).replace(/[-_]+/g, " ")),
+        )
+      : [];
     const key = normalize(`${givenname} ${surname}`);
     const base = {
       rowNumber,
@@ -404,6 +605,14 @@ function classifyRows(rows, existing) {
       suffix,
       departmentCode,
       department_id: department?.id,
+      department_ids: departments.filter(Boolean).map((item) => item.id),
+      department_assignments: departments
+        .filter(Boolean)
+        .map((item, departmentIndex) => ({
+          department_id: item.id,
+          teaching_status:
+            departmentTeachingStatuses[departmentIndex] ?? isPartTime,
+        })),
       is_part_time: isPartTime,
       is_active: 1,
       originalRow: raw,
@@ -413,12 +622,15 @@ function classifyRows(rows, existing) {
         ...base,
         reason: "Surname, given name, and department code are required",
       });
-    } else if (!department) {
+    } else if (!department || departments.some((item) => !item)) {
       result.errors.push({
         ...base,
         reason: `Department ${departmentCode} was not found`,
       });
-    } else if (isPartTime === undefined) {
+    } else if (
+      isPartTime === undefined ||
+      departmentTeachingStatuses.some((status) => status === undefined)
+    ) {
       result.errors.push({
         ...base,
         reason: "is_part_time must be Full Time, Part Time, or NTPO",
@@ -498,6 +710,8 @@ document
         middlename: item.middlename,
         suffix: item.suffix,
         department_id: item.department_id,
+        department_ids: item.department_ids,
+        department_assignments: item.department_assignments,
         is_part_time: item.is_part_time,
         is_active: item.is_active,
         user_id: state.userId,
@@ -574,6 +788,14 @@ function toggleModal(id, show = true) {
     setTimeout(() => {
       modal.classList.add("invisible");
       modal.querySelectorAll("form").forEach((form) => form.reset());
+      if (id === "addNewModal") {
+        departmentAssignmentState.additionalDepartments.clear();
+        renderDepartmentChecklist("additionalDepartments");
+      }
+      if (id === "editModal") {
+        departmentAssignmentState.editAdditionalDepartments.clear();
+        renderDepartmentChecklist("editAdditionalDepartments");
+      }
       if (dropZoneText?.dataset.defaultText)
         dropZoneText.textContent = dropZoneText.dataset.defaultText;
     }, 250);

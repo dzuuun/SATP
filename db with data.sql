@@ -78,6 +78,18 @@ CREATE TABLE `categories` (
   PRIMARY KEY (`id`,`name`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `schools`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `schools` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `code` varchar(45) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `is_active` tinyint(3) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uq_schools_code` (`code`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `colleges`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -85,8 +97,11 @@ CREATE TABLE `colleges` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `code` varchar(45) NOT NULL,
   `name` varchar(100) NOT NULL,
+  `school_id` int(10) unsigned NOT NULL,
   `is_active` tinyint(3) unsigned NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `idx_colleges_school_id` (`school_id`),
+  CONSTRAINT `fk_colleges_school_id` FOREIGN KEY (`school_id`) REFERENCES `schools` (`id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `courses`;
@@ -258,12 +273,34 @@ CREATE TABLE `teachers` (
   `prefix` varchar(10) DEFAULT NULL,
   `suffix` varchar(20) DEFAULT NULL,
   `department_id` int(10) unsigned DEFAULT NULL,
-  `is_part_time` tinyint(3) unsigned NOT NULL,
   `is_active` tinyint(3) unsigned NOT NULL,
   PRIMARY KEY (`id`,`surname`,`givenname`) USING BTREE,
   KEY `fk_teachers_department_id` (`department_id`),
   CONSTRAINT `fk_teachers_department_id` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1291 DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `teacher_departments`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `teacher_departments` (
+  `teacher_id` int(10) unsigned NOT NULL,
+  `department_id` int(10) unsigned NOT NULL,
+  `is_primary` tinyint(1) NOT NULL DEFAULT 0,
+  `teaching_status` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`teacher_id`,`department_id`),
+  KEY `idx_teacher_departments_department` (`department_id`,`teacher_id`),
+  CONSTRAINT `fk_teacher_departments_teacher` FOREIGN KEY (`teacher_id`) REFERENCES `teachers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_teacher_departments_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+DROP TABLE IF EXISTS `academic_record_departments`;
+CREATE TABLE `academic_record_departments` (
+  `academic_record_id` int(10) unsigned NOT NULL,
+  `department_id` int(10) unsigned NOT NULL,
+  PRIMARY KEY (`academic_record_id`),
+  KEY `idx_academic_record_departments_department` (`department_id`,`academic_record_id`),
+  CONSTRAINT `fk_academic_record_departments_record` FOREIGN KEY (`academic_record_id`) REFERENCES `academic_records_consolidated` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_academic_record_departments_department` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`) ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `trans_item`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -373,9 +410,15 @@ INSERT INTO `categories` VALUES (1,'TEACHER',1),(2,'TEACHING PROCEDURES',1),(3,'
 /*!40000 ALTER TABLE `categories` ENABLE KEYS */;
 UNLOCK TABLES;
 
+LOCK TABLES `schools` WRITE;
+/*!40000 ALTER TABLE `schools` DISABLE KEYS */;
+INSERT INTO `schools` VALUES (1,'COLLEGE','Higher Education',1),(2,'SHS','Senior High School',1);
+/*!40000 ALTER TABLE `schools` ENABLE KEYS */;
+UNLOCK TABLES;
+
 LOCK TABLES `colleges` WRITE;
 /*!40000 ALTER TABLE `colleges` DISABLE KEYS */;
-INSERT INTO `colleges` VALUES (1,'CAS','COLLEGE OF ARTS AND SCIENCES',1),(2,'CEAC','COLLEGE OF ENGINEERING, ARCHITECTURE, AND COMPUTING',1),(3,'CBGA','COLLEGE OF BUSINESS, GOVERNANCE, AND ACCOUNTANCY',1),(4,'CED','COLLEGE OF EDUCATION',1),(5,'GRDSCHL','GRADUATE SCHOOL',1),(6,'CHS','COLLEGE OF HEALTH SCIENCES',1),(7,'RSTC','RSTC',0),(8,'TESDA','TESDA PROGRAMS',0),(9,'SEN-HISCH','SENIOR HIGHSCHOOL',1),(10,'CL','COLLEGE OF LAW',1),(11,'-','-',1);
+INSERT INTO `colleges` VALUES (1,'CAS','COLLEGE OF ARTS AND SCIENCES',1,1),(2,'CEAC','COLLEGE OF ENGINEERING, ARCHITECTURE, AND COMPUTING',1,1),(3,'CBGA','COLLEGE OF BUSINESS, GOVERNANCE, AND ACCOUNTANCY',1,1),(4,'CED','COLLEGE OF EDUCATION',1,1),(5,'GRDSCHL','GRADUATE SCHOOL',1,1),(6,'CHS','COLLEGE OF HEALTH SCIENCES',1,1),(7,'RSTC','RSTC',1,0),(8,'TESDA','TESDA PROGRAMS',1,0),(9,'SEN-HISCH','SENIOR HIGHSCHOOL',2,1),(10,'CL','COLLEGE OF LAW',1,1),(11,'-','-',1,1);
 /*!40000 ALTER TABLE `colleges` ENABLE KEYS */;
 UNLOCK TABLES;
 

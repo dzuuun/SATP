@@ -96,6 +96,12 @@
               <label for="addCollegeName">College name</label><input id="addCollegeName" name="name"
                 placeholder="College of Education" required />
             </div>
+            <div class="field">
+              <label for="addCollegeSchool">School</label>
+              <select id="addCollegeSchool" name="school_id" required data-search-placeholder="Search schools...">
+                <option value="" disabled selected>Select school</option>
+              </select>
+            </div>
           </div>
           <label class="status-control" for="isCollegeActive"><span><strong>Active college</strong><small>Available
                 throughout the system</small></span><input type="checkbox" id="isCollegeActive" checked /><span
@@ -144,6 +150,12 @@
             <div class="field">
               <label for="editCollegeName">College name</label><input id="editCollegeName" name="name" required />
             </div>
+            <div class="field">
+              <label for="editCollegeSchool">School</label>
+              <select id="editCollegeSchool" name="school_id" required data-search-placeholder="Search schools...">
+                <option value="" disabled>Select school</option>
+              </select>
+            </div>
           </div>
           <label class="status-control" for="isCollegeActiveEdit"><span><strong>Active college</strong><small>Available
                 throughout the system</small></span><input type="checkbox" id="isCollegeActiveEdit" /><span
@@ -175,7 +187,7 @@
           <label for="xlsxInput" id="dropZone" class="drop-zone"><span class="upload-icon"><svg viewBox="0 0 24 24">
                 <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
               </svg></span><strong>Choose an Excel file</strong>
-            <p>Required columns: code and name</p>
+            <p>Required columns: code, name, and school_code</p>
           </label>
           <input type="file" id="xlsxInput" accept=".xlsx,.xls" class="hidden" required />
           <p class="template-copy">

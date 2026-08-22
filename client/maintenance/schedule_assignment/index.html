@@ -73,8 +73,15 @@
       </header>
       <div class="modal-body">
         <div class="section-summary"><strong id="sectionCode"></strong><span id="sectionSubject"></span><small
-            id="currentTeacher"></small></div>
-        <label for="teacherSelect">New teacher</label>
+            id="currentTeacher"></small>
+          <div class="assignment-department">
+            <span>Academic scope</span>
+            <strong id="assignmentAcademicScope"></strong>
+            <span class="assignment-department-label">School</span>
+            <strong id="teachingSchool"></strong>
+          </div>
+        </div>
+        <label for="teacherSelect">New teacher <span id="teacherSchoolLabel"></span></label>
         <select id="teacherSelect" required>
           <option value="" disabled>Select a teacher</option>
         </select>

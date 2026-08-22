@@ -117,8 +117,8 @@
               <input id="addSuffix" name="suffix" placeholder="e.g. Jr., Sr., III, PhD" />
             </div>
 
-            <div class="field">
-              <label for="departmentSelect">Department</label>
+            <div class="field primary-department-field">
+              <label for="departmentSelect">Primary department</label>
               <select id="departmentSelect" name="department_id" required>
                 <option value="" disabled selected>
                   Select department
@@ -126,13 +126,27 @@
               </select>
             </div>
 
-            <div class="field">
-              <label for="teachingStatusSelect">Teaching status</label>
+            <div class="field primary-status-field">
+              <label for="teachingStatusSelect">Primary teaching status</label>
               <select id="teachingStatusSelect" name="is_part_time" required>
                 <option value="0">Full Time</option>
                 <option value="1">Part Time</option>
                 <option value="2">NTPO &amp; Admin</option>
               </select>
+            </div>
+
+            <div class="field department-links-field">
+              <label>Additional departments</label>
+              <div class="department-add-control">
+                <select id="additionalDepartmentPicker" data-search-placeholder="Search departments...">
+                  <option value="" disabled selected>Select another department</option>
+                </select>
+                <button class="secondary-button" type="button"
+                  onclick="addDepartmentAssignment('additionalDepartments', 'additionalDepartmentPicker')">
+                  Add
+                </button>
+              </div>
+              <div id="additionalDepartments" class="department-checklist"></div>
             </div>
           </div>
 
@@ -204,19 +218,32 @@
               <label for="editSuffix">Suffix</label>
               <input id="editSuffix" name="suffix" placeholder="e.g. Jr., Sr., III, PhD" />
             </div>
-            <div class="field">
-              <label for="editDepartmentSelect">Department</label><select id="editDepartmentSelect" name="department_id"
+            <div class="field primary-department-field">
+              <label for="editDepartmentSelect">Primary department</label><select id="editDepartmentSelect" name="department_id"
                 required>
                 <option value="" disabled>Select department</option>
               </select>
             </div>
-            <div class="field">
-              <label for="editTeachingStatusSelect">Teaching status</label><select id="editTeachingStatusSelect"
+            <div class="field primary-status-field">
+              <label for="editTeachingStatusSelect">Primary teaching status</label><select id="editTeachingStatusSelect"
                 name="is_part_time" required>
                 <option value="0">Full Time</option>
                 <option value="1">Part Time</option>
                 <option value="2">NTPO &amp; Admin</option>
               </select>
+            </div>
+            <div class="field department-links-field">
+              <label>Additional departments</label>
+              <div class="department-add-control">
+                <select id="editAdditionalDepartmentPicker" data-search-placeholder="Search departments...">
+                  <option value="" disabled selected>Select another department</option>
+                </select>
+                <button class="secondary-button" type="button"
+                  onclick="addDepartmentAssignment('editAdditionalDepartments', 'editAdditionalDepartmentPicker')">
+                  Add
+                </button>
+              </div>
+              <div id="editAdditionalDepartments" class="department-checklist"></div>
             </div>
           </div>
           <label class="status-control" for="isTeacherActiveEdit"><span><strong>Active teacher</strong><small>Available
@@ -291,7 +318,9 @@
                 <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
               </svg></span><strong>Choose an Excel file</strong>
             <p>
-              Required: surname, givenname, department_code, is_part_time
+              Required: surname, givenname, department_code, is_part_time.
+              Separate multiple department codes with commas; the first is primary.
+              Optional: department_teaching_statuses in the same comma-separated order.
               (Full Time, Part Time, or NTPO)
             </p>
           </label>

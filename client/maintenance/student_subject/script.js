@@ -13,6 +13,11 @@ let importSemestersByName = new Map();
 let importSemesterIds = new Map();
 let importSubjectsByCode = new Map();
 let importRoomsByCode = new Map();
+let importDepartmentsByCode = new Map();
+let importDepartmentsById = new Map();
+let importSchoolsById = new Map();
+let activeStudentsById = new Map();
+let activeTeachers = [];
 let pendingRestore = null;
 
 const teacherImportKey = (firstName, lastName) =>
@@ -295,6 +300,7 @@ function openAddModal() {
   ["selectStudent", "selectSemester", "selectSchoolYear"].forEach((id) =>
     syncSearchableSelect(document.getElementById(id)),
   );
+  updateAddStudentSchool();
   if (!document.querySelector(".subject-entry")) addSubjectRow();
   toggleModal("addNewModal", true);
 }
@@ -314,8 +320,12 @@ formAddStudentSubject.addEventListener("submit", async (event) => {
     return;
   const shared = {
     student_id: document.getElementById("selectStudent").value,
+    school_id: activeStudentsById.get(
+      Number(document.getElementById("selectStudent").value),
+    )?.school_id,
     school_year_id: document.getElementById("selectSchoolYear").value,
     semester_id: document.getElementById("selectSemester").value,
+    use_student_department: true,
     user_id: user,
   };
   const subjects = rows.map((row) => {
@@ -374,13 +384,74 @@ function addSubjectRow() {
   const entry = fragment.querySelector(".subject-entry");
   entry.querySelector(".row-subject").innerHTML =
     document.getElementById("selectSubject").innerHTML;
-  entry.querySelector(".row-teacher").innerHTML =
-    document.getElementById("selectTeacher").innerHTML;
   entry.querySelector(".row-room").innerHTML =
     document.getElementById("selectRoom").innerHTML;
   document.getElementById("subjectRows").appendChild(fragment);
+  configureAddRowForSchool(entry);
   entry.querySelectorAll("select").forEach(enhanceSearchableSelect);
   renumberSubjectRows();
+}
+
+function selectedAddStudent() {
+  return activeStudentsById.get(
+    Number(document.getElementById("selectStudent")?.value),
+  );
+}
+
+function replaceSelectOptions(select, placeholder, options) {
+  select.replaceChildren();
+  const empty = document.createElement("option");
+  empty.value = "";
+  empty.disabled = true;
+  empty.selected = true;
+  empty.textContent = placeholder;
+  select.appendChild(empty);
+  options.forEach(({ value, label }) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+  });
+  syncSearchableSelect(select);
+}
+
+function configureAddRowForSchool(entry) {
+  const student = selectedAddStudent();
+  const teacherSelect = entry.querySelector(".row-teacher");
+  const departmentInput = entry.querySelector(".row-teaching-department");
+  const teachers = student
+    ? activeTeachers.filter(
+        (teacher) =>
+          teacherDepartments(teacher).some(
+            (assignment) =>
+              Number(assignment.id) === Number(student.department_id),
+          ),
+      )
+    : [];
+  replaceSelectOptions(
+    teacherSelect,
+    student ? "Select teacher" : "Select a student first",
+    teachers.map((teacher) => ({ value: teacher.id, label: teacher.name })),
+  );
+  departmentInput.value = student?.department_id || "";
+  teacherSelect.disabled = !student;
+  teacherSelect.onchange = () => {
+    departmentInput.value = selectedAddStudent()?.department_id || "";
+  };
+}
+
+function updateAddStudentSchool() {
+  const student = selectedAddStudent();
+  const context = document.getElementById("addStudentSchool");
+  if (context) {
+    const school = importSchoolsById.get(Number(student?.school_id));
+    context.textContent = student
+      ? `School: ${school?.name || student.school_code || "Unknown school"} · Department: ${student.department_code || "Unknown department"}`
+      : "Select a student to determine the school.";
+  }
+  document
+    .querySelectorAll("#subjectRows .subject-entry")
+    .forEach(configureAddRowForSchool);
 }
 
 function removeSubjectRow(button) {
@@ -495,7 +566,8 @@ function syncSearchableSelect(select) {
     : select.selectedOptions[0]?.textContent || "";
 }
 
-document.addEventListener("click", () => {
+document.addEventListener("click", (event) => {
+  if (event.target.closest?.(".search-select")) return;
   document
     .querySelectorAll(".search-select.open")
     .forEach((wrapper) => wrapper.classList.remove("open"));
@@ -747,6 +819,8 @@ const getTeacher = async () => {
     data = await response.json(),
     rows = data.data;
 
+  activeTeachers = rows.filter((row) => Number(row.is_active) === 1);
+
   importTeachersByName = new Map();
   rows.forEach((row) => {
     const key = teacherImportKey(row.givenname, row.surname);
@@ -771,11 +845,54 @@ const getStudent = async () => {
   importStudentsByNumber = new Map(
     rows.map((row) => [normalizeImportValue(row.username), row]),
   );
+  activeStudentsById = new Map(
+    rows
+      .filter((row) => Number(row.is_active) === 1)
+      .map((row) => [Number(row.id), row]),
+  );
   var optionRow = "";
   rows.filter((row) => Number(row.is_active) === 1).forEach((row) => {
     optionRow += `<option value="${row.id}">${row.username} — ${row.name}</option>`;
   });
   studentList.innerHTML += optionRow;
+};
+
+const getDepartments = async () => {
+  const response = await fetch("/api/department/all/active");
+  const payload = await response.json();
+  const rows = payload.data || [];
+  importDepartmentsByCode = new Map(
+    rows.map((row) => [normalizeImportValue(row.department_code || row.code), row]),
+  );
+  importDepartmentsById = new Map(
+    rows.map((row) => [Number(row.id), row]),
+  );
+};
+
+const getSchools = async () => {
+  const response = await fetch("/api/school/all/active");
+  const payload = await response.json();
+  const rows = payload.data || [];
+  importSchoolsById = new Map(rows.map((row) => [Number(row.id), row]));
+  const select = document.getElementById("importSchoolSelect");
+  const adminScope = String(
+    localStorage.getItem("adminAcademicScope") || "ALL",
+  ).toUpperCase();
+  rows
+    .filter((school) => {
+      if (adminScope === "ALL") return true;
+      const schoolScope =
+        String(school.code || "").trim().toUpperCase() === "SHS"
+          ? "SHS"
+          : "COLLEGE";
+      return schoolScope === adminScope;
+    })
+    .forEach((school) => {
+      const option = document.createElement("option");
+      option.value = school.id;
+      option.textContent = `${school.code} — ${school.name}`;
+      select.appendChild(option);
+    });
 };
 
 // Get room from API
@@ -791,7 +908,7 @@ const getRoom = async () => {
   });
 };
 
-let pendingSubjectImport = { created: [], updated: [], errors: [] };
+let pendingSubjectImport = { created: [], updated: [], errors: [], schoolId: null };
 const xlsxInput = document.getElementById("xlsxInput");
 const uploadFileForm = document.querySelector("#uploadFileForm");
 const validateFileButton = document.getElementById("validateFileButton");
@@ -836,11 +953,13 @@ async function refreshWorkbookReferences() {
     "/api/room",
     "/api/schoolyear/",
     "/api/semester/all/active",
+    "/api/department/all/active",
+    "/api/school/all/active",
   ];
   const responses = await Promise.all(endpoints.map((endpoint) => fetch(endpoint)));
   const failed = responses.find((response) => !response.ok);
   if (failed) throw new Error("Unable to refresh workbook validation data.");
-  const [students, teachers, subjects, rooms, schoolYears, semesters] =
+  const [students, teachers, subjects, rooms, schoolYears, semesters, departments, schools] =
     await Promise.all(responses.map((response) => response.json()));
 
   importStudentsByNumber = new Map(
@@ -866,6 +985,47 @@ async function refreshWorkbookReferences() {
   importSemesterIds = new Map(
     (semesters.data || []).map((row) => [String(Number(row.id)), Number(row.id)]),
   );
+  importDepartmentsByCode = new Map(
+    (departments.data || []).map((row) => [normalizeImportValue(row.department_code), row]),
+  );
+  importDepartmentsById = new Map(
+    (departments.data || []).map((row) => [Number(row.id), row]),
+  );
+  importSchoolsById = new Map(
+    (schools.data || []).map((row) => [Number(row.id), row]),
+  );
+}
+
+function teacherDepartments(teacher) {
+  const ids = String(teacher?.department_ids || teacher?.department_id || "")
+    .split(",")
+    .map((value) => Number(value.trim()))
+    .filter(Number.isInteger);
+  const codes = String(teacher?.department_codes || teacher?.department_code || "")
+    .split(",")
+    .map((value) => value.trim());
+  return ids.map((id, index) => ({
+    id,
+    code: normalizeImportValue(codes[index]),
+  }));
+}
+
+function resolveTeachingDepartment(teacher, raw, schoolId) {
+  const linked = teacherDepartments(teacher);
+  const scopedDepartments = linked.filter(
+    (department) =>
+      Number(importDepartmentsById.get(department.id)?.school_id) ===
+      Number(schoolId),
+  );
+  const workbookCode = normalizeImportValue(readImportColumn(raw, "DeptCode"));
+  if (workbookCode) {
+    const workbookDepartment = importDepartmentsByCode.get(workbookCode);
+    const exact = scopedDepartments.find(
+      (department) => Number(department.id) === Number(workbookDepartment?.id),
+    );
+    if (exact) return exact;
+  }
+  return scopedDepartments.length === 1 ? scopedDepartments[0] : null;
 }
 
 xlsxInput.addEventListener("change", () => {
@@ -917,8 +1077,12 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
 
 uploadFileForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  const schoolId = Number(new FormData(uploadFileForm).get("import_school_id"));
   const selectedFile = xlsxInput.files[0];
-  if (!selectedFile) return;
+  if (!schoolId || !selectedFile) {
+    uploadFileForm.reportValidity();
+    return;
+  }
   validateFileButton.disabled = true;
   toggleModal("importFileModal", false);
   setImportProgress(
@@ -932,7 +1096,8 @@ uploadFileForm.addEventListener("submit", async (event) => {
     await waitForPaint();
     await refreshWorkbookReferences();
     const rows = await parseWorkbook(selectedFile);
-    pendingSubjectImport = await classifySubjectRows(rows);
+    pendingSubjectImport = await classifySubjectRows(rows, schoolId);
+    pendingSubjectImport.schoolId = schoolId;
     setImportProgress(
       "Preparing review",
       "97%",
@@ -1045,7 +1210,7 @@ function optionMap(selectId, valueReader = (option) => option.textContent) {
   );
 }
 
-async function classifySubjectRows(rows) {
+async function classifySubjectRows(rows, schoolId) {
   const seen = new Set();
   const result = { created: [], updated: [], errors: [] };
   const rowProgressStep = Math.max(1, Math.ceil(rows.length / 40));
@@ -1088,6 +1253,7 @@ async function classifySubjectRows(rows) {
     const teacher = importTeachersByName.get(
       teacherImportKey(teacherFirstName, teacherLastName),
     );
+    const teachingDepartment = resolveTeachingDepartment(teacher, raw, schoolId);
     const roomCode = readImportColumn(raw, "RoomCode");
     const room = importRoomsByCode.get(normalizeImportValue(roomCode));
     if (isTbaTeacherRow(raw)) {
@@ -1115,6 +1281,7 @@ async function classifySubjectRows(rows) {
       subject_needs_activation:
         subject != null && Number(subject.is_active) !== 1,
       teacher_id: teacher?.id,
+      teaching_department_id: teachingDepartment?.id || null,
       teacher_needs_activation:
         teacher != null && Number(teacher.is_active) !== 1,
       room_id: room?.id || null,
@@ -1140,6 +1307,10 @@ async function classifySubjectRows(rows) {
     if (!resolved.subject_id && !resolved.subject_needs_creation)
       missing.push("course code and description");
     if (!resolved.teacher_id) missing.push("teacher");
+    if (student && Number(student.school_id) !== Number(schoolId))
+      missing.push(`${importSchoolsById.get(Number(schoolId))?.name || "selected school"} student`);
+    if (teacher && !resolved.teaching_department_id)
+      missing.push("teacher's matching school department assignment");
     if (roomCode && !resolved.room_id && !resolved.room_needs_creation)
       missing.push("room");
     const key = [
@@ -1242,6 +1413,7 @@ async function classifySubjectRows(rows) {
             comparableImportTime(item.time_end) &&
           normalizeImportValue(current.day) === normalizeImportValue(item.day) &&
           Number(current.room_id || 0) === Number(item.room_id || 0) &&
+          Number(current.teacher_id || 0) === Number(item.teacher_id || 0) &&
           Number(current.is_excluded || 0) === Number(item.is_excluded || 0);
         const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${enrollmentKey(item)}`;
         existingKeys.add(key);
@@ -1584,6 +1756,7 @@ document
         school_year_id: items[0].school_year_id,
         semester_id: items[0].semester_id,
         user_id: user,
+        school_id: pendingSubjectImport.schoolId,
       };
       try {
         const response = await fetch("/api/studentsubject/add-many", {
@@ -1684,6 +1857,9 @@ function toggleModal(id, show = true) {
   const card = document.getElementById(`${id}Card`);
   if (!modal) return;
   if (show) {
+    if (id === "importFileModal") {
+      syncSearchableSelect(document.getElementById("importSchoolSelect"));
+    }
     modal.classList.remove("invisible");
     setTimeout(() => {
       modal.classList.add("opacity-100");
@@ -1782,20 +1958,26 @@ async function loadSidebar() {
         }
       });
     });
-    const currentPath = location.pathname.replace(/\/+$/, "").toLowerCase();
-    document.querySelectorAll("#mySidenav a[href]").forEach((link) => {
-      const linkPath = new URL(link.href, location.origin).pathname
+    const normalizeSidebarPath = (value) =>
+      value
+        .replace(/\/index\.html$/i, "")
         .replace(/\/+$/, "")
         .toLowerCase();
-      if (linkPath !== currentPath && !currentPath.endsWith(linkPath)) return;
+    const currentPath = normalizeSidebarPath(location.pathname);
+    container.querySelectorAll("#mySidenav a[href]").forEach((link) => {
+      const linkPath = normalizeSidebarPath(
+        new URL(link.href, location.origin).pathname,
+      );
+      if (linkPath !== currentPath) return;
 
       const submenu = link.closest("ul[id^='dropdown-']");
       link.classList.add(submenu ? "sub-active" : "nav-active");
       if (submenu) {
         submenu.classList.remove("hidden");
-        const toggle = document.querySelector(
+        const toggle = container.querySelector(
           `.menu-toggle[data-target="${submenu.id}"]`,
         );
+        toggle?.classList.add("nav-active");
         toggle?.setAttribute("aria-expanded", "true");
         const arrow = toggle?.querySelector(".chevron");
         if (arrow) arrow.style.transform = "rotate(180deg)";
@@ -1819,9 +2001,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     getTeacher(),
     getSubject(),
     getStudent(),
+    getDepartments(),
+    getSchools(),
     loadSidebar(),
   ]);
   document.querySelectorAll(".field select").forEach(enhanceSearchableSelect);
+  document
+    .getElementById("selectStudent")
+    .addEventListener("change", updateAddStudentSchool);
   addSubjectRow();
   await loadCurrentPeriodData();
 });

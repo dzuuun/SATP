@@ -29,6 +29,7 @@ function validRequest(overrides = {}) {
       subject_id: 3,
       current_teacher_id: 4,
       teacher_id: 5,
+      teaching_school_id: 6,
       schedule_code: "AH 112-COMM1",
       ...overrides,
     },

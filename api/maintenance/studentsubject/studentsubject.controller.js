@@ -59,6 +59,7 @@ module.exports = {
       "subject_id",
       "current_teacher_id",
       "teacher_id",
+      "teaching_school_id",
     ];
     if (
       !hasValidIds(data, fields) ||
@@ -261,18 +262,28 @@ module.exports = {
   addStudentSubjects: (req, res) => {
     const { subjects } = req.body;
     if (
-      !hasValidIds(req.body, ["student_id", "school_year_id", "semester_id"]) ||
+      !hasValidIds(req.body, [
+        "student_id",
+        "school_id",
+        "school_year_id",
+        "semester_id",
+      ]) ||
       !Array.isArray(subjects) ||
       subjects.length === 0 ||
       subjects.length > 100 ||
       subjects.some(
-        (subject) => !hasValidIds(subject, ["subject_id", "teacher_id"]),
+        (subject) =>
+          !hasValidIds(subject, [
+            "subject_id",
+            "teacher_id",
+            "teaching_department_id",
+          ]),
       )
     ) {
       return res.status(400).json({
         success: 0,
         message:
-          "Provide a student, period, and between 1 and 100 valid subjects.",
+          "Provide a school, student, period, and between 1 and 100 valid courses with teaching departments.",
       });
     }
 
@@ -290,19 +301,23 @@ module.exports = {
       });
     }
 
-    return model.addStudentSubjects(req.body, (error, results) => {
-      if (error) {
-        return databaseError(res, error, "Unable to add the student courses.");
-      }
-      return res.status(results.created.length ? 201 : 200).json({
-        success: 1,
-        message: `${results.created.length} subject${
-          results.created.length === 1 ? "" : "s"
-        } added; ${results.updated.length} updated; ${results.skipped.length} unchanged.`,
-        count: results.created.length,
-        data: results,
-      });
-    });
+    return model.addStudentSubjects(
+      { ...req.body, user_id: req.user.id },
+      (error, results) => {
+        if (error) {
+          console.error("Unable to add the student courses.", error);
+          return res.status(400).json({ success: 0, message: error.message });
+        }
+        return res.status(results.created.length ? 201 : 200).json({
+          success: 1,
+          message: `${results.created.length} subject${
+            results.created.length === 1 ? "" : "s"
+          } added; ${results.updated.length} updated; ${results.skipped.length} unchanged.`,
+          count: results.created.length,
+          data: results,
+        });
+      },
+    );
   },
 
   updateStudentSubject: (req, res) => {

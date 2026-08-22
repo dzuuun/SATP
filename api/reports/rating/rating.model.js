@@ -1,5 +1,21 @@
 const pool = require("../../../db/db");
 
+const scopedTeacherDepartmentJoin = `
+       INNER JOIN academic_record_departments AS report_record_department
+         ON report_record_department.academic_record_id = arc.id
+       INNER JOIN departments AS d
+         ON d.id = report_record_department.department_id
+       INNER JOIN colleges AS c
+         ON d.college_id = c.id`;
+
+const teacherCollegeAssignmentJoin = `
+       INNER JOIN academic_record_departments AS report_record_department
+         ON report_record_department.academic_record_id = arc.id
+       INNER JOIN departments AS d
+         ON d.id = report_record_department.department_id
+       INNER JOIN colleges AS c
+         ON c.id = d.college_id`;
+
 module.exports = {
   getTeachersByPeriod: (data, callBack) => {
     pool.query(
@@ -87,10 +103,7 @@ module.exports = {
          ON arc.semester_id = sem.id
        INNER JOIN teachers AS t
          ON arc.teacher_id = t.id
-       INNER JOIN departments AS d
-         ON t.department_id = d.id
-       INNER JOIN colleges AS c
-         ON d.college_id = c.id
+       ${scopedTeacherDepartmentJoin}
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND arc.status = 1
@@ -180,10 +193,7 @@ module.exports = {
          ON arc.semester_id = sem.id
        INNER JOIN teachers AS t
          ON arc.teacher_id = t.id
-       INNER JOIN departments AS d
-         ON t.department_id = d.id
-       INNER JOIN colleges AS c
-         ON d.college_id = c.id
+       ${scopedTeacherDepartmentJoin}
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND arc.teacher_id = ?
@@ -245,8 +255,10 @@ module.exports = {
          ON arc.semester_id = sem.id
        INNER JOIN teachers AS t
          ON arc.teacher_id = t.id
+       INNER JOIN academic_record_departments AS report_record_department
+         ON report_record_department.academic_record_id = arc.id
        INNER JOIN departments AS d
-         ON t.department_id = d.id
+         ON d.id = report_record_department.department_id
        INNER JOIN colleges AS c
          ON d.college_id = c.id
        WHERE arc.school_year_id = ?
@@ -303,10 +315,7 @@ module.exports = {
          ON arc.semester_id = sem.id
        INNER JOIN teachers AS t
          ON arc.teacher_id = t.id
-       INNER JOIN departments AS d
-         ON t.department_id = d.id
-       INNER JOIN colleges AS c
-         ON d.college_id = c.id
+       ${teacherCollegeAssignmentJoin}
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND c.id = ?
@@ -361,8 +370,10 @@ module.exports = {
        FROM academic_records_consolidated AS arc
        INNER JOIN teachers AS t
          ON arc.teacher_id = t.id
+       INNER JOIN academic_record_departments AS report_record_department
+         ON report_record_department.academic_record_id = arc.id
        INNER JOIN departments AS d
-         ON t.department_id = d.id
+         ON d.id = report_record_department.department_id
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND d.id = ?
@@ -386,10 +397,7 @@ module.exports = {
        FROM academic_records_consolidated AS arc
        INNER JOIN teachers AS t
          ON arc.teacher_id = t.id
-       INNER JOIN departments AS d
-         ON t.department_id = d.id
-       INNER JOIN colleges AS c
-         ON d.college_id = c.id
+       ${teacherCollegeAssignmentJoin}
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND c.id = ?
@@ -428,10 +436,7 @@ module.exports = {
          ON arc.semester_id = sem.id
        INNER JOIN teachers AS t
          ON arc.teacher_id = t.id
-       INNER JOIN departments AS d
-         ON t.department_id = d.id
-       INNER JOIN colleges AS c
-         ON d.college_id = c.id
+       ${scopedTeacherDepartmentJoin}
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND arc.teacher_id = ?
@@ -480,10 +485,7 @@ module.exports = {
          ON arc.semester_id = sem.id
        INNER JOIN teachers AS t
          ON arc.teacher_id = t.id
-       INNER JOIN departments AS d
-         ON t.department_id = d.id
-       INNER JOIN colleges AS c
-         ON d.college_id = c.id
+       ${scopedTeacherDepartmentJoin}
        WHERE arc.school_year_id = ?
          AND arc.semester_id = ?
          AND arc.teacher_id = ?

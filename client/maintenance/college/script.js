@@ -18,6 +18,29 @@ if (!state.userId) {
 let table;
 let rowIdToUpdate;
 let pendingImport = { created: [], updated: [], errors: [] };
+let schoolsLoadPromise;
+const schoolsByCode = new Map();
+
+function loadSchools() {
+  if (schoolsLoadPromise) return schoolsLoadPromise;
+  schoolsLoadPromise = requestJson("/api/school").then((response) => {
+    const schools = response.data || [];
+    schoolsByCode.clear();
+    ["addCollegeSchool", "editCollegeSchool"].forEach((id) => {
+      const select = document.getElementById(id);
+      [...select.options].slice(1).forEach((option) => option.remove());
+      schools.forEach((school) => {
+        schoolsByCode.set(normalize(school.code), school);
+        const option = document.createElement("option");
+        option.value = school.id;
+        option.textContent = `${school.code} — ${school.name}${school.is_active ? "" : " (Inactive)"}`;
+        select.appendChild(option);
+      });
+    });
+    return schools;
+  });
+  return schoolsLoadPromise;
+}
 
 $(document).ready(() => {
   table = $("#table").DataTable({
@@ -25,6 +48,7 @@ $(document).ready(() => {
     columns: [
       { data: "code", title: "College code", width: "18%" },
       { data: "name", title: "College name" },
+      { data: "school_name", title: "School", width: "20%" },
       {
         data: "is_active",
         title: "Status",
@@ -63,11 +87,17 @@ document
 
 async function editFormCall(id) {
   try {
-    const response = await requestJson(`/api/college/${id}`);
+    const [, response] = await Promise.all([
+      loadSchools(),
+      requestJson(`/api/college/${id}`),
+    ]);
     const college = response.data;
     rowIdToUpdate = college.id;
     document.getElementById("editCollegeCode").value = college.code;
     document.getElementById("editCollegeName").value = college.name;
+    const schoolSelect = document.getElementById("editCollegeSchool");
+    schoolSelect.value = String(college.school_id);
+    schoolSelect.dispatchEvent(new Event("change", { bubbles: true }));
     document.getElementById("isCollegeActiveEdit").checked =
       college.is_active == 1;
     toggleModal("editModal", true);
@@ -121,7 +151,7 @@ xlsxInput.addEventListener("change", () => {
 document.getElementById("downloadLink").addEventListener("click", (event) => {
   event.preventDefault();
   const worksheet = XLSX.utils.json_to_sheet([
-    { code: "CED", name: "College of Education" },
+    { code: "CED", name: "College of Education", school_code: "COLLEGE" },
   ]);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Colleges");
@@ -139,8 +169,13 @@ document
       const [rows, existingResponse] = await Promise.all([
         parseWorkbook(file),
         requestJson("/api/college"),
+        loadSchools(),
       ]);
-      pendingImport = classifyRows(rows, existingResponse.data || []);
+      pendingImport = classifyRows(
+        rows,
+        existingResponse.data || [],
+        schoolsByCode,
+      );
       renderPreview();
       toggleModal("importFileModal", false);
       setTimeout(() => toggleModal("importPreviewModal", true), 250);
@@ -179,7 +214,7 @@ const normalize = (value) =>
     .replace(/\s+/g, " ")
     .toLowerCase();
 
-function classifyRows(rows, existing) {
+function classifyRows(rows, existing, schools) {
   const byCode = new Map(existing.map((item) => [normalize(item.code), item]));
   const seen = new Set();
   const result = { created: [], updated: [], errors: [] };
@@ -192,10 +227,24 @@ function classifyRows(rows, existing) {
     const name = String(raw.name || "")
       .trim()
       .replace(/\s+/g, " ");
+    const schoolCode = String(raw.school_code || "")
+      .trim()
+      .toUpperCase();
+    const school = schools.get(normalize(schoolCode));
     const key = normalize(code);
-    const base = { rowNumber, code, name, is_active: 1, originalRow: raw };
-    if (!code || !name) {
-      result.errors.push({ ...base, reason: "Code and name are required" });
+    const base = {
+      rowNumber,
+      code,
+      name,
+      school_code: schoolCode,
+      school_id: school?.id,
+      is_active: 1,
+      originalRow: raw,
+    };
+    if (!code || !name || !schoolCode) {
+      result.errors.push({ ...base, reason: "Code, name, and school code are required" });
+    } else if (!school) {
+      result.errors.push({ ...base, reason: `Unknown school: ${schoolCode}` });
     } else if (seen.has(key)) {
       result.errors.push({ ...base, reason: "Duplicate college code in file" });
     } else {
@@ -267,6 +316,7 @@ document
       const payload = {
         code: item.code,
         name: item.name,
+        school_id: item.school_id,
         is_active: 1,
         user_id: state.userId,
       };
@@ -435,4 +485,5 @@ document.addEventListener("keydown", (event) => {
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("year").textContent = new Date().getFullYear();
   loadSidebar();
+  loadSchools();
 });

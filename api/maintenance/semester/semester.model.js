@@ -37,13 +37,15 @@ module.exports = {
   getCurrentSemesterForStudent: (userId, callBack) => {
     pool.query(
       `SELECT semesters.*,
-        CASE WHEN UPPER(TRIM(departments.code)) = 'SHS' THEN 'shs' ELSE 'college' END AS academic_group
+        CASE WHEN UPPER(TRIM(schools.code)) = 'SHS' THEN 'shs' ELSE 'college' END AS academic_group
        FROM user_info
        INNER JOIN courses ON courses.id = user_info.course_id
        INNER JOIN departments ON departments.id = courses.department_id
+       INNER JOIN colleges ON colleges.id = departments.college_id
+       INNER JOIN schools ON schools.id = colleges.school_id
        INNER JOIN semesters ON semesters.is_active = 1
-         AND ((UPPER(TRIM(departments.code)) = 'SHS' AND semesters.is_current_shs = 1)
-           OR (UPPER(TRIM(departments.code)) <> 'SHS' AND semesters.is_current_college = 1))
+         AND ((UPPER(TRIM(schools.code)) = 'SHS' AND semesters.is_current_shs = 1)
+           OR (UPPER(TRIM(schools.code)) <> 'SHS' AND semesters.is_current_college = 1))
        WHERE user_info.user_id = ?
        LIMIT 1`,
       [userId],

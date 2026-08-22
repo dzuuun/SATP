@@ -144,6 +144,7 @@
               <label for="selectStudent">Student</label><select id="selectStudent" name="student_id" required>
                 <option value="" disabled selected>Select student</option>
               </select>
+              <small id="addStudentSchool" class="student-school-context">Select a student to determine the school.</small>
             </div>
             <div class="field">
               <label for="selectSchoolYear">School year</label><select id="selectSchoolYear" name="school_year_id"
@@ -203,6 +204,7 @@
             <option value="" disabled selected>Select teacher</option>
           </select>
         </div>
+        <input type="hidden" name="teaching_department_id" class="row-teaching-department" />
         <div class="field">
           <label>Schedule code</label><input name="schedule_code" required />
         </div>
@@ -372,6 +374,14 @@
       </header>
       <form id="uploadFileForm">
         <div class="modal-body">
+          <div class="field import-school-field">
+            <label for="importSchoolSelect">School</label>
+            <select id="importSchoolSelect" name="import_school_id" required
+              data-search-placeholder="Search schools...">
+              <option value="" disabled selected>Select school</option>
+            </select>
+            <small>Choose the school before validating so the correct student and teacher departments are used.</small>
+          </div>
           <label for="xlsxInput" id="dropZone" class="drop-zone"><span class="upload-icon"><svg viewBox="0 0 24 24">
                 <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" />
               </svg></span><strong>Choose an Excel file</strong>

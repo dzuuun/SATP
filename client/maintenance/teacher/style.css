@@ -6,6 +6,98 @@
   gap: 14px;
 }
 
+.department-links-field {
+  grid-column: 1 / -1;
+}
+
+.primary-department-field {
+  grid-column: 1 / span 2;
+}
+
+.primary-status-field {
+  grid-column: 3;
+}
+
+.department-add-control {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.department-add-control > .satp-search-select,
+.department-add-control > select {
+  width: 100%;
+  min-width: 0;
+}
+
+.department-add-control .secondary-button {
+  min-height: 42px;
+  padding: 0 18px;
+}
+
+.department-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 132px;
+  margin-top: 8px;
+  padding: 7px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fff;
+}
+
+.department-assignment-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 145px auto;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid #e4ece8;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.department-assignment-row > select {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  height: 34px;
+  padding: 0 8px;
+  font-size: 0.68rem;
+}
+
+.department-assignment-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.department-remove-button {
+  min-height: 32px;
+  padding: 0 9px;
+  color: #a7352d;
+  background: #fff;
+  border: 1px solid #e6b8b3;
+  border-radius: 7px;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.department-assignment-empty {
+  margin: 0;
+  padding: 7px 9px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  text-align: center;
+}
+
 #addNewModalCard,
 #editModalCard,
 #mergeModalCard {
@@ -168,5 +260,20 @@
 @media (max-width: 620px) {
   .field-row {
     grid-template-columns: 1fr;
+  }
+
+  .primary-department-field,
+  .primary-status-field {
+    grid-column: 1;
+  }
+
+  .department-add-control,
+  .department-assignment-row {
+    grid-template-columns: 1fr;
+  }
+
+  .department-add-control .secondary-button,
+  .department-remove-button {
+    width: 100%;
   }
 }

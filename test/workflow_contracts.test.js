@@ -17,7 +17,9 @@ test("Student Course refreshes database references before workbook classificatio
   const script = read("client/maintenance/student_subject/script.js");
   const refreshCall = script.indexOf("await refreshWorkbookReferences()");
   const parseCall = script.indexOf("await parseWorkbook(selectedFile)");
-  const classifyCall = script.indexOf("await classifySubjectRows(rows)");
+  const classifyCall = script.indexOf(
+    "await classifySubjectRows(rows, schoolId)",
+  );
   assert.ok(refreshCall >= 0, "database refresh call is required");
   assert.ok(refreshCall < parseCall && parseCall < classifyCall);
   [
@@ -27,6 +29,8 @@ test("Student Course refreshes database references before workbook classificatio
     "/api/room",
     "/api/schoolyear/",
     "/api/semester/all/active",
+    "/api/department/all/active",
+    "/api/school/all/active",
   ].forEach((endpoint) =>
     assert.match(script, new RegExp(endpoint.replaceAll("/", "\\/"))),
   );
@@ -202,7 +206,7 @@ test("Student rating access is separated for SHS and non-SHS students", () => {
   assert.match(script, /["']nonShsRatingAccessToggle["'],\s*["']non_shs["']/);
   assert.match(model, /student_rating_shs_enabled/);
   assert.match(model, /student_rating_non_shs_enabled/);
-  assert.match(model, /departments\.code/);
+  assert.match(model, /schools\.code/);
 });
 
 test("SHS and College use independent current academic terms", () => {
@@ -215,7 +219,7 @@ test("SHS and College use independent current academic terms", () => {
   const semesterPage = read("client/maintenance/semester/index.html");
   assert.match(migration, /is_current_college/);
   assert.match(migration, /is_current_shs/);
-  assert.match(semesterModel, /departments\.code\)\) = 'SHS'/);
+  assert.match(semesterModel, /schools\.code\)\) = 'SHS'/);
   assert.match(semesterModel, /semesters\.is_current_shs = 1/);
   assert.match(semesterModel, /semesters\.is_current_college = 1/);
   assert.match(schoolYearModel, /UPDATE school_years SET in_use = 0/);
@@ -308,6 +312,16 @@ test("Schedule reassignment excludes teachers already assigned to the section", 
   assert.match(script, /!option\.hidden/);
 });
 
+test("Schedule Assignment uses the period index before resolving academic scope", () => {
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
+  assert.match(model, /SELECT STRAIGHT_JOIN arc\.school_year_id/);
+  assert.match(
+    model,
+    /arc\.school_year_id = \? AND arc\.semester_id = \?[\s\S]*requesting_admin\.admin_academic_scope = CASE[\s\S]*student_schools\.code/,
+  );
+  assert.match(model, /arc\.schedule_code IS NOT NULL AND arc\.schedule_code <> ''/);
+});
+
 test("Schedule Assignment can dissolve and restore a schedule", () => {
   const model = read("api/maintenance/studentsubject/studentsubject.model.js");
   const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
@@ -348,8 +362,8 @@ test("Excluded rated enrollments do not count in report scores", () => {
   const rankingJoins = ranking.match(/trans_item\.transaction_id = arc\.id/g) || [];
   assert.equal(rankingJoins.length, 4);
   assert.doesNotMatch(ranking, /\btransactions\b/);
-  assert.match(ranking, /UPPER\(TRIM\(student_departments\.code\)\) <> 'SHS'/);
-  assert.match(ranking, /UPPER\(TRIM\(student_departments\.code\)\) = 'SHS'/);
+  assert.match(ranking, /UPPER\(TRIM\(student_schools\.code\)\) <> 'SHS'/);
+  assert.match(ranking, /UPPER\(TRIM\(student_schools\.code\)\) = 'SHS'/);
 });
 
 test("Excluded courses are hidden from rating lists and transaction totals", () => {
@@ -589,8 +603,8 @@ test("Student Course restricts visible students to the administrator academic sc
   );
 
   assert.ok((controller.match(/requesting_user_id: req\.user\.id/g) || []).length >= 5);
-  assert.match(model, /requesting_admin\.admin_academic_scope = 'SHS'/);
-  assert.match(model, /requesting_admin\.admin_academic_scope = 'COLLEGE'/);
+  assert.match(model, /scope_schools\.code/);
+  assert.match(model, /THEN 'SHS' ELSE 'COLLEGE'/);
   assert.ok((model.match(/\$\{academicScopeFilter\}/g) || []).length >= 5);
   assert.match(model, /getIncludedSubjectsByStudentById: describeScopedRecord/);
 
@@ -598,11 +612,11 @@ test("Student Course restricts visible students to the administrator academic sc
   const studentModel = read("api/maintenance/student/student.model.js");
   assert.match(studentController, /requesting_user_id: req\.user\.id/);
   assert.ok(
-    (studentModel.match(/requesting_admin\.admin_academic_scope = 'SHS'/g) || [])
+    (studentModel.match(/schools\.code/g) || [])
       .length >= 2,
   );
   assert.ok(
-    (studentModel.match(/requesting_admin\.admin_academic_scope = 'COLLEGE'/g) || [])
+    (studentModel.match(/requesting_admin\.admin_academic_scope = CASE/g) || [])
       .length >= 2,
   );
 });
@@ -1097,6 +1111,11 @@ test("Teacher Maintenance safely merges duplicate teachers and their schedules",
   assert.match(model, /UPDATE trans_item SET transaction_id = \?/);
   assert.match(model, /UPDATE student_subject SET teacher_id = \?/);
   assert.match(model, /UPDATE transactions SET teacher_id = \?/);
+  assert.match(model, /INSERT IGNORE INTO academic_record_departments/);
+  assert.match(
+    model,
+    /retained_department\.department_id = duplicate_department\.department_id/,
+  );
   assert.match(model, /DELETE FROM teachers WHERE id = \?/);
   assert.match(model, /commit\(\)/);
   assert.match(model, /rollback\(\)/);
@@ -1123,6 +1142,182 @@ test("Teacher edit waits for departments and synchronizes searchable dropdowns",
   assert.match(
     teacher,
     /departmentSelect\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\)/,
+  );
+});
+
+test("Student Course marks its clean sidebar path and parent module active", () => {
+  const script = read("client/maintenance/student_subject/script.js");
+  assert.match(script, /replace\(\/\\\/index\\\.html\$\/i, ""\)/);
+  assert.match(script, /link\.classList\.add\(submenu \? "sub-active" : "nav-active"\)/);
+  assert.match(script, /toggle\?\.classList\.add\("nav-active"\)/);
+});
+
+test("School Maintenance owns colleges and cascades the full hierarchy", () => {
+  const migration = read("database/migrations/2026-08-22_school_hierarchy.sql");
+  const model = read("api/maintenance/school/school.model.js");
+  const collegeModel = read("api/maintenance/college/college.model.js");
+  const collegePage = read("client/maintenance/college/index.html");
+  const collegeScript = read("client/maintenance/college/script.js");
+  const schoolPage = read("client/maintenance/school/index.html");
+  const schoolScript = read("client/maintenance/school/script.js");
+  const sidebar = read("client/sidebar.html");
+
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS schools/);
+  assert.match(migration, /ADD COLUMN school_id/);
+  assert.match(migration, /FOREIGN KEY \(school_id\) REFERENCES schools/);
+  assert.doesNotMatch(migration, /academic_scope ENUM/);
+  assert.match(model, /UPDATE colleges SET is_active/);
+  assert.match(model, /UPDATE departments/);
+  assert.match(model, /UPDATE courses/);
+  assert.match(collegeModel, /school_id/);
+  assert.match(collegePage, /name="school_id"/);
+  assert.match(collegePage, /school_code/);
+  assert.match(collegeScript, /loadSchools/);
+  assert.match(schoolPage, /id="newSchoolForm"/);
+  assert.doesNotMatch(schoolPage, /name="academic_scope"/);
+  assert.ok(
+    (schoolScript.match(/const form = event\.currentTarget;/g) || []).length >= 2,
+    "School create and edit must retain their forms before awaiting confirmation",
+  );
+  assert.doesNotMatch(
+    schoolScript,
+    /formPayload\(event\.currentTarget/,
+  );
+  assert.match(sidebar, /maintenance\/school\/index\.html/);
+  assert.ok(
+    sidebar.indexOf("/maintenance/departments/index.html") <
+      sidebar.indexOf("/maintenance/course/index.html"),
+  );
+});
+
+test("Schedule reassignment accepts teachers assigned within the same school", () => {
+  const page = read("client/maintenance/schedule_assignment/index.html");
+  const script = read("client/maintenance/schedule_assignment/script.js");
+  const model = read(
+    "api/maintenance/studentsubject/studentsubject.model.js",
+  );
+  assert.match(script, /option\.dataset\.schoolIds/);
+  assert.match(script, /selectedAssignment\.teaching_school_id/);
+  assert.match(page, /class="assignment-department"/);
+  assert.match(page, /id="assignmentAcademicScope"/);
+  assert.match(page, /id="teacherSchoolLabel"/);
+  assert.match(script, /function getAssignmentAcademicScope/);
+  assert.match(script, /=== "SHS"[\s\S]*\? "SHS"[\s\S]*: "College"/);
+  assert.match(script, /under \$\{selectedAssignment\.teaching_school_code\}/);
+  assert.match(model, /FROM teacher_departments/);
+  assert.match(model, /eligible_colleges\.school_id = \?/);
+  assert.match(
+    model,
+    /SET arc\.teacher_id = \?/,
+  );
+  assert.doesNotMatch(model, /SET arc\.teacher_id = \?, arc\.teaching_department_id/);
+  assert.doesNotMatch(model, /arc\.teaching_status = \?/);
+});
+
+test("Teacher teaching status is stored per department and drives rankings", () => {
+  const teacherPage = read("client/maintenance/teacher/index.html");
+  const teacherScript = read("client/maintenance/teacher/script.js");
+  const teacherModel = read("api/maintenance/teacher/teacher.model.js");
+  const rankingModel = read("api/reports/ranking/ranking.model.js");
+  const statusMigration = read(
+    "database/migrations/2026-08-22_teacher_department_teaching_status.sql",
+  );
+  const studentCoursePage = read(
+    "client/maintenance/student_subject/index.html",
+  );
+  assert.match(teacherPage, /Primary teaching status/);
+  assert.match(teacherScript, /department_assignments/);
+  assert.match(teacherModel, /teacher_departments\.teaching_status/);
+  assert.match(
+    rankingModel,
+    /COALESCE\(exact_assignment\.teaching_status, teaching_assignment\.teaching_status\) = \?/,
+  );
+  assert.match(rankingModel, /academic_record_departments AS record_department/);
+  assert.match(statusMigration, /ADD COLUMN teaching_status/);
+  assert.match(statusMigration, /ALTER TABLE teachers[\s\S]*DROP COLUMN is_part_time/);
+  assert.doesNotMatch(
+    statusMigration,
+    /ALTER TABLE academic_records_consolidated[\s\S]*teaching_status/,
+  );
+  assert.doesNotMatch(studentCoursePage, /department_teaching_statuses/);
+});
+
+test("Teacher department assignments use a compact picker with per-department status", () => {
+  const page = read("client/maintenance/teacher/index.html");
+  const script = read("client/maintenance/teacher/script.js");
+  const style = read("client/maintenance/teacher/style.css");
+
+  assert.match(page, /id="additionalDepartmentPicker"/);
+  assert.match(page, /id="editAdditionalDepartmentPicker"/);
+  assert.match(page, /class="field primary-status-field"/);
+  assert.match(script, /const departmentAssignmentState =/);
+  assert.match(script, /function addDepartmentAssignment/);
+  assert.match(script, /status\.dataset\.noSearch = "true"/);
+  assert.match(style, /\.department-assignment-row/);
+  assert.match(style, /max-height: 132px/);
+});
+
+test("Student Course import validates departments without storing them on ARC", () => {
+  const page = read("client/maintenance/student_subject/index.html");
+  const script = read("client/maintenance/student_subject/script.js");
+  const controller = read(
+    "api/maintenance/studentsubject/studentsubject.controller.js",
+  );
+  const model = read(
+    "api/maintenance/studentsubject/studentsubject.model.js",
+  );
+  const migration = read(
+    "database/migrations/2026-08-22_teacher_departments_and_assignment_scope.sql",
+  );
+  const cleanupMigration = read(
+    "database/migrations/2026-08-22_remove_arc_teaching_department.sql",
+  );
+  const recordDepartmentMigration = read(
+    "database/migrations/2026-08-22_academic_record_departments.sql",
+  );
+  const schema = read("db.sql");
+  const ranking = read("api/reports/ranking/ranking.model.js");
+  const rating = read("api/reports/rating/rating.model.js");
+  assert.match(page, /id="importSchoolSelect" name="import_school_id"/);
+  assert.doesNotMatch(page, /name="import_academic_scope"/);
+  assert.match(script, /resolveTeachingDepartment/);
+  assert.match(script, /school_id: pendingSubjectImport\.schoolId/);
+  assert.match(script, /fetch\("\/api\/school\/all\/active"\)/);
+  assert.doesNotMatch(script, /configureImportScopeOptions/);
+  assert.match(controller, /teaching_department_id/);
+  assert.match(controller, /"school_id"/);
+  assert.match(model, /FROM teacher_departments/);
+  assert.match(model, /schools\.id AS school_id/);
+  assert.match(model, /teaching_department_id/);
+  assert.match(migration, /CREATE TABLE IF NOT EXISTS teacher_departments/);
+  assert.doesNotMatch(migration, /ADD COLUMN teaching_department_id/);
+  assert.match(cleanupMigration, /DROP COLUMN teaching_department_id/);
+  assert.match(recordDepartmentMigration, /CREATE TABLE IF NOT EXISTS academic_record_departments/);
+  assert.match(model, /INSERT INTO academic_record_departments/);
+  assert.doesNotMatch(schema, /`teaching_department_id`/);
+  assert.doesNotMatch(model, /arc\.teaching_department_id|records\.teaching_department_id/);
+  assert.doesNotMatch(ranking, /arc\.teaching_department_id/);
+  assert.doesNotMatch(rating, /arc\.teaching_department_id/);
+});
+
+test("Manual Add student course derives school and department from the student", () => {
+  const page = read("client/maintenance/student_subject/index.html");
+  const script = read("client/maintenance/student_subject/script.js");
+  const studentModel = read("api/maintenance/student/student.model.js");
+  const enrollmentModel = read(
+    "api/maintenance/studentsubject/studentsubject.model.js",
+  );
+
+  assert.match(page, /id="addStudentSchool"/);
+  assert.match(page, /type="hidden" name="teaching_department_id"/);
+  assert.match(script, /use_student_department: true/);
+  assert.match(script, /event\.target\.closest\?\.\("\.search-select"\)/);
+  assert.match(script, /Number\(assignment\.id\) === Number\(student\.department_id\)/);
+  assert.match(studentModel, /departments\.id AS department_id/);
+  assert.match(enrollmentModel, /data\.use_student_department === true/);
+  assert.match(
+    enrollmentModel,
+    /teaching_department_id: students\[0\]\.student_department_id/,
   );
 });
 

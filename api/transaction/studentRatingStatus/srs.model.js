@@ -27,10 +27,12 @@ module.exports = {
 
   getStudentRatingGroup: (userId, callBack) => {
     pool.query(
-      `SELECT CASE WHEN UPPER(TRIM(departments.code)) = 'SHS' THEN 'shs' ELSE 'non_shs' END AS rating_group
+      `SELECT CASE WHEN UPPER(TRIM(schools.code)) = 'SHS' THEN 'shs' ELSE 'non_shs' END AS rating_group
        FROM user_info
        INNER JOIN courses ON user_info.course_id = courses.id
        INNER JOIN departments ON courses.department_id = departments.id
+       INNER JOIN colleges ON colleges.id = departments.college_id
+       INNER JOIN schools ON schools.id = colleges.school_id
        WHERE user_info.user_id = ?
        LIMIT 1`,
       [userId],
@@ -332,9 +334,11 @@ module.exports = {
            FROM user_info
            INNER JOIN courses ON user_info.course_id = courses.id
            INNER JOIN departments ON courses.department_id = departments.id
+           INNER JOIN colleges ON colleges.id = departments.college_id
+           INNER JOIN schools ON schools.id = colleges.school_id
            LEFT JOIN system_settings AS group_setting
              ON group_setting.setting_key = CASE
-               WHEN UPPER(TRIM(departments.code)) = 'SHS'
+               WHEN UPPER(TRIM(schools.code)) = 'SHS'
                  THEN 'student_rating_shs_enabled'
                ELSE 'student_rating_non_shs_enabled'
              END

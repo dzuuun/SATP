@@ -66,6 +66,14 @@ async function loadTeachers() {
     const option = document.createElement("option");
     option.value = teacher.id;
     option.textContent = label;
+    option.dataset.baseLabel = label;
+    option.dataset.departmentIds = String(
+      teacher.department_ids || teacher.department_id || "",
+    );
+    option.dataset.departmentStatuses = String(
+      teacher.department_teaching_statuses ?? teacher.is_part_time ?? "0",
+    );
+    option.dataset.schoolIds = String(teacher.department_school_ids || "");
     select.appendChild(option);
   });
   enhanceSearchableSelect(select);
@@ -223,6 +231,12 @@ function syncSearchableSelect(select) {
     : select.selectedOptions[0]?.textContent || "";
 }
 
+function getAssignmentAcademicScope(assignment) {
+  return String(assignment?.academic_scope || "COLLEGE").toUpperCase() === "SHS"
+    ? "SHS"
+    : "College";
+}
+
 function openReassign(assignment) {
   selectedAssignment = assignment;
   const assignedTeacherIds = new Set(
@@ -241,12 +255,36 @@ function openReassign(assignment) {
   [...document.getElementById("teacherSelect").options].forEach((option) => {
     if (!option.value) return;
     const isAssigned = assignedTeacherIds.has(Number(option.value));
-    option.hidden = isAssigned;
-    option.disabled = isAssigned;
+    const schoolIds = option.dataset.schoolIds
+      .split(",")
+      .map(Number);
+    const schoolIndex = schoolIds.indexOf(
+      Number(selectedAssignment.teaching_school_id),
+    );
+    const matchesSchool = schoolIndex >= 0;
+    const teachingStatus = Number(
+      option.dataset.departmentStatuses.split(",")[schoolIndex],
+    );
+    const statusLabel =
+      ({ 0: "Full Time", 1: "Part Time", 2: "NTPO & Admin" })[
+        teachingStatus
+      ] || "Unknown status";
+    option.textContent = matchesSchool
+      ? `${option.dataset.baseLabel} — ${statusLabel}`
+      : option.dataset.baseLabel;
+    option.hidden = isAssigned || !matchesSchool;
+    option.disabled = isAssigned || !matchesSchool;
   });
   document.getElementById("sectionCode").textContent = selectedAssignment.schedule_code;
   document.getElementById("sectionSubject").textContent = `${selectedAssignment.subject_code} — ${selectedAssignment.subject_name}`;
   document.getElementById("currentTeacher").textContent = `Current teacher: ${selectedAssignment.teacher_name}`;
+  const schoolLabel = `${selectedAssignment.teaching_school_code} — ${selectedAssignment.teaching_school_name}`;
+  const academicScope = getAssignmentAcademicScope(selectedAssignment);
+  document.getElementById("assignmentAcademicScope").textContent =
+    academicScope;
+  document.getElementById("teachingSchool").textContent = schoolLabel;
+  document.getElementById("teacherSchoolLabel").textContent =
+    `(${selectedAssignment.teaching_school_code})`;
   document.getElementById("teacherSelect").value = "";
   syncSearchableSelect(document.getElementById("teacherSelect"));
   toggleModal("reassignModal", true);
@@ -349,9 +387,10 @@ document.getElementById("reassignForm").addEventListener("submit", async (event)
   if (!teacherId) return toast("Select a teacher from the list.", true);
   if (teacherId === Number(selectedAssignment.teacher_id)) return toast("That teacher is already assigned to this section.", true);
   const selectedTeacher = document.getElementById("teacherSelect").selectedOptions[0]?.textContent || "the selected teacher";
+  const academicScope = getAssignmentAcademicScope(selectedAssignment);
   const confirmed = await confirmScheduleAction({
     title: "Reassign teacher?",
-    message: `Reassign ${selectedAssignment.schedule_code} to ${selectedTeacher}?`,
+    message: `Reassign ${selectedAssignment.schedule_code} to ${selectedTeacher} for ${academicScope}, under ${selectedAssignment.teaching_school_code} — ${selectedAssignment.teaching_school_name}?`,
     confirmLabel: "Reassign teacher",
   });
   if (!confirmed) return;

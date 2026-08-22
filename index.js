@@ -72,6 +72,7 @@ const subjectRouter = require("./api/maintenance/subjects/subjects.router");
 const roomRouter = require("./api/maintenance/rooms/rooms.router");
 const departmentRouter = require("./api/maintenance/department/department.router");
 const collegeRouter = require("./api/maintenance/college/college.router");
+const schoolRouter = require("./api/maintenance/school/school.router");
 const courseRouter = require("./api/maintenance/course/course.router");
 const semesterRouter = require("./api/maintenance/semester/semester.router");
 const teacherRouter = require("./api/maintenance/teacher/teacher.router");
@@ -104,7 +105,8 @@ app.use(
     "/api/subject",
     "/api/room",
     "/api/department",
-    "/api/college",
+      "/api/college",
+      "/api/school",
     "/api/course",
     "/api/semester",
     "/api/teacher",
@@ -122,6 +124,7 @@ app.use("/api/subject", protectMaintenanceChanges, subjectRouter);
 app.use("/api/room", protectMaintenanceChanges, roomRouter);
 app.use("/api/department", protectMaintenanceChanges, departmentRouter);
 app.use("/api/college", protectMaintenanceChanges, collegeRouter);
+app.use("/api/school", protectMaintenanceChanges, schoolRouter);
 app.use("/api/course", protectMaintenanceChanges, courseRouter);
 app.use("/api/semester", protectMaintenanceChanges, semesterRouter);
 app.use("/api/teacher", protectMaintenanceChanges, teacherRouter);

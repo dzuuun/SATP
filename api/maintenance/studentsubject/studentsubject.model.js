@@ -2,8 +2,13 @@ const pool = require("../../../db/db");
 
 const TABLE = "academic_records_consolidated";
 const academicScopeFilter = `(COALESCE(requesting_admin.admin_academic_scope, 'ALL') = 'ALL'
-  OR (requesting_admin.admin_academic_scope = 'SHS' AND UPPER(TRIM(departments.code)) = 'SHS')
-  OR (requesting_admin.admin_academic_scope = 'COLLEGE' AND UPPER(TRIM(departments.code)) <> 'SHS'))`;
+  OR requesting_admin.admin_academic_scope = (
+    SELECT CASE WHEN UPPER(TRIM(scope_schools.code)) = 'SHS' THEN 'SHS' ELSE 'COLLEGE' END
+    FROM colleges AS scope_colleges
+    INNER JOIN schools AS scope_schools ON scope_schools.id = scope_colleges.school_id
+    WHERE scope_colleges.id = departments.college_id
+    LIMIT 1
+  ))`;
 
 const recordSelect = `
   SELECT
@@ -106,11 +111,19 @@ function activityDescription(record) {
 module.exports = {
   getActiveScheduleAssignments: (data, callBack) => {
     pool.query(
-      `SELECT arc.school_year_id, sy.name AS school_year,
+      `SELECT STRAIGHT_JOIN arc.school_year_id, sy.name AS school_year,
               arc.semester_id, sem.name AS semester,
               arc.subject_id, subjects.code AS subject_code,
               subjects.name AS subject_name, arc.schedule_code,
               arc.teacher_id,
+              record_department.department_id AS teaching_department_id,
+              current_department_assignment.teaching_status,
+              teaching_departments.code AS teaching_department_code,
+              teaching_departments.name AS teaching_department_name,
+              teaching_schools.id AS teaching_school_id,
+              teaching_schools.code AS teaching_school_code,
+              teaching_schools.name AS teaching_school_name,
+              CASE WHEN UPPER(TRIM(teaching_schools.code)) = 'SHS' THEN 'SHS' ELSE 'COLLEGE' END AS academic_scope,
               CONCAT(
                 IFNULL(CONCAT(teachers.prefix, ' '), ''),
                 teachers.givenname, ' ', teachers.surname,
@@ -131,14 +144,54 @@ module.exports = {
        INNER JOIN user_info ON user_info.user_id = arc.student_id
        INNER JOIN courses ON courses.id = user_info.course_id
        INNER JOIN departments ON departments.id = courses.department_id
+       INNER JOIN colleges AS student_colleges
+         ON student_colleges.id = departments.college_id
+       INNER JOIN schools AS student_schools
+         ON student_schools.id = student_colleges.school_id
+       INNER JOIN academic_record_departments AS record_department
+         ON record_department.academic_record_id = arc.id
+       INNER JOIN (
+         SELECT teacher_departments.teacher_id, colleges.school_id,
+                CAST(SUBSTRING_INDEX(GROUP_CONCAT(
+                  teacher_departments.department_id
+                  ORDER BY teacher_departments.is_primary DESC,
+                           teacher_departments.department_id
+                ), ',', 1) AS UNSIGNED) AS department_id
+         FROM teacher_departments
+         INNER JOIN departments
+           ON departments.id = teacher_departments.department_id
+         INNER JOIN colleges ON colleges.id = departments.college_id
+         GROUP BY teacher_departments.teacher_id, colleges.school_id
+       ) AS scoped_teacher_department
+         ON scoped_teacher_department.teacher_id = arc.teacher_id
+        AND scoped_teacher_department.school_id = student_schools.id
+       INNER JOIN departments AS teaching_departments
+         ON teaching_departments.id = record_department.department_id
+       INNER JOIN colleges AS teaching_colleges
+         ON teaching_colleges.id = teaching_departments.college_id
+       INNER JOIN schools AS teaching_schools
+         ON teaching_schools.id = teaching_colleges.school_id
+       INNER JOIN teacher_departments AS current_department_assignment
+         ON current_department_assignment.teacher_id = arc.teacher_id
+        AND current_department_assignment.department_id = scoped_teacher_department.department_id
        INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
        WHERE arc.school_year_id = ? AND arc.semester_id = ?
-         AND arc.schedule_code IS NOT NULL AND TRIM(arc.schedule_code) <> ''
-         AND ${academicScopeFilter}
+         AND arc.schedule_code IS NOT NULL AND arc.schedule_code <> ''
+         AND (
+           COALESCE(requesting_admin.admin_academic_scope, 'ALL') = 'ALL'
+           OR requesting_admin.admin_academic_scope = CASE
+             WHEN UPPER(TRIM(student_schools.code)) = 'SHS' THEN 'SHS'
+             ELSE 'COLLEGE'
+           END
+         )
        GROUP BY arc.school_year_id, sy.name, arc.semester_id, sem.name,
                 arc.subject_id, subjects.code, subjects.name,
                 arc.schedule_code, arc.teacher_id, teachers.prefix,
-                teachers.givenname, teachers.surname, teachers.suffix
+                teachers.givenname, teachers.surname, teachers.suffix,
+                record_department.department_id,
+                current_department_assignment.teaching_status,
+                teaching_departments.code, teaching_departments.name,
+                teaching_schools.id, teaching_schools.code, teaching_schools.name
        ORDER BY arc.schedule_code, subjects.code, teacher_name`,
       [data.requesting_user_id, data.school_year_id, data.semester_id],
       callBack,
@@ -158,13 +211,61 @@ module.exports = {
          FROM teachers WHERE id = ? LIMIT 1`,
         [data.current_teacher_id],
       );
+      const [assignmentSchools] = await connection.query(
+        `SELECT DISTINCT
+           assigned_college.school_id AS teaching_school_id
+         FROM ${TABLE} AS arc
+         INNER JOIN user_info ON user_info.user_id = arc.student_id
+         INNER JOIN courses ON courses.id = user_info.course_id
+         INNER JOIN departments ON departments.id = courses.department_id
+         INNER JOIN colleges AS student_colleges
+           ON student_colleges.id = departments.college_id
+         INNER JOIN academic_record_departments AS record_department
+           ON record_department.academic_record_id = arc.id
+         INNER JOIN departments AS assigned_department
+           ON assigned_department.id = record_department.department_id
+         INNER JOIN colleges AS assigned_college
+           ON assigned_college.id = assigned_department.college_id
+          AND assigned_college.school_id = student_colleges.school_id
+         INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
+         WHERE arc.school_year_id = ? AND arc.semester_id = ?
+           AND arc.subject_id = ? AND arc.teacher_id = ?
+           AND arc.schedule_code = ? AND ${academicScopeFilter}`,
+        [
+          data.user_id,
+          data.school_year_id,
+          data.semester_id,
+          data.subject_id,
+          data.current_teacher_id,
+          data.schedule_code,
+        ],
+      );
+      if (assignmentSchools.length !== 1) {
+        throw new Error(
+          "The schedule's school could not be determined.",
+        );
+      }
+      const teachingSchoolId = Number(
+        assignmentSchools[0].teaching_school_id,
+      );
+      if (teachingSchoolId !== Number(data.teaching_school_id)) {
+        throw new Error("The schedule's school has changed. Reload the records.");
+      }
       const [newRows] = await connection.query(
         `SELECT CONCAT(
-           IFNULL(CONCAT(prefix, ' '), ''), givenname, ' ', surname,
-           IF(suffix IS NOT NULL AND suffix <> '', CONCAT(', ', suffix), '')
+           IFNULL(CONCAT(teachers.prefix, ' '), ''), teachers.givenname, ' ', teachers.surname,
+           IF(teachers.suffix IS NOT NULL AND teachers.suffix <> '', CONCAT(', ', teachers.suffix), '')
          ) AS name
-         FROM teachers WHERE id = ? AND is_active = 1 LIMIT 1`,
-        [data.teacher_id],
+         FROM teachers
+         INNER JOIN teacher_departments
+           ON teacher_departments.teacher_id = teachers.id
+         INNER JOIN departments AS eligible_departments
+           ON eligible_departments.id = teacher_departments.department_id
+         INNER JOIN colleges AS eligible_colleges
+           ON eligible_colleges.id = eligible_departments.college_id
+          AND eligible_colleges.school_id = ?
+         WHERE teachers.id = ? AND teachers.is_active = 1 LIMIT 1`,
+        [teachingSchoolId, data.teacher_id],
       );
       if (!newRows.length) throw new Error("The selected teacher is unavailable.");
 
@@ -178,7 +279,8 @@ module.exports = {
          WHERE arc.school_year_id = ? AND arc.semester_id = ?
            AND arc.subject_id = ? AND arc.teacher_id = ?
            AND arc.schedule_code = ? AND ${academicScopeFilter}`,
-        [data.user_id, data.teacher_id, data.school_year_id, data.semester_id,
+        [data.user_id, data.teacher_id,
+          data.school_year_id, data.semester_id,
           data.subject_id, data.current_teacher_id, data.schedule_code],
       );
       if (!enrollmentResult.affectedRows) {
@@ -388,18 +490,87 @@ module.exports = {
       await connection.beginTransaction();
 
       const [students] = await connection.query(
-        `SELECT users.username, colleges.code AS college_code
+        `SELECT users.username, departments.id AS student_department_id,
+                colleges.code AS college_code, schools.id AS student_school_id,
+                schools.code AS student_school_code,
+                requesting_admin.admin_academic_scope
          FROM users
          INNER JOIN user_info ON user_info.user_id = users.id
          INNER JOIN courses ON courses.id = user_info.course_id
          INNER JOIN departments ON departments.id = courses.department_id
          INNER JOIN colleges ON colleges.id = departments.college_id
+         INNER JOIN schools ON schools.id = colleges.school_id
+         INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
          WHERE users.id = ? LIMIT 1`,
-        [data.student_id],
+        [data.user_id, data.student_id],
       );
       const studentUsername = students[0]?.username || "Unknown student";
       const isChsStudent = String(students[0]?.college_code || "").trim().toUpperCase() === "CHS";
+      if (!students.length) throw new Error("Student was not found.");
+      const [selectedSchools] = await connection.query(
+        "SELECT id, code, name FROM schools WHERE id = ? AND is_active = 1 LIMIT 1",
+        [data.school_id],
+      );
+      if (!selectedSchools.length) throw new Error("The selected school is not active or does not exist.");
+      const selectedSchool = selectedSchools[0];
+      const selectedScope =
+        String(selectedSchool.code || "").trim().toUpperCase() === "SHS"
+          ? "SHS"
+          : "COLLEGE";
+      const adminScope = String(
+        students[0].admin_academic_scope || "ALL",
+      ).toUpperCase();
+      if (adminScope !== "ALL" && adminScope !== selectedScope) {
+        throw new Error("Your account cannot manage the selected school.");
+      }
+      if (Number(data.school_id) !== Number(students[0].student_school_id)) {
+        throw new Error(
+          `This student does not belong to ${selectedSchool.name}.`,
+        );
+      }
+      if (data.use_student_department === true) {
+        data.subjects = data.subjects.map((subject) => ({
+          ...subject,
+          teaching_department_id: students[0].student_department_id,
+        }));
+      }
 
+      const teacherDepartmentPairs = data.subjects.map((subject) => [
+        Number(subject.teacher_id),
+        Number(subject.teaching_department_id),
+      ]);
+      const teacherIds = [...new Set(teacherDepartmentPairs.map(([id]) => id))];
+      const departmentIds = [
+        ...new Set(teacherDepartmentPairs.map(([, id]) => id)),
+      ];
+      const [linkedDepartments] = await connection.query(
+        `SELECT teacher_departments.teacher_id, teacher_departments.department_id,
+                schools.id AS school_id
+         FROM teacher_departments
+         INNER JOIN departments ON departments.id = teacher_departments.department_id
+         INNER JOIN colleges ON colleges.id = departments.college_id
+         INNER JOIN schools ON schools.id = colleges.school_id
+         WHERE teacher_departments.teacher_id IN (?)
+           AND teacher_departments.department_id IN (?)`,
+        [teacherIds, departmentIds],
+      );
+      const validTeacherDepartments = new Set(
+        linkedDepartments
+          .filter((row) => Number(row.school_id) === Number(data.school_id))
+          .map(
+            (row) => `${Number(row.teacher_id)}|${Number(row.department_id)}`,
+          ),
+      );
+      if (
+        teacherDepartmentPairs.some(
+          ([teacherId, departmentId]) =>
+            !validTeacherDepartments.has(`${teacherId}|${departmentId}`),
+        )
+      ) {
+        throw new Error(
+          "A teacher is not linked to the selected teaching department and school.",
+        );
+      }
       const subjectIds = data.subjects.map((subject) =>
         Number(subject.subject_id),
       );
@@ -451,6 +622,7 @@ module.exports = {
           comparableTime(current.time_end) !== comparableTime(subject.time_end) ||
           comparable(current.day) !== comparable(subject.day) ||
           Number(current.room_id || 0) !== Number(subject.room_id || 0) ||
+          Number(current.teacher_id || 0) !== Number(subject.teacher_id || 0) ||
           Number(current.is_excluded || 0) !== Number(subject.is_excluded || 0);
 
         if (!changed) {
@@ -508,6 +680,30 @@ module.exports = {
         );
         const pendingKeys = new Set(pendingSubjects.map(enrollmentKey));
         created = createdRows.filter((record) => pendingKeys.has(enrollmentKey(record)));
+      }
+
+      const recordsByEnrollment = new Map(
+        [...existing, ...created].map((record) => [
+          enrollmentKey(record),
+          record,
+        ]),
+      );
+      const departmentAssignments = data.subjects
+        .map((subject) => {
+          const record = recordsByEnrollment.get(enrollmentKey(subject));
+          return record
+            ? [record.id, Number(subject.teaching_department_id)]
+            : null;
+        })
+        .filter(Boolean);
+      if (departmentAssignments.length) {
+        await connection.query(
+          `INSERT INTO academic_record_departments
+             (academic_record_id, department_id)
+           VALUES ?
+           ON DUPLICATE KEY UPDATE department_id = VALUES(department_id)`,
+          [departmentAssignments],
+        );
       }
 
       await connection.commit();
