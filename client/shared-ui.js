@@ -63,6 +63,102 @@
     if (hasSidebar) document.body?.classList.add("satp-sidebar-present");
   }
 
+  function normalizeSidebarPath(value) {
+    let path = String(value || "/").split(/[?#]/, 1)[0];
+    try {
+      path = decodeURIComponent(path);
+    } catch (_error) {
+      // Keep the original path when it contains an invalid escape sequence.
+    }
+    path = path.replace(/\\/g, "/").replace(/\/index\.html$/i, "");
+    path = path.replace(/\/+$/, "");
+    return (path || "/").toLowerCase();
+  }
+
+  function sidebarFallbackPath(currentPath) {
+    if (currentPath === "/rate" || currentPath.startsWith("/rate/")) {
+      return "/rating";
+    }
+    if (currentPath.startsWith("/report/ranking/")) {
+      return "/report/ranking";
+    }
+    if (currentPath.startsWith("/report/rating/")) {
+      return "/report/rating";
+    }
+    if (currentPath.startsWith("/transaction/")) {
+      return "/transaction";
+    }
+    return currentPath;
+  }
+
+  function syncSidebarActiveState(root = document) {
+    const sidebar =
+      root === document
+        ? document.querySelector(".satp-sidebar")
+        : root.matches?.(".satp-sidebar")
+          ? root
+          : root.querySelector?.(".satp-sidebar") ||
+            root.closest?.(".satp-sidebar");
+    if (!sidebar) return;
+
+    const currentPath = normalizeSidebarPath(location.pathname);
+    const targetPath = sidebarFallbackPath(currentPath);
+    const links = [...sidebar.querySelectorAll("a[href]")];
+    const activeLink =
+      links.find(
+        (link) =>
+          normalizeSidebarPath(new URL(link.href, location.origin).pathname) ===
+          currentPath,
+      ) ||
+      links.find(
+        (link) =>
+          normalizeSidebarPath(new URL(link.href, location.origin).pathname) ===
+          targetPath,
+      );
+
+    sidebar
+      .querySelectorAll(".nav-active, .sub-active, .profile-current")
+      .forEach((item) =>
+        item.classList.remove("nav-active", "sub-active", "profile-current"),
+      );
+    sidebar.querySelectorAll('[aria-current="page"]').forEach((item) =>
+      item.removeAttribute("aria-current"),
+    );
+    sidebar.querySelectorAll(".submenu").forEach((submenu) =>
+      submenu.classList.add("hidden"),
+    );
+    sidebar.querySelectorAll(".menu-toggle").forEach((toggle) => {
+      toggle.setAttribute("aria-expanded", "false");
+      const arrow = toggle.querySelector(".chevron");
+      if (arrow) arrow.style.transform = "rotate(0deg)";
+    });
+
+    if (!activeLink) return;
+    activeLink.setAttribute("aria-current", "page");
+    if (activeLink.classList.contains("profile-action")) {
+      activeLink.classList.add("profile-current");
+      return;
+    }
+
+    const submenu = activeLink.closest(".submenu");
+    if (!submenu) {
+      activeLink.classList.add("nav-active");
+      return;
+    }
+
+    activeLink.classList.add("sub-active");
+    submenu.classList.remove("hidden");
+    const parentToggle = sidebar.querySelector(
+      `[data-target="${submenu.id}"]`,
+    );
+    parentToggle?.classList.add("nav-active");
+    parentToggle?.setAttribute("aria-expanded", "true");
+    const arrow = parentToggle?.querySelector(".chevron");
+    if (arrow) arrow.style.transform = "rotate(180deg)";
+  }
+
+  window.satpSyncSidebarActiveState = syncSidebarActiveState;
+
   function installConfirmationModal() {
     if (document.getElementById("satp-confirm-modal")) return;
     const style = document.createElement("style");
@@ -382,6 +478,7 @@
 
   installBrowserCompatibility();
   syncSidebarPresence();
+  syncSidebarActiveState();
   disableSelectPlaceholders();
   disableHeaderBrandNavigation();
   installHeaderMenuAnimation();
@@ -399,6 +496,7 @@
       mutation.addedNodes.forEach((node) => {
         if (node instanceof Element) {
           syncSidebarPresence(node);
+          syncSidebarActiveState(node);
           disableSelectPlaceholders(node);
           disableHeaderBrandNavigation(node);
           installHeaderMenuAnimation(node);

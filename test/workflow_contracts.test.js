@@ -751,6 +751,22 @@ test("Authenticated non-Grad School pages share the same shell services", () => 
   });
 });
 
+test("Shared sidebar consistently highlights the current page and parent module", () => {
+  const shared = read("client/shared-ui.js");
+  assert.match(shared, /function normalizeSidebarPath/);
+  assert.match(shared, /replace\(\/\\\/index\\\.html\$\/i, ""\)/);
+  assert.match(shared, /function sidebarFallbackPath/);
+  assert.match(shared, /currentPath\.startsWith\("\/report\/ranking\/"\)/);
+  assert.match(shared, /currentPath\.startsWith\("\/report\/rating\/"\)/);
+  assert.match(shared, /currentPath\.startsWith\("\/transaction\/"\)/);
+  assert.match(shared, /function syncSidebarActiveState/);
+  assert.match(shared, /activeLink\.classList\.add\("sub-active"\)/);
+  assert.match(shared, /parentToggle\?\.classList\.add\("nav-active"\)/);
+  assert.match(shared, /parentToggle\?\.setAttribute\("aria-expanded", "true"\)/);
+  assert.match(shared, /activeLink\.setAttribute\("aria-current", "page"\)/);
+  assert.match(shared, /window\.satpSyncSidebarActiveState/);
+});
+
 test("Non-Grad School confirmations use the shared SATP modal", () => {
   const scripts = walk(path.join(root, "client")).filter(
     (file) =>
