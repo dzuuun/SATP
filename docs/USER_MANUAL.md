@@ -9,13 +9,15 @@ Version: August 22, 2026
 
 SATP allows students to assess their teachers and enables authorized personnel to maintain academic data, monitor assessment completion, manage access, and generate rating and ranking reports.
 
+Production SATP website: https://satp.ndmu.edu.ph/
+
 The pages shown in the sidebar depend on the signed-in user's permissions. A user only sees modules their assigned role is allowed to access. On every authenticated page, the sidebar expands the active module and highlights the current page.
 
 ## 2. Signing in and out
 
 ### Sign in
 
-1. Open the SATP landing page.
+1. Open https://satp.ndmu.edu.ph/.
 2. Select **Log in to SATP**.
 3. Use one of the available methods:
    - Enter the SATP username and password, then select **Sign in**.

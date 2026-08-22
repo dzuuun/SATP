@@ -3,13 +3,15 @@
 Notre Dame of Marbel University  
 Student Assessment of Teacher's Performance
 
-Version: August 15, 2026
+Version: August 22, 2026
 
 ## 1. About SATP
 
 This guide explains how an authorized user can open SATP from the landing page and check students' course-assessment transactions. The account must have **Transactions** permission. Pages that are not permitted for the signed-in role are hidden from the sidebar.
 
-1. Open the SATP website using the institution's approved address.
+Production SATP website: https://satp.ndmu.edu.ph/
+
+1. Open https://satp.ndmu.edu.ph/.
 2. On the landing page, select **Log in to SATP**.
 
 ## 2. Signing in and out

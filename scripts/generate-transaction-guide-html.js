@@ -23,7 +23,11 @@ const escapeHtml = (value) =>
 const inline = (value) =>
   escapeHtml(value)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`(.+?)`/g, "<code>$1</code>");
+    .replace(/`(.+?)`/g, "<code>$1</code>")
+    .replace(
+      /https:\/\/satp\.ndmu\.edu\.ph\//g,
+      '<a href="https://satp.ndmu.edu.ph/">https://satp.ndmu.edu.ph/</a>',
+    );
 
 const lines = fs.readFileSync(source, "utf8").replace(/\r/g, "").split("\n");
 const body = [];
