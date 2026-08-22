@@ -3,13 +3,13 @@
 Student Assessment of Teacher's Performance  
 Notre Dame of Marbel University
 
-Version: August 17, 2026
+Version: August 22, 2026
 
 ## 1. About SATP
 
 SATP allows students to assess their teachers and enables authorized personnel to maintain academic data, monitor assessment completion, manage access, and generate rating and ranking reports.
 
-The pages shown in the sidebar depend on the signed-in user's permissions. A user only sees modules their assigned role is allowed to access.
+The pages shown in the sidebar depend on the signed-in user's permissions. A user only sees modules their assigned role is allowed to access. On every authenticated page, the sidebar expands the active module and highlights the current page.
 
 ## 2. Signing in and out
 
@@ -78,22 +78,23 @@ Authorized administrators can open or close student rating access separately for
 
 ## 5. Maintenance
 
-Maintenance pages are only available to roles with maintenance permission. The system currently includes:
+Maintenance pages are only available to roles with maintenance permission. The system currently includes the following pages in sidebar order:
 
+- Admin
+- Category
+- School
 - College
 - Department
 - Program
-- Course
-- Teacher
-- Student
-- Admin
+- Item
+- Room
 - School year
 - Semester
-- Room
-- Category
-- Item
+- Student
 - Student Course
 - Schedule assignment
+- Course
+- Teacher
 
 Administrator academic scope controls the initial period and visible student data in **Student Course** and **Schedule assignment**. College administrators see College records, SHS administrators see SHS records, and administrators with All scope see both groups. Scope is enforced by the server and is not only a visual table filter.
 
@@ -131,9 +132,21 @@ If the code or identifying value already exists, edit the existing record instea
 5. Save the changes and wait for confirmation.
 6. Enable **Show inactive** when verifying a deactivated record.
 
-Changes to academic structure can affect later dropdowns and reports. Confirm the correct parent College, Department, or Program before saving.
+Changes to academic structure can affect later dropdowns, imports, assignments, and reports. Confirm the correct parent School, College, Department, or Program before saving.
 
-Changing a College's active status cascades to its Departments and Programs only when the College status actually changes. Changing a Department's status likewise cascades to linked Programs. Reactivating a parent also reactivates its linked descendants.
+Changing a School's active status cascades to its Colleges, Departments, and Programs only when the School status actually changes. Changing a College's status likewise cascades to its Departments and Programs, while changing a Department's status cascades to linked Programs. Reactivating a parent also reactivates its linked descendants.
+
+### School
+
+School is the top level of the academic hierarchy. It separates academic groups such as College and Senior High School and lets future schools be added without changing the Student Course import workflow.
+
+1. Open **Maintenance > School**.
+2. Select **Add school**, or select **Edit** beside an existing row.
+3. Enter the unique School code and name.
+4. Set its active status.
+5. Save and verify the row.
+
+Assign every College to the correct School. When a School is activated or deactivated, SATP asks for confirmation and applies the same status to the Colleges, Departments, and Programs below it.
 
 ### College
 
@@ -142,8 +155,9 @@ To add or edit a College:
 1. Open **Maintenance > College**.
 2. Select **Add college**, or select **Edit** beside an existing row.
 3. Enter the College code and name.
-4. Set its active status.
-5. Save and verify the row.
+4. Select the correct parent School.
+5. Set its active status.
+6. Save and verify the School and College shown in the row.
 
 For bulk work, use **Import file**, select the Excel workbook, validate the rows, and confirm the import. Departments should only be assigned after their parent College exists.
 
@@ -184,11 +198,16 @@ Use unique codes. Long Course names are supported and wrap in tables and reports
 1. Open **Maintenance > Teacher**.
 2. Select **Add teacher** or edit a teacher.
 3. Enter the prefix, first name, middle name when applicable, last name, and suffix when applicable.
-4. Select the Department and teaching status.
-5. Set the active status.
-6. Save and verify the fully formatted name in the table.
+4. Select the primary Department and its teaching status.
+5. Add any additional Departments and select a teaching status for each assignment.
+6. Set the active status.
+7. Save and verify the fully formatted name and Department assignments in the table.
+
+One teacher record can belong to multiple Departments, including Departments in different Schools. Teaching status is stored per Department, so a teacher may be Full Time in one Department and Part Time in another. Do not create a second teacher name with a marker such as `(SHS)` merely to represent another Department.
 
 Teacher prefix and suffix values appear in schedule assignment, logs, and reports. During import, verify names carefully to prevent duplicate teacher identities.
+
+To consolidate an existing duplicate, open the teacher record that must be kept, select **Merge teacher** in its edit modal, and select the duplicate record. Review the explicit irreversible confirmation carefully. SATP retains the teacher whose edit modal was opened, transfers the duplicate's Department assignments and associated schedules or ratings, preserves the appropriate teaching Department for each course, and removes the duplicate teacher record.
 
 ### Student
 
@@ -321,7 +340,7 @@ New local passwords are securely hashed before storage. A new account may omit i
 
 Use this page to assign courses and schedules to students or import enrollment workbooks. Teacher matching during import uses the teacher's first and last name. An existing enrollment is detected using its academic assignment details and is not created again.
 
-The student directory and the student list inside **Add student course** follow the signed-in administrator's academic scope. SHS scope shows only students whose Program belongs to the SHS Department; College scope shows students from other Departments; All scope shows both. Included and excluded course counts and detail records use the same server-side restriction.
+The student directory and the student list inside **Add student course** follow the signed-in administrator's academic scope. SHS scope shows students whose Program belongs to the SHS School; College scope shows students under College Schools; All scope shows both. Included and excluded course counts and detail records use the same server-side restriction.
 
 To add an enrollment manually:
 
@@ -329,11 +348,12 @@ To add an enrollment manually:
 2. Select the school year and semester to load.
 3. Search for and select the student.
 4. Select **Add student course**.
-5. Select the Course, teacher, schedule code, and other required assignment information.
-6. Use the search field inside the teacher dropdown when needed.
-7. Review the selected period and assignment.
-8. Save and wait for the success confirmation.
-9. Open the student's course list and verify the enrollment.
+5. Confirm the School displayed for the selected student. SATP derives the School and teaching Department from the student's Program for both College and SHS students; no manual Department selection is required.
+6. Select the Course, teacher, schedule code, and other required assignment information.
+7. Use the search field inside the teacher dropdown when needed. Only teachers assigned to the student's School and required teaching Department are accepted.
+8. Review the selected period and assignment.
+9. Save and wait for the success confirmation.
+10. Open the student's course list and verify the enrollment.
 
 To edit or exclude an enrollment:
 
@@ -345,17 +365,19 @@ To edit or exclude an enrollment:
 
 To upload enrollments:
 
-1. Select **Import file** and choose the workbook.
-2. Keep the validation modal open while the progress indicator advances.
-3. Review created, updated, unchanged, and error enrollments.
-4. Confirm that repeated enrollments are listed as unchanged rather than new.
-5. Correct ambiguous teachers or invalid references in the workbook.
-6. Select the import action and wait for the completion totals.
-7. Verify a sample of imported students and schedule codes in the table.
+1. Select **Import file**.
+2. Select the School represented by the workbook. The choices come from active School maintenance records and are limited by the administrator's allowed academic group.
+3. Choose the workbook and begin validation.
+4. Keep the validation modal open while the row and enrollment-group progress indicators advance.
+5. Review created, updated, unchanged, and error enrollments.
+6. Confirm that repeated enrollments are listed as unchanged rather than new.
+7. Correct ambiguous teachers, School mismatches, or invalid references in the workbook.
+8. Select the import action and wait for the completion totals.
+9. Verify a sample of imported students and schedule codes in the table.
 
 Student Course upload logs identify students by username and identify assignments by schedule code rather than internal database IDs.
 
-Before workbook validation, Student Course refreshes its database references so recently added students, teachers, Programs, Courses, and Rooms can be recognized without refreshing the browser. If a Course or Room from the configured server view is missing locally, the import creates it from `SubjectCode` and `Description`, or `RoomCode`, before creating the enrollment.
+Before workbook validation, Student Course refreshes its database references so recently added Schools, students, teachers, Programs, Courses, and Rooms can be recognized without refreshing the browser. The selected School determines which of a multi-department teacher's assignments is used. If a Course or Room from the configured server view is missing locally, the import creates it from `SubjectCode` and `Description`, or `RoomCode`, before creating the enrollment.
 
 For CHS students, one schedule code can have multiple assigned teachers and produces one rating opportunity per teacher. For non-CHS students, a schedule code has one teacher; importing a different teacher updates that assignment.
 
@@ -363,16 +385,17 @@ For CHS students, one schedule code can have multiple assigned teachers and prod
 
 Use **Schedule assignment** to reassign the teacher handling a schedule code or mark a schedule as dissolved.
 
-Schedule rows and student counts follow the signed-in administrator's academic scope. The system identifies the group through each enrolled student's Program and Department: Department code `SHS` is treated as SHS, and other Department codes are treated as College. Reassign, Dissolve, and Restore requests are restricted by the same rule, including direct API requests.
+Schedule rows and student counts follow the signed-in administrator's academic scope. SATP identifies the academic group through the School linked to each student's Program. Reassign, Dissolve, and Restore requests are restricted by the same School relationship, including direct API requests.
 
-1. Select the school year and semester. The page initially loads the current period.
+1. The page initially loads the current period. Select another school year or semester when required, then select **Load records**.
 2. Search for the schedule code.
 3. Select **Reassign**.
-4. Open the teacher dropdown and use its internal search field.
-5. Select the new teacher.
-6. Confirm the reassignment and wait for the loading and success messages.
+4. Verify the School displayed in the reassignment modal.
+5. Open the teacher dropdown and use its internal search field.
+6. Select the new teacher. The list includes active teachers with at least one Department in the same School; it does not unnecessarily limit the list to the schedule's current Department.
+7. Confirm the reassignment and wait for the loading and success messages.
 
-The current teacher is excluded from the replacement list. The table and activity log display teacher names with available prefixes and suffixes.
+The current teacher is excluded from the replacement list. The selected teacher must still have a valid Department assignment in the displayed School, and SATP preserves the course's teaching-Department association. The table and activity log display teacher names with available prefixes and suffixes.
 
 To dissolve a schedule, select **Dissolve** and confirm in the SATP modal. Dissolved schedules are excluded from student rating lists, transaction course totals, rating calculations, institutional results, and ranking results, including ratings submitted before the schedule was dissolved. Select **Restore** and confirm to reverse the action.
 
@@ -395,7 +418,7 @@ Open **Reports > Rating**, select a report type, and complete the filters shown 
 4. Select **Generate report**.
 5. Review the report before downloading or printing.
 
-Only available completed assessment records matching the filters are included. Teacher names include available prefixes and suffixes.
+Only available completed assessment records matching the filters are included. Teacher names include available prefixes and suffixes. For a teacher assigned to multiple Departments, SATP attributes each result to the teaching Department recorded for that course and uses the teaching status configured for that Department.
 
 ### Download and ZIP export
 
@@ -420,7 +443,7 @@ Then select the required organization, school year, semester, and teaching statu
 - Part Time
 - NTPO & Admin
 
-Select **Generate report**. Only completed assessments matching the filters are included. Long college and organization names wrap within their report cells.
+Select **Generate report**. Only completed assessments matching the filters are included. A teacher who serves both College and SHS is ranked separately under the School and teaching Department associated with each course, using that Department's teaching status. Long College, Department, and organization names wrap within their report cells.
 
 ## 8. Users and access
 
@@ -445,7 +468,7 @@ Permission roles control access to:
 - Reports
 - Users and access
 
-The sidebar automatically hides modules that the current role cannot access. For example, a report generator with Transactions and Reports permission only sees those modules.
+The sidebar automatically hides modules that the current role cannot access. For example, a report generator with Transactions and Reports permission only sees those modules. The current page and its parent module remain highlighted consistently while navigating between pages.
 
 Apply the principle of least privilege: grant only the access required for the user's responsibilities.
 

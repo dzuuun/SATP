@@ -24,6 +24,7 @@ const pages = [
   ["08-schedule-assignment.png", "/maintenance/schedule_assignment/", 5000],
   ["09-permissions.png", "/user/permission/"],
   ["10-activity-log.png", "/user/activity_log/"],
+  ["23-school-maintenance.png", "/maintenance/school/", 5000],
   ["11-college-maintenance.png", "/maintenance/college/", 5000],
   ["12-department-maintenance.png", "/maintenance/departments/", 5000],
   ["13-program-maintenance.png", "/maintenance/course/", 5000],
