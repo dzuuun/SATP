@@ -107,3 +107,57 @@ test("active assignment list returns records from the model", () => {
     model.getActiveScheduleAssignments = original;
   }
 });
+
+test("schedule transfer rejects an invalid target before calling the model", () => {
+  const original = model.transferScheduleDepartment;
+  let called = false;
+  model.transferScheduleDepartment = () => {
+    called = true;
+  };
+  try {
+    const res = responseDouble();
+    controller.transferScheduleDepartment(
+      validRequest({
+        current_department_id: 7,
+        target_department_id: "",
+      }),
+      res,
+    );
+    assert.equal(res.statusCode, 400);
+    assert.equal(res.body.success, 0);
+    assert.equal(called, false);
+  } finally {
+    model.transferScheduleDepartment = original;
+  }
+});
+
+test("schedule transfer passes the authenticated user and assignment to the model", () => {
+  const original = model.transferScheduleDepartment;
+  let received;
+  model.transferScheduleDepartment = (data, callback) => {
+    received = data;
+    callback(null, {
+      enrollments_updated: 6,
+      school: "Senior High School",
+      department: "SHS",
+    });
+  };
+  try {
+    const res = responseDouble();
+    controller.transferScheduleDepartment(
+      validRequest({
+        current_department_id: 7,
+        target_department_id: 8,
+      }),
+      res,
+    );
+    assert.equal(received.user_id, 99);
+    assert.equal(received.current_teacher_id, 4);
+    assert.equal(received.current_department_id, 7);
+    assert.equal(received.target_department_id, 8);
+    assert.equal(res.statusCode, 200);
+    assert.equal(res.body.data.enrollments_updated, 6);
+  } finally {
+    model.transferScheduleDepartment = original;
+  }
+});

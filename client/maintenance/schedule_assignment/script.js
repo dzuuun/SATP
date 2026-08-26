@@ -7,6 +7,7 @@ else if (maintenanceAccess == 0) history.back();
 let table;
 let selectedAssignment;
 let actionConfirmationResolver;
+let activeDepartments = [];
 
 function toggleModal(id, show) {
   const modal = document.getElementById(id);
@@ -74,6 +75,24 @@ async function loadTeachers() {
       teacher.department_teaching_statuses ?? teacher.is_part_time ?? "0",
     );
     option.dataset.schoolIds = String(teacher.department_school_ids || "");
+    select.appendChild(option);
+  });
+  enhanceSearchableSelect(select);
+}
+
+async function loadDepartments() {
+  const response = await fetch("/api/department/all/active");
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload.message || "Unable to load Departments.");
+  }
+  activeDepartments = payload.data || [];
+  const select = document.getElementById("transferDepartmentSelect");
+  activeDepartments.forEach((department) => {
+    const option = document.createElement("option");
+    option.value = department.id;
+    option.textContent = `${department.department_code} - ${department.name}`;
+    option.dataset.schoolId = String(department.school_id || "");
     select.appendChild(option);
   });
   enhanceSearchableSelect(select);
@@ -161,6 +180,8 @@ function enhanceSearchableSelect(select) {
   search.placeholder =
     select.id === "teacherSelect"
       ? "Search teachers..."
+      : select.id === "transferDepartmentSelect"
+        ? "Search Departments..."
       : select.id === "schoolYearSelect"
         ? "Search school years..."
         : "Search semesters...";
@@ -182,7 +203,11 @@ function enhanceSearchableSelect(select) {
     if (!matches.length) {
       const empty = document.createElement("p");
       empty.className = "search-select-empty";
-      empty.textContent = "No matching teachers";
+      empty.textContent = select.id === "teacherSelect"
+        ? "No matching teachers"
+        : select.id === "transferDepartmentSelect"
+          ? "No matching Departments"
+          : "No matching options";
       options.appendChild(empty);
       return;
     }
@@ -290,12 +315,59 @@ function openReassign(assignment) {
   toggleModal("reassignModal", true);
 }
 
+function openTransfer(assignment) {
+  selectedAssignment = assignment;
+  const teacherOption = document.querySelector(
+    `#teacherSelect option[value="${Number(assignment.teacher_id)}"]`,
+  );
+  const teacherDepartments = new Set(
+    String(teacherOption?.dataset.departmentIds || "")
+      .split(",")
+      .map(Number)
+      .filter(Boolean),
+  );
+  let eligibleCount = 0;
+  [...document.getElementById("transferDepartmentSelect").options].forEach(
+    (option) => {
+      if (!option.value) return;
+      const eligible =
+        Number(option.dataset.schoolId) ===
+          Number(assignment.enrollment_school_id) &&
+        teacherDepartments.has(Number(option.value)) &&
+        Number(option.value) !== Number(assignment.teaching_department_id);
+      option.hidden = !eligible;
+      option.disabled = !eligible;
+      if (eligible) eligibleCount += 1;
+    },
+  );
+  if (!eligibleCount) {
+    toast(
+      "This teacher has no other Department assignment in the students' School.",
+      true,
+    );
+    return;
+  }
+  document.getElementById("transferSectionCode").textContent =
+    assignment.schedule_code;
+  document.getElementById("transferSectionSubject").textContent =
+    `${assignment.subject_code} - ${assignment.subject_name}`;
+  document.getElementById("transferTeacher").textContent =
+    `Assigned teacher: ${assignment.teacher_name}`;
+  document.getElementById("currentTeachingAssignment").textContent =
+    `${assignment.teaching_department_code} - ${assignment.teaching_school_name}`;
+  document.getElementById("enrollmentSchool").textContent =
+    `${assignment.enrollment_school_code} - ${assignment.enrollment_school_name}`;
+  document.getElementById("transferDepartmentSelect").value = "";
+  syncSearchableSelect(document.getElementById("transferDepartmentSelect"));
+  toggleModal("transferModal", true);
+}
+
 $(document).ready(async () => {
   try {
-    await Promise.all([loadTeachers(), loadPeriods()]);
+    await Promise.all([loadTeachers(), loadDepartments(), loadPeriods()]);
   } catch (error) {
     setLoading(false);
-    toast("Unable to load teachers or academic periods.", true);
+    toast("Unable to load teachers, Departments, or academic periods.", true);
   }
   table = $("#table").DataTable({
     ajax: {
@@ -327,10 +399,10 @@ $(document).ready(async () => {
         title: "Actions",
         orderable: false,
         className: "dt-center schedule-actions",
-        width: "190px",
+        width: "280px",
         render: (record) => {
           const dissolved = Number(record.dissolved_count) > 0;
-          return `<button type="button" class="section-reassign-button" aria-label="Reassign teacher"${dissolved ? " disabled" : ""}>Reassign</button><button type="button" class="section-dissolve-button${dissolved ? " restore" : ""}" aria-label="${dissolved ? "Restore" : "Dissolve"} schedule">${dissolved ? "Restore" : "Dissolve"}</button>`;
+          return `<button type="button" class="section-reassign-button" aria-label="Reassign teacher"${dissolved ? " disabled" : ""}>Reassign</button><button type="button" class="section-transfer-button" aria-label="Transfer schedule"${dissolved ? " disabled" : ""}>Transfer</button><button type="button" class="section-dissolve-button${dissolved ? " restore" : ""}" aria-label="${dissolved ? "Restore" : "Dissolve"} schedule">${dissolved ? "Restore" : "Dissolve"}</button>`;
         },
       },
     ],
@@ -339,6 +411,9 @@ $(document).ready(async () => {
   });
   $("#table tbody").on("click", ".section-reassign-button", function () {
     openReassign(table.row($(this).closest("tr")).data());
+  });
+  $("#table tbody").on("click", ".section-transfer-button", function () {
+    openTransfer(table.row($(this).closest("tr")).data());
   });
   $("#table tbody").on("click", ".section-dissolve-button", async function () {
     const assignment = table.row($(this).closest("tr")).data();
@@ -408,6 +483,57 @@ document.getElementById("reassignForm").addEventListener("submit", async (event)
     toast(`${payload.data.enrollments_updated} enrollment(s) reassigned successfully.`);
   } catch (error) {
     toast(error.message || "Unable to reassign teacher.", true);
+  } finally {
+    setLoading(false);
+  }
+});
+
+document.getElementById("transferForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const targetDepartmentId = Number(
+    document.getElementById("transferDepartmentSelect").value,
+  );
+  if (!targetDepartmentId) {
+    return toast("Select a target Department from the list.", true);
+  }
+  const targetDepartment = document.getElementById(
+    "transferDepartmentSelect",
+  ).selectedOptions[0]?.textContent;
+  const confirmed = await confirmScheduleAction({
+    title: "Transfer schedule?",
+    message: `Transfer ${selectedAssignment.schedule_code} for ${selectedAssignment.teacher_name} from ${selectedAssignment.teaching_department_code} to ${targetDepartment}? This corrects the School and Department used by reports, but keeps existing ratings.`,
+    confirmLabel: "Transfer schedule",
+  });
+  if (!confirmed) return;
+  toggleModal("transferModal", false);
+  setLoading(true, "Transferring schedule...");
+  try {
+    const response = await fetch(
+      "/api/studentsubject/schedule-assignments/transfer",
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          school_year_id: selectedAssignment.school_year_id,
+          semester_id: selectedAssignment.semester_id,
+          subject_id: selectedAssignment.subject_id,
+          schedule_code: selectedAssignment.schedule_code,
+          current_teacher_id: selectedAssignment.teacher_id,
+          current_department_id: selectedAssignment.teaching_department_id,
+          target_department_id: targetDepartmentId,
+        }),
+      },
+    );
+    const payload = await response.json();
+    if (!response.ok) {
+      throw new Error(payload.message || "Unable to transfer schedule.");
+    }
+    await new Promise((resolve) => table.ajax.reload(resolve, false));
+    toast(
+      `${payload.data.enrollments_updated} enrollment(s) transferred to ${payload.data.department}.`,
+    );
+  } catch (error) {
+    toast(error.message || "Unable to transfer schedule.", true);
   } finally {
     setLoading(false);
   }

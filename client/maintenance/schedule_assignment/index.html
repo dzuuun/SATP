@@ -30,7 +30,7 @@
         <div>
           <p class="eyebrow">Academic assignments</p>
           <h1>Schedule assignment</h1>
-          <p>Reassign the teacher handling a section in the current active period.</p>
+          <p>Reassign teachers, correct a schedule's School assignment, or dissolve a section.</p>
         </div>
         <nav><a>SATP</a><span>›</span><span>Maintenance</span><span>›</span><span>Schedule
             assignment</span></nav>
@@ -89,6 +89,40 @@
       <footer class="modal-footer"><button type="button" class="secondary-button"
           onclick="toggleModal('reassignModal', false)">Cancel</button><button class="primary-button" type="submit">Save
           assignment</button></footer>
+    </form>
+  </div>
+  <div id="transferModal" class="room-modal invisible">
+    <form id="transferForm" class="modal-card scale-95">
+      <header class="modal-header">
+        <div>
+          <p class="eyebrow">School correction</p>
+          <h2>Transfer schedule</h2>
+        </div>
+        <button type="button" class="modal-close" onclick="toggleModal('transferModal', false)"
+          aria-label="Close transfer modal">&times;</button>
+      </header>
+      <div class="modal-body">
+        <div class="section-summary">
+          <strong id="transferSectionCode"></strong>
+          <span id="transferSectionSubject"></span>
+          <small id="transferTeacher"></small>
+          <div class="assignment-department">
+            <span>Current assignment</span>
+            <strong id="currentTeachingAssignment"></strong>
+            <span class="assignment-department-label">Students' School</span>
+            <strong id="enrollmentSchool"></strong>
+          </div>
+        </div>
+        <label for="transferDepartmentSelect">Target Department</label>
+        <select id="transferDepartmentSelect" required>
+          <option value="" disabled>Select a Department</option>
+        </select>
+        <p class="transfer-help">Only active Departments in the students' School that are assigned to this teacher are available.</p>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="secondary-button" onclick="toggleModal('transferModal', false)">Cancel</button>
+        <button class="primary-button" type="submit">Transfer schedule</button>
+      </footer>
     </form>
   </div>
   <div id="confirmActionModal" class="room-modal invisible" role="dialog" aria-modal="true"

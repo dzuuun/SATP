@@ -338,7 +338,7 @@ test("Schedule Assignment can dissolve and restore a schedule", () => {
   assert.match(script, /Restore/);
   const style = read("client/maintenance/schedule_assignment/style.css");
   assert.match(style, /\.schedule-status[\s\S]*white-space: nowrap/);
-  assert.match(style, /\.schedule-actions[\s\S]*min-width: 190px/);
+  assert.match(style, /\.schedule-actions[\s\S]*min-width: 280px/);
   assert.match(style, /#table \{ min-width: 980px; \}/);
 });
 
@@ -749,6 +749,30 @@ test("Authenticated non-Grad School pages share the same shell services", () => 
     assert.match(html, /id=["']sidebar-container["']/, `${relative} needs the shared sidebar host`);
     assert.match(html, /<script\s+src=["']\/shared-ui\.js["']\s*>\s*<\/script>/, `${relative} needs shared UI behavior`);
   });
+});
+
+test("Schedule Assignment transfers a mistagged schedule to an eligible Department", () => {
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
+  const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
+  const router = read("api/maintenance/studentsubject/studentsubject.router.js");
+  const page = read("client/maintenance/schedule_assignment/index.html");
+  const script = read("client/maintenance/schedule_assignment/script.js");
+  assert.match(router, /schedule-assignments\/transfer/);
+  assert.match(controller, /transferScheduleDepartment/);
+  assert.match(model, /UPDATE academic_record_departments AS record_department/);
+  assert.match(model, /target Department must belong to the students' School/i);
+  assert.match(model, /INNER JOIN teacher_departments/);
+  assert.match(
+    model,
+    /LEFT JOIN teacher_departments AS current_department_assignment[\s\S]*record_department\.department_id/,
+  );
+  assert.match(model, /Transferred schedule/);
+  assert.match(page, /id="transferModal"/);
+  assert.match(page, /id="transferDepartmentSelect"/);
+  assert.match(script, /section-transfer-button/);
+  assert.match(script, /current_department_id/);
+  assert.match(script, /target_department_id/);
+  assert.match(script, /keeps existing ratings/);
 });
 
 test("Shared sidebar consistently highlights the current page and parent module", () => {

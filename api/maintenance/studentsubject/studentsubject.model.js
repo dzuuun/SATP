@@ -123,6 +123,9 @@ module.exports = {
               teaching_schools.id AS teaching_school_id,
               teaching_schools.code AS teaching_school_code,
               teaching_schools.name AS teaching_school_name,
+              student_schools.id AS enrollment_school_id,
+              student_schools.code AS enrollment_school_code,
+              student_schools.name AS enrollment_school_name,
               CASE WHEN UPPER(TRIM(teaching_schools.code)) = 'SHS' THEN 'SHS' ELSE 'COLLEGE' END AS academic_scope,
               CONCAT(
                 IFNULL(CONCAT(teachers.prefix, ' '), ''),
@@ -150,30 +153,15 @@ module.exports = {
          ON student_schools.id = student_colleges.school_id
        INNER JOIN academic_record_departments AS record_department
          ON record_department.academic_record_id = arc.id
-       INNER JOIN (
-         SELECT teacher_departments.teacher_id, colleges.school_id,
-                CAST(SUBSTRING_INDEX(GROUP_CONCAT(
-                  teacher_departments.department_id
-                  ORDER BY teacher_departments.is_primary DESC,
-                           teacher_departments.department_id
-                ), ',', 1) AS UNSIGNED) AS department_id
-         FROM teacher_departments
-         INNER JOIN departments
-           ON departments.id = teacher_departments.department_id
-         INNER JOIN colleges ON colleges.id = departments.college_id
-         GROUP BY teacher_departments.teacher_id, colleges.school_id
-       ) AS scoped_teacher_department
-         ON scoped_teacher_department.teacher_id = arc.teacher_id
-        AND scoped_teacher_department.school_id = student_schools.id
        INNER JOIN departments AS teaching_departments
          ON teaching_departments.id = record_department.department_id
        INNER JOIN colleges AS teaching_colleges
          ON teaching_colleges.id = teaching_departments.college_id
        INNER JOIN schools AS teaching_schools
          ON teaching_schools.id = teaching_colleges.school_id
-       INNER JOIN teacher_departments AS current_department_assignment
+       LEFT JOIN teacher_departments AS current_department_assignment
          ON current_department_assignment.teacher_id = arc.teacher_id
-        AND current_department_assignment.department_id = scoped_teacher_department.department_id
+        AND current_department_assignment.department_id = record_department.department_id
        INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
        WHERE arc.school_year_id = ? AND arc.semester_id = ?
          AND arc.schedule_code IS NOT NULL AND arc.schedule_code <> ''
@@ -191,7 +179,8 @@ module.exports = {
                 record_department.department_id,
                 current_department_assignment.teaching_status,
                 teaching_departments.code, teaching_departments.name,
-                teaching_schools.id, teaching_schools.code, teaching_schools.name
+                teaching_schools.id, teaching_schools.code, teaching_schools.name,
+                student_schools.id, student_schools.code, student_schools.name
        ORDER BY arc.schedule_code, subjects.code, teacher_name`,
       [data.requesting_user_id, data.school_year_id, data.semester_id],
       callBack,
@@ -294,6 +283,156 @@ module.exports = {
       await connection.commit();
       return callBack(null, {
         enrollments_updated: enrollmentResult.affectedRows,
+      });
+    } catch (error) {
+      if (connection) await connection.rollback();
+      return callBack(error);
+    } finally {
+      if (connection) connection.release();
+    }
+  },
+
+  transferScheduleDepartment: async (data, callBack) => {
+    let connection;
+    try {
+      connection = await pool.promise().getConnection();
+      await connection.beginTransaction();
+
+      const [currentRows] = await connection.query(
+        `SELECT arc.id,
+                student_schools.id AS enrollment_school_id,
+                student_schools.code AS enrollment_school_code,
+                student_schools.name AS enrollment_school_name,
+                current_departments.code AS current_department_code,
+                current_departments.name AS current_department_name,
+                current_schools.code AS current_school_code,
+                current_schools.name AS current_school_name,
+                CONCAT(
+                  IFNULL(CONCAT(teachers.prefix, ' '), ''),
+                  teachers.givenname, ' ', teachers.surname,
+                  IF(teachers.suffix IS NOT NULL AND teachers.suffix <> '',
+                    CONCAT(', ', teachers.suffix), '')
+                ) AS teacher_name
+         FROM ${TABLE} AS arc
+         INNER JOIN teachers ON teachers.id = arc.teacher_id
+         INNER JOIN user_info ON user_info.user_id = arc.student_id
+         INNER JOIN courses ON courses.id = user_info.course_id
+         INNER JOIN departments ON departments.id = courses.department_id
+         INNER JOIN colleges AS student_colleges
+           ON student_colleges.id = departments.college_id
+         INNER JOIN schools AS student_schools
+           ON student_schools.id = student_colleges.school_id
+         INNER JOIN academic_record_departments AS record_department
+           ON record_department.academic_record_id = arc.id
+         INNER JOIN departments AS current_departments
+           ON current_departments.id = record_department.department_id
+         INNER JOIN colleges AS current_colleges
+           ON current_colleges.id = current_departments.college_id
+         INNER JOIN schools AS current_schools
+           ON current_schools.id = current_colleges.school_id
+         INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
+         WHERE arc.school_year_id = ? AND arc.semester_id = ?
+           AND arc.subject_id = ? AND arc.teacher_id = ?
+           AND arc.schedule_code = ?
+           AND record_department.department_id = ?
+           AND ${academicScopeFilter}
+         FOR UPDATE`,
+        [
+          data.user_id,
+          data.school_year_id,
+          data.semester_id,
+          data.subject_id,
+          data.current_teacher_id,
+          data.schedule_code,
+          data.current_department_id,
+        ],
+      );
+      if (!currentRows.length) {
+        throw new Error("No matching schedule assignments were found.");
+      }
+
+      const enrollmentSchoolIds = new Set(
+        currentRows.map((row) => Number(row.enrollment_school_id)),
+      );
+      if (enrollmentSchoolIds.size !== 1) {
+        throw new Error(
+          "This schedule contains students from different Schools and cannot be transferred as one assignment.",
+        );
+      }
+      const enrollmentSchoolId = [...enrollmentSchoolIds][0];
+
+      const [targetRows] = await connection.query(
+        `SELECT departments.id, departments.code, departments.name,
+                schools.id AS school_id, schools.code AS school_code,
+                schools.name AS school_name
+         FROM departments
+         INNER JOIN colleges ON colleges.id = departments.college_id
+         INNER JOIN schools ON schools.id = colleges.school_id
+         INNER JOIN teacher_departments
+           ON teacher_departments.department_id = departments.id
+          AND teacher_departments.teacher_id = ?
+         WHERE departments.id = ? AND departments.is_active = 1
+           AND colleges.is_active = 1 AND schools.is_active = 1
+         LIMIT 1`,
+        [data.current_teacher_id, data.target_department_id],
+      );
+      if (!targetRows.length) {
+        throw new Error(
+          "The assigned teacher is not active in the selected Department.",
+        );
+      }
+      const target = targetRows[0];
+      if (Number(target.school_id) !== enrollmentSchoolId) {
+        throw new Error(
+          "The target Department must belong to the students' School.",
+        );
+      }
+      if (Number(data.current_department_id) === Number(target.id)) {
+        throw new Error("The schedule is already assigned to that Department.");
+      }
+
+      const [result] = await connection.query(
+        `UPDATE academic_record_departments AS record_department
+         INNER JOIN ${TABLE} AS arc
+           ON arc.id = record_department.academic_record_id
+         INNER JOIN user_info ON user_info.user_id = arc.student_id
+         INNER JOIN courses ON courses.id = user_info.course_id
+         INNER JOIN departments ON departments.id = courses.department_id
+         INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
+         SET record_department.department_id = ?
+         WHERE arc.school_year_id = ? AND arc.semester_id = ?
+           AND arc.subject_id = ? AND arc.teacher_id = ?
+           AND arc.schedule_code = ?
+           AND record_department.department_id = ?
+           AND ${academicScopeFilter}`,
+        [
+          data.user_id,
+          target.id,
+          data.school_year_id,
+          data.semester_id,
+          data.subject_id,
+          data.current_teacher_id,
+          data.schedule_code,
+          data.current_department_id,
+        ],
+      );
+      if (!result.affectedRows) {
+        throw new Error("No schedule assignments required a transfer.");
+      }
+
+      const current = currentRows[0];
+      await connection.query(
+        "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+        [
+          data.user_id,
+          `Transferred schedule ${data.schedule_code} for ${current.teacher_name} from ${current.current_department_code} (${current.current_school_code}) to ${target.code} (${target.school_code})`,
+        ],
+      );
+      await connection.commit();
+      return callBack(null, {
+        enrollments_updated: result.affectedRows,
+        school: target.school_name,
+        department: target.name,
       });
     } catch (error) {
       if (connection) await connection.rollback();

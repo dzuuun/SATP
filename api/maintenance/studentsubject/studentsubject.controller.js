@@ -82,6 +82,37 @@ module.exports = {
     });
   },
 
+  transferScheduleDepartment: (req, res) => {
+    const data = { ...req.body, user_id: req.user.id };
+    const fields = [
+      "school_year_id",
+      "semester_id",
+      "subject_id",
+      "current_teacher_id",
+      "current_department_id",
+      "target_department_id",
+    ];
+    if (
+      !hasValidIds(data, fields) ||
+      !String(data.schedule_code || "").trim()
+    ) {
+      return res.status(400).json({
+        success: 0,
+        message: "A valid schedule and target Department are required.",
+      });
+    }
+    return model.transferScheduleDepartment(data, (error, results) => {
+      if (error) {
+        return res.status(400).json({ success: 0, message: error.message });
+      }
+      return res.json({
+        success: 1,
+        message: "Schedule transferred successfully.",
+        data: results,
+      });
+    });
+  },
+
   setScheduleDissolved: (req, res) => {
     const data = { ...req.body, user_id: req.user.id };
     if (

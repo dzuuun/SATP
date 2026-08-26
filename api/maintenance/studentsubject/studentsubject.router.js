@@ -12,6 +12,7 @@ const {
   restoreStudentSubject,
   getActiveScheduleAssignments,
   reassignScheduleTeacher,
+  transferScheduleDepartment,
   setScheduleDissolved,
 } = require("./studentsubject.controller");
 const router = require("express").Router();
@@ -41,6 +42,7 @@ router.put("/update", updateStudentSubject);
 router.put("/deactivate", deactivateStudentSubject);
 router.put("/restore", restoreStudentSubject);
 router.put("/schedule-assignments/reassign", reassignScheduleTeacher);
+router.put("/schedule-assignments/transfer", transferScheduleDepartment);
 router.put("/schedule-assignments/dissolve", setScheduleDissolved);
 
 module.exports = router;
