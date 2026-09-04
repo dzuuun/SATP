@@ -331,9 +331,11 @@ test("Schedule Assignment can dissolve and restore a schedule", () => {
   assert.match(controller, /setScheduleDissolved/);
   assert.match(model, /SET arc\.is_excluded = 1, arc\.reason = 'DISSOLVED'/);
   assert.match(model, /SET arc\.is_excluded = 0, arc\.reason = NULL/);
-  assert.match(model, /arc\.schedule_code = \? AND arc\.reason = 'DISSOLVED'/);
+  assert.match(model, /arc\.teacher_id = \? AND arc\.schedule_code = \? AND arc\.reason = 'DISSOLVED'/);
   assert.match(model, /beginTransaction/);
+  assert.match(controller, /"subject_id", "teacher_id"/);
   assert.match(script, /section-dissolve-button/);
+  assert.match(script, /teacher_id: assignment\.teacher_id/);
   assert.match(script, /dissolved: !dissolved/);
   assert.match(script, /Restore/);
   const style = read("client/maintenance/schedule_assignment/style.css");

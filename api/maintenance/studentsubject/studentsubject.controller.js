@@ -116,13 +116,13 @@ module.exports = {
   setScheduleDissolved: (req, res) => {
     const data = { ...req.body, user_id: req.user.id };
     if (
-      !hasValidIds(data, ["school_year_id", "semester_id", "subject_id"]) ||
+      !hasValidIds(data, ["school_year_id", "semester_id", "subject_id", "teacher_id"]) ||
       !String(data.schedule_code || "").trim() ||
       typeof data.dissolved !== "boolean"
     ) {
       return res.status(400).json({
         success: 0,
-        message: "A valid schedule and dissolved status are required.",
+        message: "A valid teacher assignment and dissolved status are required.",
       });
     }
     return model.setScheduleDissolved(data, (error, results) => {

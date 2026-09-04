@@ -457,9 +457,10 @@ module.exports = {
            INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
            SET arc.is_excluded = 1, arc.reason = 'DISSOLVED'
            WHERE arc.school_year_id = ? AND arc.semester_id = ? AND arc.subject_id = ?
-             AND arc.schedule_code = ? AND arc.is_excluded = 0
+             AND arc.teacher_id = ? AND arc.schedule_code = ? AND arc.is_excluded = 0
              AND ${academicScopeFilter}`,
-          [data.user_id, data.school_year_id, data.semester_id, data.subject_id, data.schedule_code],
+          [data.user_id, data.school_year_id, data.semester_id, data.subject_id,
+            data.teacher_id, data.schedule_code],
         )
         : await connection.query(
           `UPDATE ${TABLE} AS arc
@@ -469,9 +470,10 @@ module.exports = {
            INNER JOIN users AS requesting_admin ON requesting_admin.id = ?
            SET arc.is_excluded = 0, arc.reason = NULL
            WHERE arc.school_year_id = ? AND arc.semester_id = ? AND arc.subject_id = ?
-             AND arc.schedule_code = ? AND arc.reason = 'DISSOLVED'
+             AND arc.teacher_id = ? AND arc.schedule_code = ? AND arc.reason = 'DISSOLVED'
              AND ${academicScopeFilter}`,
-          [data.user_id, data.school_year_id, data.semester_id, data.subject_id, data.schedule_code],
+          [data.user_id, data.school_year_id, data.semester_id, data.subject_id,
+            data.teacher_id, data.schedule_code],
         );
       if (!result.affectedRows) {
         throw new Error(dissolved
@@ -481,7 +483,7 @@ module.exports = {
       await connection.query(
         "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
         [data.user_id,
-          `${dissolved ? "Dissolved" : "Restored"} schedule ${data.schedule_code}`],
+          `${dissolved ? "Dissolved" : "Restored"} teacher ${data.teacher_id} assignment for schedule ${data.schedule_code}`],
       );
       await connection.commit();
       return callBack(null, { enrollments_updated: result.affectedRows });

@@ -420,11 +420,11 @@ $(document).ready(async () => {
     const dissolved = Number(assignment.dissolved_count) > 0;
     const action = dissolved ? "restore" : "dissolve";
     const confirmed = await confirmScheduleAction({
-      title: dissolved ? "Restore schedule?" : "Dissolve schedule?",
+      title: dissolved ? "Restore teacher assignment?" : "Dissolve teacher assignment?",
       message: dissolved
-        ? `Restore ${assignment.schedule_code} and include its student courses again?`
-        : `Dissolve ${assignment.schedule_code} and exclude its student courses from rating and reports?`,
-      confirmLabel: dissolved ? "Restore schedule" : "Dissolve schedule",
+        ? `Restore ${assignment.teacher_name} for ${assignment.schedule_code} and include this assignment's student courses again?`
+        : `Dissolve ${assignment.teacher_name} from ${assignment.schedule_code} and exclude only this assignment's student courses from rating and reports?`,
+      confirmLabel: dissolved ? "Restore assignment" : "Dissolve assignment",
       destructive: !dissolved,
     });
     if (!confirmed) return;
@@ -437,6 +437,7 @@ $(document).ready(async () => {
           school_year_id: assignment.school_year_id,
           semester_id: assignment.semester_id,
           subject_id: assignment.subject_id,
+          teacher_id: assignment.teacher_id,
           schedule_code: assignment.schedule_code,
           dissolved: !dissolved,
         }),
