@@ -43,13 +43,6 @@
         .satp-safari .satp-search-select-search { font-size: 16px; }
         body.satp-sidebar-present #main,
         body.satp-sidebar-present #main .site-footer { min-width: 0; }
-        @media (max-width: 1100px) {
-          body.satp-sidebar-present #main,
-          body.satp-sidebar-present #main .site-footer {
-            width: 100%;
-            margin-left: 0 !important;
-          }
-        }
       `;
       document.head.appendChild(style);
     }
@@ -60,8 +53,78 @@
       root.matches?.(".satp-sidebar") ||
       root.querySelector?.(".satp-sidebar") ||
       document.querySelector(".satp-sidebar");
-    if (hasSidebar) document.body?.classList.add("satp-sidebar-present");
+    if (hasSidebar) {
+      document.body?.classList.add("satp-sidebar-present");
+      const sidebar = document.querySelector(".satp-sidebar");
+      const profile = sidebar?.querySelector(".profile-card");
+      const fullName =
+        localStorage.getItem("fullname") ||
+        sidebar?.querySelector("#sidebar-fullname")?.textContent?.trim() ||
+        "User";
+      const initials = fullName
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase();
+      if (profile) profile.dataset.initials = initials || "U";
+    }
   }
+
+  function toggleCompactSidebar() {
+    const sidebar = document.getElementById("mySidenav");
+    if (!sidebar) return;
+    const isPinned = sidebar.classList.toggle("is-sidebar-pinned");
+    // Clear legacy per-page inline sizing so the shared rail styles own layout.
+    sidebar.style.removeProperty("width");
+    document.getElementById("main")?.style.removeProperty("margin-left");
+    if (!isPinned && sidebar.contains(document.activeElement)) {
+      document.querySelector(".site-header .menu-button")?.focus();
+    }
+    syncHeaderMenuState();
+  }
+
+  // Replace each page's legacy global implementation as well.  Some pages
+  // invoke toggleNav directly, bypassing the click listener below.
+  window.toggleNav = toggleCompactSidebar;
+
+  // Individual pages still have older inline toggleNav handlers.  Capture the
+  // click first so the shared sidebar controls the page offset consistently.
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!event.target.closest?.('[onclick*="toggleNav"]')) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      toggleCompactSidebar();
+    },
+    true,
+  );
+
+  // Page scripts toggle their own submenus. After that click finishes, close
+  // every other module so only the selected dropdown remains expanded.
+  document.addEventListener(
+    "click",
+    (event) => {
+      const selected = event.target.closest?.(".satp-sidebar .menu-toggle");
+      if (!selected) return;
+      queueMicrotask(() => {
+        const sidebar = selected.closest(".satp-sidebar");
+        if (!sidebar) return;
+        sidebar.querySelectorAll(".menu-toggle").forEach((toggle) => {
+          if (toggle === selected) return;
+          const menu = document.getElementById(toggle.dataset.target);
+          if (!menu || !sidebar.contains(menu)) return;
+          menu.classList.add("hidden");
+          toggle.setAttribute("aria-expanded", "false");
+          const arrow = toggle.querySelector(".chevron");
+          if (arrow) arrow.style.transform = "rotate(0deg)";
+        });
+      });
+    },
+    true,
+  );
 
   function normalizeSidebarPath(value) {
     let path = String(value || "/").split(/[?#]/, 1)[0];
@@ -445,10 +508,8 @@
       style.id = "satp-menu-animation-style";
       style.textContent = `
         .site-header .menu-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-        .site-header .menu-button .satp-menu-line { transform-box: fill-box; transform-origin: center; transition: transform .24s ease, opacity .16s ease; }
-        .site-header .menu-button.is-open .satp-menu-line-top { transform: translateX(2px); }
-        .site-header .menu-button.is-open .satp-menu-line-middle { transform: scaleX(.7); }
-        .site-header .menu-button.is-open .satp-menu-line-bottom { transform: translateX(-2px); }
+        .site-header .menu-button .satp-menu-line { stroke-linecap: round; transition: stroke .2s ease; }
+        .site-header .menu-button.is-open .satp-menu-line { stroke: var(--gold, #f3c94d); }
         @media (prefers-reduced-motion: reduce) { .site-header .menu-button .satp-menu-line { transition: none; } }
       `;
       document.head.appendChild(style);
@@ -464,8 +525,10 @@
   }
 
   function syncHeaderMenuState() {
-    const isOpen =
-      document.getElementById("mySidenav")?.style.width === "280px";
+    const isOpen = document
+      .getElementById("mySidenav")
+      ?.classList.contains("is-sidebar-pinned");
+    document.body?.classList.toggle("satp-sidebar-pinned", Boolean(isOpen));
     document.querySelectorAll(".site-header .menu-button").forEach((button) => {
       button.classList.toggle("is-open", isOpen);
       button.setAttribute("aria-expanded", String(isOpen));
@@ -500,6 +563,9 @@
           disableSelectPlaceholders(node);
           disableHeaderBrandNavigation(node);
           installHeaderMenuAnimation(node);
+          if (node.matches?.(".satp-sidebar") || node.querySelector?.(".satp-sidebar")) {
+            syncHeaderMenuState();
+          }
           if (!location.pathname.toLowerCase().includes("gradschool")) {
             installSearchableSelects(node);
           }

@@ -3,13 +3,17 @@
     --side-green: #043b2a;
     --side-green-light: #075c3b;
     --side-gold: #f3c94d;
-    width: 0;
+    /* Keep navigation available as a compact icon rail.  The full panel is
+       deliberately layered over the page instead of pushing its content. */
+    width: 76px;
     height: 100vh;
     height: 100dvh;
     height: var(--satp-viewport-height, 100dvh);
     position: fixed;
     inset: 0 auto 0 0;
-    z-index: 1000;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1500;
     overflow: hidden;
     color: #fff;
     background:
@@ -29,7 +33,7 @@
       BlinkMacSystemFont,
       "Segoe UI",
       sans-serif;
-    transition: width 0.3s ease;
+    transition: width 0.24s ease, box-shadow 0.24s ease;
   }
 
   .satp-sidebar * {
@@ -37,15 +41,97 @@
   }
 
   .satp-sidebar .sidebar-inner {
-    width: 280px;
+    width: 100%;
     height: 100%;
     display: grid;
-    grid-template-rows: auto 1fr auto;
+    grid-template-rows: 78px minmax(0, 1fr) auto;
+  }
+
+  .satp-sidebar:hover,
+  .satp-sidebar:focus-within,
+  .satp-sidebar.is-sidebar-pinned {
+    width: 280px !important;
+    box-shadow: 20px 0 50px rgba(3, 31, 22, 0.28);
+  }
+
+  /* Collapsed rail */
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-header {
+    height: 78px;
+    min-height: 78px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-brand span,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-close,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-link > span,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .menu-toggle > span,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .chevron,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .submenu {
+    display: none !important;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-nav {
+    padding: 10px 12px;
+    overflow: hidden;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-list {
+    gap: 7px;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-link,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .menu-toggle {
+    width: 52px;
+    min-height: 48px;
+    padding: 0 12px;
+    justify-content: flex-start;
+    border-radius: 9px;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-profile {
+    min-height: 56px;
+    padding: 0 0 16px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .profile-card {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr;
+    place-items: center;
+    background: var(--side-green-light);
+    border: 0;
+    border-radius: 50%;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .profile-card::before {
+    content: attr(data-initials);
+    color: #fff;
+    font-size: 0.64rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+  }
+
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .profile-card > * {
+    display: none;
   }
 
   .satp-sidebar .sidebar-header {
-    min-height: 92px;
-    padding: 20px 18px;
+    height: 78px;
+    min-height: 78px;
+    padding: 0 18px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -119,19 +205,14 @@
   }
 
   .satp-sidebar .sidebar-nav {
-    padding: 22px 14px;
+    padding: 10px 12px;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
   }
 
   .satp-sidebar .nav-label {
-    margin: 0 10px 10px;
-    color: rgba(255, 255, 255, 0.38);
-    font-size: 0.59rem;
-    font-weight: 850;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
+    display: none;
   }
 
   .satp-sidebar .nav-list,
@@ -143,13 +224,13 @@
 
   .satp-sidebar .nav-list {
     display: grid;
-    gap: 5px;
+    gap: 7px;
   }
 
   .satp-sidebar .nav-link,
   .satp-sidebar .menu-toggle {
     width: 100%;
-    min-height: 46px;
+    min-height: 48px;
     padding: 0 12px;
     display: flex;
     align-items: center;
@@ -364,17 +445,25 @@
     .satp-sidebar {
       max-width: min(280px, 86vw);
     }
-
-    .satp-sidebar .sidebar-inner {
-      width: min(280px, 86vw);
-    }
-
-    body.satp-sidebar-present #main,
-    body.satp-sidebar-present #main .site-footer {
-      width: 100%;
-      margin-left: 0 !important;
-    }
   }
+
+  /* Hover overlays the page; the hamburger pins the sidebar and moves it. */
+  body.satp-sidebar-present #main {
+    width: calc(100% - 76px) !important;
+    margin-left: 76px !important;
+    transition: width 0.24s ease, margin-left 0.24s ease;
+  }
+
+  body.satp-sidebar-pinned #main {
+    width: calc(100% - min(280px, 86vw)) !important;
+    margin-left: min(280px, 86vw) !important;
+  }
+
+  body.satp-sidebar-present #main .site-footer {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
 </style>
 
 <aside
