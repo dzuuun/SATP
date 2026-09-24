@@ -750,9 +750,48 @@ test("Authenticated non-Grad School pages share the same shell services", () => 
   authenticatedPages.forEach((file) => {
     const html = fs.readFileSync(file, "utf8");
     const relative = path.relative(root, file);
-    assert.match(html, /id=["']sidebar-container["']/, `${relative} needs the shared sidebar host`);
+    if (relative.replace(/\\/g, "/") !== "client/rate/index.html") {
+      assert.match(html, /id=["']sidebar-container["']/, `${relative} needs the shared sidebar host`);
+    }
     assert.match(html, /<script\s+src=["']\/shared-ui\.js["']\s*>\s*<\/script>/, `${relative} needs shared UI behavior`);
   });
+});
+
+test("Teacher assessment has no sidebar or navigation toggle", () => {
+  const page = read("client/rate/index.html");
+  const script = read("client/rate/script.js");
+  assert.doesNotMatch(page, /sidebar-container|menu-button|toggleNav/);
+  assert.doesNotMatch(script, /loadSidebar|toggleNav|\/sidebar\.html/);
+  assert.match(page, /Back to courses/);
+});
+
+test("Mobile layouts use a toggleable sidebar drawer over full-width content", () => {
+  const sidebar = read("client/sidebar.html");
+  const sharedUi = read("client/shared-ui.js");
+  const transactions = read("client/transaction/style.css");
+  assert.match(sharedUi, /matchMedia\("\(max-width: 1100px\)"\)/);
+  assert.match(sharedUi, /@media \(max-width: 1100px\)[\s\S]*?\.satp-sidebar\s*\{[\s\S]*?visibility: hidden !important;[\s\S]*?transform: translateX\(-100%\);/);
+  assert.match(sharedUi, /\.satp-sidebar\.is-sidebar-pinned\s*\{[\s\S]*?visibility: visible !important;[\s\S]*?transform: translateX\(0\);/);
+  assert.match(sidebar, /class="satp-sidebar-backdrop" onclick="toggleNav\(\)"/);
+  assert.match(sharedUi, /body\.satp-sidebar-pinned #main\s*\{[\s\S]*?width: 100% !important;[\s\S]*?margin-left: 0 !important;/);
+  assert.doesNotMatch(sidebar, /\.site-header \.menu-button\s*\{\s*display: none !important;/);
+  assert.match(sharedUi, /const isPinned = sidebar\.classList\.toggle\("is-sidebar-pinned"\)/);
+  assert.match(sharedUi, /mobileSidebarView\.addEventListener\?\.\("change", closeSidebarForMobile\)/);
+  assert.match(transactions, /@media \(max-width: 1100px\)[\s\S]*?\.rating-access-card\s*\{\s*align-items: stretch;\s*flex-direction: column;/);
+  assert.match(transactions, /\.academic-group-choices\s*\{\s*grid-template-columns: 1fr;/);
+});
+
+test("Collapsed sidebar centers icons without shifting the active item", () => {
+  const sidebar = read("client/sidebar.html");
+  const sharedUi = read("client/shared-ui.js");
+  assert.match(sidebar, /\.satp-sidebar:not\(:hover\):not\(:focus-within\):not\(\.is-sidebar-pinned\) \.nav-link,[\s\S]*?justify-content: center;/);
+  assert.match(sidebar, /\.nav-active\s*\{\s*border-left-width: 1px;\s*box-shadow: inset 4px 0 0/);
+  assert.match(sharedUi, /justify-content: center !important;/);
+});
+
+test("Assessment stars are centered on mobile question cards", () => {
+  const style = read("client/rate/style.css");
+  assert.match(style, /@media \(max-width: 650px\)[\s\S]*?\.rating-options\s*\{\s*grid-column: 1\/-1;\s*justify-content: center;/);
 });
 
 test("Schedule Assignment transfers a mistagged schedule to an eligible Department", () => {

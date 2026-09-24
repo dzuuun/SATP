@@ -250,39 +250,7 @@ function showToast(message) {
 function closeRating() {
   location.href = "../rating/index.html";
 }
-function toggleNav() {
-  const side = document.getElementById("mySidenav");
-  if (!side) return;
-  const open = side.style.width === "280px";
-  side.style.width = open ? "0" : "280px";
-  document.getElementById("main").style.marginLeft =
-    innerWidth <= 760 || open ? "0" : "280px";
-}
-async function loadSidebar() {
-  try {
-    const container = document.getElementById("sidebar-container");
-    container.innerHTML = await (await fetch("/sidebar.html")).text();
-    const name = document.getElementById("sidebar-fullname");
-    if (name) name.textContent = state.fullname || state.username || "Student";
-    const portalLabel = document.querySelector(".sidebar-brand small");
-    if (portalLabel) portalLabel.textContent = "Student portal";
-    document.querySelectorAll(".nav-list > li").forEach((item) => {
-      item.style.display = item.id === "student-rating-nav" ? "" : "none";
-    });
-    document
-      .querySelector("#student-rating-nav a")
-      ?.classList.add("nav-active");
-    document.getElementById("signout")?.addEventListener("click", () => {
-      localStorage.clear();
-      location.href = "../index.html";
-    });
-  } catch (error) {
-    console.error("Sidebar failed:", error);
-  }
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("year").textContent = new Date().getFullYear();
-  loadSidebar();
   initializeAssessment();
 });

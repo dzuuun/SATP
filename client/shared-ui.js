@@ -5,6 +5,74 @@
   window.__satpSharedUi = true;
 
   let activeConfirmation = null;
+  const mobileSidebarView = window.matchMedia("(max-width: 1100px)");
+
+  function installResponsiveSidebar() {
+    const sidebar = document.getElementById("mySidenav");
+    if (!sidebar) return;
+    if (!document.getElementById("satp-responsive-sidebar-style")) {
+      const style = document.createElement("style");
+      style.id = "satp-responsive-sidebar-style";
+      style.textContent = `
+        .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-link,
+        .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .menu-toggle {
+          padding: 0 !important;
+          justify-content: center !important;
+        }
+        .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-active {
+          border-left-width: 1px !important;
+          box-shadow: inset 4px 0 0 var(--side-gold, #f3c94d);
+        }
+        @media (max-width: 1100px) {
+          .satp-sidebar {
+            width: min(280px, 86vw) !important;
+            max-width: min(280px, 86vw);
+            visibility: hidden !important;
+            pointer-events: none;
+            transform: translateX(-100%);
+            transition: transform .24s ease, visibility .24s ease;
+          }
+          .satp-sidebar.is-sidebar-pinned {
+            visibility: visible !important;
+            pointer-events: auto;
+            transform: translateX(0);
+          }
+          .satp-sidebar-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1490;
+            background: rgba(3, 25, 17, .56);
+          }
+          body.satp-sidebar-pinned .satp-sidebar-backdrop { display: block; }
+          body.satp-sidebar-pinned { overflow: hidden; }
+          html body.satp-sidebar-present #main,
+          html body.satp-sidebar-pinned #main {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin-left: 0 !important;
+          }
+        }
+      `;
+      document.body.appendChild(style);
+    }
+    if (!document.querySelector(".satp-sidebar-backdrop")) {
+      const backdrop = document.createElement("div");
+      backdrop.className = "satp-sidebar-backdrop";
+      backdrop.setAttribute("aria-hidden", "true");
+      backdrop.addEventListener("click", toggleCompactSidebar);
+      sidebar.insertAdjacentElement("afterend", backdrop);
+    }
+  }
+
+  function closeSidebarForMobile() {
+    if (!mobileSidebarView.matches) return;
+    const sidebar = document.getElementById("mySidenav");
+    sidebar?.classList.remove("is-sidebar-pinned");
+    sidebar?.style.removeProperty("width");
+    document.getElementById("main")?.style.removeProperty("margin-left");
+    syncHeaderMenuState();
+  }
 
   function installBrowserCompatibility() {
     const isSafari =
@@ -55,6 +123,7 @@
       document.querySelector(".satp-sidebar");
     if (hasSidebar) {
       document.body?.classList.add("satp-sidebar-present");
+      installResponsiveSidebar();
       const sidebar = document.querySelector(".satp-sidebar");
       const profile = sidebar?.querySelector(".profile-card");
       const fullName =
@@ -79,6 +148,9 @@
     // Clear legacy per-page inline sizing so the shared rail styles own layout.
     sidebar.style.removeProperty("width");
     document.getElementById("main")?.style.removeProperty("margin-left");
+    if (isPinned && mobileSidebarView.matches) {
+      sidebar.querySelector(".sidebar-close")?.focus();
+    }
     if (!isPinned && sidebar.contains(document.activeElement)) {
       document.querySelector(".site-header .menu-button")?.focus();
     }
@@ -101,6 +173,12 @@
     },
     true,
   );
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || !mobileSidebarView.matches) return;
+    if (!document.getElementById("mySidenav")?.classList.contains("is-sidebar-pinned")) return;
+    toggleCompactSidebar();
+  });
 
   // Page scripts toggle their own submenus. After that click finishes, close
   // every other module so only the selected dropdown remains expanded.
@@ -540,6 +618,7 @@
   }
 
   installBrowserCompatibility();
+  mobileSidebarView.addEventListener?.("change", closeSidebarForMobile);
   syncSidebarPresence();
   syncSidebarActiveState();
   disableSelectPlaceholders();

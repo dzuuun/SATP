@@ -1041,10 +1041,20 @@ footer > span {
     font-weight: 900;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1100px) {
     .filter-card {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .rating-access-card {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .rating-access-controls {
+        width: 100%;
+        flex-basis: auto;
     }
 
     .summary-card {
@@ -1054,8 +1064,17 @@ footer > span {
 }
 
 @media (max-width: 760px) {
+    body {
+        overflow-x: hidden;
+    }
+
+    #main {
+        min-width: 0;
+    }
+
     .site-header {
         min-height: 68px;
+        padding: 10px 18px;
     }
 
     .header-brand small,
@@ -1064,7 +1083,13 @@ footer > span {
     }
 
     .workspace {
-        padding: 28px 18px;
+        width: 100%;
+        min-width: 0;
+        padding: 24px 18px;
+    }
+
+    .page-heading h1 {
+        font-size: clamp(2.25rem, 9vw, 3.25rem);
     }
 
     .page-heading {
@@ -1093,6 +1118,28 @@ footer > span {
 
     .filter-fields {
         grid-template-columns: 1fr;
+        width: 100%;
+    }
+
+    .filter-fields .primary-button {
+        width: 100%;
+    }
+
+    .filter-card,
+    .records-card,
+    .rating-access-card {
+        min-width: 0;
+        padding: 18px;
+    }
+
+    .table-shell {
+        max-width: 100%;
+        min-width: 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dataTables_wrapper {
+        min-width: 0;
     }
 
     .records-heading {
@@ -1131,12 +1178,28 @@ footer > span {
 }
 
 @media (max-width: 480px) {
+    .site-header {
+        padding-inline: 14px;
+    }
+
+    .workspace {
+        padding: 20px 14px;
+    }
+
+    .header-brand {
+        min-width: 0;
+    }
+
+    .header-brand a {
+        min-width: 0;
+    }
+
     .rating-access-controls {
         grid-template-columns: 1fr;
     }
 
     .header-brand strong {
-        max-width: 180px;
+        max-width: min(180px, calc(100vw - 162px));
         display: block;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1149,6 +1212,33 @@ footer > span {
 
     .summary-card small {
         display: none;
+    }
+
+    .academic-group-prompt {
+        padding: 14px;
+    }
+
+    .academic-group-prompt-card {
+        max-height: calc(var(--satp-viewport-height, 100vh) - 28px);
+        padding: 22px;
+        overflow-y: auto;
+    }
+
+    .academic-group-choices {
+        grid-template-columns: 1fr;
+    }
+
+    .record-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+    }
+
+    .record-actions button {
+        width: 100%;
+    }
+
+    .dataTables_wrapper {
+        padding: 12px;
     }
 
     .subject-modal {
