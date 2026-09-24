@@ -112,13 +112,12 @@ ALLOW_DIRECT_HTTP=true
 COOKIE_SECURE=true
 
 GOOGLE_CLIENT_ID=1234567890-example.apps.googleusercontent.com
-GOOGLE_WORKSPACE_DOMAIN=ndmu.edu.ph
 ```
 
 Important:
 
 - Use the complete web Client ID in `GOOGLE_CLIENT_ID`.
-- Enter only the domain in `GOOGLE_WORKSPACE_DOMAIN`; do not include `@`, `https://`, or a path.
+- SATP only accepts verified `@ndmu.edu.ph` Google Workspace accounts; this domain is enforced by the server and is not configurable through `.env`.
 - Keep `.env` out of Git.
 - `ALLOW_DIRECT_HTTP=true` preserves approved in-house access to port 3000, while public users should use the HTTPS hostname.
 
@@ -166,7 +165,7 @@ Each institutional email must be unique. Use lowercase addresses and remove lead
 
 ### The Google button is missing
 
-- Confirm `GOOGLE_CLIENT_ID` and `GOOGLE_WORKSPACE_DOMAIN` are present in the production `.env`.
+- Confirm `GOOGLE_CLIENT_ID` is present in the production `.env`.
 - Reload PM2 with `--update-env`.
 - Open `/api/login/google/config` and confirm `enabled` is `true`.
 - Confirm the browser can load `https://accounts.google.com/gsi/client`.
@@ -180,7 +179,7 @@ Each institutional email must be unique. Use lowercase addresses and remove lead
 
 ### SATP says to use an authorized school account
 
-- Confirm the Google account belongs to the exact `GOOGLE_WORKSPACE_DOMAIN`.
+- Confirm the Google account uses an exact `@ndmu.edu.ph` email address.
 - Confirm the Workspace account reports the institutional hosted domain.
 - Confirm the account's email is verified.
 

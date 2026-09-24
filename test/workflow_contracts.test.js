@@ -523,7 +523,8 @@ test("Google Workspace SSO verifies domain and links existing SATP users", () =>
   assert.match(controller, /verifyIdToken/);
   assert.match(controller, /identity\?\.email_verified/);
   assert.match(controller, /identity\.hd/);
-  assert.match(controller, /GOOGLE_WORKSPACE_DOMAIN/);
+  assert.match(controller, /NDMU_EMAIL_DOMAIN/);
+  assert.match(controller, /endsWith\(`@\$\{NDMU_EMAIL_DOMAIN\}`\)/);
   assert.match(model, /LOWER\(users\.google_email\) = LOWER\(\?\)/);
   assert.match(router, /router\.post\("\/google", googleLogin\)/);
   assert.match(loginPage, /accounts\.google\.com\/gsi\/client/);

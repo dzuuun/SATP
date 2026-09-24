@@ -88,7 +88,11 @@ async function initializeGoogleLogin() {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     if (!window.google?.accounts?.id) return;
-    google.accounts.id.initialize({ client_id: response.data.client_id, callback: handleGoogleCredential });
+    google.accounts.id.initialize({
+      client_id: response.data.client_id,
+      callback: handleGoogleCredential,
+      hd: response.data.hosted_domain,
+    });
     const googleSection = document.getElementById("googleLoginSection");
     const googleButton = document.getElementById("googleSignInButton");
     const availableWidth = Math.floor(

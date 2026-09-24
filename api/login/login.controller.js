@@ -18,6 +18,7 @@ const {
 const failedLogins = new Map();
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
 const MAX_LOGIN_ATTEMPTS = 5;
+const NDMU_EMAIL_DOMAIN = "ndmu.edu.ph";
 
 function sendAuthenticatedUser(req, res, user, action) {
   const token = createSessionToken(user.user_id, user.password);
@@ -55,28 +56,34 @@ function recordFailedLogin(key) {
 module.exports = {
   googleConfig: (_req, res) => {
     const clientId = String(process.env.GOOGLE_CLIENT_ID || "").trim();
-    const domain = String(process.env.GOOGLE_WORKSPACE_DOMAIN || "").trim();
-    return res.json({ success: 1, data: { enabled: Boolean(clientId && domain), client_id: clientId } });
+    return res.json({
+      success: 1,
+      data: { enabled: Boolean(clientId), client_id: clientId, hosted_domain: NDMU_EMAIL_DOMAIN },
+    });
   },
 
   googleLogin: async (req, res) => {
     const clientId = String(process.env.GOOGLE_CLIENT_ID || "").trim();
-    const allowedDomain = String(process.env.GOOGLE_WORKSPACE_DOMAIN || "").trim().toLowerCase();
     const credential = String(req.body?.credential || "");
-    if (!clientId || !allowedDomain) return res.status(503).json({ success: 0, message: "Google sign-in is not configured." });
+    if (!clientId) return res.status(503).json({ success: 0, message: "Google sign-in is not configured." });
     if (!credential) return res.status(400).json({ success: 0, message: "Google sign-in credential is required." });
     try {
       const ticket = await new OAuth2Client(clientId).verifyIdToken({ idToken: credential, audience: clientId });
       const identity = ticket.getPayload();
-      if (!identity?.email_verified || String(identity.hd || "").toLowerCase() !== allowedDomain) {
-        return res.status(403).json({ success: 0, message: "Use your authorized school Google Workspace account." });
+      const email = String(identity?.email || "").trim().toLowerCase();
+      if (
+        !identity?.email_verified ||
+        !email.endsWith(`@${NDMU_EMAIL_DOMAIN}`) ||
+        String(identity.hd || "").trim().toLowerCase() !== NDMU_EMAIL_DOMAIN
+      ) {
+        return res.status(403).json({ success: 0, message: "Use an @ndmu.edu.ph Google account." });
       }
-      return getUserByGoogleEmail(identity.email, (error, user) => {
+      return getUserByGoogleEmail(email, (error, user) => {
         if (error) return res.status(500).json({ success: 0, message: "Unable to sign in with Google." });
         if (!user || Number(user.is_active) !== 1 || Number(user.permission_is_active) !== 1) {
           return res.status(403).json({ success: 0, message: "This school email is not linked to an active SATP account. Contact the administrator." });
         }
-        return sendAuthenticatedUser(req, res, user, `Logged in with Google: ${identity.email}`);
+        return sendAuthenticatedUser(req, res, user, `Logged in with Google: ${email}`);
       });
     } catch (error) {
       console.error("Google sign-in verification failed:", error.message);
