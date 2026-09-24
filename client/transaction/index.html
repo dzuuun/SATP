@@ -180,6 +180,7 @@
                     </div>
                 </div>
                 <div class="table-shell">
+                    <p id="transactionLoadStatus" class="transaction-load-status hidden" role="status"></p>
                     <table id="mainTable" class="display nowrap" aria-label="Student transaction records"></table>
                 </div>
             </section>
@@ -193,6 +194,25 @@
     </div>
 
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <div id="transactionGroupPrompt" class="academic-group-prompt hidden" role="dialog" aria-modal="true"
+        aria-labelledby="transactionGroupPromptTitle" aria-describedby="transactionGroupPromptDescription">
+        <div class="academic-group-prompt-card">
+            <p class="eyebrow">Transactions</p>
+            <h2 id="transactionGroupPromptTitle">Which transactions would you like to see first?</h2>
+            <p id="transactionGroupPromptDescription">Choosing a group immediately loads its transactions for the current active school year and semester.</p>
+            <div class="academic-group-choices">
+                <button type="button" data-academic-group="SHS">
+                    <strong>Senior High School</strong>
+                    <small class="academic-group-current"></small>
+                </button>
+                <button type="button" data-academic-group="COLLEGE">
+                    <strong>College</strong>
+                    <small class="academic-group-current"></small>
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div id="subjectModal" class="subject-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-panel">

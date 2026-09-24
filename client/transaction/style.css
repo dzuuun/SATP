@@ -540,12 +540,96 @@ button {
     font-size: .72rem;
 }
 
+.transaction-load-status {
+    margin: 0 0 16px;
+    padding: 12px 15px;
+    color: #52635a;
+    background: #f2f7f4;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: .8rem;
+}
+
+.transaction-load-status.error {
+    color: #9d342e;
+    background: #fff2f0;
+    border-color: #f1cbc7;
+}
+
 .filter-fields {
     flex: 1;
     display: grid;
     grid-template-columns: minmax(170px, 1fr) minmax(170px, 1fr) auto;
     align-items: end;
     gap: 14px;
+}
+
+.academic-group-prompt {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    padding: 20px;
+    display: grid;
+    place-items: center;
+    background: rgba(7, 25, 17, .72);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
+
+.academic-group-prompt-card {
+    width: min(460px, 100%);
+    padding: 30px;
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: 0 24px 70px rgba(7, 35, 24, .3);
+}
+
+.academic-group-prompt-card h2 {
+    margin: 8px 0 10px;
+    font: 500 1.7rem/1.2 Georgia, "Times New Roman", serif;
+}
+
+.academic-group-prompt-card > p:last-of-type {
+    margin: 0 0 22px;
+    color: var(--muted);
+    font-size: .85rem;
+    line-height: 1.5;
+}
+
+.academic-group-choices {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.academic-group-choices button {
+    min-height: 76px;
+    padding: 11px 12px;
+    display: grid;
+    align-content: center;
+    gap: 5px;
+    color: #fff;
+    background: var(--green-900);
+    border: 1px solid var(--green-900);
+    border-radius: 10px;
+    font-weight: 750;
+    text-align: left;
+}
+
+.academic-group-choices button small {
+    color: rgba(255, 255, 255, .78);
+    font-size: .68rem;
+    font-weight: 550;
+    line-height: 1.35;
+}
+
+.academic-group-choices button:hover,
+.academic-group-choices button:focus-visible {
+    background: var(--green-800);
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
 }
 
 .field {

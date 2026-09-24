@@ -560,10 +560,11 @@ test("Administrator academic scope selects the default maintenance term", () => 
   assert.match(studentCourse, /fetch\("\/api\/semester\/current\/admin"\)/);
   assert.match(scheduleAssignment, /fetch\("\/api\/semester\/current\/admin"\)/);
   assert.match(transactions, /fetch\("\/api\/semester\/current\/admin"\)/);
-  assert.match(transactions, /loadSemester\.value = String\(currentSemester\.id\)/);
+  assert.match(transactions, /group === "SHS" \? "is_current_shs" : "is_current_college"/);
+  assert.match(transactions, /semester\.value = semesterId \? String\(semesterId\) : ""/);
   assert.match(
     transactions,
-    /loadSemester\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\)/,
+    /semester\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\)/,
   );
   assert.match(adminPage, /name="admin_academic_scope"/);
   assert.match(userImport, /\["COLLEGE", "SHS", "ALL"\]/);
@@ -981,13 +982,13 @@ test("Transaction table and dashboard totals render in one loading cycle", () =>
 
   assert.match(
     transactions,
-    /const \[res, stats\] = await Promise\.all\(\[[\s\S]*?API\.loadDashboardStats\(\{ render: false \}\)/,
+    /const \[res, stats\] = await Promise\.all\(\[[\s\S]*?API\.loadDashboardStats\(\{ render: false, filters: selected \}\)/,
   );
   assert.match(
     transactions,
     /mainTable[\s\S]*?\.draw\(\);[\s\S]*?API\.renderDashboardStats\(stats\);/,
   );
-  assert.match(transactions, /async loadDashboardStats\(\{ render = true \} = \{\}\)/);
+  assert.match(transactions, /async loadDashboardStats\(\{ render = true, filters = state \} = \{\}\)/);
 });
 
 test("Activity Log search accepts student ID numbers", () => {

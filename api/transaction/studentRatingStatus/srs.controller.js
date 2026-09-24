@@ -127,8 +127,8 @@ module.exports = {
     const body = { ...req.params, requesting_user_id: req.user.id };
     getTransactions(body, (err, results) => {
       if (err) {
-        console.log(err);
-        return;
+        console.error("Unable to load transactions:", err);
+        return res.status(500).json({ success: 0, message: "Unable to load transactions." });
       }
       if (!results) {
         return res.json({
@@ -149,8 +149,8 @@ module.exports = {
     const body = { ...req.params, requesting_user_id: req.user.id };
     getTransactionsByStudent(body, (err, results) => {
       if (err) {
-        console.log(err);
-        return;
+        console.error("Unable to load student courses:", err);
+        return res.status(500).json({ success: 0, message: "Unable to load student courses." });
       }
       if (!results) {
         return res.json({
@@ -193,8 +193,8 @@ module.exports = {
     const body = { ...req.params, requesting_user_id: req.user.id };
     getSYSemData(body, (err, results) => {
       if (err) {
-        console.log(err);
-        return;
+        console.error("Unable to load transaction totals:", err);
+        return res.status(500).json({ success: 0, message: "Unable to load transaction totals." });
       }
       if (!results) {
         return res.json({
@@ -358,8 +358,8 @@ module.exports = {
     const body = { ...req.body, requesting_user_id: req.user.id };
     getNotRatedTransactions(body, (err, results) => {
       if (err) {
-        console.log(err);
-        return;
+        console.error("Unable to export unrated transactions:", err);
+        return res.status(500).json({ success: 0, message: "Unable to export unrated transactions." });
       }
       if (!results) {
         return res.json({
