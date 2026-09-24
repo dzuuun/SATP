@@ -58,6 +58,25 @@ satp.example.edu {
 }
 ```
 
+Morgan writes requests that reach SATP/Node to the PM2 output log; view them
+with `pm2 logs satp`. HTTPS does not stop this logging because Caddy terminates
+TLS before proxying to Node. For Caddy's own requests—including its port-80 to
+HTTPS redirects, which never reach Morgan—enable Caddy access logging:
+
+```caddyfile
+satp.example.edu {
+    log {
+        output file C:\Caddy\logs\satp-access.log
+    }
+    reverse_proxy 127.0.0.1:3000
+}
+```
+
+Create `C:\Caddy\logs` first and ensure the Caddy service account can write
+to it. Reload Caddy after changing the Caddyfile. SATP logs application-bound
+requests, while Caddy access logs cover the public edge; use both when tracing
+production traffic.
+
 Point the hostname's DNS record to the server and allow inbound TCP ports 80 and 443 in Windows Firewall. Add a separate inbound rule for TCP 3000 whose **Remote IP address** scope contains only the institution's trusted subnet (for example `192.168.1.0/24`). Never use `Any IP address` for this rule. Run Caddy as a Windows service so it starts after reboot. Caddy automatically sends the forwarded HTTPS protocol that SATP uses for redirects, secure cookies, and HSTS.
 
 Do not configure Caddy to proxy to `https://127.0.0.1:3000`; the private Caddy-to-Node connection is HTTP.
