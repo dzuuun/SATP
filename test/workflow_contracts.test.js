@@ -753,7 +753,7 @@ test("Authenticated non-Grad School pages share the same shell services", () => 
     if (relative.replace(/\\/g, "/") !== "client/rate/index.html") {
       assert.match(html, /id=["']sidebar-container["']/, `${relative} needs the shared sidebar host`);
     }
-    assert.match(html, /<script\s+src=["']\/shared-ui\.js["']\s*>\s*<\/script>/, `${relative} needs shared UI behavior`);
+    assert.match(html, /<script\s+src=["']\/shared-ui\.js(?:\?v=[^"']+)?["']\s*>\s*<\/script>/, `${relative} needs shared UI behavior`);
   });
 });
 
@@ -768,12 +768,13 @@ test("Teacher assessment has no sidebar or navigation toggle", () => {
 test("Mobile layouts use a toggleable sidebar drawer over full-width content", () => {
   const sidebar = read("client/sidebar.html");
   const sharedUi = read("client/shared-ui.js");
+  const pageShell = read("client/page-shell.css");
   const transactions = read("client/transaction/style.css");
-  assert.match(sharedUi, /matchMedia\("\(max-width: 1100px\)"\)/);
-  assert.match(sharedUi, /@media \(max-width: 1100px\)[\s\S]*?\.satp-sidebar\s*\{[\s\S]*?visibility: hidden !important;[\s\S]*?transform: translateX\(-100%\);/);
-  assert.match(sharedUi, /\.satp-sidebar\.is-sidebar-pinned\s*\{[\s\S]*?visibility: visible !important;[\s\S]*?transform: translateX\(0\);/);
+  assert.match(sharedUi, /matchMedia\("\(max-width: 900px\)"\)/);
+  assert.match(sidebar, /@media \(max-width: 900px\)[\s\S]*?\.satp-sidebar\s*\{[\s\S]*?visibility: hidden !important;[\s\S]*?transform: translateX\(-100%\);/);
+  assert.match(sidebar, /\.satp-sidebar\.is-sidebar-pinned\s*\{[\s\S]*?visibility: visible !important;[\s\S]*?transform: translateX\(0\);/);
   assert.match(sidebar, /class="satp-sidebar-backdrop" onclick="toggleNav\(\)"/);
-  assert.match(sharedUi, /body\.satp-sidebar-pinned #main\s*\{[\s\S]*?width: 100% !important;[\s\S]*?margin-left: 0 !important;/);
+  assert.match(pageShell, /@media \(max-width: 900px\)[\s\S]*?width: 100% !important;[\s\S]*?margin-left: 0 !important;/);
   assert.doesNotMatch(sidebar, /\.site-header \.menu-button\s*\{\s*display: none !important;/);
   assert.match(sharedUi, /const isPinned = sidebar\.classList\.toggle\("is-sidebar-pinned"\)/);
   assert.match(sharedUi, /mobileSidebarView\.addEventListener\?\.\("change", closeSidebarForMobile\)/);
@@ -1066,7 +1067,7 @@ test("Empty Select and Choose dropdown prompts cannot be selected", () => {
     const html = fs.readFileSync(file, "utf8");
     assert.match(
       html,
-      /<script\s+src="\/shared-ui\.js"\s*>\s*<\/script>/,
+      /<script\s+src="\/shared-ui\.js(?:\?v=[^"]+)?"\s*>\s*<\/script>/,
       path.relative(root, file),
     );
   });
@@ -1407,6 +1408,7 @@ test("Manual Add student course derives school and department from the student",
 test("Shared pages and report exports include Safari compatibility safeguards", () => {
   const sharedUi = read("client/shared-ui.js");
   const sidebar = read("client/sidebar.html");
+  const pageShell = read("client/page-shell.css");
   const rating = read("client/rate/script.js");
   const pdfExport = read("client/report/html2pdf-export.js");
   const bulkExport = read("client/report/rating/bulk-export.js");
@@ -1414,8 +1416,8 @@ test("Shared pages and report exports include Safari compatibility safeguards", 
   assert.match(sharedUi, /visualViewport/);
   assert.match(sharedUi, /--satp-viewport-height/);
   assert.match(sharedUi, /-webkit-overflow-scrolling: touch/);
-  assert.match(sidebar, /height: 100vh;[\s\S]*height: 100dvh;/);
-  assert.match(sidebar, /body\.satp-sidebar-present #main/);
+  assert.match(sidebar, /height: calc\(var\(--satp-viewport-height, 100dvh\) - var\(--satp-header-height, 80px\)\)/);
+  assert.match(pageShell, /body\.satp-sidebar-present #main/);
   assert.doesNotMatch(sidebar, /body:has\(/);
   assert.doesNotMatch(rating, /querySelector\([^\n]*:has\(/);
   assert.match(pdfExport, /16000000/);

@@ -3,15 +3,11 @@
     --side-green: #043b2a;
     --side-green-light: #075c3b;
     --side-gold: #f3c94d;
-    /* Keep navigation available as a compact icon rail.  The full panel is
-       deliberately layered over the page instead of pushing its content. */
-    width: 76px;
-    height: 100vh;
-    height: 100dvh;
-    height: var(--satp-viewport-height, 100dvh);
+    width: var(--satp-navigation-rail, 74px);
+    height: calc(var(--satp-viewport-height, 100dvh) - var(--satp-header-height, 80px));
     position: fixed;
-    inset: 0 auto 0 0;
-    top: 0 !important;
+    inset: var(--satp-header-height, 80px) auto 0 0;
+    top: var(--satp-header-height, 80px) !important;
     left: 0 !important;
     z-index: 1500;
     overflow: hidden;
@@ -33,7 +29,18 @@
       BlinkMacSystemFont,
       "Segoe UI",
       sans-serif;
-    transition: width 0.24s ease, box-shadow 0.24s ease;
+    transition: width 0.24s ease, box-shadow 0.24s ease, transform 0.24s ease;
+  }
+
+  .satp-sidebar::after {
+    content: "";
+    width: 1px;
+    position: absolute;
+    inset: 0 0 0 auto;
+    pointer-events: none;
+    background: rgba(255, 255, 255, 0.12);
+    opacity: 0;
+    transition: opacity 0.24s ease;
   }
 
   .satp-sidebar * {
@@ -44,26 +51,21 @@
     width: 100%;
     height: 100%;
     display: grid;
-    grid-template-rows: 78px minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 1fr) auto;
   }
 
   .satp-sidebar:hover,
   .satp-sidebar:focus-within,
   .satp-sidebar.is-sidebar-pinned {
-    width: 280px !important;
+    width: var(--satp-drawer-width, 280px) !important;
     box-shadow: 20px 0 50px rgba(3, 31, 22, 0.28);
   }
 
-  /* Collapsed rail */
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-header {
-    height: 78px;
-    min-height: 78px;
-    padding: 0;
-    justify-content: center;
-  }
+  .satp-sidebar:hover::after,
+  .satp-sidebar:focus-within::after,
+  .satp-sidebar.is-sidebar-pinned::after { opacity: 1; }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-brand span,
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-close,
+  /* Collapsed rail */
   .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-link > span,
   .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .menu-toggle > span,
   .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .chevron,
@@ -133,74 +135,6 @@
     display: none;
   }
 
-  .satp-sidebar .sidebar-header {
-    height: 78px;
-    min-height: 78px;
-    padding: 0 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .satp-sidebar .sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-  }
-
-  .satp-sidebar .sidebar-brand img {
-    width: 42px;
-    height: 42px;
-    padding: 3px;
-    object-fit: contain;
-    background: #fff;
-    border-radius: 50%;
-  }
-
-  .satp-sidebar .sidebar-brand span {
-    display: grid;
-    gap: 1px;
-  }
-
-  .satp-sidebar .sidebar-brand strong {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 1.08rem;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-  }
-
-  .satp-sidebar .sidebar-brand small {
-    color: rgba(255, 255, 255, 0.52);
-    font-size: 0.58rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .satp-sidebar .sidebar-close {
-    width: 34px;
-    height: 34px;
-    display: grid;
-    place-items: center;
-    flex: 0 0 auto;
-    color: rgba(255, 255, 255, 0.65);
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    border-radius: 9px;
-    cursor: pointer;
-    transition:
-      color 0.2s ease,
-      background-color 0.2s ease;
-  }
-
-  .satp-sidebar .sidebar-close:hover {
-    color: var(--side-gold);
-    background: rgba(255, 255, 255, 0.12);
-  }
-
-  .satp-sidebar .sidebar-close svg,
   .satp-sidebar .nav-icon,
   .satp-sidebar .chevron {
     fill: none;
@@ -210,11 +144,26 @@
   }
 
   .satp-sidebar .sidebar-nav {
-    padding: 10px 12px;
+    padding: 14px 12px;
     overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
   }
+
+  .satp-sidebar .sidebar-nav::-webkit-scrollbar { width: 7px; }
+  .satp-sidebar .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+  .satp-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+  }
+  .satp-sidebar .sidebar-nav:hover::-webkit-scrollbar-thumb,
+  .satp-sidebar .sidebar-nav:focus-within::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.48); }
+  .satp-sidebar .sidebar-nav:hover,
+  .satp-sidebar .sidebar-nav:focus-within { scrollbar-color: rgba(255, 255, 255, 0.48) transparent; }
 
   .satp-sidebar .nav-label {
     display: none;
@@ -336,6 +285,7 @@
     color: #fff;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 -10px 24px rgba(1, 30, 20, 0.1);
   }
 
   .satp-sidebar .profile-card {
@@ -446,22 +396,20 @@
       transition-duration: 0.01ms !important;
     }
   }
-  @media (max-width: 1100px) {
+  @media (max-width: 900px) {
     .satp-sidebar {
-      max-width: min(280px, 86vw);
+      width: min(300px, 86vw) !important;
+      max-width: min(300px, 86vw);
+      visibility: hidden !important;
+      pointer-events: none;
+      transform: translateX(-100%);
     }
-  }
-
-  /* Hover overlays the page; the hamburger pins the sidebar and moves it. */
-  body.satp-sidebar-present #main {
-    width: calc(100% - 76px) !important;
-    margin-left: 76px !important;
-    transition: width 0.24s ease, margin-left 0.24s ease;
-  }
-
-  body.satp-sidebar-pinned #main {
-    width: calc(100% - min(280px, 86vw)) !important;
-    margin-left: min(280px, 86vw) !important;
+    .satp-sidebar.is-sidebar-pinned {
+      width: min(300px, 86vw) !important;
+      visibility: visible !important;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
   }
 
   body.satp-sidebar-present #main .site-footer {
@@ -477,32 +425,6 @@
   aria-label="Primary navigation"
 >
   <div class="sidebar-inner">
-    <header class="sidebar-header">
-      <div class="sidebar-brand">
-        <img src="/images/NDMU-Logo.png" alt="" width="42" height="42" />
-        <span>
-          <strong>SATP</strong>
-          <small>Admin portal</small>
-        </span>
-      </div>
-      <button
-        type="button"
-        class="sidebar-close"
-        onclick="toggleNav()"
-        aria-label="Close navigation"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          width="18"
-          height="18"
-          stroke-width="2.2"
-          aria-hidden="true"
-        >
-          <path d="M6 6l12 12M18 6 6 18" />
-        </svg>
-      </button>
-    </header>
-
     <nav class="sidebar-nav">
       <p class="nav-label">Workspace</p>
       <ul class="nav-list">

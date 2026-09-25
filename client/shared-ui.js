@@ -5,7 +5,16 @@
   window.__satpSharedUi = true;
 
   let activeConfirmation = null;
-  const mobileSidebarView = window.matchMedia("(max-width: 1100px)");
+  const mobileSidebarView = window.matchMedia("(max-width: 900px)");
+
+  function installPageShell() {
+    if (document.getElementById("satp-page-shell")) return;
+    const stylesheet = document.createElement("link");
+    stylesheet.id = "satp-page-shell";
+    stylesheet.rel = "stylesheet";
+    stylesheet.href = "/page-shell.css?v=20260925";
+    document.head.appendChild(stylesheet);
+  }
 
   function installResponsiveSidebar() {
     const sidebar = document.getElementById("mySidenav");
@@ -23,28 +32,23 @@
           border-left-width: 1px !important;
           box-shadow: inset 4px 0 0 var(--side-gold, #f3c94d);
         }
-        @media (max-width: 1100px) {
-          .satp-sidebar {
-            width: min(280px, 86vw) !important;
-            max-width: min(280px, 86vw);
-            visibility: hidden !important;
-            pointer-events: none;
-            transform: translateX(-100%);
-            transition: transform .24s ease, visibility .24s ease;
-          }
-          .satp-sidebar.is-sidebar-pinned {
-            visibility: visible !important;
-            pointer-events: auto;
-            transform: translateX(0);
-          }
+        @media (max-width: 900px) {
           .satp-sidebar-backdrop {
-            display: none;
             position: fixed;
-            inset: 0;
+            inset: var(--satp-header-height, 72px) 0 0;
             z-index: 1490;
             background: rgba(3, 25, 17, .56);
+            visibility: hidden;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .24s ease, visibility 0s linear .24s;
           }
-          body.satp-sidebar-pinned .satp-sidebar-backdrop { display: block; }
+          body.satp-sidebar-pinned .satp-sidebar-backdrop {
+            visibility: visible;
+            opacity: 1;
+            pointer-events: auto;
+            transition-delay: 0s;
+          }
           body.satp-sidebar-pinned { overflow: hidden; }
           html body.satp-sidebar-present #main,
           html body.satp-sidebar-pinned #main {
@@ -138,6 +142,10 @@
         .join("")
         .toUpperCase();
       if (profile) profile.dataset.initials = initials || "U";
+      sidebar?.querySelectorAll(".nav-link, .menu-toggle").forEach((control) => {
+        const label = control.querySelector("span")?.textContent?.trim();
+        if (label && !control.title) control.title = label;
+      });
     }
   }
 
@@ -149,7 +157,7 @@
     sidebar.style.removeProperty("width");
     document.getElementById("main")?.style.removeProperty("margin-left");
     if (isPinned && mobileSidebarView.matches) {
-      sidebar.querySelector(".sidebar-close")?.focus();
+      sidebar.querySelector(".nav-link, .menu-toggle")?.focus();
     }
     if (!isPinned && sidebar.contains(document.activeElement)) {
       document.querySelector(".site-header .menu-button")?.focus();
@@ -179,6 +187,55 @@
     if (!document.getElementById("mySidenav")?.classList.contains("is-sidebar-pinned")) return;
     toggleCompactSidebar();
   });
+
+  // An expanded desktop rail is a preview over the page. Dismiss it before a
+  // page control can receive the first click; the same rule closes the mobile
+  // drawer and deliberately consumes that click.
+  let dismissPreviewOnMainClick = false;
+  let suppressMainClick = false;
+  let previewDismissTimer = null;
+
+  function closeSidebarFromMain() {
+    const sidebar = document.getElementById("mySidenav");
+    if (!sidebar) return false;
+    const isOpen =
+      sidebar.classList.contains("is-sidebar-pinned") ||
+      dismissPreviewOnMainClick;
+    if (!isOpen) return false;
+    sidebar.classList.remove("is-sidebar-pinned");
+    dismissPreviewOnMainClick = false;
+    clearTimeout(previewDismissTimer);
+    syncHeaderMenuState();
+    return true;
+  }
+
+  document.addEventListener("pointerenter", (event) => {
+    if (!event.target.matches?.(".satp-sidebar")) return;
+    dismissPreviewOnMainClick = false;
+    clearTimeout(previewDismissTimer);
+  }, true);
+  document.addEventListener("pointerleave", (event) => {
+    if (!event.target.matches?.(".satp-sidebar") || mobileSidebarView.matches) return;
+    dismissPreviewOnMainClick = true;
+    clearTimeout(previewDismissTimer);
+    previewDismissTimer = setTimeout(() => {
+      dismissPreviewOnMainClick = false;
+    }, 800);
+  }, true);
+  document.addEventListener("pointerdown", (event) => {
+    if (event.target.closest?.(".site-header .menu-button")) return;
+    if (!event.target.closest?.("#main")) return;
+    if (!closeSidebarFromMain()) return;
+    suppressMainClick = true;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
+  document.addEventListener("click", (event) => {
+    if (!suppressMainClick || !event.target.closest?.("#main")) return;
+    suppressMainClick = false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, true);
 
   // Page scripts toggle their own submenus. After that click finishes, close
   // every other module so only the selected dropdown remains expanded.
@@ -586,8 +643,11 @@
       style.id = "satp-menu-animation-style";
       style.textContent = `
         .site-header .menu-button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-        .site-header .menu-button .satp-menu-line { stroke-linecap: round; transition: stroke .2s ease; }
+        .site-header .menu-button .satp-menu-line { stroke-linecap: round; transform-origin: 12px 12px; transition: transform .2s ease, opacity .2s ease, stroke .2s ease; }
         .site-header .menu-button.is-open .satp-menu-line { stroke: var(--gold, #f3c94d); }
+        .site-header .menu-button.is-open .satp-menu-line-top { transform: translateY(5px) rotate(45deg); }
+        .site-header .menu-button.is-open .satp-menu-line-middle { opacity: 0; }
+        .site-header .menu-button.is-open .satp-menu-line-bottom { transform: translateY(-5px) rotate(-45deg); }
         @media (prefers-reduced-motion: reduce) { .site-header .menu-button .satp-menu-line { transition: none; } }
       `;
       document.head.appendChild(style);
@@ -598,7 +658,8 @@
     buttons.forEach((button) => {
       if (button.dataset.menuAnimationReady === "true") return;
       button.dataset.menuAnimationReady = "true";
-      button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="satp-menu-line satp-menu-line-top" d="M4 7h16" /><path class="satp-menu-line satp-menu-line-middle" d="M4 12h16" /><path class="satp-menu-line satp-menu-line-bottom" d="M4 17h16" /></svg>`;
+      button.setAttribute("aria-controls", "mySidenav");
+      button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path class="satp-menu-line satp-menu-line-top" d="M4 7h16" /><path class="satp-menu-line satp-menu-line-middle" d="M4 12h16" /><path class="satp-menu-line satp-menu-line-bottom" d="M4 17h16" /></svg><span class="satp-menu-label">Open navigation</span>`;
     });
   }
 
@@ -614,9 +675,12 @@
         "aria-label",
         isOpen ? "Close navigation" : "Open navigation",
       );
+      const label = button.querySelector(".satp-menu-label");
+      if (label) label.textContent = isOpen ? "Close navigation" : "Open navigation";
     });
   }
 
+  installPageShell();
   installBrowserCompatibility();
   mobileSidebarView.addEventListener?.("change", closeSidebarForMobile);
   syncSidebarPresence();
