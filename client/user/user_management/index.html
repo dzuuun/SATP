@@ -300,7 +300,7 @@
               <span>03</span>
               <div>
                 <h3>Login credentials</h3>
-                <p>Leave the password blank to keep the existing password.</p>
+                <p id="editPasswordStatus" class="credential-status">Checking password sign-in status…</p>
               </div>
             </div>
             <div class="field-row credentials-row">
@@ -316,9 +316,9 @@
             </div>
           </section>
           <section class="editor-section editor-switches">
-            <label class="status-control" for="editTemporaryPassword"><span><strong>Temporary
-                  password</strong><small>Require the user to replace it after login</small></span><input
-                id="editTemporaryPassword" type="checkbox" /><span class="switch"></span></label>
+            <div id="editTemporaryPasswordField" class="status-control status-display" role="status"><span><strong>Temporary
+                  password</strong><small id="editTemporaryPasswordHint"></small></span><input
+                id="editTemporaryPassword" type="checkbox" disabled /><span class="switch"></span></div>
             <label class="status-control" for="editIsUserActive"><span><strong>Active user</strong><small>Allow this
                   account to access SATP</small></span><input id="editIsUserActive" type="checkbox" /><span
                 class="switch"></span></label>
@@ -494,6 +494,7 @@
   <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="./script.js"></script>
+  <script src="../../maintenance/active-filter.js"></script>
   <script src="/shared-ui.js?v=20260925"></script>
   <script src="/auth-session.js"></script>
 </body>

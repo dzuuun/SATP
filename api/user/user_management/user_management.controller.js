@@ -77,9 +77,11 @@ module.exports = {
     body.password = String(body.password || "").trim();
     if (body.password) {
       body.password = hashSync(body.password, genSaltSync(10));
+      if (Number(body.is_student_rater) !== 1) body.is_temp_pass = 1;
     } else {
       body.password = null;
     }
+    if (Number(body.is_student_rater) === 1) body.is_temp_pass = 0;
 
     updateUser(body, (err, results) => {
       if (err) {

@@ -10,6 +10,7 @@ const state = {
   validRows: [],
   errorRows: [],
   permissions: [],
+  editTemporaryPassword: false,
 };
 
 if (!state.userId) {
@@ -22,6 +23,18 @@ if (!state.userId) {
 
 const yesNo = (value) =>
   `<span class="boolean-badge ${Number(value) ? "" : "off"}">${Number(value) ? "Yes" : "No"}</span>`;
+const loginMethod = (_, __, row) => {
+  const hasEmail = Boolean(String(row.google_email || "").trim());
+  const hasPassword = Number(row.has_password) === 1;
+  const label = hasEmail && hasPassword
+    ? "Both"
+    : hasEmail
+      ? "Email"
+      : hasPassword
+        ? "Password"
+        : "None";
+  return `<span class="login-method login-method-${label.toLowerCase()}">${label}</span>`;
+};
 const table = $("#table").DataTable({
   ajax: { url: "/api/user", dataSrc: "data", cache: false },
   columns: [
@@ -29,10 +42,10 @@ const table = $("#table").DataTable({
     { data: "Name", title: "Name" },
     { data: "permission", title: "Permission", width: "13%" },
     {
-      data: "is_temp_pass",
-      title: "Temporary Password",
+      data: null,
+      title: "Login Method",
       className: "dt-center",
-      render: yesNo,
+      render: loginMethod,
     },
     {
       data: "is_student_rater",
@@ -190,7 +203,7 @@ document
         ? null
         : document.getElementById("addAdminAcademicScope").value || "ALL",
       is_active: document.getElementById("isUserActive").checked ? 1 : 0,
-      is_temp_pass: 1,
+      is_temp_pass: student ? 0 : 1,
       user_id: state.userId,
     });
     if (!student) {
@@ -215,6 +228,12 @@ async function editUser(id) {
     setValue("editUsername", row.username);
     setValue("editGoogleEmail", row.google_email);
     setValue("editPassword", "");
+    const hasPassword = Number(row.has_password) === 1;
+    const passwordStatus = document.getElementById("editPasswordStatus");
+    passwordStatus.textContent = hasPassword
+      ? "Password sign-in is configured. Leave the field blank to keep it."
+      : "No password is set. This account can sign in with its institutional Google email only.";
+    passwordStatus.classList.toggle("password-missing", !hasPassword);
     const role = Number(row.is_student_rater) ? "student" : "admin";
     setValue("editRole", role);
     configurePermissionSelect("editPermissionSelect", role, row.permission_id);
@@ -222,8 +241,11 @@ async function editUser(id) {
     document
       .getElementById("editAdminScopeField")
       .classList.toggle("hidden", Number(row.is_student_rater) === 1);
-    document.getElementById("editTemporaryPassword").checked =
-      Number(row.is_temp_pass) === 1;
+    document
+      .getElementById("editTemporaryPasswordField")
+      .classList.toggle("hidden", Number(row.is_student_rater) === 1);
+    state.editTemporaryPassword = Number(row.is_temp_pass) === 1;
+    updateTemporaryPasswordStatus();
     document.getElementById("editIsUserActive").checked =
       Number(row.is_active) === 1;
     toggleModal("editModal", true);
@@ -238,6 +260,7 @@ document
     event.preventDefault();
     const payload = Object.fromEntries(new FormData(event.currentTarget));
     const student = payload.role === "student";
+    const hasNewPassword = Boolean(String(payload.password || "").trim());
     payload.permission_id = document.getElementById("editPermissionSelect").value;
     Object.assign(payload, {
       id: state.editId,
@@ -249,9 +272,11 @@ document
       admin_academic_scope: student
         ? null
         : document.getElementById("editAdminAcademicScope").value || "ALL",
-      is_temp_pass: document.getElementById("editTemporaryPassword").checked
-        ? 1
-        : 0,
+      is_temp_pass: student
+        ? 0
+        : hasNewPassword || state.editTemporaryPassword
+          ? 1
+          : 0,
       is_active: document.getElementById("editIsUserActive").checked ? 1 : 0,
     });
     if (!student) {
@@ -266,7 +291,30 @@ document.getElementById("editRole").addEventListener("change", (event) => {
   document
     .getElementById("editAdminScopeField")
     .classList.toggle("hidden", event.target.value === "student");
+  const isStudent = event.target.value === "student";
+  document
+    .getElementById("editTemporaryPasswordField")
+    .classList.toggle("hidden", isStudent);
+  updateTemporaryPasswordStatus();
 });
+
+document
+  .getElementById("editPassword")
+  .addEventListener("input", updateTemporaryPasswordStatus);
+
+function updateTemporaryPasswordStatus() {
+  const isStudent = document.getElementById("editRole").value === "student";
+  const hasNewPassword = Boolean(
+    String(document.getElementById("editPassword").value || "").trim(),
+  );
+  const isTemporary = !isStudent && (hasNewPassword || state.editTemporaryPassword);
+  document.getElementById("editTemporaryPassword").checked = isTemporary;
+  document.getElementById("editTemporaryPasswordHint").textContent = isTemporary
+    ? hasNewPassword
+      ? "Enabled automatically because a new password is being set."
+      : "Currently enabled."
+    : "Currently disabled. A new password will enable it automatically.";
+}
 
 async function save(url, method, payload, modalId) {
   if (!(await satpConfirm("Save these changes?"))) return;
@@ -571,7 +619,11 @@ document
               ? null
               : row.admin_academic_scope || "ALL",
             is_active: row.is_active ?? 1,
-            is_temp_pass: existing ? Number(row.is_temp_pass ?? 0) : 1,
+            is_temp_pass: student
+              ? 0
+              : existing
+                ? Number(row.is_temp_pass ?? 0)
+                : 1,
             course_id: student ? row.course_id : null,
             year_level: student ? row.year_level : null,
             user_id: state.userId,

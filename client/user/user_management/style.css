@@ -13,6 +13,32 @@
 .user-modal-card {
   width: min(900px, calc(100vw - 32px));
 }
+#editModal {
+  z-index: 2000;
+}
+#editModalCard {
+  height: min(860px, calc(var(--satp-viewport-height, 100vh) - 36px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+#editModalCard form {
+  min-height: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+#editModalCard .modal-body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+#editModalCard .modal-footer {
+  flex: 0 0 auto;
+}
+.status-display {
+  cursor: default;
+}
 .credentials-row {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
@@ -97,6 +123,10 @@
   color: var(--muted);
   font-size: 0.66rem;
 }
+.credential-status.password-missing {
+  color: #9a5a00;
+  font-weight: 700;
+}
 .editor-switches {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -125,6 +155,31 @@
   font-weight: 850;
 }
 .boolean-badge.off {
+  color: #8b9690;
+  background: #eef2f0;
+}
+.login-method {
+  min-width: 58px;
+  padding: 4px 7px;
+  display: inline-flex;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 0.62rem;
+  font-weight: 850;
+}
+.login-method-both {
+  color: #175f3d;
+  background: #dff4e7;
+}
+.login-method-email {
+  color: #176277;
+  background: #e1f3f8;
+}
+.login-method-password {
+  color: #684607;
+  background: #fff1cf;
+}
+.login-method-none {
   color: #8b9690;
   background: #eef2f0;
 }

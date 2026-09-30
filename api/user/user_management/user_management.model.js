@@ -71,7 +71,7 @@ module.exports = {
 
   getUsers: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, users.google_email, users.admin_academic_scope, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id",
+      "SELECT users.id, users.username, users.google_email, CASE WHEN users.password IS NULL OR users.password = '' THEN 0 ELSE 1 END AS has_password, users.admin_academic_scope, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, permissions.name AS permission, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id",
       (error, results) => {
         if (error) {
           callBack(error);
@@ -83,7 +83,7 @@ module.exports = {
 
   getUserById: (Id, callBack) => {
     pool.query(
-      "SELECT users.id, users.username, users.google_email, users.password, users.admin_academic_scope, user_info.givenname, user_info.middlename, user_info.surname,user_info.gender, user_info.course_id, user_info.year_level, users.permission_id, permissions.name AS permission, users.is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
+      "SELECT users.id, users.username, users.google_email, CASE WHEN users.password IS NULL OR users.password = '' THEN 0 ELSE 1 END AS has_password, users.admin_academic_scope, user_info.givenname, user_info.middlename, user_info.surname,user_info.gender, user_info.course_id, user_info.year_level, users.permission_id, permissions.name AS permission, CASE WHEN users.is_student_rater = 1 THEN 0 ELSE users.is_temp_pass END AS is_temp_pass, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id WHERE users.id = ?",
       [Id],
       (error, results) => {
         if (error) {
@@ -115,7 +115,11 @@ module.exports = {
           data.username,
           data.google_email || null,
           data.permission_id,
-          data.is_temp_pass,
+          Number(data.is_student_rater) === 1
+            ? 0
+            : Number(data.is_temp_pass) === 1
+              ? 1
+              : 0,
           data.is_student_rater,
           data.is_admin_rater,
           adminScope(data),
@@ -187,7 +191,11 @@ module.exports = {
               data.google_email || null,
               data.password,
               data.permission_id,
-              data.is_temp_pass,
+              Number(data.is_student_rater) === 1
+                ? 0
+                : Number(data.is_temp_pass) === 1
+                  ? 1
+                  : 0,
               data.is_student_rater,
               data.is_admin_rater,
               adminScope(data),
