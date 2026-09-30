@@ -224,10 +224,10 @@
   color: var(--ink);
   appearance: none;
   background:
-    linear-gradient(45deg, transparent 50%, #718078 50%)
-      calc(100% - 17px) 22px / 5px 5px no-repeat,
-    linear-gradient(135deg, #718078 50%, transparent 50%)
-      calc(100% - 12px) 22px / 5px 5px no-repeat,
+    linear-gradient(45deg, transparent 50%, #718078 50%) calc(100% - 17px)
+      22px / 5px 5px no-repeat,
+    linear-gradient(135deg, #718078 50%, transparent 50%) calc(100% - 12px)
+      22px / 5px 5px no-repeat,
     #fafcfb;
   border: 1px solid var(--line);
   border-radius: 10px;

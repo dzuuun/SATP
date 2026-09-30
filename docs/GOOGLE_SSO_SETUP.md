@@ -138,11 +138,11 @@ Use **User Management** or **Students Maintenance** to enter the institutional e
 
 Account rules:
 
-| Account configuration | Available login method |
-| --- | --- |
-| Institutional email and no password | Google only |
-| No institutional email and bcrypt password | Username and password only |
-| Institutional email and bcrypt password | Google or username and password |
+| Account configuration                      | Available login method          |
+| ------------------------------------------ | ------------------------------- |
+| Institutional email and no password        | Google only                     |
+| No institutional email and bcrypt password | Username and password only      |
+| Institutional email and bcrypt password    | Google or username and password |
 
 For existing accounts, a normal user or student import never changes the stored password. Use the dedicated **Update Password** import when a local password must be changed.
 

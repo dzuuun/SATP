@@ -11,23 +11,28 @@ module.exports = {
   },
 
   getActivePermissions: (callBack) => {
-    pool.query("SELECT * FROM permissions WHERE is_active = 1 ORDER BY permissions.name", (error, results) => {
-      if (error) {
-        callBack(error);
-      }
-      return callBack(null, results);
-    });
+    pool.query(
+      "SELECT * FROM permissions WHERE is_active = 1 ORDER BY permissions.name",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      },
+    );
   },
 
   getRaterId: (callBack) => {
-    pool.query('SELECT id FROM permissions WHERE name="Rater"', (error, results) => {
-    if (error) {
-      callBack(error);
-    }
-    return callBack(null, results[0]);
-  });
-},
-
+    pool.query(
+      'SELECT id FROM permissions WHERE name="Rater"',
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results[0]);
+      },
+    );
+  },
 
   getPermissionById: (Id, callBack) => {
     pool.query(
@@ -38,7 +43,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -66,18 +71,18 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
               if (error) {
                 callBack(error);
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(results);
         }
-      }
+      },
     );
   },
 
@@ -102,14 +107,14 @@ module.exports = {
               if (error) {
                 console.log(error);
               }
-            }
+            },
           );
         }
         if (error) {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -130,19 +135,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
 
@@ -154,7 +159,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 };

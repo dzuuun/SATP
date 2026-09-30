@@ -195,12 +195,9 @@ async function downloadPdf() {
     documentPdf.setTextColor(20, 40, 30);
     documentPdf.setFont("helvetica", "bold");
     documentPdf.setFontSize(13);
-    documentPdf.text(
-      "NOTRE DAME OF MARBEL UNIVERSITY",
-      pageWidth / 2,
-      14,
-      { align: "center" },
-    );
+    documentPdf.text("NOTRE DAME OF MARBEL UNIVERSITY", pageWidth / 2, 14, {
+      align: "center",
+    });
     documentPdf.setFont("helvetica", "normal");
     documentPdf.setFontSize(8);
     documentPdf.text(

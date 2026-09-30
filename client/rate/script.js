@@ -21,11 +21,13 @@ async function initializeAssessment() {
     message: "Loading the assessment questions...",
   });
   try {
-    const [information, itemResponse, ratingAccessResponse] = await Promise.all([
-      requestJson(`/api/transaction/${encodeURIComponent(state.recordId)}`),
-      requestJson("/api/item/active/rate"),
-      requestJson("/api/transaction/rating-access/status"),
-    ]);
+    const [information, itemResponse, ratingAccessResponse] = await Promise.all(
+      [
+        requestJson(`/api/transaction/${encodeURIComponent(state.recordId)}`),
+        requestJson("/api/item/active/rate"),
+        requestJson("/api/transaction/rating-access/status"),
+      ],
+    );
     if (ratingAccessResponse.data?.enabled === false) {
       throw new Error("Student rating is currently closed.");
     }
@@ -189,7 +191,9 @@ async function requestJson(url, options = {}) {
   });
   const result = await response.json();
   if (!response.ok)
-    throw new Error(result.message || `Request failed with status ${response.status}.`);
+    throw new Error(
+      result.message || `Request failed with status ${response.status}.`,
+    );
   return result;
 }
 function escapeHtml(value) {

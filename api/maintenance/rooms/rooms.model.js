@@ -37,7 +37,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
   addRoom: (data, callBack) => {
@@ -48,7 +48,7 @@ module.exports = {
         if (error) {
           return callBack(error); // Return early on error
         }
-  
+
         if (results.length === 0) {
           pool.query(
             "INSERT INTO rooms (name, is_active) VALUES (?, ?)",
@@ -57,7 +57,7 @@ module.exports = {
               if (error) {
                 return callBack(error); // Return early on error
               }
-  
+
               // Log activity after successful room insert
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
@@ -66,19 +66,19 @@ module.exports = {
                   if (logError) {
                     console.log("Activity Log Error:", logError); // Log the error but don't interrupt flow
                   }
-                }
+                },
               );
-  
+
               return callBack(null, results); // Success callback
-            }
+            },
           );
         } else {
           return callBack(null, results); // Room already exists, send results back
         }
-      }
+      },
     );
   },
-  
+
   updateRoom: (data, callBack) => {
     pool.query(
       "UPDATE rooms SET name = ?, is_active = ? WHERE id = ?",
@@ -87,7 +87,7 @@ module.exports = {
         if (error) {
           return callBack(error); // Return early on error
         }
-  
+
         if (results.changedRows === 1) {
           // Log activity after successful room update
           pool.query(
@@ -97,15 +97,14 @@ module.exports = {
               if (logError) {
                 console.log("Activity Log Error:", logError); // Log the error but don't interrupt flow
               }
-            }
+            },
           );
         }
-  
+
         return callBack(null, results); // Success callback
-      }
+      },
     );
   },
-  
 
   // deleteRoom: (data, callBack) => {
   //   pool.query(

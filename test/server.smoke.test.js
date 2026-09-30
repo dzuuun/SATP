@@ -24,8 +24,10 @@ function relativeName(file) {
   return path.relative(projectRoot, file).replaceAll("\\", "/");
 }
 
-const serverFiles = [path.join(projectRoot, "index.js"), ...roots.flatMap(walk)]
-  .filter((file) => !relativeName(file).toLowerCase().includes("gradschool"));
+const serverFiles = [
+  path.join(projectRoot, "index.js"),
+  ...roots.flatMap(walk),
+].filter((file) => !relativeName(file).toLowerCase().includes("gradschool"));
 
 for (const file of serverFiles) {
   test(`server script syntax: ${relativeName(file)}`, () => {

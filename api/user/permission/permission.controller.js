@@ -51,7 +51,6 @@ module.exports = {
     });
   },
 
-
   getActivePermissions: (req, res) => {
     getActivePermissions((err, results) => {
       if (err) {

@@ -49,7 +49,8 @@ function logReportGeneration(req, res) {
         console.error("Unable to resolve report log context:", contextError);
         return res.status(500).json({
           success: 0,
-          message: "The report was generated, but its activity could not be logged.",
+          message:
+            "The report was generated, but its activity could not be logged.",
         });
       }
       if (

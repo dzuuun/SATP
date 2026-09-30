@@ -1,4 +1,9 @@
-const { getOverallRanking, getOverallRankingSHS, getCollegiateRanking, getDepartmentalRanking } = require("./ranking.model");
+const {
+  getOverallRanking,
+  getOverallRankingSHS,
+  getCollegiateRanking,
+  getDepartmentalRanking,
+} = require("./ranking.model");
 
 module.exports = {
   getOverallRanking: (req, res) => {

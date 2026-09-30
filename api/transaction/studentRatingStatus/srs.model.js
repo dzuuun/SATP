@@ -6,18 +6,13 @@ module.exports = {
       "SELECT setting_key, setting_value, updated_at FROM system_settings WHERE setting_key IN ('student_rating_enabled', 'student_rating_shs_enabled', 'student_rating_non_shs_enabled')",
       (error, results) => {
         if (error) return callBack(error);
-        const settings = new Map(
-          results.map((row) => [row.setting_key, row]),
-        );
+        const settings = new Map(results.map((row) => [row.setting_key, row]));
         const legacy = settings.get("student_rating_enabled");
         const shs = settings.get("student_rating_shs_enabled") || legacy;
-        const nonShs =
-          settings.get("student_rating_non_shs_enabled") || legacy;
+        const nonShs = settings.get("student_rating_non_shs_enabled") || legacy;
         return callBack(null, {
           shs_enabled: shs ? Number(shs.setting_value) === 1 : true,
-          non_shs_enabled: nonShs
-            ? Number(nonShs.setting_value) === 1
-            : true,
+          non_shs_enabled: nonShs ? Number(nonShs.setting_value) === 1 : true,
           updated_at:
             shs?.updated_at || nonShs?.updated_at || legacy?.updated_at || null,
         });
@@ -139,7 +134,12 @@ module.exports = {
   getTransactionsByStudent: (data, callBack) => {
     pool.query(
       "SELECT academic_records_consolidated.id, academic_records_consolidated.status, academic_records_consolidated.student_id, school_years.name AS school_year, semesters.name AS semester, academic_records_consolidated.status, users.username, CONCAT( user_info.givenname, ' ', user_info.surname ) AS student_name, subjects.code AS subject_code, subjects.name AS subject_name, CONCAT(IFNULL(CONCAT(teachers.prefix, ' '), ''), teachers.givenname, ' ', teachers.surname, IF(teachers.suffix IS NOT NULL AND TRIM(teachers.suffix) <> '', CONCAT(', ', teachers.suffix), '')) AS teachers_name FROM academic_records_consolidated INNER JOIN users ON academic_records_consolidated.student_id = users.id INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN courses ON user_info.course_id = courses.id INNER JOIN departments ON courses.department_id = departments.id INNER JOIN subjects ON academic_records_consolidated.subject_id = subjects.id INNER JOIN teachers ON academic_records_consolidated.teacher_id = teachers.id INNER JOIN school_years ON academic_records_consolidated.school_year_id = school_years.id INNER JOIN semesters ON academic_records_consolidated.semester_id = semesters.id INNER JOIN users AS requesting_admin ON requesting_admin.id = ? WHERE academic_records_consolidated.school_year_id = ? AND academic_records_consolidated.semester_id = ? AND users.username = ? AND COALESCE(academic_records_consolidated.is_excluded, 0) = 0 AND (COALESCE(requesting_admin.admin_academic_scope, 'ALL') = 'ALL' OR (requesting_admin.admin_academic_scope = 'SHS' AND UPPER(TRIM(departments.code)) = 'SHS') OR (requesting_admin.admin_academic_scope = 'COLLEGE' AND UPPER(TRIM(departments.code)) <> 'SHS'))",
-      [data.requesting_user_id, data.school_year_id, data.semester_id, data.student_id],
+      [
+        data.requesting_user_id,
+        data.school_year_id,
+        data.semester_id,
+        data.student_id,
+      ],
       (error, results) => {
         if (error) {
           callBack(error);
@@ -291,10 +291,7 @@ module.exports = {
             (error, result) => {
               pool.query(
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-                [
-                  data.user_id,
-                  `Rated subject: ${results[0].subject_code}`,
-                ],
+                [data.user_id, `Rated subject: ${results[0].subject_code}`],
                 (error, results) => {
                   if (error) {
                     console.log(error);
@@ -407,50 +404,51 @@ module.exports = {
                       );
                     }
 
-                    const saveRatings = (transactionId) => connection.query(
-                      "DELETE FROM trans_item WHERE transaction_id = ?",
-                      [transactionId],
-                      (deleteError) => {
-                        if (deleteError) return rollback(deleteError);
-                        const values = ratings.map((rating) => [
-                          transactionId,
-                          Number(rating.item_id),
-                          Number(rating.rate),
-                        ]);
-                        connection.query(
-                          "INSERT INTO trans_item (transaction_id, item_id, rate) VALUES ?",
-                          [values],
-                          (insertError) => {
-                            if (insertError) return rollback(insertError);
-                            connection.query(
-                              "UPDATE academic_records_consolidated SET comment = ?, status = 1 WHERE id = ?",
-                              [data.comment || null, data.academic_record_id],
-                              (updateError) => {
-                                if (updateError) return rollback(updateError);
-                                connection.query(
-                                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
-                                  [
-                                    data.user_id,
-                                    `Rated subject: ${records[0].subject_code}`,
-                                  ],
-                                  (logError) => {
-                                    if (logError) return rollback(logError);
-                                    connection.commit((commitError) => {
-                                      if (commitError)
-                                        return rollback(commitError);
-                                      connection.release();
-                                      callBack(null, {
-                                        affectedRows: ratings.length,
+                    const saveRatings = (transactionId) =>
+                      connection.query(
+                        "DELETE FROM trans_item WHERE transaction_id = ?",
+                        [transactionId],
+                        (deleteError) => {
+                          if (deleteError) return rollback(deleteError);
+                          const values = ratings.map((rating) => [
+                            transactionId,
+                            Number(rating.item_id),
+                            Number(rating.rate),
+                          ]);
+                          connection.query(
+                            "INSERT INTO trans_item (transaction_id, item_id, rate) VALUES ?",
+                            [values],
+                            (insertError) => {
+                              if (insertError) return rollback(insertError);
+                              connection.query(
+                                "UPDATE academic_records_consolidated SET comment = ?, status = 1 WHERE id = ?",
+                                [data.comment || null, data.academic_record_id],
+                                (updateError) => {
+                                  if (updateError) return rollback(updateError);
+                                  connection.query(
+                                    "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
+                                    [
+                                      data.user_id,
+                                      `Rated subject: ${records[0].subject_code}`,
+                                    ],
+                                    (logError) => {
+                                      if (logError) return rollback(logError);
+                                      connection.commit((commitError) => {
+                                        if (commitError)
+                                          return rollback(commitError);
+                                        connection.release();
+                                        callBack(null, {
+                                          affectedRows: ratings.length,
+                                        });
                                       });
-                                    });
-                                  },
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    );
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      );
 
                     return saveRatings(records[0].id);
                   },

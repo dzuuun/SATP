@@ -4,7 +4,9 @@ const state = {
   transactionAccess: localStorage.getItem("transactionAccess"),
   username: localStorage.getItem("username"),
   fullname: localStorage.getItem("fullname"),
-  adminAcademicScope: (localStorage.getItem("adminAcademicScope") || "ALL").toUpperCase(),
+  adminAcademicScope: (
+    localStorage.getItem("adminAcademicScope") || "ALL"
+  ).toUpperCase(),
   availableSemesters: [],
   currentSchoolYearId: "",
   currentSchoolYearName: "",
@@ -68,7 +70,9 @@ const API = {
       });
       if (!isSchoolYear) state.availableSemesters = data;
       const currentOption = isSchoolYear
-        ? data.find((row) => Number(row.id) === Number(currentResult?.data?.id)) || null
+        ? data.find(
+            (row) => Number(row.id) === Number(currentResult?.data?.id),
+          ) || null
         : null;
       if (currentOption) select.value = String(currentOption.id);
       return currentOption || null;
@@ -99,7 +103,8 @@ const API = {
         API.loadDashboardStats({ render: false, filters: selected }),
       ]);
       const response = await res.json();
-      if (!res.ok || !response.success) throw new Error(response.message || "Unable to load transactions.");
+      if (!res.ok || !response.success)
+        throw new Error(response.message || "Unable to load transactions.");
       if (sequence !== state.loadSequence) return;
       const rows = response.data || [];
       state.school_year_id = selected.school_year_id;
@@ -109,21 +114,29 @@ const API = {
 
       // Update DataTable
       if (mainTable) {
-        mainTable
-          .clear()
-          .rows.add(rows)
-          .draw();
+        mainTable.clear().rows.add(rows).draw();
       }
 
       API.renderDashboardStats(stats);
       if (!rows.length) {
-        const year = document.querySelector(`#loadSchoolYear option[value="${selected.school_year_id}"]`)?.textContent || "selected school year";
-        const semester = document.querySelector(`#loadSemester option[value="${selected.semester_id}"]`)?.textContent || "selected semester";
-        showTransactionStatus(`No transactions found for ${year}, ${semester}.`);
+        const year =
+          document.querySelector(
+            `#loadSchoolYear option[value="${selected.school_year_id}"]`,
+          )?.textContent || "selected school year";
+        const semester =
+          document.querySelector(
+            `#loadSemester option[value="${selected.semester_id}"]`,
+          )?.textContent || "selected semester";
+        showTransactionStatus(
+          `No transactions found for ${year}, ${semester}.`,
+        );
       }
     } catch (err) {
       if (sequence === state.loadSequence) {
-        showTransactionStatus(err.message || "Unable to load transactions.", true);
+        showTransactionStatus(
+          err.message || "Unable to load transactions.",
+          true,
+        );
         showToast(err.message || "Unable to load transactions.", true);
       }
     } finally {
@@ -208,7 +221,9 @@ async function loadRatingAccess() {
     return true;
   } catch (error) {
     document.getElementById("ratingAccessCard")?.classList.add("hidden");
-    console.warn(error.message || "Unable to load student rating access controls.");
+    console.warn(
+      error.message || "Unable to load student rating access controls.",
+    );
     return false;
   }
 }
@@ -226,7 +241,9 @@ async function updateRatingAccess(group, enabled) {
     });
     const result = await readApiJson(response);
     if (!response.ok || !result.success) {
-      throw new Error(result.message || "Unable to update student rating access.");
+      throw new Error(
+        result.message || "Unable to update student rating access.",
+      );
     }
     renderRatingAccess(group, result.data?.enabled === true);
     showToast(result.message);
@@ -279,9 +296,7 @@ $(document).ready(function () {
           const pending = parseInt(data);
           const isComplete = pending === 0 && total > 0;
           const color = isComplete ? "text-green-600" : "text-red-500";
-          const icon = isComplete
-            ? "bi-check-circle-fill"
-            : "bi-x-circle-fill";
+          const icon = isComplete ? "bi-check-circle-fill" : "bi-x-circle-fill";
 
           return `
             <div class="flex flex-col items-center justify-center gap-1">
@@ -386,10 +401,7 @@ document.addEventListener("keydown", (event) => {
 function toggleNav() {
   const isOpen = $("#mySidenav").width() > 0;
   $("#mySidenav").width(isOpen ? 0 : 280);
-  $("#main").css(
-    "margin-left",
-    window.innerWidth <= 760 || isOpen ? 0 : 280,
-  );
+  $("#main").css("margin-left", window.innerWidth <= 760 || isOpen ? 0 : 280);
 }
 
 const showSpinner = () => $("#overlay").css("display", "flex");
@@ -399,8 +411,13 @@ function promptForAcademicGroup() {
   const prompt = document.getElementById("transactionGroupPrompt");
   const buttons = [...prompt.querySelectorAll("[data-academic-group]")];
   buttons.forEach((button) => {
-    const flag = button.dataset.academicGroup === "SHS" ? "is_current_shs" : "is_current_college";
-    const semester = state.availableSemesters.find((row) => Number(row[flag]) === 1);
+    const flag =
+      button.dataset.academicGroup === "SHS"
+        ? "is_current_shs"
+        : "is_current_college";
+    const semester = state.availableSemesters.find(
+      (row) => Number(row[flag]) === 1,
+    );
     const year = state.currentSchoolYearName || "No active school year";
     button.querySelector(".academic-group-current").textContent = semester
       ? `${year} · ${semester.name}`
@@ -423,13 +440,19 @@ function promptForAcademicGroup() {
         buttons[0].focus();
       }
     });
-    buttons.forEach((button) => button.addEventListener("click", () => {
-      const group = button.dataset.academicGroup;
-      prompt.classList.add("hidden");
-      document.body.style.overflow = previousOverflow;
-      (document.getElementById("loadSchoolYear") || previousFocus)?.focus();
-      resolve(group);
-    }, { once: true }));
+    buttons.forEach((button) =>
+      button.addEventListener(
+        "click",
+        () => {
+          const group = button.dataset.academicGroup;
+          prompt.classList.add("hidden");
+          document.body.style.overflow = previousOverflow;
+          (document.getElementById("loadSchoolYear") || previousFocus)?.focus();
+          resolve(group);
+        },
+        { once: true },
+      ),
+    );
   });
 }
 
@@ -440,12 +463,20 @@ function selectAcademicGroup(group, currentSemester = null) {
     schoolYear.dispatchEvent(new Event("change", { bubbles: true }));
   }
   const currentFlag = group === "SHS" ? "is_current_shs" : "is_current_college";
-  const current = state.availableSemesters.find((row) => Number(row[currentFlag]) === 1);
+  const current = state.availableSemesters.find(
+    (row) => Number(row[currentFlag]) === 1,
+  );
   const semester = document.getElementById("loadSemester");
-  const semesterId = current?.id || (currentSemester?.academic_scope === group ? currentSemester.id : "");
+  const semesterId =
+    current?.id ||
+    (currentSemester?.academic_scope === group ? currentSemester.id : "");
   semester.value = semesterId ? String(semesterId) : "";
   semester.dispatchEvent(new Event("change", { bubbles: true }));
-  if (!semester.value) showToast(`No active ${group === "SHS" ? "SHS" : "College"} semester is configured.`, true);
+  if (!semester.value)
+    showToast(
+      `No active ${group === "SHS" ? "SHS" : "College"} semester is configured.`,
+      true,
+    );
 }
 
 function setupSidebarInteractions() {
@@ -520,17 +551,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("year").textContent = new Date().getFullYear();
   showSpinner();
   try {
-    const [, currentSchoolYear, , canManageRatingAccess, currentSemester] = await Promise.all([
-      loadSidebar(),
-      API.fetchOptions("schoolyear", "loadSchoolYear"),
-      API.fetchOptions("semester", "loadSemester"),
-      loadRatingAccess(),
-      API.fetchCurrentAdminSemester(),
-    ]);
+    const [, currentSchoolYear, , canManageRatingAccess, currentSemester] =
+      await Promise.all([
+        loadSidebar(),
+        API.fetchOptions("schoolyear", "loadSchoolYear"),
+        API.fetchOptions("semester", "loadSemester"),
+        loadRatingAccess(),
+        API.fetchCurrentAdminSemester(),
+      ]);
 
     const loadSchoolYear = document.getElementById("loadSchoolYear");
     const loadSemester = document.getElementById("loadSemester");
-    state.currentSchoolYearId = currentSchoolYear?.id ? String(currentSchoolYear.id) : "";
+    state.currentSchoolYearId = currentSchoolYear?.id
+      ? String(currentSchoolYear.id)
+      : "";
     state.currentSchoolYearName = currentSchoolYear?.name || "";
 
     if (canManageRatingAccess) {
@@ -547,7 +581,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const hasBothGroups = state.adminAcademicScope === "ALL";
     const initialGroup = hasBothGroups
       ? await promptForAcademicGroup()
-      : state.adminAcademicScope === "SHS" ? "SHS" : "COLLEGE";
+      : state.adminAcademicScope === "SHS"
+        ? "SHS"
+        : "COLLEGE";
     selectAcademicGroup(initialGroup, currentSemester);
 
     const invalidatePendingLoad = () => {

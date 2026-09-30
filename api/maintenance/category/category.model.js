@@ -18,7 +18,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -31,7 +31,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -53,18 +53,18 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
               if (error) {
                 callBack(error);
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(results);
         }
-      }
+      },
     );
   },
 
@@ -81,14 +81,14 @@ module.exports = {
               if (error) {
                 console.log(error);
               }
-            }
+            },
           );
         }
         if (error) {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -109,19 +109,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
 };

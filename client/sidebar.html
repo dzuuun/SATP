@@ -4,7 +4,9 @@
     --side-green-light: #075c3b;
     --side-gold: #f3c94d;
     width: var(--satp-navigation-rail, 74px);
-    height: calc(var(--satp-viewport-height, 100dvh) - var(--satp-header-height, 80px));
+    height: calc(
+      var(--satp-viewport-height, 100dvh) - var(--satp-header-height, 80px)
+    );
     position: fixed;
     inset: var(--satp-header-height, 80px) auto 0 0;
     top: var(--satp-header-height, 80px) !important;
@@ -29,7 +31,10 @@
       BlinkMacSystemFont,
       "Segoe UI",
       sans-serif;
-    transition: width 0.24s ease, box-shadow 0.24s ease, transform 0.24s ease;
+    transition:
+      width 0.24s ease,
+      box-shadow 0.24s ease,
+      transform 0.24s ease;
   }
 
   .satp-sidebar::after {
@@ -63,27 +68,38 @@
 
   .satp-sidebar:hover::after,
   .satp-sidebar:focus-within::after,
-  .satp-sidebar.is-sidebar-pinned::after { opacity: 1; }
+  .satp-sidebar.is-sidebar-pinned::after {
+    opacity: 1;
+  }
 
   /* Collapsed rail */
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-link > span,
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .menu-toggle > span,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .nav-link
+    > span,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .menu-toggle
+    > span,
   .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .chevron,
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .submenu {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .submenu {
     display: none !important;
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-nav {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .sidebar-nav {
     padding: 10px 12px;
     overflow: hidden;
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-list {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .nav-list {
     gap: 7px;
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-link,
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .menu-toggle {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .nav-link,
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .menu-toggle {
     width: 52px;
     min-height: 48px;
     padding: 0;
@@ -91,17 +107,20 @@
     border-radius: 9px;
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-active {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .nav-active {
     border-left-width: 1px;
     box-shadow: inset 4px 0 0 var(--side-gold);
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .nav-icon {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .nav-icon {
     width: 20px;
     height: 20px;
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .sidebar-profile {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .sidebar-profile {
     min-height: 56px;
     padding: 0 0 16px;
     display: flex;
@@ -111,7 +130,8 @@
     border: 0;
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .profile-card {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .profile-card {
     width: 40px;
     height: 40px;
     padding: 0;
@@ -123,7 +143,8 @@
     border-radius: 50%;
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .profile-card::before {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .profile-card::before {
     content: attr(data-initials);
     color: #fff;
     font-size: 0.64rem;
@@ -131,7 +152,9 @@
     letter-spacing: 0.04em;
   }
 
-  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned) .profile-card > * {
+  .satp-sidebar:not(:hover):not(:focus-within):not(.is-sidebar-pinned)
+    .profile-card
+    > * {
     display: none;
   }
 
@@ -152,8 +175,12 @@
     scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
   }
 
-  .satp-sidebar .sidebar-nav::-webkit-scrollbar { width: 7px; }
-  .satp-sidebar .sidebar-nav::-webkit-scrollbar-track { background: transparent; }
+  .satp-sidebar .sidebar-nav::-webkit-scrollbar {
+    width: 7px;
+  }
+  .satp-sidebar .sidebar-nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
   .satp-sidebar .sidebar-nav::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.18);
     border: 2px solid transparent;
@@ -161,9 +188,13 @@
     background-clip: padding-box;
   }
   .satp-sidebar .sidebar-nav:hover::-webkit-scrollbar-thumb,
-  .satp-sidebar .sidebar-nav:focus-within::-webkit-scrollbar-thumb { background-color: rgba(255, 255, 255, 0.48); }
+  .satp-sidebar .sidebar-nav:focus-within::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.48);
+  }
   .satp-sidebar .sidebar-nav:hover,
-  .satp-sidebar .sidebar-nav:focus-within { scrollbar-color: rgba(255, 255, 255, 0.48) transparent; }
+  .satp-sidebar .sidebar-nav:focus-within {
+    scrollbar-color: rgba(255, 255, 255, 0.48) transparent;
+  }
 
   .satp-sidebar .nav-label {
     display: none;
@@ -416,7 +447,6 @@
     width: 100% !important;
     margin-left: 0 !important;
   }
-
 </style>
 
 <aside
@@ -525,8 +555,10 @@
                 >Student course</a
               >
             </li>
-                        <li>
-              <a href="/maintenance/schedule_assignment/index.html">Schedule assignment</a>
+            <li>
+              <a href="/maintenance/schedule_assignment/index.html"
+                >Schedule assignment</a
+              >
             </li>
             <li><a href="/maintenance/subject/index.html">Course</a></li>
             <li><a href="/maintenance/teacher/index.html">Teacher</a></li>
@@ -613,4 +645,8 @@
     </footer>
   </div>
 </aside>
-<div class="satp-sidebar-backdrop" onclick="toggleNav()" aria-hidden="true"></div>
+<div
+  class="satp-sidebar-backdrop"
+  onclick="toggleNav()"
+  aria-hidden="true"
+></div>

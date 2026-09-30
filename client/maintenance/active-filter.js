@@ -4,7 +4,8 @@
   const tableElement = document.querySelector(".records-card table");
   const heading = document.querySelector(".records-card .records-heading");
   const title = heading?.querySelector("h2");
-  if (!tableElement || !heading || !title || !window.jQuery?.fn?.dataTable) return;
+  if (!tableElement || !heading || !title || !window.jQuery?.fn?.dataTable)
+    return;
 
   const allTitle = title.textContent.trim();
   const activeTitle = /^all\s+/i.test(allTitle)
@@ -13,7 +14,9 @@
 
   const actions = document.createElement("div");
   actions.className = "maintenance-heading-actions";
-  [...heading.children].slice(1).forEach((element) => actions.appendChild(element));
+  [...heading.children]
+    .slice(1)
+    .forEach((element) => actions.appendChild(element));
 
   const toggle = document.createElement("label");
   toggle.className = "maintenance-inactive-toggle";

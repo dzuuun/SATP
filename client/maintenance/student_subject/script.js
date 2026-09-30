@@ -209,7 +209,10 @@ async function confirmRestoreStudentSubject() {
       body: JSON.stringify({ id }),
     });
     const payload = await response.json();
-    if (!response.ok) throw new Error(payload.message || "Unable to restore the student course.");
+    if (!response.ok)
+      throw new Error(
+        payload.message || "Unable to restore the student course.",
+      );
     await Promise.all([
       loadIncludedData(),
       loadExcludedData(),
@@ -420,12 +423,11 @@ function configureAddRowForSchool(entry) {
   const teacherSelect = entry.querySelector(".row-teacher");
   const departmentInput = entry.querySelector(".row-teaching-department");
   const teachers = student
-    ? activeTeachers.filter(
-        (teacher) =>
-          teacherDepartments(teacher).some(
-            (assignment) =>
-              Number(assignment.id) === Number(student.department_id),
-          ),
+    ? activeTeachers.filter((teacher) =>
+        teacherDepartments(teacher).some(
+          (assignment) =>
+            Number(assignment.id) === Number(student.department_id),
+        ),
       )
     : [];
   replaceSelectOptions(
@@ -828,9 +830,11 @@ const getTeacher = async () => {
     importTeachersByName.set(key, row);
   });
   var optionRow = "";
-  rows.filter((row) => Number(row.is_active) === 1).forEach((row) => {
-    optionRow += `<option value="${row.id}">${row.name}</option>`;
-  });
+  rows
+    .filter((row) => Number(row.is_active) === 1)
+    .forEach((row) => {
+      optionRow += `<option value="${row.id}">${row.name}</option>`;
+    });
   teacherList.innerHTML += optionRow;
 };
 
@@ -851,9 +855,11 @@ const getStudent = async () => {
       .map((row) => [Number(row.id), row]),
   );
   var optionRow = "";
-  rows.filter((row) => Number(row.is_active) === 1).forEach((row) => {
-    optionRow += `<option value="${row.id}">${row.username} — ${row.name}</option>`;
-  });
+  rows
+    .filter((row) => Number(row.is_active) === 1)
+    .forEach((row) => {
+      optionRow += `<option value="${row.id}">${row.username} — ${row.name}</option>`;
+    });
   studentList.innerHTML += optionRow;
 };
 
@@ -862,11 +868,12 @@ const getDepartments = async () => {
   const payload = await response.json();
   const rows = payload.data || [];
   importDepartmentsByCode = new Map(
-    rows.map((row) => [normalizeImportValue(row.department_code || row.code), row]),
+    rows.map((row) => [
+      normalizeImportValue(row.department_code || row.code),
+      row,
+    ]),
   );
-  importDepartmentsById = new Map(
-    rows.map((row) => [Number(row.id), row]),
-  );
+  importDepartmentsById = new Map(rows.map((row) => [Number(row.id), row]));
 };
 
 const getSchools = async () => {
@@ -882,7 +889,9 @@ const getSchools = async () => {
     .filter((school) => {
       if (adminScope === "ALL") return true;
       const schoolScope =
-        String(school.code || "").trim().toUpperCase() === "SHS"
+        String(school.code || "")
+          .trim()
+          .toUpperCase() === "SHS"
           ? "SHS"
           : "COLLEGE";
       return schoolScope === adminScope;
@@ -908,7 +917,12 @@ const getRoom = async () => {
   });
 };
 
-let pendingSubjectImport = { created: [], updated: [], errors: [], schoolId: null };
+let pendingSubjectImport = {
+  created: [],
+  updated: [],
+  errors: [],
+  schoolId: null,
+};
 const xlsxInput = document.getElementById("xlsxInput");
 const uploadFileForm = document.querySelector("#uploadFileForm");
 const validateFileButton = document.getElementById("validateFileButton");
@@ -956,14 +970,27 @@ async function refreshWorkbookReferences() {
     "/api/department/all/active",
     "/api/school/all/active",
   ];
-  const responses = await Promise.all(endpoints.map((endpoint) => fetch(endpoint)));
+  const responses = await Promise.all(
+    endpoints.map((endpoint) => fetch(endpoint)),
+  );
   const failed = responses.find((response) => !response.ok);
   if (failed) throw new Error("Unable to refresh workbook validation data.");
-  const [students, teachers, subjects, rooms, schoolYears, semesters, departments, schools] =
-    await Promise.all(responses.map((response) => response.json()));
+  const [
+    students,
+    teachers,
+    subjects,
+    rooms,
+    schoolYears,
+    semesters,
+    departments,
+    schools,
+  ] = await Promise.all(responses.map((response) => response.json()));
 
   importStudentsByNumber = new Map(
-    (students.data || []).map((row) => [normalizeImportValue(row.username), row]),
+    (students.data || []).map((row) => [
+      normalizeImportValue(row.username),
+      row,
+    ]),
   );
   importTeachersByName = new Map();
   (teachers.data || []).forEach((row) => {
@@ -977,16 +1004,28 @@ async function refreshWorkbookReferences() {
     (rooms.data || []).map((row) => [normalizeImportValue(row.name), row]),
   );
   importSchoolYearsByName = new Map(
-    (schoolYears.data || []).map((row) => [normalizeImportValue(row.name), Number(row.id)]),
+    (schoolYears.data || []).map((row) => [
+      normalizeImportValue(row.name),
+      Number(row.id),
+    ]),
   );
   importSemestersByName = new Map(
-    (semesters.data || []).map((row) => [normalizeImportValue(row.name), Number(row.id)]),
+    (semesters.data || []).map((row) => [
+      normalizeImportValue(row.name),
+      Number(row.id),
+    ]),
   );
   importSemesterIds = new Map(
-    (semesters.data || []).map((row) => [String(Number(row.id)), Number(row.id)]),
+    (semesters.data || []).map((row) => [
+      String(Number(row.id)),
+      Number(row.id),
+    ]),
   );
   importDepartmentsByCode = new Map(
-    (departments.data || []).map((row) => [normalizeImportValue(row.department_code), row]),
+    (departments.data || []).map((row) => [
+      normalizeImportValue(row.department_code),
+      row,
+    ]),
   );
   importDepartmentsById = new Map(
     (departments.data || []).map((row) => [Number(row.id), row]),
@@ -1001,7 +1040,9 @@ function teacherDepartments(teacher) {
     .split(",")
     .map((value) => Number(value.trim()))
     .filter(Number.isInteger);
-  const codes = String(teacher?.department_codes || teacher?.department_code || "")
+  const codes = String(
+    teacher?.department_codes || teacher?.department_code || "",
+  )
     .split(",")
     .map((value) => value.trim());
   return ids.map((id, index) => ({
@@ -1246,14 +1287,22 @@ async function classifySubjectRows(rows, schoolId) {
     const schoolYear = readImportColumn(raw, "SchoolYear");
     const semesterValue = readImportColumn(raw, "semester_id", "Semester");
     const subjectCode = readImportColumn(raw, "SubjectCode");
-    const subjectName = readImportColumn(raw, "Description", "SubjectDescription");
+    const subjectName = readImportColumn(
+      raw,
+      "Description",
+      "SubjectDescription",
+    );
     const subject = importSubjectsByCode.get(normalizeImportValue(subjectCode));
     const teacherFirstName = readImportColumn(raw, "TeacherFirstName");
     const teacherLastName = readImportColumn(raw, "TeacherLastName");
     const teacher = importTeachersByName.get(
       teacherImportKey(teacherFirstName, teacherLastName),
     );
-    const teachingDepartment = resolveTeachingDepartment(teacher, raw, schoolId);
+    const teachingDepartment = resolveTeachingDepartment(
+      teacher,
+      raw,
+      schoolId,
+    );
     const roomCode = readImportColumn(raw, "RoomCode");
     const room = importRoomsByCode.get(normalizeImportValue(roomCode));
     if (isTbaTeacherRow(raw)) {
@@ -1270,7 +1319,9 @@ async function classifySubjectRows(rows, schoolId) {
       is_chs: isChsStudent,
       student_needs_activation:
         student != null && Number(student.is_active) !== 1,
-      school_year_id: importSchoolYearsByName.get(normalizeImportValue(schoolYear)),
+      school_year_id: importSchoolYearsByName.get(
+        normalizeImportValue(schoolYear),
+      ),
       semester_id:
         importSemesterIds.get(String(Number(semesterValue))) ||
         importSemestersByName.get(normalizeImportValue(semesterValue)),
@@ -1308,7 +1359,9 @@ async function classifySubjectRows(rows, schoolId) {
       missing.push("course code and description");
     if (!resolved.teacher_id) missing.push("teacher");
     if (student && Number(student.school_id) !== Number(schoolId))
-      missing.push(`${importSchoolsById.get(Number(schoolId))?.name || "selected school"} student`);
+      missing.push(
+        `${importSchoolsById.get(Number(schoolId))?.name || "selected school"} student`,
+      );
     if (teacher && !resolved.teaching_department_id)
       missing.push("teacher's matching school department assignment");
     if (roomCode && !resolved.room_id && !resolved.room_needs_creation)
@@ -1337,10 +1390,12 @@ async function classifySubjectRows(rows, schoolId) {
     } else {
       seen.add(key);
       const dependencyActions = [];
-      if (item.subject_needs_creation) dependencyActions.push("course will be created");
+      if (item.subject_needs_creation)
+        dependencyActions.push("course will be created");
       else if (item.subject_needs_activation)
         dependencyActions.push("course will be reactivated");
-      if (item.room_needs_creation) dependencyActions.push("room will be created");
+      if (item.room_needs_creation)
+        dependencyActions.push("room will be created");
       else if (item.room_needs_activation)
         dependencyActions.push("room will be reactivated");
       if (dependencyActions.length) item.reason = dependencyActions.join("; ");
@@ -1391,70 +1446,80 @@ async function classifySubjectRows(rows, schoolId) {
   );
   let lastEnrollmentProgress = 65;
   for (const items of enrollmentBatches) {
-      const sample = items[0];
-      const periodKey = `${sample.school_year_id}|${sample.semester_id}`;
-      const recordsByStudent = periodRecords.get(periodKey) || new Map();
-      const isChsStudent = Boolean(sample.is_chs);
-      const enrollmentKey = (record) => isChsStudent
-        ? [Number(record.subject_id), normalizeImportValue(record.schedule_code),
-          Number(record.teacher_id)].join("|")
+    const sample = items[0];
+    const periodKey = `${sample.school_year_id}|${sample.semester_id}`;
+    const recordsByStudent = periodRecords.get(periodKey) || new Map();
+    const isChsStudent = Boolean(sample.is_chs);
+    const enrollmentKey = (record) =>
+      isChsStudent
+        ? [
+            Number(record.subject_id),
+            normalizeImportValue(record.schedule_code),
+            Number(record.teacher_id),
+          ].join("|")
         : String(Number(record.subject_id));
-      const existingByEnrollment = new Map(
-        (recordsByStudent.get(Number(sample.student_id)) || [])
-          .map((record) => [enrollmentKey(record), record]),
-      );
-      items.forEach((item) => {
-        const current = existingByEnrollment.get(enrollmentKey(item));
-        if (!current) return;
-        const unchanged =
-          comparableImportTime(current.time_start) ===
-            comparableImportTime(item.time_start) &&
-          comparableImportTime(current.time_end) ===
-            comparableImportTime(item.time_end) &&
-          normalizeImportValue(current.day) === normalizeImportValue(item.day) &&
-          Number(current.room_id || 0) === Number(item.room_id || 0) &&
-          Number(current.teacher_id || 0) === Number(item.teacher_id || 0) &&
-          Number(current.is_excluded || 0) === Number(item.is_excluded || 0);
-        const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${enrollmentKey(item)}`;
-        existingKeys.add(key);
-        result.updated.push({
-          ...item,
-          id: current.id,
-          unchanged,
-          reason: unchanged
-            ? "Enrollment already exists; no changes needed"
-            : "Enrollment already exists; changes will be updated",
-        });
+    const existingByEnrollment = new Map(
+      (recordsByStudent.get(Number(sample.student_id)) || []).map((record) => [
+        enrollmentKey(record),
+        record,
+      ]),
+    );
+    items.forEach((item) => {
+      const current = existingByEnrollment.get(enrollmentKey(item));
+      if (!current) return;
+      const unchanged =
+        comparableImportTime(current.time_start) ===
+          comparableImportTime(item.time_start) &&
+        comparableImportTime(current.time_end) ===
+          comparableImportTime(item.time_end) &&
+        normalizeImportValue(current.day) === normalizeImportValue(item.day) &&
+        Number(current.room_id || 0) === Number(item.room_id || 0) &&
+        Number(current.teacher_id || 0) === Number(item.teacher_id || 0) &&
+        Number(current.is_excluded || 0) === Number(item.is_excluded || 0);
+      const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${enrollmentKey(item)}`;
+      existingKeys.add(key);
+      result.updated.push({
+        ...item,
+        id: current.id,
+        unchanged,
+        reason: unchanged
+          ? "Enrollment already exists; no changes needed"
+          : "Enrollment already exists; changes will be updated",
       });
-      checkedBatches++;
-      const remaining = enrollmentBatches.length - checkedBatches;
-      const progress = enrollmentBatches.length
-        ? 65 + Math.floor((checkedBatches / enrollmentBatches.length) * 30)
-        : 95;
-      const shouldReportProgress =
-        progress > lastEnrollmentProgress || remaining === 0;
-      if (shouldReportProgress) {
-        lastEnrollmentProgress = progress;
-        setImportProgress(
-          "Checking existing enrollments",
-          `${progress}%`,
-          `${remaining} enrollment group${remaining === 1 ? "" : "s"} remaining.`,
-        );
-      }
-      if (
-        shouldReportProgress ||
-        (checkedBatches < enrollmentBatches.length &&
-          checkedBatches % 200 === 0)
-      )
-        await yieldToMainThread();
+    });
+    checkedBatches++;
+    const remaining = enrollmentBatches.length - checkedBatches;
+    const progress = enrollmentBatches.length
+      ? 65 + Math.floor((checkedBatches / enrollmentBatches.length) * 30)
+      : 95;
+    const shouldReportProgress =
+      progress > lastEnrollmentProgress || remaining === 0;
+    if (shouldReportProgress) {
+      lastEnrollmentProgress = progress;
+      setImportProgress(
+        "Checking existing enrollments",
+        `${progress}%`,
+        `${remaining} enrollment group${remaining === 1 ? "" : "s"} remaining.`,
+      );
+    }
+    if (
+      shouldReportProgress ||
+      (checkedBatches < enrollmentBatches.length && checkedBatches % 200 === 0)
+    )
+      await yieldToMainThread();
   }
   result.created = result.created.filter(
     (item) =>
       !existingKeys.has(
         `${item.student_id}|${item.school_year_id}|${item.semester_id}|${
           item.is_chs
-            ? [Number(item.subject_id), normalizeImportValue(item.schedule_code), Number(item.teacher_id)].join("|")
-            : String(Number(item.subject_id))}`,
+            ? [
+                Number(item.subject_id),
+                normalizeImportValue(item.schedule_code),
+                Number(item.teacher_id),
+              ].join("|")
+            : String(Number(item.subject_id))
+        }`,
       ),
   );
 
@@ -1487,24 +1552,21 @@ function renderSubjectImportPreview() {
       items
         .slice(visibleCount, visibleCount + PREVIEW_BATCH_SIZE)
         .forEach((item) => {
-      const row = document.createElement("div");
-      row.className = "preview-row";
-      row.innerHTML =
-        '<span class="row-number"></span><span class="item-question"></span><span class="row-detail"></span>';
-      row.children[0].textContent = `Row ${item.rowNumber}`;
-      row.children[1].textContent = `${readImportColumn(
-        item.originalRow,
-        "StudentID",
-        "IDNumber",
-      )} — ${readImportColumn(item.originalRow, "SubjectCode")}`;
-      row.children[2].textContent = item.reason || detail;
+          const row = document.createElement("div");
+          row.className = "preview-row";
+          row.innerHTML =
+            '<span class="row-number"></span><span class="item-question"></span><span class="row-detail"></span>';
+          row.children[0].textContent = `Row ${item.rowNumber}`;
+          row.children[1].textContent = `${readImportColumn(
+            item.originalRow,
+            "StudentID",
+            "IDNumber",
+          )} — ${readImportColumn(item.originalRow, "SubjectCode")}`;
+          row.children[2].textContent = item.reason || detail;
           fragment.appendChild(row);
         });
       list.appendChild(fragment);
-      visibleCount = Math.min(
-        visibleCount + PREVIEW_BATCH_SIZE,
-        items.length,
-      );
+      visibleCount = Math.min(visibleCount + PREVIEW_BATCH_SIZE, items.length);
       if (visibleCount < items.length) {
         const loadMore = document.createElement("button");
         loadMore.type = "button";
@@ -1570,7 +1632,9 @@ document
           `${item.subject_needs_creation ? "Creating" : "Reactivating"} ${item.subject_code}.`,
         );
         const response = await fetch(
-          item.subject_needs_creation ? "/api/subject/add" : "/api/subject/update",
+          item.subject_needs_creation
+            ? "/api/subject/add"
+            : "/api/subject/update",
           {
             method: item.subject_needs_creation ? "POST" : "PUT",
             headers: { "Content-Type": "application/json" },
@@ -1625,7 +1689,9 @@ document
         const subject = importSubjectsByCode.get(
           normalizeImportValue(item.subject_code),
         );
-        const room = importRoomsByCode.get(normalizeImportValue(item.room_code));
+        const room = importRoomsByCode.get(
+          normalizeImportValue(item.room_code),
+        );
         if (subject) item.subject_id = subject.id;
         if (room) item.room_id = room.id;
       });
@@ -1780,7 +1846,9 @@ document
         );
       } finally {
         completedGroups++;
-        const progress = Math.round((completedGroups / groupEntries.length) * 100);
+        const progress = Math.round(
+          (completedGroups / groupEntries.length) * 100,
+        );
         setImportProgress(
           "Import in progress",
           `${progress}%`,
@@ -1833,7 +1901,9 @@ function downloadSubjectImportErrors(rows) {
 function openNav() {
   const overlaySidebar = window.innerWidth <= 1100;
   document.getElementById("mySidenav").style.width = "280px";
-  document.getElementById("main").style.marginLeft = overlaySidebar ? "0" : "280px";
+  document.getElementById("main").style.marginLeft = overlaySidebar
+    ? "0"
+    : "280px";
   const footer = document.querySelector("#main .site-footer");
   if (footer) footer.style.marginLeft = overlaySidebar ? "0" : "280px";
   nav = true;

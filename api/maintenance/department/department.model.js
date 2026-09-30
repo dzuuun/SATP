@@ -9,7 +9,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -21,7 +21,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -34,7 +34,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -47,7 +47,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -68,18 +68,18 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
               if (error) {
                 callBack(error);
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(results);
         }
-      }
+      },
     );
   },
 
@@ -94,7 +94,8 @@ module.exports = {
       );
       if (!currentDepartments.length) throw new Error("Department not found.");
       const targetActive = Number(data.is_active) === 1 ? 1 : 0;
-      const statusChanged = Number(currentDepartments[0].is_active) !== targetActive;
+      const statusChanged =
+        Number(currentDepartments[0].is_active) !== targetActive;
       const [departmentResult] = await connection.query(
         "UPDATE departments SET code = ?, name = ?, college_id = ?, is_active = ? WHERE id = ?",
         [data.code, data.name, data.college_id, data.is_active, data.id],
@@ -106,14 +107,18 @@ module.exports = {
           [targetActive, data.id, targetActive],
         );
       }
-      const changedRows = Number(departmentResult.changedRows || 0) +
+      const changedRows =
+        Number(departmentResult.changedRows || 0) +
         Number(programResult.changedRows || 0);
       if (changedRows) {
         await connection.query(
           "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-          [data.user_id, statusChanged
-            ? `Updated Department: ${data.code}; ${targetActive ? "activated" : "deactivated"} ${programResult.changedRows || 0} program(s)`
-            : `Updated Department: ${data.code}`],
+          [
+            data.user_id,
+            statusChanged
+              ? `Updated Department: ${data.code}; ${targetActive ? "activated" : "deactivated"} ${programResult.changedRows || 0} program(s)`
+              : `Updated Department: ${data.code}`,
+          ],
         );
       }
       await connection.commit();
@@ -143,19 +148,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
 };

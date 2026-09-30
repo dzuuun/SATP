@@ -55,7 +55,9 @@ app.use((req, res, next) => {
 
 // --- Middleware ---
 app.use(apiRequestContext);
-app.use(express.json({ limit: process.env.API_JSON_LIMIT || "10mb", strict: true }));
+app.use(
+  express.json({ limit: process.env.API_JSON_LIMIT || "10mb", strict: true }),
+);
 app.use((_req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
@@ -109,8 +111,8 @@ app.use(
     "/api/subject",
     "/api/room",
     "/api/department",
-      "/api/college",
-      "/api/school",
+    "/api/college",
+    "/api/school",
     "/api/course",
     "/api/semester",
     "/api/teacher",
@@ -139,11 +141,7 @@ app.use(
   requirePermission("maintenance_access"),
   studentSubjectRouter,
 );
-app.use(
-  "/api/student",
-  requirePermission("maintenance_access"),
-  studentRouter,
-);
+app.use("/api/student", requirePermission("maintenance_access"), studentRouter);
 app.use("/api/admin", requirePermission("maintenance_access"), adminRouter);
 app.use("/api/gradschool/item", gradSchoolItemRouter);
 
@@ -197,10 +195,9 @@ app.post("/upload", checkToken, upload.single("image"), (req, res) => {
 });
 
 // disable registration page
-app.use('/register', (req, res) => {
- res.status(404).sendFile(path.join(__dirname, 'client', '404.html'));
+app.use("/register", (req, res) => {
+  res.status(404).sendFile(path.join(__dirname, "client", "404.html"));
 });
-
 
 // --- Serve frontend (HTML/JS/CSS) ---
 const clientPath = path.join(__dirname, "client");
@@ -236,11 +233,14 @@ app.get("/sidebar.html", checkToken, (req, res) => {
   ];
 
   accessBlocks.forEach(([marker, field]) => {
-    if (Number(req.user?.[field]) !== 1) html = removeSidebarBlock(html, marker);
+    if (Number(req.user?.[field]) !== 1)
+      html = removeSidebarBlock(html, marker);
   });
 
   const isRater =
-    String(req.user?.permission_name || "").trim().toLowerCase() === "rater";
+    String(req.user?.permission_name || "")
+      .trim()
+      .toLowerCase() === "rater";
   html = removeSidebarBlock(
     html,
     isRater ? "permission:non-rater" : "permission:rater",
@@ -259,7 +259,11 @@ app.get("/sidebar.html", checkToken, (req, res) => {
 
 // Do not serve the self-service password page or its assets to Raters.
 app.use("/update/password", checkToken, (req, res, next) => {
-  if (String(req.user?.permission_name || "").trim().toLowerCase() === "rater")
+  if (
+    String(req.user?.permission_name || "")
+      .trim()
+      .toLowerCase() === "rater"
+  )
     return res.redirect(302, "/404.html");
   return next();
 });

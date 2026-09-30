@@ -109,7 +109,10 @@ function syncTeacherDepartments(teacherId, data, callBack) {
               (teacher_id, department_id, is_primary, teaching_status) VALUES ?`,
             [rows],
             (insertError) =>
-              callBack(insertError, insertError ? undefined : { changedRows: 1 }),
+              callBack(
+                insertError,
+                insertError ? undefined : { changedRows: 1 },
+              ),
           );
         },
       );
@@ -316,26 +319,30 @@ module.exports = {
               return callBack(insertError);
             }
 
-            syncTeacherDepartments(insertResults.insertId, data, (syncError) => {
-              if (syncError) return callBack(syncError);
-            pool.query(
-              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-              [
-                data.user_id,
-                "Added Teacher: " +
-                  (prefix ? prefix + " " : "") +
-                  givenname +
-                  " " +
-                  surname +
-                  (suffix ? ", " + suffix : ""),
-              ],
-              (logError) => {
-                if (logError) console.log(logError);
+            syncTeacherDepartments(
+              insertResults.insertId,
+              data,
+              (syncError) => {
+                if (syncError) return callBack(syncError);
+                pool.query(
+                  "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+                  [
+                    data.user_id,
+                    "Added Teacher: " +
+                      (prefix ? prefix + " " : "") +
+                      givenname +
+                      " " +
+                      surname +
+                      (suffix ? ", " + suffix : ""),
+                  ],
+                  (logError) => {
+                    if (logError) console.log(logError);
+                  },
+                );
+
+                return callBack(null, insertResults);
               },
             );
-
-            return callBack(null, insertResults);
-            });
           },
         );
       },
@@ -377,29 +384,29 @@ module.exports = {
 
         syncTeacherDepartments(data.id, data, (syncError, syncResults) => {
           if (syncError) return callBack(syncError);
-        results.changedRows = Math.max(
-          Number(results.changedRows || 0),
-          Number(syncResults?.changedRows || 0),
-        );
-        if (results.changedRows === 1) {
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [
-              data.user_id,
-              "Updated Teacher: " +
-                (prefix ? prefix + " " : "") +
-                givenname +
-                " " +
-                surname +
-                (suffix ? ", " + suffix : ""),
-            ],
-            (logError) => {
-              if (logError) console.log(logError);
-            },
+          results.changedRows = Math.max(
+            Number(results.changedRows || 0),
+            Number(syncResults?.changedRows || 0),
           );
-        }
+          if (results.changedRows === 1) {
+            pool.query(
+              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+              [
+                data.user_id,
+                "Updated Teacher: " +
+                  (prefix ? prefix + " " : "") +
+                  givenname +
+                  " " +
+                  surname +
+                  (suffix ? ", " + suffix : ""),
+              ],
+              (logError) => {
+                if (logError) console.log(logError);
+              },
+            );
+          }
 
-        return callBack(null, results);
+          return callBack(null, results);
         });
       },
     );
@@ -488,7 +495,9 @@ module.exports = {
           (teacher) => Number(teacher.id) === retainedTeacherId,
         );
         if (!duplicateTeacher || !retainedTeacher) {
-          const error = new Error("One of the selected teachers no longer exists.");
+          const error = new Error(
+            "One of the selected teachers no longer exists.",
+          );
           error.statusCode = 404;
           throw error;
         }

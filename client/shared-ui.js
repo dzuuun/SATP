@@ -12,7 +12,7 @@
     const stylesheet = document.createElement("link");
     stylesheet.id = "satp-page-shell";
     stylesheet.rel = "stylesheet";
-    stylesheet.href = "/page-shell.css?v=20260925";
+    stylesheet.href = "/page-shell.css?v=20260930";
     document.head.appendChild(stylesheet);
   }
 
@@ -142,10 +142,12 @@
         .join("")
         .toUpperCase();
       if (profile) profile.dataset.initials = initials || "U";
-      sidebar?.querySelectorAll(".nav-link, .menu-toggle").forEach((control) => {
-        const label = control.querySelector("span")?.textContent?.trim();
-        if (label && !control.title) control.title = label;
-      });
+      sidebar
+        ?.querySelectorAll(".nav-link, .menu-toggle")
+        .forEach((control) => {
+          const label = control.querySelector("span")?.textContent?.trim();
+          if (label && !control.title) control.title = label;
+        });
     }
   }
 
@@ -184,7 +186,12 @@
 
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape" || !mobileSidebarView.matches) return;
-    if (!document.getElementById("mySidenav")?.classList.contains("is-sidebar-pinned")) return;
+    if (
+      !document
+        .getElementById("mySidenav")
+        ?.classList.contains("is-sidebar-pinned")
+    )
+      return;
     toggleCompactSidebar();
   });
 
@@ -209,33 +216,50 @@
     return true;
   }
 
-  document.addEventListener("pointerenter", (event) => {
-    if (!event.target.matches?.(".satp-sidebar")) return;
-    dismissPreviewOnMainClick = false;
-    clearTimeout(previewDismissTimer);
-  }, true);
-  document.addEventListener("pointerleave", (event) => {
-    if (!event.target.matches?.(".satp-sidebar") || mobileSidebarView.matches) return;
-    dismissPreviewOnMainClick = true;
-    clearTimeout(previewDismissTimer);
-    previewDismissTimer = setTimeout(() => {
+  document.addEventListener(
+    "pointerenter",
+    (event) => {
+      if (!event.target.matches?.(".satp-sidebar")) return;
       dismissPreviewOnMainClick = false;
-    }, 800);
-  }, true);
-  document.addEventListener("pointerdown", (event) => {
-    if (event.target.closest?.(".site-header .menu-button")) return;
-    if (!event.target.closest?.("#main")) return;
-    if (!closeSidebarFromMain()) return;
-    suppressMainClick = true;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  }, true);
-  document.addEventListener("click", (event) => {
-    if (!suppressMainClick || !event.target.closest?.("#main")) return;
-    suppressMainClick = false;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-  }, true);
+      clearTimeout(previewDismissTimer);
+    },
+    true,
+  );
+  document.addEventListener(
+    "pointerleave",
+    (event) => {
+      if (!event.target.matches?.(".satp-sidebar") || mobileSidebarView.matches)
+        return;
+      dismissPreviewOnMainClick = true;
+      clearTimeout(previewDismissTimer);
+      previewDismissTimer = setTimeout(() => {
+        dismissPreviewOnMainClick = false;
+      }, 800);
+    },
+    true,
+  );
+  document.addEventListener(
+    "pointerdown",
+    (event) => {
+      if (event.target.closest?.(".site-header .menu-button")) return;
+      if (!event.target.closest?.("#main")) return;
+      if (!closeSidebarFromMain()) return;
+      suppressMainClick = true;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    },
+    true,
+  );
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!suppressMainClick || !event.target.closest?.("#main")) return;
+      suppressMainClick = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    },
+    true,
+  );
 
   // Page scripts toggle their own submenus. After that click finishes, close
   // every other module so only the selected dropdown remains expanded.
@@ -319,12 +343,12 @@
       .forEach((item) =>
         item.classList.remove("nav-active", "sub-active", "profile-current"),
       );
-    sidebar.querySelectorAll('[aria-current="page"]').forEach((item) =>
-      item.removeAttribute("aria-current"),
-    );
-    sidebar.querySelectorAll(".submenu").forEach((submenu) =>
-      submenu.classList.add("hidden"),
-    );
+    sidebar
+      .querySelectorAll('[aria-current="page"]')
+      .forEach((item) => item.removeAttribute("aria-current"));
+    sidebar
+      .querySelectorAll(".submenu")
+      .forEach((submenu) => submenu.classList.add("hidden"));
     sidebar.querySelectorAll(".menu-toggle").forEach((toggle) => {
       toggle.setAttribute("aria-expanded", "false");
       const arrow = toggle.querySelector(".chevron");
@@ -346,9 +370,7 @@
 
     activeLink.classList.add("sub-active");
     submenu.classList.remove("hidden");
-    const parentToggle = sidebar.querySelector(
-      `[data-target="${submenu.id}"]`,
-    );
+    const parentToggle = sidebar.querySelector(`[data-target="${submenu.id}"]`);
     parentToggle?.classList.add("nav-active");
     parentToggle?.setAttribute("aria-expanded", "true");
     const arrow = parentToggle?.querySelector(".chevron");
@@ -408,8 +430,12 @@
       previousFocus?.focus?.();
       resolve(confirmed);
     };
-    modal.querySelector(".satp-confirm-cancel").addEventListener("click", () => finish(false));
-    modal.querySelector(".satp-confirm-accept").addEventListener("click", () => finish(true));
+    modal
+      .querySelector(".satp-confirm-cancel")
+      .addEventListener("click", () => finish(false));
+    modal
+      .querySelector(".satp-confirm-accept")
+      .addEventListener("click", () => finish(true));
     modal.addEventListener("click", (event) => {
       if (event.target === modal) finish(false);
     });
@@ -491,7 +517,9 @@
   function disableHeaderBrandNavigation(root = document) {
     const brands = [];
     if (root.matches?.(".header-brand > a")) brands.push(root);
-    root.querySelectorAll?.(".header-brand > a").forEach((brand) => brands.push(brand));
+    root
+      .querySelectorAll?.(".header-brand > a")
+      .forEach((brand) => brands.push(brand));
     brands.forEach((brand) => {
       brand.removeAttribute("href");
       brand.removeAttribute("aria-label");
@@ -543,17 +571,18 @@
       const selected = select.selectedOptions[0];
       trigger.placeholder =
         select.options[0]?.textContent?.trim() || "Search and select";
-      trigger.value = selected?.value
-        ? selected.textContent?.trim() || ""
-        : "";
+      trigger.value = selected?.value ? selected.textContent?.trim() || "" : "";
       trigger.disabled = select.disabled;
       trigger.classList.toggle("is-placeholder", !selected?.value);
     };
     const render = () => {
       const query = search.value.trim().toLowerCase();
-      const matches = [...select.options].filter((option) =>
-        option.value && !option.disabled && !option.hidden &&
-        (!query || option.textContent.toLowerCase().includes(query)),
+      const matches = [...select.options].filter(
+        (option) =>
+          option.value &&
+          !option.disabled &&
+          !option.hidden &&
+          (!query || option.textContent.toLowerCase().includes(query)),
       );
       options.replaceChildren();
       if (!matches.length) {
@@ -654,7 +683,9 @@
     }
     const buttons = [];
     if (root.matches?.(".site-header .menu-button")) buttons.push(root);
-    root.querySelectorAll?.(".site-header .menu-button").forEach((button) => buttons.push(button));
+    root
+      .querySelectorAll?.(".site-header .menu-button")
+      .forEach((button) => buttons.push(button));
     buttons.forEach((button) => {
       if (button.dataset.menuAnimationReady === "true") return;
       button.dataset.menuAnimationReady = "true";
@@ -676,7 +707,8 @@
         isOpen ? "Close navigation" : "Open navigation",
       );
       const label = button.querySelector(".satp-menu-label");
-      if (label) label.textContent = isOpen ? "Close navigation" : "Open navigation";
+      if (label)
+        label.textContent = isOpen ? "Close navigation" : "Open navigation";
     });
   }
 
@@ -706,7 +738,10 @@
           disableSelectPlaceholders(node);
           disableHeaderBrandNavigation(node);
           installHeaderMenuAnimation(node);
-          if (node.matches?.(".satp-sidebar") || node.querySelector?.(".satp-sidebar")) {
+          if (
+            node.matches?.(".satp-sidebar") ||
+            node.querySelector?.(".satp-sidebar")
+          ) {
             syncHeaderMenuState();
           }
           if (!location.pathname.toLowerCase().includes("gradschool")) {
@@ -718,7 +753,9 @@
   });
   document.addEventListener("click", (event) => {
     if (!event.target.closest?.(".satp-search-select")) {
-      document.querySelectorAll(".satp-search-select.open").forEach((item) => item.classList.remove("open"));
+      document
+        .querySelectorAll(".satp-search-select.open")
+        .forEach((item) => item.classList.remove("open"));
     }
   });
   observer.observe(document.documentElement, {

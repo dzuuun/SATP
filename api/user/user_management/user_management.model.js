@@ -46,9 +46,10 @@ module.exports = {
               (updateError, updateResult) => {
                 if (updateError) return finishWithError(updateError);
                 const names = activeUsers.map((user) => user.username);
-                const description = names.length > 20
-                  ? `${names.slice(0, 20).join(", ")} and ${names.length - 20} more`
-                  : names.join(", ");
+                const description =
+                  names.length > 20
+                    ? `${names.slice(0, 20).join(", ")} and ${names.length - 20} more`
+                    : names.join(", ");
                 connection.query(
                   "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
                   [data.user_id, `Bulk deactivated users: ${description}`],

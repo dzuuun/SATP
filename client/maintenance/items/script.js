@@ -150,7 +150,10 @@ async function loadCategories() {
 async function refreshImportCategories() {
   const response = await requestJson("/api/category/all/active");
   categoriesByName = new Map(
-    (response.data || []).map((category) => [normalize(category.name), category]),
+    (response.data || []).map((category) => [
+      normalize(category.name),
+      category,
+    ]),
   );
 }
 

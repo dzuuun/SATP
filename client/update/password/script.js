@@ -10,7 +10,11 @@ const state = {
 if (!state.userId) {
   alert("Log in to continue.");
   location.href = "../../index.html";
-} else if (String(state.permissionName || "").trim().toLowerCase() === "rater") {
+} else if (
+  String(state.permissionName || "")
+    .trim()
+    .toLowerCase() === "rater"
+) {
   location.replace("/404.html");
 }
 

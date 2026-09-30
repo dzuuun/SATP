@@ -11,7 +11,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -24,10 +24,9 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
-
 
   getStudentById: (Id, callBack) => {
     pool.query(
@@ -38,7 +37,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -51,7 +50,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -62,7 +61,9 @@ module.exports = {
       const plainTextPassword = String(data.password || "");
 
       if (!plainTextPassword && !String(data.google_email || "").trim()) {
-        return callBack(new Error("A password or institutional email is required."));
+        return callBack(
+          new Error("A password or institutional email is required."),
+        );
       }
 
       password = plainTextPassword
@@ -91,7 +92,7 @@ module.exports = {
               data.is_active,
             ],
             (error, results) => {
-              console.log(error)
+              console.log(error);
               if (error) {
                 callBack(error);
               }
@@ -114,20 +115,20 @@ module.exports = {
                       if (error) {
                         console.log(error);
                       }
-                    }
+                    },
                   );
                   if (error) {
                     callBack(error);
                   }
-                }
+                },
               );
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(results);
         }
-      }
+      },
     );
   },
 
@@ -161,19 +162,19 @@ module.exports = {
                     if (error) {
                       console.log(error);
                     }
-                  }
+                  },
                 );
                 if (error) {
                   callBack(error);
                 }
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(null, result);
         }
-      }
+      },
     );
   },
 
@@ -185,7 +186,7 @@ module.exports = {
         if (result.length == 1) {
           pool.query(
             "UPDATE users SET is_active=? WHERE id=?",
-              [data.is_active, data.id],
+            [data.is_active, data.id],
             (error, results) => {
               if (results.changedRows == 1) {
                 pool.query(
@@ -198,21 +199,20 @@ module.exports = {
                     if (error) {
                       console.log(error);
                     }
-                  }
+                  },
                 );
                 if (error) {
                   callBack(error);
                 }
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(null, result);
         }
-      }
+      },
     );
-
   },
 
   deleteStudent: (data, callBack) => {
@@ -232,20 +232,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
-
 };

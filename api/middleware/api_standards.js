@@ -103,7 +103,9 @@ function apiErrorHandler(error, req, res, next) {
   const malformedJson = error instanceof SyntaxError && "body" in error;
   const status = malformedJson
     ? 400
-    : error.statusCode || error.status || (error.code === "LIMIT_FILE_SIZE" ? 413 : 500);
+    : error.statusCode ||
+      error.status ||
+      (error.code === "LIMIT_FILE_SIZE" ? 413 : 500);
   if (status >= 500) {
     console.error(`[${req.requestId || "no-request-id"}]`, error);
   }

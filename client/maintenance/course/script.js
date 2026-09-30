@@ -51,7 +51,6 @@ $(document).ready(() => {
     dom: '<"flex justify-between items-center mb-4"f>rt<"flex justify-between items-center mt-4"ip>',
     language: { search: "", searchPlaceholder: "Search programs..." },
   });
-
 });
 
 document

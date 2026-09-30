@@ -78,11 +78,11 @@ async function loadReportOptions() {
   showLoading("Loading report options...");
   try {
     const [schoolYears, semesters, colleges, departments] = await Promise.all([
-        requestJson("/api/schoolyear/all/active"),
-        requestJson("/api/semester/all/active"),
-        requestJson("/api/college/all/active"),
-        requestJson("/api/department/all/active"),
-      ]);
+      requestJson("/api/schoolyear/all/active"),
+      requestJson("/api/semester/all/active"),
+      requestJson("/api/college/all/active"),
+      requestJson("/api/department/all/active"),
+    ]);
     appendOptions("schoolYear", schoolYears.data || [], "name");
     appendOptions("semester", semesters.data || [], "name");
     appendOptions("college", colleges.data || [], "name", "code");
@@ -179,8 +179,7 @@ async function updateSubjects() {
     if (requestId !== state.subjectRequest) return;
     subject.innerHTML = '<option value="">Unable to load courses</option>';
     hint.dataset.state = "error";
-    hint.textContent =
-      error.message || "Unable to load the teacher's courses.";
+    hint.textContent = error.message || "Unable to load the teacher's courses.";
   }
 }
 
@@ -320,7 +319,9 @@ function syncSearchableSelect(select) {
     ?.querySelector(".search-select-input");
   if (!input) return;
   input.disabled = select.disabled;
-  input.value = select.value ? select.selectedOptions[0]?.textContent || "" : "";
+  input.value = select.value
+    ? select.selectedOptions[0]?.textContent || ""
+    : "";
   input.placeholder = select.options[0]?.textContent || "Select a teacher";
 }
 
@@ -340,7 +341,9 @@ document.addEventListener("click", (event) => {
 
 function closeExportMenu() {
   document.getElementById("exportMenu").classList.add("hidden");
-  document.getElementById("exportMenuButton").setAttribute("aria-expanded", "false");
+  document
+    .getElementById("exportMenuButton")
+    .setAttribute("aria-expanded", "false");
 }
 
 document.getElementById("exportMenuButton").addEventListener("click", () => {
@@ -404,7 +407,8 @@ document
       schoolYearName: schoolYear.options[schoolYear.selectedIndex]?.text || "",
       semesterName: semester.options[semester.selectedIndex]?.text || "",
       teacherId: teacher.value,
-      teacherName: selectedTeacher?.dataset.name || selectedTeacher?.text || "Teacher",
+      teacherName:
+        selectedTeacher?.dataset.name || selectedTeacher?.text || "Teacher",
     });
   });
 

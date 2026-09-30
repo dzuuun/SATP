@@ -542,7 +542,10 @@ table.dataTable tbody tr:hover {
 .modal-card {
   width: min(540px, 100%);
   max-height: calc(var(--satp-viewport-height, 100vh) - 36px);
-  overflow: auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: #fff;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
@@ -585,9 +588,36 @@ table.dataTable tbody tr:hover {
   background: #fff0ef;
 }
 .modal-body {
+  min-height: 0;
   padding: 26px 24px;
   display: grid;
+  flex: 1 1 auto;
   gap: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal-card > form {
+  min-height: 0;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+.modal-card > .modal-header,
+.modal-card > .modal-footer,
+.modal-card > form > .modal-footer {
+  flex: 0 0 auto;
+}
+/* An open select menu may extend over the footer without being clipped by the
+   scrollable modal body. The normal body-only scrollbar resumes on close. */
+.modal-card:has(.search-select.open),
+.modal-card:has(.satp-search-select.open),
+.modal-card > form:has(.search-select.open),
+.modal-card > form:has(.satp-search-select.open),
+.modal-body:has(.search-select.open),
+.modal-body:has(.satp-search-select.open) {
+  position: relative;
+  z-index: 1;
+  overflow: visible !important;
 }
 .modal-footer {
   min-height: 74px;

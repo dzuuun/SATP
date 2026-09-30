@@ -45,7 +45,9 @@ $(document).ready(() => {
         className: "dt-center",
         render: (row) => {
           const labels = { 0: "Full Time", 1: "Part Time", 2: "NTPO & Admin" };
-          const codes = String(row.department_codes || row.department_code || "")
+          const codes = String(
+            row.department_codes || row.department_code || "",
+          )
             .split(",")
             .map((value) => value.trim());
           const statuses = String(
@@ -106,7 +108,7 @@ function loadDepartments() {
     availableDepartments.forEach((department) => {
       const code = department.department_code || department.code;
       departmentsByCode.set(normalize(code), department);
-        [addSelect, editSelect, addPicker, editPicker].forEach((select) => {
+      [addSelect, editSelect, addPicker, editPicker].forEach((select) => {
         const option = document.createElement("option");
         option.value = department.id;
         option.textContent = `${code} — ${department.name}`;
@@ -143,10 +145,7 @@ function renderDepartmentChecklist(containerId, selectedAssignments) {
     selectedAssignments.forEach((assignment) => {
       const departmentId = Number(assignment.department_id ?? assignment);
       if (departmentId) {
-        assignments.set(
-          departmentId,
-          Number(assignment.teaching_status ?? 0),
-        );
+        assignments.set(departmentId, Number(assignment.teaching_status ?? 0));
       }
     });
   }
@@ -178,7 +177,10 @@ function renderDepartmentChecklist(containerId, selectedAssignments) {
       status.innerHTML =
         '<option value="0">Full Time</option><option value="1">Part Time</option><option value="2">NTPO &amp; Admin</option>';
       status.value = String(teachingStatus);
-      status.setAttribute("aria-label", `Teaching status for ${name.textContent}`);
+      status.setAttribute(
+        "aria-label",
+        `Teaching status for ${name.textContent}`,
+      );
       status.addEventListener("change", () => {
         assignments.set(departmentId, Number(status.value));
       });
@@ -591,9 +593,11 @@ function classifyRows(rows, existing) {
       raw.department_teaching_statuses || "",
     ).trim();
     const departmentTeachingStatuses = departmentStatusSource
-      ? departmentStatusSource.split(",").map((value) =>
-          teachingStatuses.get(normalize(value).replace(/[-_]+/g, " ")),
-        )
+      ? departmentStatusSource
+          .split(",")
+          .map((value) =>
+            teachingStatuses.get(normalize(value).replace(/[-_]+/g, " ")),
+          )
       : [];
     const key = normalize(`${givenname} ${surname}`);
     const base = {

@@ -2,12 +2,15 @@ const pool = require("../../../db/db");
 
 module.exports = {
   getColleges: (callBack) => {
-    pool.query("SELECT colleges.*, schools.code AS school_code, schools.name AS school_name FROM colleges INNER JOIN schools ON schools.id = colleges.school_id ORDER BY colleges.code", (error, results) => {
-      if (error) {
-        callBack(error);
-      }
-      return callBack(null, results);
-    });
+    pool.query(
+      "SELECT colleges.*, schools.code AS school_code, schools.name AS school_name FROM colleges INNER JOIN schools ON schools.id = colleges.school_id ORDER BY colleges.code",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      },
+    );
   },
 
   getActiveColleges: (callBack) => {
@@ -18,7 +21,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -31,7 +34,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -44,7 +47,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -95,9 +98,12 @@ module.exports = {
       );
       if (!parentSchools.length) throw new Error("School not found.");
       if (targetActive && !Number(parentSchools[0].is_active)) {
-        throw new Error("Activate the parent school before activating this college.");
+        throw new Error(
+          "Activate the parent school before activating this college.",
+        );
       }
-      const statusChanged = Number(currentColleges[0].is_active) !== targetActive;
+      const statusChanged =
+        Number(currentColleges[0].is_active) !== targetActive;
       const [collegeResult] = await connection.query(
         "UPDATE colleges SET code=?, name=?, school_id=?, is_active=? WHERE id=?",
         [data.code, data.name, data.school_id, data.is_active, data.id],
@@ -117,14 +123,19 @@ module.exports = {
           [targetActive, data.id, targetActive],
         );
       }
-      const changedRows = Number(collegeResult.changedRows || 0) +
-        Number(departmentResult.changedRows || 0) + Number(programResult.changedRows || 0);
+      const changedRows =
+        Number(collegeResult.changedRows || 0) +
+        Number(departmentResult.changedRows || 0) +
+        Number(programResult.changedRows || 0);
       if (changedRows) {
         await connection.query(
           "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-          [data.user_id, statusChanged
-            ? `Updated College: ${data.code}; ${targetActive ? "activated" : "deactivated"} ${departmentResult.changedRows || 0} department(s) and ${programResult.changedRows || 0} program(s)`
-            : `Updated College: ${data.code}`],
+          [
+            data.user_id,
+            statusChanged
+              ? `Updated College: ${data.code}; ${targetActive ? "activated" : "deactivated"} ${departmentResult.changedRows || 0} department(s) and ${programResult.changedRows || 0} program(s)`
+              : `Updated College: ${data.code}`,
+          ],
         );
       }
       await connection.commit();
@@ -153,19 +164,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
 };

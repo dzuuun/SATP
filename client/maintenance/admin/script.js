@@ -97,7 +97,9 @@ const getPermission = async () => {
     data = await response.json(),
     result = (data.data || []).filter(
       (permission) =>
-        String(permission.name || "").trim().toLowerCase() !== "rater",
+        String(permission.name || "")
+          .trim()
+          .toLowerCase() !== "rater",
     );
 
   adminPermissions = result;
@@ -114,14 +116,21 @@ const permissionsReady = getPermission();
 function normalizeAdminImportRow(raw) {
   const row = {};
   Object.entries(raw || {}).forEach(([key, value]) => {
-    row[String(key).trim().toLowerCase().replace(/[\s-]+/g, "_")] = value;
+    row[
+      String(key)
+        .trim()
+        .toLowerCase()
+        .replace(/[\s-]+/g, "_")
+    ] = value;
   });
   row.username = String(row.username || "").trim();
   row.password = String(row.password || "").trim();
   row.givenname = String(row.givenname || row.first_name || "").trim();
   row.middlename = String(row.middlename || row.middle_name || "").trim();
   row.surname = String(row.surname || row.last_name || "").trim();
-  row.gender = String(row.gender || "").trim().toUpperCase();
+  row.gender = String(row.gender || "")
+    .trim()
+    .toUpperCase();
   row.google_email = String(row.google_email || row.email || "")
     .trim()
     .toLowerCase();
@@ -132,7 +141,9 @@ function normalizeAdminImportRow(raw) {
     .toUpperCase();
   row.permission_id = String(row.permission_id || "").trim();
   row.is_active = ["0", "false", "inactive", "no"].includes(
-    String(row.is_active ?? "1").trim().toLowerCase(),
+    String(row.is_active ?? "1")
+      .trim()
+      .toLowerCase(),
   )
     ? 0
     : 1;
@@ -162,8 +173,12 @@ function adminImportChanged(row, current) {
     "is_active",
   ];
   return fields.some((field) => {
-    const incoming = String(row[field] ?? "").trim().toUpperCase();
-    const existing = String(current[field] ?? "").trim().toUpperCase();
+    const incoming = String(row[field] ?? "")
+      .trim()
+      .toUpperCase();
+    const existing = String(current[field] ?? "")
+      .trim()
+      .toUpperCase();
     return incoming !== existing;
   });
 }
@@ -181,15 +196,25 @@ function classifyAdminImport(rows, existingAdmins) {
       (item) => String(item.id) === row.permission_id,
     );
     let reason = "";
-    if (!row.username || !row.givenname || !row.surname || !row.gender || !row.permission_id)
+    if (
+      !row.username ||
+      !row.givenname ||
+      !row.surname ||
+      !row.gender ||
+      !row.permission_id
+    )
       reason = "Required administrator fields are incomplete";
     else if (seen.has(key)) reason = "Duplicate username in workbook";
     else if (!["MALE", "FEMALE"].includes(row.gender))
       reason = "Gender must be Male or Female";
-    else if (!permission) reason = "Permission is inactive, Rater, or not found";
+    else if (!permission)
+      reason = "Permission is inactive, Rater, or not found";
     else if (!["COLLEGE", "SHS", "ALL"].includes(row.admin_academic_scope))
       reason = "Academic scope must be COLLEGE, SHS, or ALL";
-    else if (row.google_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.google_email))
+    else if (
+      row.google_email &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.google_email)
+    )
       reason = "Institutional email is invalid";
     const current = existing.get(key);
     if (!reason && !current && !row.password && !row.google_email)
@@ -225,7 +250,8 @@ function renderAdminImportPreview() {
     items.forEach((item) => {
       const row = document.createElement("div");
       row.className = "preview-row";
-      row.innerHTML = '<span class="row-number"></span><span class="room-name"></span><span class="row-detail"></span>';
+      row.innerHTML =
+        '<span class="row-number"></span><span class="room-name"></span><span class="row-detail"></span>';
       row.children[0].textContent = `Row ${item.rowNumber}`;
       row.children[1].textContent = `${item.username} — ${item.givenname} ${item.surname}`;
       row.children[2].textContent = item.reason || detail;
@@ -236,58 +262,69 @@ function renderAdminImportPreview() {
     !pendingAdminImport.created.length && !pendingAdminImport.updated.length;
 }
 
-document.getElementById("adminXlsxInput").addEventListener("change", (event) => {
-  const file = event.target.files[0];
-  if (file) document.querySelector("#adminDropZone p").textContent = `Selected: ${file.name}`;
-});
+document
+  .getElementById("adminXlsxInput")
+  .addEventListener("change", (event) => {
+    const file = event.target.files[0];
+    if (file)
+      document.querySelector("#adminDropZone p").textContent =
+        `Selected: ${file.name}`;
+  });
 
-document.getElementById("downloadAdminTemplate").addEventListener("click", (event) => {
-  event.preventDefault();
-  const sheet = XLSX.utils.json_to_sheet([
-    {
-      username: "admin.user",
-      password: "Temporary123",
-      givenname: "Admin",
-      middlename: "",
-      surname: "User",
-      gender: "Male",
-      google_email: "admin.user@ndmu.edu.ph",
-      permission_id: 2,
-      admin_academic_scope: "COLLEGE",
-      is_active: 1,
-    },
-  ]);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, sheet, "Administrators");
-  XLSX.writeFile(workbook, "admin_import_template.xlsx");
-});
-
-document.getElementById("uploadAdminForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  toggleModal("importFileModal", false);
-  document.querySelector("#spinnerStatusModal .eyebrow").textContent = "Validating workbook";
-  document.getElementById("statusMessage").textContent = "Please wait";
-  document.getElementById("progressDetail").textContent = "Refreshing administrators and permissions.";
-  setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-  try {
-    const [rows, adminResponse, permissionResponse] = await Promise.all([
-      readAdminWorkbook(document.getElementById("adminXlsxInput").files[0]),
-      fetch("/api/admin").then((response) => response.json()),
-      fetch("/api/permission/all/active").then((response) => response.json()),
+document
+  .getElementById("downloadAdminTemplate")
+  .addEventListener("click", (event) => {
+    event.preventDefault();
+    const sheet = XLSX.utils.json_to_sheet([
+      {
+        username: "admin.user",
+        password: "Temporary123",
+        givenname: "Admin",
+        middlename: "",
+        surname: "User",
+        gender: "Male",
+        google_email: "admin.user@ndmu.edu.ph",
+        permission_id: 2,
+        admin_academic_scope: "COLLEGE",
+        is_active: 1,
+      },
     ]);
-    adminPermissions = (permissionResponse.data || []).filter(
-      (permission) => String(permission.name).trim().toLowerCase() !== "rater",
-    );
-    pendingAdminImport = classifyAdminImport(rows, adminResponse.data || []);
-    renderAdminImportPreview();
-    toggleModal("spinnerStatusModal", false);
-    setTimeout(() => toggleModal("importPreviewModal", true), 250);
-  } catch (error) {
-    toggleModal("spinnerStatusModal", false);
-    setTimeout(() => toggleModal("importFileModal", true), 250);
-    setErrorMessage(error.message || "Unable to validate the workbook.");
-  }
-});
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, "Administrators");
+    XLSX.writeFile(workbook, "admin_import_template.xlsx");
+  });
+
+document
+  .getElementById("uploadAdminForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    toggleModal("importFileModal", false);
+    document.querySelector("#spinnerStatusModal .eyebrow").textContent =
+      "Validating workbook";
+    document.getElementById("statusMessage").textContent = "Please wait";
+    document.getElementById("progressDetail").textContent =
+      "Refreshing administrators and permissions.";
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+    try {
+      const [rows, adminResponse, permissionResponse] = await Promise.all([
+        readAdminWorkbook(document.getElementById("adminXlsxInput").files[0]),
+        fetch("/api/admin").then((response) => response.json()),
+        fetch("/api/permission/all/active").then((response) => response.json()),
+      ]);
+      adminPermissions = (permissionResponse.data || []).filter(
+        (permission) =>
+          String(permission.name).trim().toLowerCase() !== "rater",
+      );
+      pendingAdminImport = classifyAdminImport(rows, adminResponse.data || []);
+      renderAdminImportPreview();
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    } catch (error) {
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("importFileModal", true), 250);
+      setErrorMessage(error.message || "Unable to validate the workbook.");
+    }
+  });
 
 async function adminImportRequest(url, method, payload) {
   const response = await fetch(url, {
@@ -296,77 +333,94 @@ async function adminImportRequest(url, method, payload) {
     body: JSON.stringify(payload),
   });
   const result = await response.json();
-  if (!response.ok || !result.success) throw new Error(result.message || "Import failed");
+  if (!response.ok || !result.success)
+    throw new Error(result.message || "Import failed");
   return result;
 }
 
 function downloadAdminImportErrors(errors) {
   if (!errors.length) return;
-  const rows = errors.map((item) => ({ ...item.originalRow, Error: item.reason }));
+  const rows = errors.map((item) => ({
+    ...item.originalRow,
+    Error: item.reason,
+  }));
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(rows), "Import Errors");
-  XLSX.writeFile(workbook, `admin_import_errors_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  XLSX.utils.book_append_sheet(
+    workbook,
+    XLSX.utils.json_to_sheet(rows),
+    "Import Errors",
+  );
+  XLSX.writeFile(
+    workbook,
+    `admin_import_errors_${new Date().toISOString().slice(0, 10)}.xlsx`,
+  );
 }
 
-document.getElementById("runAdminImportButton").addEventListener("click", async () => {
-  const actions = [
-    ...pendingAdminImport.created.map((item) => ({ type: "created", item })),
-    ...pendingAdminImport.updated.map((item) => ({ type: "updated", item })),
-  ];
-  toggleModal("importPreviewModal", false);
-  document.querySelector("#spinnerStatusModal .eyebrow").textContent = "Import in progress";
-  document.getElementById("statusMessage").textContent = "0%";
-  document.getElementById("progressDetail").textContent = "Preparing administrator records.";
-  setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-  const totals = { created: 0, updated: 0 };
-  const failures = [...pendingAdminImport.errors];
-  for (let index = 0; index < actions.length; index++) {
-    const { type, item } = actions[index];
-    try {
-      const payload = {
-        username: item.username,
-        password: type === "created" ? item.password : "",
-        givenname: item.givenname,
-        middlename: item.middlename,
-        surname: item.surname,
-        gender: item.gender,
-        google_email: item.google_email,
-        permission_id: item.permission_id,
-        admin_academic_scope: item.admin_academic_scope,
-        is_active: item.is_active,
-        is_temp_pass: 1,
-        user_id: user,
-      };
-      if (type === "created") {
-        await adminImportRequest("/api/admin/add", "POST", payload);
-      } else {
-        await adminImportRequest("/api/admin/update/info", "PUT", {
-          ...payload,
-          id: item.id,
-        });
-        if (Number(item.current.is_active) !== Number(item.is_active)) {
-          await adminImportRequest("/api/admin/update/status", "PUT", {
+document
+  .getElementById("runAdminImportButton")
+  .addEventListener("click", async () => {
+    const actions = [
+      ...pendingAdminImport.created.map((item) => ({ type: "created", item })),
+      ...pendingAdminImport.updated.map((item) => ({ type: "updated", item })),
+    ];
+    toggleModal("importPreviewModal", false);
+    document.querySelector("#spinnerStatusModal .eyebrow").textContent =
+      "Import in progress";
+    document.getElementById("statusMessage").textContent = "0%";
+    document.getElementById("progressDetail").textContent =
+      "Preparing administrator records.";
+    setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
+    const totals = { created: 0, updated: 0 };
+    const failures = [...pendingAdminImport.errors];
+    for (let index = 0; index < actions.length; index++) {
+      const { type, item } = actions[index];
+      try {
+        const payload = {
+          username: item.username,
+          password: type === "created" ? item.password : "",
+          givenname: item.givenname,
+          middlename: item.middlename,
+          surname: item.surname,
+          gender: item.gender,
+          google_email: item.google_email,
+          permission_id: item.permission_id,
+          admin_academic_scope: item.admin_academic_scope,
+          is_active: item.is_active,
+          is_temp_pass: 1,
+          user_id: user,
+        };
+        if (type === "created") {
+          await adminImportRequest("/api/admin/add", "POST", payload);
+        } else {
+          await adminImportRequest("/api/admin/update/info", "PUT", {
+            ...payload,
             id: item.id,
-            is_active: item.is_active,
-            user_id: user,
           });
+          if (Number(item.current.is_active) !== Number(item.is_active)) {
+            await adminImportRequest("/api/admin/update/status", "PUT", {
+              id: item.id,
+              is_active: item.is_active,
+              user_id: user,
+            });
+          }
         }
+        totals[type]++;
+      } catch (error) {
+        failures.push({ ...item, reason: error.message });
       }
-      totals[type]++;
-    } catch (error) {
-      failures.push({ ...item, reason: error.message });
+      const completed = index + 1;
+      document.getElementById("statusMessage").textContent =
+        `${Math.round((completed / actions.length) * 100)}%`;
+      document.getElementById("progressDetail").textContent =
+        `Processing ${completed} of ${actions.length} administrator records.`;
     }
-    const completed = index + 1;
-    document.getElementById("statusMessage").textContent = `${Math.round((completed / actions.length) * 100)}%`;
-    document.getElementById("progressDetail").textContent = `Processing ${completed} of ${actions.length} administrator records.`;
-  }
-  toggleModal("spinnerStatusModal", false);
-  downloadAdminImportErrors(failures);
-  data.ajax.reload(null, false);
-  setSuccessMessage(
-    `${totals.created} created, ${totals.updated} updated, ${pendingAdminImport.unchanged.length} unchanged, ${failures.length} errors.`,
-  );
-});
+    toggleModal("spinnerStatusModal", false);
+    downloadAdminImportErrors(failures);
+    data.ajax.reload(null, false);
+    setSuccessMessage(
+      `${totals.created} created, ${totals.updated} updated, ${pendingAdminImport.unchanged.length} unchanged, ${failures.length} errors.`,
+    );
+  });
 
 function generatePassword() {
   let result = "";
@@ -396,8 +450,13 @@ formAddAdmin.addEventListener("submit", async (event) => {
   formData.append("is_temp_pass", "0");
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
-  if (!String(data.password || "").trim() && !String(data.google_email || "").trim()) {
-    return setErrorMessage("Enter a temporary password or an institutional email.");
+  if (
+    !String(data.password || "").trim() &&
+    !String(data.google_email || "").trim()
+  ) {
+    return setErrorMessage(
+      "Enter a temporary password or an institutional email.",
+    );
   }
   if (await satpConfirm("Create this administrator account?")) {
     await fetch(`/api/admin/add`, {
@@ -464,8 +523,9 @@ async function edit(id) {
       document.getElementById("editMiddleName").value = adminData.middlename;
       document.getElementById("editLastName").value = adminData.surname;
       document.getElementById("editGenderSelect").value = adminData.gender;
-      document.getElementById("editPermissionSelect").value =
-        String(adminData.permission_id);
+      document.getElementById("editPermissionSelect").value = String(
+        adminData.permission_id,
+      );
       document.getElementById("editGoogleEmail").value =
         adminData.google_email || "";
       document.getElementById("editAdminAcademicScope").value =

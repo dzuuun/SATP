@@ -18,7 +18,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -31,7 +31,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -44,7 +44,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -75,19 +75,19 @@ module.exports = {
                   if (error) {
                     console.log("Activity Log Error:", error); // Log the error but don't interrupt flow
                   }
-                }
+                },
               );
 
               return callBack(null, results); // Success callback
-            }
+            },
           );
         } else {
           return callBack(null, results); // Subject already exists, send results back
         }
-      }
+      },
     );
   },
-  
+
   updateSubject: (data, callBack) => {
     pool.query(
       "UPDATE subjects SET code = ?, name = ?, is_active = ? WHERE id = ?",
@@ -106,11 +106,11 @@ module.exports = {
               if (logError) {
                 console.log("Activity Log Error:", logError); // Log the error but don't interrupt the flow
               }
-            }
+            },
           );
         }
         return callBack(null, results); // Success callback
-      }
+      },
     );
   },
 
@@ -131,19 +131,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
 };

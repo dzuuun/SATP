@@ -242,7 +242,10 @@ function classifyRows(rows, existing, schools) {
       originalRow: raw,
     };
     if (!code || !name || !schoolCode) {
-      result.errors.push({ ...base, reason: "Code, name, and school code are required" });
+      result.errors.push({
+        ...base,
+        reason: "Code, name, and school code are required",
+      });
     } else if (!school) {
       result.errors.push({ ...base, reason: `Unknown school: ${schoolCode}` });
     } else if (seen.has(key)) {

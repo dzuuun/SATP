@@ -22,13 +22,15 @@ $(document).ready(() => {
         data: "is_current_college",
         title: "College current",
         className: "dt-center",
-        render: (v) => v ? '<span class="status-badge active">Current</span>' : "—",
+        render: (v) =>
+          v ? '<span class="status-badge active">Current</span>' : "—",
       },
       {
         data: "is_current_shs",
         title: "SHS current",
         className: "dt-center",
-        render: (v) => v ? '<span class="status-badge active">Current</span>' : "—",
+        render: (v) =>
+          v ? '<span class="status-badge active">Current</span>' : "—",
       },
       {
         data: "is_active",

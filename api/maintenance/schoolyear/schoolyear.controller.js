@@ -19,10 +19,16 @@ const controller = createStandardController(model, {
 controller.getCurrentSchoolYear = (req, res) => {
   model.getCurrentSchoolYear((error, schoolYear) => {
     if (error) {
-      return res.status(500).json({ success: 0, message: "Unable to load the current school year." });
+      return res.status(500).json({
+        success: 0,
+        message: "Unable to load the current school year.",
+      });
     }
     if (!schoolYear) {
-      return res.status(404).json({ success: 0, message: "No current active school year is configured." });
+      return res.status(404).json({
+        success: 0,
+        message: "No current active school year is configured.",
+      });
     }
     return res.json({ success: 1, data: schoolYear });
   });

@@ -25,6 +25,16 @@ body.satp-sidebar-present .site-header {
   isolation: isolate;
 }
 
+/* Page-level dialogs must cover the sticky header as well as the sidebar. */
+body.satp-sidebar-present .room-modal,
+body.satp-sidebar-present .subject-modal {
+  z-index: 1700;
+}
+
+body.satp-sidebar-present .progress-modal {
+  z-index: 1710;
+}
+
 /* The expanded panel is always layered over the existing page column. */
 body.satp-sidebar-present.satp-sidebar-pinned #main {
   width: calc(100% - var(--satp-navigation-rail)) !important;

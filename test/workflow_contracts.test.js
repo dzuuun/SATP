@@ -74,9 +74,7 @@ test("Student Course supports one rating per teacher on the same schedule for CH
   const enrollmentModel = read(
     "api/maintenance/studentsubject/studentsubject.model.js",
   );
-  const ratingModel = read(
-    "api/transaction/studentRatingStatus/srs.model.js",
-  );
+  const ratingModel = read("api/transaction/studentRatingStatus/srs.model.js");
   const importScript = read("client/maintenance/student_subject/script.js");
   const studentModel = read("api/maintenance/student/student.model.js");
   const ratingClient = read("client/rate/script.js");
@@ -131,15 +129,24 @@ test("Student Course import indexes validation data and uses bounded concurrency
     script,
     /Checking row \$\{Math\.min\(index \+ 1, rows\.length\)\} of \$\{rows\.length\};\\n\$\{remaining\} remaining\./,
   );
-  assert.match(style, /#spinnerStatusModalCard #progressDetail[\s\S]*white-space: pre-line/);
+  assert.match(
+    style,
+    /#spinnerStatusModalCard #progressDetail[\s\S]*white-space: pre-line/,
+  );
 });
 
 test("Student Course validation progress is throttled and completes after preview rendering", () => {
   const script = read("client/maintenance/student_subject/script.js");
 
   assert.match(script, /Math\.ceil\(rows\.length \/ 40\)/);
-  assert.match(script, /10 \+ Math\.round\(\(processed \/ rows\.length\) \* 55\)/);
-  assert.match(script, /65 \+ Math\.floor\(\(checkedBatches \/ enrollmentBatches\.length\) \* 30\)/);
+  assert.match(
+    script,
+    /10 \+ Math\.round\(\(processed \/ rows\.length\) \* 55\)/,
+  );
+  assert.match(
+    script,
+    /65 \+ Math\.floor\(\(checkedBatches \/ enrollmentBatches\.length\) \* 30\)/,
+  );
   assert.match(
     script,
     /const shouldReportProgress =\s*progress > lastEnrollmentProgress \|\| remaining === 0/,
@@ -162,7 +169,10 @@ test("Student Course validation yields work and batches large previews", () => {
   assert.match(script, /const periodRecords = new Map\(\)/);
   assert.doesNotMatch(script, /enrollmentBatches\.map\(async \(items\)/);
   assert.match(script, /const PREVIEW_BATCH_SIZE = 250/);
-  assert.match(script, /\.slice\(visibleCount, visibleCount \+ PREVIEW_BATCH_SIZE\)/);
+  assert.match(
+    script,
+    /\.slice\(visibleCount, visibleCount \+ PREVIEW_BATCH_SIZE\)/,
+  );
   assert.match(style, /\.preview-load-more/);
 });
 
@@ -210,9 +220,13 @@ test("Student rating access is separated for SHS and non-SHS students", () => {
 });
 
 test("SHS and College use independent current academic terms", () => {
-  const migration = read("database/migrations/2026-08-13_separate_shs_college_terms.sql");
+  const migration = read(
+    "database/migrations/2026-08-13_separate_shs_college_terms.sql",
+  );
   const semesterModel = read("api/maintenance/semester/semester.model.js");
-  const schoolYearModel = read("api/maintenance/schoolyear/schoolyear.model.js");
+  const schoolYearModel = read(
+    "api/maintenance/schoolyear/schoolyear.model.js",
+  );
   const semesterRouter = read("api/maintenance/semester/semester.router.js");
   const rating = read("client/rating/script.js");
   const studentCourse = read("client/maintenance/student_subject/script.js");
@@ -224,7 +238,10 @@ test("SHS and College use independent current academic terms", () => {
   assert.match(semesterModel, /semesters\.is_current_college = 1/);
   assert.match(schoolYearModel, /UPDATE school_years SET in_use = 0/);
   assert.match(schoolYearModel, /isActive && Number\(data\.in_use\) === 1/);
-  assert.match(semesterRouter, /router\.get\("\/current\/student", getCurrentSemesterForStudent\)/);
+  assert.match(
+    semesterRouter,
+    /router\.get\("\/current\/student", getCurrentSemesterForStudent\)/,
+  );
   assert.match(rating, /\/api\/semester\/current\/student/);
   assert.match(studentCourse, /\/api\/semester\/current\/admin/);
   assert.match(studentCourse, /Number\(currentData\.data\?\.id\)/);
@@ -295,8 +312,14 @@ test("Maintenance activation and deactivation cascade through the hierarchy", ()
   );
   assert.match(college, /targetActive \? "activated" : "deactivated"/);
   assert.match(department, /targetActive \? "activated" : "deactivated"/);
-  assert.match(college, /SELECT is_active FROM colleges WHERE id = \? FOR UPDATE/);
-  assert.match(department, /SELECT is_active FROM departments WHERE id = \? FOR UPDATE/);
+  assert.match(
+    college,
+    /SELECT is_active FROM colleges WHERE id = \? FOR UPDATE/,
+  );
+  assert.match(
+    department,
+    /SELECT is_active FROM departments WHERE id = \? FOR UPDATE/,
+  );
   assert.match(college, /if \(statusChanged\) \{/);
   assert.match(department, /if \(statusChanged\) \{/);
   assert.match(college, /beginTransaction/);
@@ -319,19 +342,29 @@ test("Schedule Assignment uses the period index before resolving academic scope"
     model,
     /arc\.school_year_id = \? AND arc\.semester_id = \?[\s\S]*requesting_admin\.admin_academic_scope = CASE[\s\S]*student_schools\.code/,
   );
-  assert.match(model, /arc\.schedule_code IS NOT NULL AND arc\.schedule_code <> ''/);
+  assert.match(
+    model,
+    /arc\.schedule_code IS NOT NULL AND arc\.schedule_code <> ''/,
+  );
 });
 
 test("Schedule Assignment can dissolve and restore a schedule", () => {
   const model = read("api/maintenance/studentsubject/studentsubject.model.js");
-  const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
-  const router = read("api/maintenance/studentsubject/studentsubject.router.js");
+  const controller = read(
+    "api/maintenance/studentsubject/studentsubject.controller.js",
+  );
+  const router = read(
+    "api/maintenance/studentsubject/studentsubject.router.js",
+  );
   const script = read("client/maintenance/schedule_assignment/script.js");
   assert.match(router, /schedule-assignments\/dissolve/);
   assert.match(controller, /setScheduleDissolved/);
   assert.match(model, /SET arc\.is_excluded = 1, arc\.reason = 'DISSOLVED'/);
   assert.match(model, /SET arc\.is_excluded = 0, arc\.reason = NULL/);
-  assert.match(model, /arc\.teacher_id = \? AND arc\.schedule_code = \? AND arc\.reason = 'DISSOLVED'/);
+  assert.match(
+    model,
+    /arc\.teacher_id = \? AND arc\.schedule_code = \? AND arc\.reason = 'DISSOLVED'/,
+  );
   assert.match(model, /beginTransaction/);
   assert.match(controller, /"subject_id", "teacher_id"/);
   assert.match(script, /section-dissolve-button/);
@@ -361,7 +394,8 @@ test("Excluded rated enrollments do not count in report scores", () => {
   assert.match(rating, /AND is_excluded = 0/);
   const ratingFilters = rating.match(/arc\.is_excluded = 0/g) || [];
   assert.ok(ratingFilters.length >= 10);
-  const rankingJoins = ranking.match(/trans_item\.transaction_id = arc\.id/g) || [];
+  const rankingJoins =
+    ranking.match(/trans_item\.transaction_id = arc\.id/g) || [];
   assert.equal(rankingJoins.length, 4);
   assert.doesNotMatch(ranking, /\btransactions\b/);
   assert.match(ranking, /UPPER\(TRIM\(student_schools\.code\)\) <> 'SHS'/);
@@ -370,14 +404,23 @@ test("Excluded rated enrollments do not count in report scores", () => {
 
 test("Excluded courses are hidden from rating lists and transaction totals", () => {
   const model = read("api/transaction/studentRatingStatus/srs.model.js");
-  const filters = model.match(/COALESCE\((?:academic_records_consolidated\.)?(?:ar\.)?is_excluded, 0\) = 0/g) || [];
+  const filters =
+    model.match(
+      /COALESCE\((?:academic_records_consolidated\.)?(?:ar\.)?is_excluded, 0\) = 0/g,
+    ) || [];
   assert.ok(filters.length >= 6);
-  assert.match(model, /COUNT\(academic_records_consolidated\.subject_id\) AS TotalSubjects[\s\S]*COALESCE\(academic_records_consolidated\.is_excluded, 0\) = 0/);
+  assert.match(
+    model,
+    /COUNT\(academic_records_consolidated\.subject_id\) AS TotalSubjects[\s\S]*COALESCE\(academic_records_consolidated\.is_excluded, 0\) = 0/,
+  );
   assert.match(
     model,
     /PendingStatusCount[\s\S]*COALESCE\((?:academic_records_consolidated\.)?is_excluded, 0\) = 0/,
   );
-  assert.match(model, /WHERE ar\.id = \?[\s\S]*COALESCE\(ar\.is_excluded, 0\) = 0/);
+  assert.match(
+    model,
+    /WHERE ar\.id = \?[\s\S]*COALESCE\(ar\.is_excluded, 0\) = 0/,
+  );
 });
 
 test("Student Course counts only included enrollments", () => {
@@ -387,15 +430,22 @@ test("Student Course counts only included enrollments", () => {
 
 test("Student Course aggregates the period before joining student details", () => {
   const model = read("api/maintenance/studentsubject/studentsubject.model.js");
-  const migration = read("database/migrations/2026-08-12_student_course_period_index.sql");
-  assert.match(model, /FROM \([\s\S]*WHERE school_year_id = \? AND semester_id = \?[\s\S]*GROUP BY student_id[\s\S]*\) AS records/);
+  const migration = read(
+    "database/migrations/2026-08-12_student_course_period_index.sql",
+  );
+  assert.match(
+    model,
+    /FROM \([\s\S]*WHERE school_year_id = \? AND semester_id = \?[\s\S]*GROUP BY student_id[\s\S]*\) AS records/,
+  );
   assert.match(model, /SUM\(is_excluded = 0\) AS included_count/);
   assert.match(migration, /idx_arc_period_student_excluded/);
 });
 
 test("Student Course detail loading has a student-first covering index", () => {
   const model = read("api/maintenance/studentsubject/studentsubject.model.js");
-  const migration = read("database/migrations/2026-08-12_student_course_detail_index.sql");
+  const migration = read(
+    "database/migrations/2026-08-12_student_course_detail_index.sql",
+  );
   assert.match(
     model,
     /records\.student_id = \? AND records\.school_year_id = \?[\s\S]*records\.semester_id = \? AND records\.is_excluded = [01]/,
@@ -409,7 +459,19 @@ test("Student Course detail loading has a student-first covering index", () => {
 
 test("Student Course excluded table has complete aligned headers", () => {
   const script = read("client/maintenance/student_subject/script.js");
-  ["Course code", "Course name", "Teacher", "Schedule", "Starts", "Ends", "Day", "Room", "Excluded", "Reason", "Actions"].forEach((title) => {
+  [
+    "Course code",
+    "Course name",
+    "Teacher",
+    "Schedule",
+    "Starts",
+    "Ends",
+    "Day",
+    "Room",
+    "Excluded",
+    "Reason",
+    "Actions",
+  ].forEach((title) => {
     assert.match(script, new RegExp(`title: ["']${title}["']`));
   });
   assert.doesNotMatch(script, /return `<td class="text-center fw-medium">/);
@@ -417,7 +479,10 @@ test("Student Course excluded table has complete aligned headers", () => {
 
 test("Student Course tables display teacher prefixes and suffixes", () => {
   const model = read("api/maintenance/studentsubject/studentsubject.model.js");
-  const recordSelect = model.slice(model.indexOf("const recordSelect"), model.indexOf("const insertSql"));
+  const recordSelect = model.slice(
+    model.indexOf("const recordSelect"),
+    model.indexOf("const insertSql"),
+  );
   assert.match(recordSelect, /teachers\.prefix/);
   assert.match(recordSelect, /teachers\.givenname/);
   assert.match(recordSelect, /teachers\.surname/);
@@ -427,20 +492,36 @@ test("Student Course tables display teacher prefixes and suffixes", () => {
 
 test("Student Course excluded rows can be restored instead of edited", () => {
   const model = read("api/maintenance/studentsubject/studentsubject.model.js");
-  const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
-  const router = read("api/maintenance/studentsubject/studentsubject.router.js");
+  const controller = read(
+    "api/maintenance/studentsubject/studentsubject.controller.js",
+  );
+  const router = read(
+    "api/maintenance/studentsubject/studentsubject.router.js",
+  );
   const script = read("client/maintenance/student_subject/script.js");
   assert.match(router, /router\.put\("\/restore", restoreStudentSubject\)/);
   assert.match(controller, /restoreStudentSubject/);
   assert.match(model, /SET is_excluded = 0, reason = NULL/);
   assert.match(model, /WHERE id = \? AND is_excluded = 1/);
-  assert.match(model, /Restored student course for \$\{record\.student_number\}/);
-  assert.match(model, /Excluded student course for \$\{record\.student_number\}/);
+  assert.match(
+    model,
+    /Restored student course for \$\{record\.student_number\}/,
+  );
+  assert.match(
+    model,
+    /Excluded student course for \$\{record\.student_number\}/,
+  );
   assert.match(model, /record\.subject_code/);
   assert.match(model, /record\.schedule_code/);
   assert.match(model, /record\.teacher_name/);
-  assert.match(controller, /Restored student course for \$\{results\.record\.student_number\}/);
-  assert.match(controller, /Excluded student course for \$\{results\.record\.student_number\}/);
+  assert.match(
+    controller,
+    /Restored student course for \$\{results\.record\.student_number\}/,
+  );
+  assert.match(
+    controller,
+    /Excluded student course for \$\{results\.record\.student_number\}/,
+  );
   assert.match(script, /table-restore-button/);
   assert.match(script, />\s*Restore\s*<\/button>/);
   assert.match(script, /openRestoreModal/);
@@ -519,7 +600,9 @@ test("Google Workspace SSO verifies domain and links existing SATP users", () =>
   const router = read("api/login/login.router.js");
   const loginPage = read("client/login/index.html");
   const usersPage = read("client/user/user_management/index.html");
-  const migration = read("database/migrations/2026-08-15_google_workspace_sso.sql");
+  const migration = read(
+    "database/migrations/2026-08-15_google_workspace_sso.sql",
+  );
   assert.match(controller, /verifyIdToken/);
   assert.match(controller, /identity\?\.email_verified/);
   assert.match(controller, /identity\.hd/);
@@ -531,7 +614,10 @@ test("Google Workspace SSO verifies domain and links existing SATP users", () =>
   assert.match(loginPage, /Sign in using your institutional email\./);
   assert.match(usersPage, /name="google_email"/);
   assert.doesNotMatch(usersPage, /name="google_email"[^>]*required/);
-  assert.match(usersPage, /School Google email <span class="optional-label">Optional<\/span>/);
+  assert.match(
+    usersPage,
+    /School Google email <span class="optional-label">Optional<\/span>/,
+  );
   assert.match(migration, /UNIQUE INDEX uq_users_google_email/);
 });
 
@@ -558,10 +644,19 @@ test("Administrator academic scope selects the default maintenance term", () => 
   assert.match(semesterModel, /semesters\.is_current_college = 1/);
   assert.match(semesterRouter, /router\.get\("\/current\/admin"/);
   assert.match(studentCourse, /fetch\("\/api\/semester\/current\/admin"\)/);
-  assert.match(scheduleAssignment, /fetch\("\/api\/semester\/current\/admin"\)/);
+  assert.match(
+    scheduleAssignment,
+    /fetch\("\/api\/semester\/current\/admin"\)/,
+  );
   assert.match(transactions, /fetch\("\/api\/semester\/current\/admin"\)/);
-  assert.match(transactions, /group === "SHS" \? "is_current_shs" : "is_current_college"/);
-  assert.match(transactions, /semester\.value = semesterId \? String\(semesterId\) : ""/);
+  assert.match(
+    transactions,
+    /group === "SHS" \? "is_current_shs" : "is_current_college"/,
+  );
+  assert.match(
+    transactions,
+    /semester\.value = semesterId \? String\(semesterId\) : ""/,
+  );
   assert.match(
     transactions,
     /semester\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\)/,
@@ -593,8 +688,11 @@ test("Transactions restrict visible data to the administrator academic scope", (
       .length >= 4,
   );
   assert.ok(
-    (model.match(/COALESCE\(requesting_admin\.admin_academic_scope, 'ALL'\) = 'ALL'/g) || [])
-      .length >= 4,
+    (
+      model.match(
+        /COALESCE\(requesting_admin\.admin_academic_scope, 'ALL'\) = 'ALL'/g,
+      ) || []
+    ).length >= 4,
   );
 });
 
@@ -602,23 +700,22 @@ test("Student Course restricts visible students to the administrator academic sc
   const controller = read(
     "api/maintenance/studentsubject/studentsubject.controller.js",
   );
-  const model = read(
-    "api/maintenance/studentsubject/studentsubject.model.js",
-  );
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
 
-  assert.ok((controller.match(/requesting_user_id: req\.user\.id/g) || []).length >= 5);
+  assert.ok(
+    (controller.match(/requesting_user_id: req\.user\.id/g) || []).length >= 5,
+  );
   assert.match(model, /scope_schools\.code/);
   assert.match(model, /THEN 'SHS' ELSE 'COLLEGE'/);
   assert.ok((model.match(/\$\{academicScopeFilter\}/g) || []).length >= 5);
   assert.match(model, /getIncludedSubjectsByStudentById: describeScopedRecord/);
 
-  const studentController = read("api/maintenance/student/student.controller.js");
+  const studentController = read(
+    "api/maintenance/student/student.controller.js",
+  );
   const studentModel = read("api/maintenance/student/student.model.js");
   assert.match(studentController, /requesting_user_id: req\.user\.id/);
-  assert.ok(
-    (studentModel.match(/schools\.code/g) || [])
-      .length >= 2,
-  );
+  assert.ok((studentModel.match(/schools\.code/g) || []).length >= 2);
   assert.ok(
     (studentModel.match(/requesting_admin\.admin_academic_scope = CASE/g) || [])
       .length >= 2,
@@ -629,9 +726,7 @@ test("Schedule Assignment restricts reads and actions to the administrator scope
   const controller = read(
     "api/maintenance/studentsubject/studentsubject.controller.js",
   );
-  const model = read(
-    "api/maintenance/studentsubject/studentsubject.model.js",
-  );
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
 
   assert.match(
     controller,
@@ -646,7 +741,10 @@ test("User Management restricts permissions by account type", () => {
   const page = read("client/user/user_management/index.html");
   const script = read("client/user/user_management/script.js");
 
-  assert.match(page, /id="addRole" required>[\s\S]*?<option value="" selected>Select type<\/option>/);
+  assert.match(
+    page,
+    /id="addRole" required>[\s\S]*?<option value="" selected>Select type<\/option>/,
+  );
   assert.match(page, /id="permissionSelect"[\s\S]*?required disabled/);
   assert.match(script, /function configurePermissionSelect/);
   assert.match(script, /role === "student" \? isRater/);
@@ -707,8 +805,16 @@ test("Equivalent maintenance import pages use the same review and progress workf
         `${page} is missing ${id}`,
       ),
     );
-    assert.match(html, /Validation complete/i, `${page} needs the standard validation result heading`);
-    assert.match(html, /Import in progress/i, `${page} needs the standard import progress heading`);
+    assert.match(
+      html,
+      /Validation complete/i,
+      `${page} needs the standard validation result heading`,
+    );
+    assert.match(
+      html,
+      /Import in progress/i,
+      `${page} needs the standard import progress heading`,
+    );
   });
 });
 
@@ -751,9 +857,17 @@ test("Authenticated non-Grad School pages share the same shell services", () => 
     const html = fs.readFileSync(file, "utf8");
     const relative = path.relative(root, file);
     if (relative.replace(/\\/g, "/") !== "client/rate/index.html") {
-      assert.match(html, /id=["']sidebar-container["']/, `${relative} needs the shared sidebar host`);
+      assert.match(
+        html,
+        /id=["']sidebar-container["']/,
+        `${relative} needs the shared sidebar host`,
+      );
     }
-    assert.match(html, /<script\s+src=["']\/shared-ui\.js(?:\?v=[^"']+)?["']\s*>\s*<\/script>/, `${relative} needs shared UI behavior`);
+    assert.match(
+      html,
+      /<script\s+src=["']\/shared-ui\.js(?:\?v=[^"']+)?["']\s*>\s*<\/script>/,
+      `${relative} needs shared UI behavior`,
+    );
   });
 });
 
@@ -771,39 +885,82 @@ test("Mobile layouts use a toggleable sidebar drawer over full-width content", (
   const pageShell = read("client/page-shell.css");
   const transactions = read("client/transaction/style.css");
   assert.match(sharedUi, /matchMedia\("\(max-width: 900px\)"\)/);
-  assert.match(sidebar, /@media \(max-width: 900px\)[\s\S]*?\.satp-sidebar\s*\{[\s\S]*?visibility: hidden !important;[\s\S]*?transform: translateX\(-100%\);/);
-  assert.match(sidebar, /\.satp-sidebar\.is-sidebar-pinned\s*\{[\s\S]*?visibility: visible !important;[\s\S]*?transform: translateX\(0\);/);
-  assert.match(sidebar, /class="satp-sidebar-backdrop" onclick="toggleNav\(\)"/);
-  assert.match(pageShell, /@media \(max-width: 900px\)[\s\S]*?width: 100% !important;[\s\S]*?margin-left: 0 !important;/);
-  assert.doesNotMatch(sidebar, /\.site-header \.menu-button\s*\{\s*display: none !important;/);
-  assert.match(sharedUi, /const isPinned = sidebar\.classList\.toggle\("is-sidebar-pinned"\)/);
-  assert.match(sharedUi, /mobileSidebarView\.addEventListener\?\.\("change", closeSidebarForMobile\)/);
-  assert.match(transactions, /@media \(max-width: 1100px\)[\s\S]*?\.rating-access-card\s*\{\s*align-items: stretch;\s*flex-direction: column;/);
-  assert.match(transactions, /\.academic-group-choices\s*\{\s*grid-template-columns: 1fr;/);
+  assert.match(
+    sidebar,
+    /@media \(max-width: 900px\)[\s\S]*?\.satp-sidebar\s*\{[\s\S]*?visibility: hidden !important;[\s\S]*?transform: translateX\(-100%\);/,
+  );
+  assert.match(
+    sidebar,
+    /\.satp-sidebar\.is-sidebar-pinned\s*\{[\s\S]*?visibility: visible !important;[\s\S]*?transform: translateX\(0\);/,
+  );
+  assert.match(
+    sidebar,
+    /class="satp-sidebar-backdrop" onclick="toggleNav\(\)"/,
+  );
+  assert.match(
+    pageShell,
+    /@media \(max-width: 900px\)[\s\S]*?width: 100% !important;[\s\S]*?margin-left: 0 !important;/,
+  );
+  assert.doesNotMatch(
+    sidebar,
+    /\.site-header \.menu-button\s*\{\s*display: none !important;/,
+  );
+  assert.match(
+    sharedUi,
+    /const isPinned = sidebar\.classList\.toggle\("is-sidebar-pinned"\)/,
+  );
+  assert.match(
+    sharedUi,
+    /mobileSidebarView\.addEventListener\?\.\("change", closeSidebarForMobile\)/,
+  );
+  assert.match(
+    transactions,
+    /@media \(max-width: 1100px\)[\s\S]*?\.rating-access-card\s*\{\s*align-items: stretch;\s*flex-direction: column;/,
+  );
+  assert.match(
+    transactions,
+    /\.academic-group-choices\s*\{\s*grid-template-columns: 1fr;/,
+  );
 });
 
 test("Collapsed sidebar centers icons without shifting the active item", () => {
   const sidebar = read("client/sidebar.html");
   const sharedUi = read("client/shared-ui.js");
-  assert.match(sidebar, /\.satp-sidebar:not\(:hover\):not\(:focus-within\):not\(\.is-sidebar-pinned\) \.nav-link,[\s\S]*?justify-content: center;/);
-  assert.match(sidebar, /\.nav-active\s*\{\s*border-left-width: 1px;\s*box-shadow: inset 4px 0 0/);
+  assert.match(
+    sidebar,
+    /\.satp-sidebar:not\(:hover\):not\(:focus-within\):not\(\.is-sidebar-pinned\) \.nav-link,[\s\S]*?justify-content: center;/,
+  );
+  assert.match(
+    sidebar,
+    /\.nav-active\s*\{\s*border-left-width: 1px;\s*box-shadow: inset 4px 0 0/,
+  );
   assert.match(sharedUi, /justify-content: center !important;/);
 });
 
 test("Assessment stars are centered on mobile question cards", () => {
   const style = read("client/rate/style.css");
-  assert.match(style, /@media \(max-width: 650px\)[\s\S]*?\.rating-options\s*\{\s*grid-column: 1\/-1;\s*justify-content: center;/);
+  assert.match(
+    style,
+    /@media \(max-width: 650px\)[\s\S]*?\.rating-options\s*\{\s*grid-column: 1\/-1;\s*justify-content: center;/,
+  );
 });
 
 test("Schedule Assignment transfers a mistagged schedule to an eligible Department", () => {
   const model = read("api/maintenance/studentsubject/studentsubject.model.js");
-  const controller = read("api/maintenance/studentsubject/studentsubject.controller.js");
-  const router = read("api/maintenance/studentsubject/studentsubject.router.js");
+  const controller = read(
+    "api/maintenance/studentsubject/studentsubject.controller.js",
+  );
+  const router = read(
+    "api/maintenance/studentsubject/studentsubject.router.js",
+  );
   const page = read("client/maintenance/schedule_assignment/index.html");
   const script = read("client/maintenance/schedule_assignment/script.js");
   assert.match(router, /schedule-assignments\/transfer/);
   assert.match(controller, /transferScheduleDepartment/);
-  assert.match(model, /UPDATE academic_record_departments AS record_department/);
+  assert.match(
+    model,
+    /UPDATE academic_record_departments AS record_department/,
+  );
   assert.match(model, /target Department must belong to the students' School/i);
   assert.match(model, /INNER JOIN teacher_departments/);
   assert.match(
@@ -830,7 +987,10 @@ test("Shared sidebar consistently highlights the current page and parent module"
   assert.match(shared, /function syncSidebarActiveState/);
   assert.match(shared, /activeLink\.classList\.add\("sub-active"\)/);
   assert.match(shared, /parentToggle\?\.classList\.add\("nav-active"\)/);
-  assert.match(shared, /parentToggle\?\.setAttribute\("aria-expanded", "true"\)/);
+  assert.match(
+    shared,
+    /parentToggle\?\.setAttribute\("aria-expanded", "true"\)/,
+  );
   assert.match(shared, /activeLink\.setAttribute\("aria-current", "page"\)/);
   assert.match(shared, /window\.satpSyncSidebarActiveState/);
 });
@@ -867,7 +1027,10 @@ test("Student Maintenance treats school Google email as optional", () => {
   assert.match(page, /google_email is optional/);
   assert.match(script, /google_email: item\.google_email/);
   assert.match(script, /raw\.google_email \|\| raw\.email/);
-  assert.match(model, /String\(data\.google_email \|\| ""\)\.trim\(\) \|\| null/);
+  assert.match(
+    model,
+    /String\(data\.google_email \|\| ""\)\.trim\(\) \|\| null/,
+  );
 });
 
 test("User Management import treats school Google email as optional", () => {
@@ -887,7 +1050,10 @@ test("Regular account imports preserve existing passwords", () => {
   const users = read("client/user/user_management/script.js");
   const students = read("client/maintenance/student/script.js");
 
-  assert.match(users, /Password or institutional email is required for a new user/);
+  assert.match(
+    users,
+    /Password or institutional email is required for a new user/,
+  );
   assert.match(users, /password: existing \? "" : row\.password/);
   assert.match(users, /existing \? "\/api\/user\/update" : "\/api\/user\/add"/);
   assert.match(
@@ -931,8 +1097,7 @@ test("Rater accounts cannot see or open the self-service password page", () => {
   assert.ok(
     server.indexOf(
       'app.use("/update/password", checkToken, (req, res, next) =>',
-    ) <
-      server.indexOf("app.use(express.static(clientPath))"),
+    ) < server.indexOf("app.use(express.static(clientPath))"),
   );
 });
 
@@ -993,9 +1158,15 @@ test("Google login keeps the MIS support message inside the fixed login card", (
   const style = read("client/login/style.css");
   assert.match(page, /class="support"/);
   assert.match(page, /MIS Department/);
-  assert.match(style, /\.sign-in\s*\{[\s\S]*padding: 26px clamp\(38px, 6vw, 72px\)/);
+  assert.match(
+    style,
+    /\.sign-in\s*\{[\s\S]*padding: 26px clamp\(38px, 6vw, 72px\)/,
+  );
   assert.match(style, /\.message\s*\{[\s\S]*height: 54px/);
-  assert.match(style, /\.support\s*\{[\s\S]*margin: 10px 0 0;[\s\S]*padding-top: 10px;/);
+  assert.match(
+    style,
+    /\.support\s*\{[\s\S]*margin: 10px 0 0;[\s\S]*padding-top: 10px;/,
+  );
 });
 
 test("Transaction course modal remains stable across short DataTable pages", () => {
@@ -1028,7 +1199,10 @@ test("Transaction table and dashboard totals render in one loading cycle", () =>
     transactions,
     /mainTable[\s\S]*?\.draw\(\);[\s\S]*?API\.renderDashboardStats\(stats\);/,
   );
-  assert.match(transactions, /async loadDashboardStats\(\{ render = true, filters = state \} = \{\}\)/);
+  assert.match(
+    transactions,
+    /async loadDashboardStats\(\{ render = true, filters = state \} = \{\}\)/,
+  );
 });
 
 test("Activity Log search accepts student ID numbers", () => {
@@ -1051,11 +1225,11 @@ test("Empty Select and Choose dropdown prompts cannot be selected", () => {
   assert.match(sharedUi, /\^\(select\|choose\)\\b/i);
   assert.match(sharedUi, /option\.value === "" && isPrompt/);
   assert.match(sharedUi, /option\.disabled = true/);
-  assert.match(
+  assert.match(sharedUi, /disableSelectPlaceholders\(node\)/);
+  assert.doesNotMatch(
     sharedUi,
-    /disableSelectPlaceholders\(node\)/,
+    /disableSelectPlaceholders\(node\.parentElement/,
   );
-  assert.doesNotMatch(sharedUi, /disableSelectPlaceholders\(node\.parentElement/);
   assert.doesNotMatch(session, /disableSelectPlaceholders/);
 
   const authenticatedPages = walk(path.join(root, "client")).filter((file) => {
@@ -1079,10 +1253,22 @@ test("Schedule Assignment loads the current period initially and reloads on dema
   assert.match(page, /id="loadRecordsButton"[^>]*>Load records<\/button>/);
   assert.match(script, /ajax:\s*\{\s*url: selectedPeriodUrl\(\)/);
   assert.match(script, /function loadSelectedPeriod\(\)/);
-  assert.match(script, /getElementById\("loadRecordsButton"\)[\s\S]*addEventListener\("click", loadSelectedPeriod\)/);
-  assert.doesNotMatch(script, /getElementById\(id\)\.addEventListener\("change"/);
-  assert.match(script, /enhanceSearchableSelect\(document\.getElementById\("schoolYearSelect"\)\)/);
-  assert.match(script, /enhanceSearchableSelect\(document\.getElementById\("semesterSelect"\)\)/);
+  assert.match(
+    script,
+    /getElementById\("loadRecordsButton"\)[\s\S]*addEventListener\("click", loadSelectedPeriod\)/,
+  );
+  assert.doesNotMatch(
+    script,
+    /getElementById\(id\)\.addEventListener\("change"/,
+  );
+  assert.match(
+    script,
+    /enhanceSearchableSelect\(document\.getElementById\("schoolYearSelect"\)\)/,
+  );
+  assert.match(
+    script,
+    /enhanceSearchableSelect\(document\.getElementById\("semesterSelect"\)\)/,
+  );
   assert.match(script, /select\.dataset\.searchable = "true"/);
 });
 
@@ -1125,11 +1311,16 @@ test("School-year dropdowns list active years and select the current year where 
   assert.match(transactions, /fetch\(`\/api\/\$\{endpoint\}\/all\/active`\)/);
   assert.match(transactions, /fetch\("\/api\/schoolyear\/current"\)/);
   assert.doesNotMatch(transactions, /\/api\/\$\{endpoint\}\/inuse\/active/);
-  const scheduleAssignment = read("client/maintenance/schedule_assignment/script.js");
+  const scheduleAssignment = read(
+    "client/maintenance/schedule_assignment/script.js",
+  );
   assert.match(scheduleAssignment, /fetch\("\/api\/schoolyear\/all\/active"\)/);
   assert.match(scheduleAssignment, /fetch\("\/api\/schoolyear\/current"\)/);
   assert.doesNotMatch(scheduleAssignment, /fetch\("\/api\/schoolyear"\)(?!\/)/);
-  assert.match(read("api/maintenance/schoolyear/schoolyear.router.js"), /router\.get\("\/current", getCurrentSchoolYear\)/);
+  assert.match(
+    read("api/maintenance/schoolyear/schoolyear.router.js"),
+    /router\.get\("\/current", getCurrentSchoolYear\)/,
+  );
 });
 
 test("Report dropdown panels are not clipped by the report card", () => {
@@ -1163,10 +1354,16 @@ test("Program dropdowns provide search inside the option panel", () => {
   const users = read("client/user/user_management/index.html");
   const registration = read("client/register/index.html");
   ["courseSelect", "editCourseSelect"].forEach((id) => {
-    assert.match(student, new RegExp(`id=["']${id}["'][^>]*data-searchable-select=["']program["']`));
+    assert.match(
+      student,
+      new RegExp(`id=["']${id}["'][^>]*data-searchable-select=["']program["']`),
+    );
   });
   ["addCourse", "editCourse"].forEach((id) => {
-    assert.match(users, new RegExp(`id=["']${id}["'][^>]*data-searchable-select=["']program["']`));
+    assert.match(
+      users,
+      new RegExp(`id=["']${id}["'][^>]*data-searchable-select=["']program["']`),
+    );
   });
   assert.match(registration, /id="course"[^>]*data-live-search="true"/);
   assert.match(shared, /satp-search-select-search/);
@@ -1177,9 +1374,15 @@ test("Program dropdowns provide search inside the option panel", () => {
 test("All non-Grad School form dropdowns receive the shared searchable control", () => {
   const shared = read("client/shared-ui.js");
   assert.match(shared, /root\.querySelectorAll\?\.\("select"\)/);
-  assert.match(shared, /select\.closest\("\.dataTables_length, \.search-select, \.satp-search-select"\)/);
+  assert.match(
+    shared,
+    /select\.closest\("\.dataTables_length, \.search-select, \.satp-search-select"\)/,
+  );
   assert.match(shared, /select\.dataset\.searchable = "true"/);
-  assert.match(shared, /location\.pathname\.toLowerCase\(\)\.includes\("gradschool"\)/);
+  assert.match(
+    shared,
+    /location\.pathname\.toLowerCase\(\)\.includes\("gradschool"\)/,
+  );
   assert.match(shared, /search-select-search satp-search-select-search/);
 });
 
@@ -1191,7 +1394,10 @@ test("Teacher Maintenance safely merges duplicate teachers and their schedules",
 
   assert.match(router, /router\.put\("\/merge", mergeTeacher\)/);
   assert.match(model, /beginTransaction\(\)/);
-  assert.match(model, /UPDATE academic_records_consolidated[\s\S]*SET teacher_id = \?/);
+  assert.match(
+    model,
+    /UPDATE academic_records_consolidated[\s\S]*SET teacher_id = \?/,
+  );
   assert.match(model, /UPDATE trans_item SET transaction_id = \?/);
   assert.match(model, /UPDATE student_subject SET teacher_id = \?/);
   assert.match(model, /UPDATE transactions SET teacher_id = \?/);
@@ -1232,7 +1438,10 @@ test("Teacher edit waits for departments and synchronizes searchable dropdowns",
 test("Student Course marks its clean sidebar path and parent module active", () => {
   const script = read("client/maintenance/student_subject/script.js");
   assert.match(script, /replace\(\/\\\/index\\\.html\$\/i, ""\)/);
-  assert.match(script, /link\.classList\.add\(submenu \? "sub-active" : "nav-active"\)/);
+  assert.match(
+    script,
+    /link\.classList\.add\(submenu \? "sub-active" : "nav-active"\)/,
+  );
   assert.match(script, /toggle\?\.classList\.add\("nav-active"\)/);
 });
 
@@ -1260,13 +1469,11 @@ test("School Maintenance owns colleges and cascades the full hierarchy", () => {
   assert.match(schoolPage, /id="newSchoolForm"/);
   assert.doesNotMatch(schoolPage, /name="academic_scope"/);
   assert.ok(
-    (schoolScript.match(/const form = event\.currentTarget;/g) || []).length >= 2,
+    (schoolScript.match(/const form = event\.currentTarget;/g) || []).length >=
+      2,
     "School create and edit must retain their forms before awaiting confirmation",
   );
-  assert.doesNotMatch(
-    schoolScript,
-    /formPayload\(event\.currentTarget/,
-  );
+  assert.doesNotMatch(schoolScript, /formPayload\(event\.currentTarget/);
   assert.match(sidebar, /maintenance\/school\/index\.html/);
   assert.ok(
     sidebar.indexOf("/maintenance/departments/index.html") <
@@ -1277,9 +1484,7 @@ test("School Maintenance owns colleges and cascades the full hierarchy", () => {
 test("Schedule reassignment accepts teachers assigned within the same school", () => {
   const page = read("client/maintenance/schedule_assignment/index.html");
   const script = read("client/maintenance/schedule_assignment/script.js");
-  const model = read(
-    "api/maintenance/studentsubject/studentsubject.model.js",
-  );
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
   assert.match(script, /option\.dataset\.schoolIds/);
   assert.match(script, /selectedAssignment\.teaching_school_id/);
   assert.match(page, /class="assignment-department"/);
@@ -1290,11 +1495,11 @@ test("Schedule reassignment accepts teachers assigned within the same school", (
   assert.match(script, /under \$\{selectedAssignment\.teaching_school_code\}/);
   assert.match(model, /FROM teacher_departments/);
   assert.match(model, /eligible_colleges\.school_id = \?/);
-  assert.match(
+  assert.match(model, /SET arc\.teacher_id = \?/);
+  assert.doesNotMatch(
     model,
-    /SET arc\.teacher_id = \?/,
+    /SET arc\.teacher_id = \?, arc\.teaching_department_id/,
   );
-  assert.doesNotMatch(model, /SET arc\.teacher_id = \?, arc\.teaching_department_id/);
   assert.doesNotMatch(model, /arc\.teaching_status = \?/);
 });
 
@@ -1316,9 +1521,15 @@ test("Teacher teaching status is stored per department and drives rankings", () 
     rankingModel,
     /COALESCE\(exact_assignment\.teaching_status, teaching_assignment\.teaching_status\) = \?/,
   );
-  assert.match(rankingModel, /academic_record_departments AS record_department/);
+  assert.match(
+    rankingModel,
+    /academic_record_departments AS record_department/,
+  );
   assert.match(statusMigration, /ADD COLUMN teaching_status/);
-  assert.match(statusMigration, /ALTER TABLE teachers[\s\S]*DROP COLUMN is_part_time/);
+  assert.match(
+    statusMigration,
+    /ALTER TABLE teachers[\s\S]*DROP COLUMN is_part_time/,
+  );
   assert.doesNotMatch(
     statusMigration,
     /ALTER TABLE academic_records_consolidated[\s\S]*teaching_status/,
@@ -1347,9 +1558,7 @@ test("Student Course import validates departments without storing them on ARC", 
   const controller = read(
     "api/maintenance/studentsubject/studentsubject.controller.js",
   );
-  const model = read(
-    "api/maintenance/studentsubject/studentsubject.model.js",
-  );
+  const model = read("api/maintenance/studentsubject/studentsubject.model.js");
   const migration = read(
     "database/migrations/2026-08-22_teacher_departments_and_assignment_scope.sql",
   );
@@ -1376,10 +1585,16 @@ test("Student Course import validates departments without storing them on ARC", 
   assert.match(migration, /CREATE TABLE IF NOT EXISTS teacher_departments/);
   assert.doesNotMatch(migration, /ADD COLUMN teaching_department_id/);
   assert.match(cleanupMigration, /DROP COLUMN teaching_department_id/);
-  assert.match(recordDepartmentMigration, /CREATE TABLE IF NOT EXISTS academic_record_departments/);
+  assert.match(
+    recordDepartmentMigration,
+    /CREATE TABLE IF NOT EXISTS academic_record_departments/,
+  );
   assert.match(model, /INSERT INTO academic_record_departments/);
   assert.doesNotMatch(schema, /`teaching_department_id`/);
-  assert.doesNotMatch(model, /arc\.teaching_department_id|records\.teaching_department_id/);
+  assert.doesNotMatch(
+    model,
+    /arc\.teaching_department_id|records\.teaching_department_id/,
+  );
   assert.doesNotMatch(ranking, /arc\.teaching_department_id/);
   assert.doesNotMatch(rating, /arc\.teaching_department_id/);
 });
@@ -1396,7 +1611,10 @@ test("Manual Add student course derives school and department from the student",
   assert.match(page, /type="hidden" name="teaching_department_id"/);
   assert.match(script, /use_student_department: true/);
   assert.match(script, /event\.target\.closest\?\.\("\.search-select"\)/);
-  assert.match(script, /Number\(assignment\.id\) === Number\(student\.department_id\)/);
+  assert.match(
+    script,
+    /Number\(assignment\.id\) === Number\(student\.department_id\)/,
+  );
   assert.match(studentModel, /departments\.id AS department_id/);
   assert.match(enrollmentModel, /data\.use_student_department === true/);
   assert.match(
@@ -1416,7 +1634,10 @@ test("Shared pages and report exports include Safari compatibility safeguards", 
   assert.match(sharedUi, /visualViewport/);
   assert.match(sharedUi, /--satp-viewport-height/);
   assert.match(sharedUi, /-webkit-overflow-scrolling: touch/);
-  assert.match(sidebar, /height: calc\(var\(--satp-viewport-height, 100dvh\) - var\(--satp-header-height, 80px\)\)/);
+  assert.match(
+    sidebar,
+    /height: calc\(var\(--satp-viewport-height, 100dvh\) - var\(--satp-header-height, 80px\)\)/,
+  );
   assert.match(pageShell, /body\.satp-sidebar-present #main/);
   assert.doesNotMatch(sidebar, /body:has\(/);
   assert.doesNotMatch(rating, /querySelector\([^\n]*:has\(/);
@@ -1434,7 +1655,10 @@ test("Report generation writes one transparent activity-log entry", () => {
   const ranking = read("client/report/ranking/script.js");
   const bulk = read("client/report/rating/bulk-export.js");
 
-  assert.match(server, /"\/api\/report\/log"[\s\S]*requirePermission\("reports_access"\)/);
+  assert.match(
+    server,
+    /"\/api\/report\/log"[\s\S]*requirePermission\("reports_access"\)/,
+  );
   assert.match(model, /INSERT INTO activity_log/);
   assert.match(model, /FROM school_years/);
   assert.match(model, /FROM semesters/);

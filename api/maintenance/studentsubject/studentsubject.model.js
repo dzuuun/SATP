@@ -230,15 +230,13 @@ module.exports = {
         ],
       );
       if (assignmentSchools.length !== 1) {
-        throw new Error(
-          "The schedule's school could not be determined.",
-        );
+        throw new Error("The schedule's school could not be determined.");
       }
-      const teachingSchoolId = Number(
-        assignmentSchools[0].teaching_school_id,
-      );
+      const teachingSchoolId = Number(assignmentSchools[0].teaching_school_id);
       if (teachingSchoolId !== Number(data.teaching_school_id)) {
-        throw new Error("The schedule's school has changed. Reload the records.");
+        throw new Error(
+          "The schedule's school has changed. Reload the records.",
+        );
       }
       const [newRows] = await connection.query(
         `SELECT CONCAT(
@@ -256,7 +254,8 @@ module.exports = {
          WHERE teachers.id = ? AND teachers.is_active = 1 LIMIT 1`,
         [teachingSchoolId, data.teacher_id],
       );
-      if (!newRows.length) throw new Error("The selected teacher is unavailable.");
+      if (!newRows.length)
+        throw new Error("The selected teacher is unavailable.");
 
       const [enrollmentResult] = await connection.query(
         `UPDATE ${TABLE} AS arc
@@ -268,17 +267,25 @@ module.exports = {
          WHERE arc.school_year_id = ? AND arc.semester_id = ?
            AND arc.subject_id = ? AND arc.teacher_id = ?
            AND arc.schedule_code = ? AND ${academicScopeFilter}`,
-        [data.user_id, data.teacher_id,
-          data.school_year_id, data.semester_id,
-          data.subject_id, data.current_teacher_id, data.schedule_code],
+        [
+          data.user_id,
+          data.teacher_id,
+          data.school_year_id,
+          data.semester_id,
+          data.subject_id,
+          data.current_teacher_id,
+          data.schedule_code,
+        ],
       );
       if (!enrollmentResult.affectedRows) {
         throw new Error("No matching section assignments were found.");
       }
       await connection.query(
         "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
-        [data.user_id,
-          `Reassigned schedule ${data.schedule_code} from ${currentRows[0]?.name || "Unknown teacher"} to ${newRows[0].name}`],
+        [
+          data.user_id,
+          `Reassigned schedule ${data.schedule_code} from ${currentRows[0]?.name || "Unknown teacher"} to ${newRows[0].name}`,
+        ],
       );
       await connection.commit();
       return callBack(null, {
@@ -450,7 +457,7 @@ module.exports = {
       const dissolved = data.dissolved === true;
       const [result] = dissolved
         ? await connection.query(
-          `UPDATE ${TABLE} AS arc
+            `UPDATE ${TABLE} AS arc
            INNER JOIN user_info ON user_info.user_id = arc.student_id
            INNER JOIN courses ON courses.id = user_info.course_id
            INNER JOIN departments ON departments.id = courses.department_id
@@ -459,11 +466,17 @@ module.exports = {
            WHERE arc.school_year_id = ? AND arc.semester_id = ? AND arc.subject_id = ?
              AND arc.teacher_id = ? AND arc.schedule_code = ? AND arc.is_excluded = 0
              AND ${academicScopeFilter}`,
-          [data.user_id, data.school_year_id, data.semester_id, data.subject_id,
-            data.teacher_id, data.schedule_code],
-        )
+            [
+              data.user_id,
+              data.school_year_id,
+              data.semester_id,
+              data.subject_id,
+              data.teacher_id,
+              data.schedule_code,
+            ],
+          )
         : await connection.query(
-          `UPDATE ${TABLE} AS arc
+            `UPDATE ${TABLE} AS arc
            INNER JOIN user_info ON user_info.user_id = arc.student_id
            INNER JOIN courses ON courses.id = user_info.course_id
            INNER JOIN departments ON departments.id = courses.department_id
@@ -472,18 +485,28 @@ module.exports = {
            WHERE arc.school_year_id = ? AND arc.semester_id = ? AND arc.subject_id = ?
              AND arc.teacher_id = ? AND arc.schedule_code = ? AND arc.reason = 'DISSOLVED'
              AND ${academicScopeFilter}`,
-          [data.user_id, data.school_year_id, data.semester_id, data.subject_id,
-            data.teacher_id, data.schedule_code],
-        );
+            [
+              data.user_id,
+              data.school_year_id,
+              data.semester_id,
+              data.subject_id,
+              data.teacher_id,
+              data.schedule_code,
+            ],
+          );
       if (!result.affectedRows) {
-        throw new Error(dissolved
-          ? "This schedule is already dissolved."
-          : "This schedule is already active.");
+        throw new Error(
+          dissolved
+            ? "This schedule is already dissolved."
+            : "This schedule is already active.",
+        );
       }
       await connection.query(
         "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
-        [data.user_id,
-          `${dissolved ? "Dissolved" : "Restored"} teacher ${data.teacher_id} assignment for schedule ${data.schedule_code}`],
+        [
+          data.user_id,
+          `${dissolved ? "Dissolved" : "Restored"} teacher ${data.teacher_id} assignment for schedule ${data.schedule_code}`,
+        ],
       );
       await connection.commit();
       return callBack(null, { enrollments_updated: result.affectedRows });
@@ -598,8 +621,14 @@ module.exports = {
          AND (UPPER(TRIM(colleges.code)) <> 'CHS' OR
            (records.teacher_id = ? AND COALESCE(TRIM(records.schedule_code), '') = ?))
        LIMIT 1`,
-      [data.student_id, data.school_year_id, data.semester_id, data.subject_id,
-        data.teacher_id, String(data.schedule_code || "").trim()],
+      [
+        data.student_id,
+        data.school_year_id,
+        data.semester_id,
+        data.subject_id,
+        data.teacher_id,
+        String(data.schedule_code || "").trim(),
+      ],
       (error, existing) => {
         if (error) return callBack(error);
         if (existing.length) {
@@ -646,16 +675,22 @@ module.exports = {
         [data.user_id, data.student_id],
       );
       const studentUsername = students[0]?.username || "Unknown student";
-      const isChsStudent = String(students[0]?.college_code || "").trim().toUpperCase() === "CHS";
+      const isChsStudent =
+        String(students[0]?.college_code || "")
+          .trim()
+          .toUpperCase() === "CHS";
       if (!students.length) throw new Error("Student was not found.");
       const [selectedSchools] = await connection.query(
         "SELECT id, code, name FROM schools WHERE id = ? AND is_active = 1 LIMIT 1",
         [data.school_id],
       );
-      if (!selectedSchools.length) throw new Error("The selected school is not active or does not exist.");
+      if (!selectedSchools.length)
+        throw new Error("The selected school is not active or does not exist.");
       const selectedSchool = selectedSchools[0];
       const selectedScope =
-        String(selectedSchool.code || "").trim().toUpperCase() === "SHS"
+        String(selectedSchool.code || "")
+          .trim()
+          .toUpperCase() === "SHS"
           ? "SHS"
           : "COLLEGE";
       const adminScope = String(
@@ -724,15 +759,23 @@ module.exports = {
            AND subject_id IN (${placeholders})`,
         [data.student_id, data.school_year_id, data.semester_id, ...subjectIds],
       );
-      const enrollmentKey = (record) => isChsStudent
-        ? [Number(record.subject_id), String(record.schedule_code || "").trim().toLowerCase(),
-          Number(record.teacher_id)].join("|")
-        : String(Number(record.subject_id));
+      const enrollmentKey = (record) =>
+        isChsStudent
+          ? [
+              Number(record.subject_id),
+              String(record.schedule_code || "")
+                .trim()
+                .toLowerCase(),
+              Number(record.teacher_id),
+            ].join("|")
+          : String(Number(record.subject_id));
       const submittedKeys = new Set(data.subjects.map(enrollmentKey));
       if (submittedKeys.size !== data.subjects.length) {
-        throw new Error(isChsStudent
-          ? "The submitted course, schedule, and teacher list contains duplicates."
-          : "The submitted course list contains duplicates.");
+        throw new Error(
+          isChsStudent
+            ? "The submitted course, schedule, and teacher list contains duplicates."
+            : "The submitted course list contains duplicates.",
+        );
       }
       const existingByEnrollment = new Map(
         existing.map((record) => [enrollmentKey(record), record]),
@@ -759,8 +802,10 @@ module.exports = {
         const current = existingByEnrollment.get(enrollmentKey(subject));
         if (!current) continue;
         const changed =
-          comparableTime(current.time_start) !== comparableTime(subject.time_start) ||
-          comparableTime(current.time_end) !== comparableTime(subject.time_end) ||
+          comparableTime(current.time_start) !==
+            comparableTime(subject.time_start) ||
+          comparableTime(current.time_end) !==
+            comparableTime(subject.time_end) ||
           comparable(current.day) !== comparable(subject.day) ||
           Number(current.room_id || 0) !== Number(subject.room_id || 0) ||
           Number(current.teacher_id || 0) !== Number(subject.teacher_id || 0) ||
@@ -803,9 +848,11 @@ module.exports = {
           [values.map((value) => [...value, 0])],
         );
 
-        const createdSubjectIds = [...new Set(pendingSubjects.map((subject) =>
-          Number(subject.subject_id),
-        ))];
+        const createdSubjectIds = [
+          ...new Set(
+            pendingSubjects.map((subject) => Number(subject.subject_id)),
+          ),
+        ];
         const createdPlaceholders = createdSubjectIds.map(() => "?").join(",");
         const [createdRows] = await connection.query(
           `SELECT id, subject_id, teacher_id, schedule_code
@@ -820,7 +867,9 @@ module.exports = {
           ],
         );
         const pendingKeys = new Set(pendingSubjects.map(enrollmentKey));
-        created = createdRows.filter((record) => pendingKeys.has(enrollmentKey(record)));
+        created = createdRows.filter((record) =>
+          pendingKeys.has(enrollmentKey(record)),
+        );
       }
 
       const recordsByEnrollment = new Map(

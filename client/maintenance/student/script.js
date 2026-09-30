@@ -142,8 +142,13 @@ document
   .addEventListener("submit", async (e) => {
     e.preventDefault();
     const payload = addPayload(e.currentTarget);
-    if (!String(payload.password || "").trim() && !String(payload.google_email || "").trim()) {
-      return setErrorMessage("Enter a temporary password or an institutional email.");
+    if (
+      !String(payload.password || "").trim() &&
+      !String(payload.google_email || "").trim()
+    ) {
+      return setErrorMessage(
+        "Enter a temporary password or an institutional email.",
+      );
     }
     if (!(await satpConfirm("Create this student?"))) return;
     try {
@@ -172,15 +177,13 @@ async function editFormCall(id) {
           s.surname,
         ][i]),
     );
-    document.getElementById("editGenderSelect").value = String(
-      s.gender || "",
-    )
+    document.getElementById("editGenderSelect").value = String(s.gender || "")
       .trim()
       .toUpperCase();
     document.getElementById("editCourseSelect").value = s.course_id;
-    document.getElementById("editCourseSelect").dispatchEvent(
-      new Event("change", { bubbles: true }),
-    );
+    document
+      .getElementById("editCourseSelect")
+      .dispatchEvent(new Event("change", { bubbles: true }));
     document.getElementById("editYearLevel").value = s.year_level;
     document.getElementById("editGoogleEmail").value = s.google_email || "";
     document.getElementById("editIsStudentStatusActive").checked =
@@ -383,10 +386,7 @@ function classifyRows(rows, existing) {
       });
     else if (!["male", "female"].includes(normalize(gender)))
       result.errors.push({ ...base, reason: "Gender must be Male or Female" });
-    else if (
-      google_email &&
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(google_email)
-    )
+    else if (google_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(google_email))
       result.errors.push({
         ...base,
         reason: "School Google email is invalid",

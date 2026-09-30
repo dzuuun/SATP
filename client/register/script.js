@@ -1,5 +1,3 @@
-
-
 let showPassword = document.getElementById("showPassword");
 showPassword.addEventListener("click", async (e) => {
   var x = document.getElementById("createPassword");
@@ -90,9 +88,8 @@ registerForm.addEventListener("submit", async (event) => {
 });
 
 function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
+  document.getElementById("toast-container").innerHTML =
+    `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
                   <div id="toast-header" class="toast-header border-0 bg-success text-white">
                     <i class="bi bi-check-circle me-2"></i>
                     <strong id="toastLabel" class="me-auto">Success</strong>
@@ -113,9 +110,8 @@ function setSuccessMessage(message) {
 }
 
 function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
+  document.getElementById("toast-container").innerHTML =
+    `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
                   <div id="toast-header" class="toast-header border-0 bg-danger text-white">
                     <i class="bi bi-check-circle me-2"></i>
                     <strong id="toastLabel" class="me-auto">Error</strong>

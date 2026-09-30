@@ -73,17 +73,19 @@ async function saveSchool(url, method, payload, modalId) {
   }
 }
 
-document.getElementById("newSchoolForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  if (!(await satpConfirm("Create this school?"))) return;
-  await saveSchool(
-    "/api/school/add",
-    "POST",
-    formPayload(form, "isSchoolActive"),
-    "addNewModal",
-  );
-});
+document
+  .getElementById("newSchoolForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!(await satpConfirm("Create this school?"))) return;
+    await saveSchool(
+      "/api/school/add",
+      "POST",
+      formPayload(form, "isSchoolActive"),
+      "addNewModal",
+    );
+  });
 
 async function editFormCall(id) {
   try {
@@ -92,27 +94,32 @@ async function editFormCall(id) {
     rowIdToUpdate = school.id;
     document.getElementById("editSchoolCode").value = school.code;
     document.getElementById("editSchoolName").value = school.name;
-    document.getElementById("isSchoolActiveEdit").checked = school.is_active == 1;
+    document.getElementById("isSchoolActiveEdit").checked =
+      school.is_active == 1;
     toggleModal("editModal", true);
   } catch (error) {
     showToast("Unable to load the school.", false);
   }
 }
 
-document.getElementById("editSchoolForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const statusChanged =
-    Number(document.getElementById("isSchoolActiveEdit").checked) !==
-    Number((await requestJson(`/api/school/${rowIdToUpdate}`)).data.is_active);
-  const message = statusChanged
-    ? "Save this status change? It will also update every college, department, and program under this school."
-    : "Save these school changes?";
-  if (!(await satpConfirm(message))) return;
-  const payload = formPayload(form, "isSchoolActiveEdit");
-  payload.id = rowIdToUpdate;
-  await saveSchool("/api/school/update", "PUT", payload, "editModal");
-});
+document
+  .getElementById("editSchoolForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const statusChanged =
+      Number(document.getElementById("isSchoolActiveEdit").checked) !==
+      Number(
+        (await requestJson(`/api/school/${rowIdToUpdate}`)).data.is_active,
+      );
+    const message = statusChanged
+      ? "Save this status change? It will also update every college, department, and program under this school."
+      : "Save these school changes?";
+    if (!(await satpConfirm(message))) return;
+    const payload = formPayload(form, "isSchoolActiveEdit");
+    payload.id = rowIdToUpdate;
+    await saveSchool("/api/school/update", "PUT", payload, "editModal");
+  });
 
 async function requestJson(url, options = {}) {
   const response = await fetch(url, {

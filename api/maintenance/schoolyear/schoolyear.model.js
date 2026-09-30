@@ -18,7 +18,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -57,7 +57,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -70,7 +70,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -79,7 +79,10 @@ module.exports = {
     try {
       connection = await pool.promise().getConnection();
       await connection.beginTransaction();
-      const [existing] = await connection.query("SELECT id FROM school_years WHERE name = ?", [data.name]);
+      const [existing] = await connection.query(
+        "SELECT id FROM school_years WHERE name = ?",
+        [data.name],
+      );
       if (existing.length) {
         const error = new Error("School year already exists.");
         error.code = "ER_DUP_ENTRY";
@@ -113,7 +116,11 @@ module.exports = {
       await connection.beginTransaction();
       const isActive = Number(data.is_active) === 1 ? 1 : 0;
       const isInUse = isActive && Number(data.in_use) === 1 ? 1 : 0;
-      if (isInUse) await connection.query("UPDATE school_years SET in_use = 0 WHERE id <> ?", [data.id]);
+      if (isInUse)
+        await connection.query(
+          "UPDATE school_years SET in_use = 0 WHERE id <> ?",
+          [data.id],
+        );
       const [results] = await connection.query(
         "UPDATE school_years SET name = ?, in_use = ?, is_active = ? WHERE id = ?",
         [data.name, isInUse, isActive, data.id],
@@ -151,19 +158,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
 };

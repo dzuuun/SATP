@@ -39,7 +39,12 @@ function setLoading(show, message = "Loading...") {
   toggleModal("loadingModal", show);
 }
 
-function confirmScheduleAction({ title, message, confirmLabel, destructive = false }) {
+function confirmScheduleAction({
+  title,
+  message,
+  confirmLabel,
+  destructive = false,
+}) {
   document.getElementById("confirmActionTitle").textContent = title;
   document.getElementById("confirmActionMessage").textContent = message;
   const button = document.getElementById("confirmActionButton");
@@ -63,7 +68,9 @@ async function loadTeachers() {
   const payload = await response.json();
   const select = document.getElementById("teacherSelect");
   (payload.data || []).forEach((teacher) => {
-    const label = teacher.name || `${teacher.givenname || ""} ${teacher.surname || ""}`.trim();
+    const label =
+      teacher.name ||
+      `${teacher.givenname || ""} ${teacher.surname || ""}`.trim();
     const option = document.createElement("option");
     option.value = teacher.id;
     option.textContent = label;
@@ -99,13 +106,23 @@ async function loadDepartments() {
 }
 
 async function loadPeriods() {
-  const [schoolYearResponse, currentSchoolYearResponse, semesterResponse, currentSemesterResponse] = await Promise.all([
+  const [
+    schoolYearResponse,
+    currentSchoolYearResponse,
+    semesterResponse,
+    currentSemesterResponse,
+  ] = await Promise.all([
     fetch("/api/schoolyear/all/active"),
     fetch("/api/schoolyear/current"),
     fetch("/api/semester/all/active"),
     fetch("/api/semester/current/admin"),
   ]);
-  const [schoolYearPayload, currentSchoolYearPayload, semesterPayload, currentSemesterPayload] = await Promise.all([
+  const [
+    schoolYearPayload,
+    currentSchoolYearPayload,
+    semesterPayload,
+    currentSemesterPayload,
+  ] = await Promise.all([
     schoolYearResponse.json(),
     currentSchoolYearResponse.json(),
     semesterResponse.json(),
@@ -182,9 +199,9 @@ function enhanceSearchableSelect(select) {
       ? "Search teachers..."
       : select.id === "transferDepartmentSelect"
         ? "Search Departments..."
-      : select.id === "schoolYearSelect"
-        ? "Search school years..."
-        : "Search semesters...";
+        : select.id === "schoolYearSelect"
+          ? "Search school years..."
+          : "Search semesters...";
   search.autocomplete = "off";
   const options = document.createElement("div");
   options.className = "search-select-options";
@@ -203,11 +220,12 @@ function enhanceSearchableSelect(select) {
     if (!matches.length) {
       const empty = document.createElement("p");
       empty.className = "search-select-empty";
-      empty.textContent = select.id === "teacherSelect"
-        ? "No matching teachers"
-        : select.id === "transferDepartmentSelect"
-          ? "No matching Departments"
-          : "No matching options";
+      empty.textContent =
+        select.id === "teacherSelect"
+          ? "No matching teachers"
+          : select.id === "transferDepartmentSelect"
+            ? "No matching Departments"
+            : "No matching options";
       options.appendChild(empty);
       return;
     }
@@ -271,8 +289,12 @@ function openReassign(assignment) {
       .toArray()
       .filter(
         (record) =>
-          String(record.schedule_code || "").trim().toLowerCase() ===
-            String(selectedAssignment.schedule_code || "").trim().toLowerCase() &&
+          String(record.schedule_code || "")
+            .trim()
+            .toLowerCase() ===
+            String(selectedAssignment.schedule_code || "")
+              .trim()
+              .toLowerCase() &&
           Number(record.subject_id) === Number(selectedAssignment.subject_id),
       )
       .map((record) => Number(record.teacher_id)),
@@ -280,9 +302,7 @@ function openReassign(assignment) {
   [...document.getElementById("teacherSelect").options].forEach((option) => {
     if (!option.value) return;
     const isAssigned = assignedTeacherIds.has(Number(option.value));
-    const schoolIds = option.dataset.schoolIds
-      .split(",")
-      .map(Number);
+    const schoolIds = option.dataset.schoolIds.split(",").map(Number);
     const schoolIndex = schoolIds.indexOf(
       Number(selectedAssignment.teaching_school_id),
     );
@@ -291,18 +311,20 @@ function openReassign(assignment) {
       option.dataset.departmentStatuses.split(",")[schoolIndex],
     );
     const statusLabel =
-      ({ 0: "Full Time", 1: "Part Time", 2: "NTPO & Admin" })[
-        teachingStatus
-      ] || "Unknown status";
+      { 0: "Full Time", 1: "Part Time", 2: "NTPO & Admin" }[teachingStatus] ||
+      "Unknown status";
     option.textContent = matchesSchool
       ? `${option.dataset.baseLabel} — ${statusLabel}`
       : option.dataset.baseLabel;
     option.hidden = isAssigned || !matchesSchool;
     option.disabled = isAssigned || !matchesSchool;
   });
-  document.getElementById("sectionCode").textContent = selectedAssignment.schedule_code;
-  document.getElementById("sectionSubject").textContent = `${selectedAssignment.subject_code} — ${selectedAssignment.subject_name}`;
-  document.getElementById("currentTeacher").textContent = `Current teacher: ${selectedAssignment.teacher_name}`;
+  document.getElementById("sectionCode").textContent =
+    selectedAssignment.schedule_code;
+  document.getElementById("sectionSubject").textContent =
+    `${selectedAssignment.subject_code} — ${selectedAssignment.subject_name}`;
+  document.getElementById("currentTeacher").textContent =
+    `Current teacher: ${selectedAssignment.teacher_name}`;
   const schoolLabel = `${selectedAssignment.teaching_school_code} — ${selectedAssignment.teaching_school_name}`;
   const academicScope = getAssignmentAcademicScope(selectedAssignment);
   document.getElementById("assignmentAcademicScope").textContent =
@@ -374,7 +396,9 @@ $(document).ready(async () => {
       url: selectedPeriodUrl(),
       dataSrc: (payload) => {
         const first = payload.data?.[0];
-        document.getElementById("periodLabel").textContent = first ? `${first.school_year} — ${first.semester}` : "No schedule assignments found for the active period.";
+        document.getElementById("periodLabel").textContent = first
+          ? `${first.school_year} — ${first.semester}`
+          : "No schedule assignments found for the active period.";
         setLoading(false);
         return payload.data || [];
       },
@@ -384,15 +408,21 @@ $(document).ready(async () => {
       { data: "subject_code", title: "Course code" },
       { data: "subject_name", title: "Course" },
       { data: "teacher_name", title: "Assigned teacher" },
-      { data: "student_count", title: "Students", className: "dt-center", width: "72px" },
+      {
+        data: "student_count",
+        title: "Students",
+        className: "dt-center",
+        width: "72px",
+      },
       {
         data: null,
         title: "Status",
         className: "dt-center",
         width: "100px",
-        render: (record) => Number(record.dissolved_count) > 0
-          ? '<span class="schedule-status dissolved">Dissolved</span>'
-          : '<span class="schedule-status active">Active</span>',
+        render: (record) =>
+          Number(record.dissolved_count) > 0
+            ? '<span class="schedule-status dissolved">Dissolved</span>'
+            : '<span class="schedule-status active">Active</span>',
       },
       {
         data: null,
@@ -420,7 +450,9 @@ $(document).ready(async () => {
     const dissolved = Number(assignment.dissolved_count) > 0;
     const action = dissolved ? "restore" : "dissolve";
     const confirmed = await confirmScheduleAction({
-      title: dissolved ? "Restore teacher assignment?" : "Dissolve teacher assignment?",
+      title: dissolved
+        ? "Restore teacher assignment?"
+        : "Dissolve teacher assignment?",
       message: dissolved
         ? `Restore ${assignment.teacher_name} for ${assignment.schedule_code} and include this assignment's student courses again?`
         : `Dissolve ${assignment.teacher_name} from ${assignment.schedule_code} and exclude only this assignment's student courses from rating and reports?`,
@@ -430,22 +462,28 @@ $(document).ready(async () => {
     if (!confirmed) return;
     setLoading(true, `${dissolved ? "Restoring" : "Dissolving"} schedule...`);
     try {
-      const response = await fetch("/api/studentsubject/schedule-assignments/dissolve", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          school_year_id: assignment.school_year_id,
-          semester_id: assignment.semester_id,
-          subject_id: assignment.subject_id,
-          teacher_id: assignment.teacher_id,
-          schedule_code: assignment.schedule_code,
-          dissolved: !dissolved,
-        }),
-      });
+      const response = await fetch(
+        "/api/studentsubject/schedule-assignments/dissolve",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            school_year_id: assignment.school_year_id,
+            semester_id: assignment.semester_id,
+            subject_id: assignment.subject_id,
+            teacher_id: assignment.teacher_id,
+            schedule_code: assignment.schedule_code,
+            dissolved: !dissolved,
+          }),
+        },
+      );
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.message || `Unable to ${action} schedule.`);
+      if (!response.ok)
+        throw new Error(payload.message || `Unable to ${action} schedule.`);
       await new Promise((resolve) => table.ajax.reload(resolve, false));
-      toast(`${payload.data.enrollments_updated} enrollment(s) ${dissolved ? "restored" : "dissolved"}.`);
+      toast(
+        `${payload.data.enrollments_updated} enrollment(s) ${dissolved ? "restored" : "dissolved"}.`,
+      );
     } catch (error) {
       toast(error.message || `Unable to ${action} schedule.`, true);
     } finally {
@@ -457,120 +495,144 @@ $(document).ready(async () => {
     .addEventListener("click", loadSelectedPeriod);
 });
 
-document.getElementById("reassignForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const teacherId = Number(document.getElementById("teacherSelect").value);
-  if (!teacherId) return toast("Select a teacher from the list.", true);
-  if (teacherId === Number(selectedAssignment.teacher_id)) return toast("That teacher is already assigned to this section.", true);
-  const selectedTeacher = document.getElementById("teacherSelect").selectedOptions[0]?.textContent || "the selected teacher";
-  const academicScope = getAssignmentAcademicScope(selectedAssignment);
-  const confirmed = await confirmScheduleAction({
-    title: "Reassign teacher?",
-    message: `Reassign ${selectedAssignment.schedule_code} to ${selectedTeacher} for ${academicScope}, under ${selectedAssignment.teaching_school_code} — ${selectedAssignment.teaching_school_name}?`,
-    confirmLabel: "Reassign teacher",
-  });
-  if (!confirmed) return;
-  toggleModal("reassignModal", false);
-  setLoading(true, "Reassigning teacher...");
-  try {
-    const response = await fetch("/api/studentsubject/schedule-assignments/reassign", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...selectedAssignment, current_teacher_id: selectedAssignment.teacher_id, teacher_id: teacherId }),
+document
+  .getElementById("reassignForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const teacherId = Number(document.getElementById("teacherSelect").value);
+    if (!teacherId) return toast("Select a teacher from the list.", true);
+    if (teacherId === Number(selectedAssignment.teacher_id))
+      return toast("That teacher is already assigned to this section.", true);
+    const selectedTeacher =
+      document.getElementById("teacherSelect").selectedOptions[0]
+        ?.textContent || "the selected teacher";
+    const academicScope = getAssignmentAcademicScope(selectedAssignment);
+    const confirmed = await confirmScheduleAction({
+      title: "Reassign teacher?",
+      message: `Reassign ${selectedAssignment.schedule_code} to ${selectedTeacher} for ${academicScope}, under ${selectedAssignment.teaching_school_code} — ${selectedAssignment.teaching_school_name}?`,
+      confirmLabel: "Reassign teacher",
     });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.message || "Unable to reassign teacher.");
-    await new Promise((resolve) => table.ajax.reload(resolve, false));
-    toast(`${payload.data.enrollments_updated} enrollment(s) reassigned successfully.`);
-  } catch (error) {
-    toast(error.message || "Unable to reassign teacher.", true);
-  } finally {
-    setLoading(false);
-  }
-});
-
-document.getElementById("transferForm").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const targetDepartmentId = Number(
-    document.getElementById("transferDepartmentSelect").value,
-  );
-  if (!targetDepartmentId) {
-    return toast("Select a target Department from the list.", true);
-  }
-  const targetDepartment = document.getElementById(
-    "transferDepartmentSelect",
-  ).selectedOptions[0]?.textContent;
-  const confirmed = await confirmScheduleAction({
-    title: "Transfer schedule?",
-    message: `Transfer ${selectedAssignment.schedule_code} for ${selectedAssignment.teacher_name} from ${selectedAssignment.teaching_department_code} to ${targetDepartment}? This corrects the School and Department used by reports, but keeps existing ratings.`,
-    confirmLabel: "Transfer schedule",
-  });
-  if (!confirmed) return;
-  toggleModal("transferModal", false);
-  setLoading(true, "Transferring schedule...");
-  try {
-    const response = await fetch(
-      "/api/studentsubject/schedule-assignments/transfer",
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          school_year_id: selectedAssignment.school_year_id,
-          semester_id: selectedAssignment.semester_id,
-          subject_id: selectedAssignment.subject_id,
-          schedule_code: selectedAssignment.schedule_code,
-          current_teacher_id: selectedAssignment.teacher_id,
-          current_department_id: selectedAssignment.teaching_department_id,
-          target_department_id: targetDepartmentId,
-        }),
-      },
-    );
-    const payload = await response.json();
-    if (!response.ok) {
-      throw new Error(payload.message || "Unable to transfer schedule.");
+    if (!confirmed) return;
+    toggleModal("reassignModal", false);
+    setLoading(true, "Reassigning teacher...");
+    try {
+      const response = await fetch(
+        "/api/studentsubject/schedule-assignments/reassign",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...selectedAssignment,
+            current_teacher_id: selectedAssignment.teacher_id,
+            teacher_id: teacherId,
+          }),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok)
+        throw new Error(payload.message || "Unable to reassign teacher.");
+      await new Promise((resolve) => table.ajax.reload(resolve, false));
+      toast(
+        `${payload.data.enrollments_updated} enrollment(s) reassigned successfully.`,
+      );
+    } catch (error) {
+      toast(error.message || "Unable to reassign teacher.", true);
+    } finally {
+      setLoading(false);
     }
-    await new Promise((resolve) => table.ajax.reload(resolve, false));
-    toast(
-      `${payload.data.enrollments_updated} enrollment(s) transferred to ${payload.data.department}.`,
-    );
-  } catch (error) {
-    toast(error.message || "Unable to transfer schedule.", true);
-  } finally {
-    setLoading(false);
-  }
-});
+  });
 
-fetch("../../sidebar.html").then((response) => response.text()).then((html) => {
-  const container = document.getElementById("sidebar-container");
-  container.innerHTML = html;
-  document.getElementById("sidebar-fullname").textContent = localStorage.getItem("fullname") || "User";
-  const currentPath = location.pathname.replace(/\/index\.html$/, "").replace(/\/$/, "");
-  container.querySelectorAll("#mySidenav a").forEach((link) => {
-    const linkPath = new URL(link.href, location.origin).pathname
+document
+  .getElementById("transferForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const targetDepartmentId = Number(
+      document.getElementById("transferDepartmentSelect").value,
+    );
+    if (!targetDepartmentId) {
+      return toast("Select a target Department from the list.", true);
+    }
+    const targetDepartment = document.getElementById("transferDepartmentSelect")
+      .selectedOptions[0]?.textContent;
+    const confirmed = await confirmScheduleAction({
+      title: "Transfer schedule?",
+      message: `Transfer ${selectedAssignment.schedule_code} for ${selectedAssignment.teacher_name} from ${selectedAssignment.teaching_department_code} to ${targetDepartment}? This corrects the School and Department used by reports, but keeps existing ratings.`,
+      confirmLabel: "Transfer schedule",
+    });
+    if (!confirmed) return;
+    toggleModal("transferModal", false);
+    setLoading(true, "Transferring schedule...");
+    try {
+      const response = await fetch(
+        "/api/studentsubject/schedule-assignments/transfer",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            school_year_id: selectedAssignment.school_year_id,
+            semester_id: selectedAssignment.semester_id,
+            subject_id: selectedAssignment.subject_id,
+            schedule_code: selectedAssignment.schedule_code,
+            current_teacher_id: selectedAssignment.teacher_id,
+            current_department_id: selectedAssignment.teaching_department_id,
+            target_department_id: targetDepartmentId,
+          }),
+        },
+      );
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.message || "Unable to transfer schedule.");
+      }
+      await new Promise((resolve) => table.ajax.reload(resolve, false));
+      toast(
+        `${payload.data.enrollments_updated} enrollment(s) transferred to ${payload.data.department}.`,
+      );
+    } catch (error) {
+      toast(error.message || "Unable to transfer schedule.", true);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+fetch("../../sidebar.html")
+  .then((response) => response.text())
+  .then((html) => {
+    const container = document.getElementById("sidebar-container");
+    container.innerHTML = html;
+    document.getElementById("sidebar-fullname").textContent =
+      localStorage.getItem("fullname") || "User";
+    const currentPath = location.pathname
       .replace(/\/index\.html$/, "")
       .replace(/\/$/, "");
-    if (linkPath !== currentPath) return;
-    const submenu = link.closest("ul[id^='dropdown-']");
-    link.classList.add(submenu ? "sub-active" : "nav-active");
-    if (!submenu) return;
-    submenu.classList.remove("hidden");
-    const parentToggle = container.querySelector(`[data-target="${submenu.id}"]`);
-    parentToggle?.classList.add("nav-active");
-    parentToggle?.setAttribute("aria-expanded", "true");
-    const arrow = parentToggle?.querySelector(".chevron");
-    if (arrow) arrow.style.transform = "rotate(180deg)";
+    container.querySelectorAll("#mySidenav a").forEach((link) => {
+      const linkPath = new URL(link.href, location.origin).pathname
+        .replace(/\/index\.html$/, "")
+        .replace(/\/$/, "");
+      if (linkPath !== currentPath) return;
+      const submenu = link.closest("ul[id^='dropdown-']");
+      link.classList.add(submenu ? "sub-active" : "nav-active");
+      if (!submenu) return;
+      submenu.classList.remove("hidden");
+      const parentToggle = container.querySelector(
+        `[data-target="${submenu.id}"]`,
+      );
+      parentToggle?.classList.add("nav-active");
+      parentToggle?.setAttribute("aria-expanded", "true");
+      const arrow = parentToggle?.querySelector(".chevron");
+      if (arrow) arrow.style.transform = "rotate(180deg)";
+    });
+    container.addEventListener("click", (event) => {
+      const toggle = event.target.closest(".menu-toggle");
+      if (!toggle) return;
+      const menu = document.getElementById(toggle.dataset.target);
+      menu?.classList.toggle("hidden");
+      const hidden = menu?.classList.contains("hidden");
+      toggle.setAttribute("aria-expanded", String(!hidden));
+      const arrow = toggle.querySelector(".chevron");
+      if (arrow)
+        arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+    });
   });
-  container.addEventListener("click", (event) => {
-    const toggle = event.target.closest(".menu-toggle");
-    if (!toggle) return;
-    const menu = document.getElementById(toggle.dataset.target);
-    menu?.classList.toggle("hidden");
-    const hidden = menu?.classList.contains("hidden");
-    toggle.setAttribute("aria-expanded", String(!hidden));
-    const arrow = toggle.querySelector(".chevron");
-    if (arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
-  });
-});
 function toggleNav() {
   const nav = document.getElementById("mySidenav");
   const main = document.getElementById("main");

@@ -107,7 +107,8 @@ function renderReport() {
   document.getElementById("respondents").textContent =
     Number(first.respondents) || 0;
   const departmentMean = average(state.rows.map((row) => row.mean));
-  document.getElementById("overallMean").textContent = formatMean(departmentMean);
+  document.getElementById("overallMean").textContent =
+    formatMean(departmentMean);
   const html = [];
   groupedRows().forEach((items, category) => {
     html.push(
@@ -291,10 +292,7 @@ async function downloadPdf() {
         },
       ]);
       items.forEach((item) =>
-        body.push([
-          `${item.number}. ${item.question}`,
-          formatMean(item.mean),
-        ]),
+        body.push([`${item.number}. ${item.question}`, formatMean(item.mean)]),
       );
       body.push([
         {

@@ -171,7 +171,11 @@ function requirePermission(permission) {
 }
 
 function requireNonRater(req, res, next) {
-  if (String(req.user?.permission_name || "").trim().toLowerCase() !== "rater")
+  if (
+    String(req.user?.permission_name || "")
+      .trim()
+      .toLowerCase() !== "rater"
+  )
     return next();
   return res.status(403).json({
     success: 0,

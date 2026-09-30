@@ -26,7 +26,10 @@ function requireOpenRating(req, res, next) {
     }
     getStudentRatingGroup(req.user.id, (groupError, group) => {
       if (groupError) {
-        console.error("Unable to identify the student rating group:", groupError);
+        console.error(
+          "Unable to identify the student rating group:",
+          groupError,
+        );
         return res.status(500).json({
           success: 0,
           message: "Unable to verify student rating access.",
@@ -74,7 +77,10 @@ module.exports = {
         }
         getStudentRatingGroup(req.user.id, (groupError, group) => {
           if (groupError) {
-            console.error("Unable to identify the student rating group:", groupError);
+            console.error(
+              "Unable to identify the student rating group:",
+              groupError,
+            );
             return res.status(500).json({
               success: 0,
               message: "Unable to identify student rating access.",
@@ -87,9 +93,7 @@ module.exports = {
               can_manage: false,
               group,
               enabled:
-                group === "shs"
-                  ? access.shs_enabled
-                  : access.non_shs_enabled,
+                group === "shs" ? access.shs_enabled : access.non_shs_enabled,
             },
           });
         });
@@ -128,7 +132,9 @@ module.exports = {
     getTransactions(body, (err, results) => {
       if (err) {
         console.error("Unable to load transactions:", err);
-        return res.status(500).json({ success: 0, message: "Unable to load transactions." });
+        return res
+          .status(500)
+          .json({ success: 0, message: "Unable to load transactions." });
       }
       if (!results) {
         return res.json({
@@ -150,7 +156,9 @@ module.exports = {
     getTransactionsByStudent(body, (err, results) => {
       if (err) {
         console.error("Unable to load student courses:", err);
-        return res.status(500).json({ success: 0, message: "Unable to load student courses." });
+        return res
+          .status(500)
+          .json({ success: 0, message: "Unable to load student courses." });
       }
       if (!results) {
         return res.json({
@@ -194,7 +202,9 @@ module.exports = {
     getSYSemData(body, (err, results) => {
       if (err) {
         console.error("Unable to load transaction totals:", err);
-        return res.status(500).json({ success: 0, message: "Unable to load transaction totals." });
+        return res
+          .status(500)
+          .json({ success: 0, message: "Unable to load transaction totals." });
       }
       if (!results) {
         return res.json({
@@ -359,7 +369,10 @@ module.exports = {
     getNotRatedTransactions(body, (err, results) => {
       if (err) {
         console.error("Unable to export unrated transactions:", err);
-        return res.status(500).json({ success: 0, message: "Unable to export unrated transactions." });
+        return res.status(500).json({
+          success: 0,
+          message: "Unable to export unrated transactions.",
+        });
       }
       if (!results) {
         return res.json({

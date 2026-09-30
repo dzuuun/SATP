@@ -10,7 +10,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -22,7 +22,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -35,7 +35,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -46,7 +46,9 @@ module.exports = {
       const plainTextPassword = String(data.password || "");
 
       if (!plainTextPassword && !String(data.google_email || "").trim()) {
-        return callBack(new Error("A password or institutional email is required."));
+        return callBack(
+          new Error("A password or institutional email is required."),
+        );
       }
 
       password = plainTextPassword
@@ -66,7 +68,9 @@ module.exports = {
             [
               data.username,
               password,
-              String(data.google_email || "").trim().toLowerCase() || null,
+              String(data.google_email || "")
+                .trim()
+                .toLowerCase() || null,
               data.permission_id,
               ["COLLEGE", "SHS", "ALL"].includes(data.admin_academic_scope)
                 ? data.admin_academic_scope
@@ -97,21 +101,21 @@ module.exports = {
                       if (error) {
                         console.log(error);
                       }
-                    }
+                    },
                   );
                   if (error) {
                     // callBack(error);
                     console.log(error);
                   }
-                }
+                },
               );
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(results);
         }
-      }
+      },
     );
   },
 
@@ -154,7 +158,9 @@ module.exports = {
                 connection.query(
                   "UPDATE users SET google_email=?, permission_id=?, admin_academic_scope=? WHERE id=?",
                   [
-                    String(data.google_email || "").trim().toLowerCase() || null,
+                    String(data.google_email || "")
+                      .trim()
+                      .toLowerCase() || null,
                     data.permission_id,
                     ["COLLEGE", "SHS", "ALL"].includes(
                       data.admin_academic_scope,
@@ -219,19 +225,19 @@ module.exports = {
                     if (error) {
                       console.log(error);
                     }
-                  }
+                  },
                 );
                 if (error) {
                   callBack(error);
                 }
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(null, result);
         }
-      }
+      },
     );
   },
 
@@ -252,19 +258,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
 };

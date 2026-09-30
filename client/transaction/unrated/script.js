@@ -1,4 +1,3 @@
-
 const tbody = document.getElementById("tbData");
 var genSchoolYear = localStorage.getItem("transListSchoolYear");
 var genSemester = localStorage.getItem("transListSemester");
@@ -54,25 +53,25 @@ async function getdata() {
 
         const csv = Papa.unparse(response.data);
         console.log(csv);
-// ...
+        // ...
 
-// Create a Blob object
-const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        // Create a Blob object
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 
-// Create a download link
-const link = document.createElement('a');
-const url = URL.createObjectURL(blob);
-link.href = url;
-link.setAttribute('download', 'data.csv');
+        // Create a download link
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.setAttribute("download", "data.csv");
 
-// Append the link to the document
-document.body.appendChild(link);
+        // Append the link to the document
+        document.body.appendChild(link);
 
-// Trigger the click event to download the file
-link.click();
+        // Trigger the click event to download the file
+        link.click();
 
-// Remove the link from the document
-document.body.removeChild(link);
+        // Remove the link from the document
+        document.body.removeChild(link);
       }
     });
 }
@@ -108,7 +107,7 @@ function csvExport(table_id, separator = ",") {
   link.setAttribute("target", "_blank");
   link.setAttribute(
     "href",
-    "data:text/csv;charset=utf-8," + encodeURIComponent(csv_string)
+    "data:text/csv;charset=utf-8," + encodeURIComponent(csv_string),
   );
   link.setAttribute("download", filename);
   document.body.appendChild(link);

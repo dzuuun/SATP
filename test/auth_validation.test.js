@@ -2,7 +2,10 @@
 
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { requirePermission, protectMaintenanceChanges } = require("../auth/auth_validation");
+const {
+  requirePermission,
+  protectMaintenanceChanges,
+} = require("../auth/auth_validation");
 
 function responseDouble() {
   return {

@@ -13,13 +13,16 @@ function captureQuery(method, group) {
     callback(null, []);
   };
   try {
-    model[method]({
-      requesting_user_id: 7,
-      school_year_id: 4,
-      semester_id: 2,
-      student_id: "S-100",
-      academic_group: group,
-    }, () => {});
+    model[method](
+      {
+        requesting_user_id: 7,
+        school_year_id: 4,
+        semester_id: 2,
+        student_id: "S-100",
+        academic_group: group,
+      },
+      () => {},
+    );
   } finally {
     pool.query = original;
   }

@@ -148,7 +148,7 @@ async function submitRating() {
         item_id: item_id[i],
         rate: stars.widgets[i].indexSelected + 1,
       };
-      console.log(rating)
+      console.log(rating);
       await fetch(`/api/transaction/add/rating`, {
         method: "POST",
         headers: {
@@ -224,9 +224,8 @@ function closeRating() {
 }
 
 function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
+  document.getElementById("toast-container").innerHTML =
+    `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
                   <div id="toast-header" class="toast-header border-0 bg-danger text-white">
                     <i class="bi bi-check-circle me-2"></i>
                     <strong id="toastLabel" class="me-auto">Error</strong>

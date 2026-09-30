@@ -57,7 +57,9 @@ for (const raw of lines) {
         screenshot,
       );
       const data = fs.readFileSync(file).toString("base64");
-      body.push(`<figure><img src="data:image/png;base64,${data}" alt="SATP screen"><figcaption>${inline(heading[2])}</figcaption></figure>`);
+      body.push(
+        `<figure><img src="data:image/png;base64,${data}" alt="SATP screen"><figcaption>${inline(heading[2])}</figcaption></figure>`,
+      );
     }
   } else if (ordered || bullet) {
     const type = ordered ? "ol" : "ul";

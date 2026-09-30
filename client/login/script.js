@@ -58,7 +58,9 @@ function completeLogin(response) {
     usersAccess: data.users_access,
     fullname: data.full_name,
   };
-  Object.entries(storageData).forEach(([key, value]) => localStorage.setItem(key, value));
+  Object.entries(storageData).forEach(([key, value]) =>
+    localStorage.setItem(key, value),
+  );
   setTimeout(() => {
     window.location.replace(getAuthorizedHome(data));
   }, 500);
@@ -73,7 +75,8 @@ window.handleGoogleCredential = async ({ credential }) => {
       body: JSON.stringify({ credential }),
     });
     const response = await result.json();
-    if (!result.ok || !response.success) throw new Error(response.message || "Google sign-in failed.");
+    if (!result.ok || !response.success)
+      throw new Error(response.message || "Google sign-in failed.");
     completeLogin(response);
   } catch (error) {
     updateStatus(error.message, "text-red-600");
@@ -82,9 +85,15 @@ window.handleGoogleCredential = async ({ credential }) => {
 
 async function initializeGoogleLogin() {
   try {
-    const response = await fetch("/api/login/google/config").then((result) => result.json());
+    const response = await fetch("/api/login/google/config").then((result) =>
+      result.json(),
+    );
     if (!response.data?.enabled) return;
-    for (let attempt = 0; attempt < 50 && !window.google?.accounts?.id; attempt++) {
+    for (
+      let attempt = 0;
+      attempt < 50 && !window.google?.accounts?.id;
+      attempt++
+    ) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
     if (!window.google?.accounts?.id) return;

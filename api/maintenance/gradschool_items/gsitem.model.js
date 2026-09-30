@@ -3,13 +3,13 @@ const pool = require("../../../db/db");
 module.exports = {
   getAllItems: (callBack) => {
     pool.query(
-"SELECT * FROM gradschool_items ORDER BY number",
+      "SELECT * FROM gradschool_items ORDER BY number",
       (error, results) => {
         if (error) {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -21,7 +21,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
@@ -33,7 +33,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
   getActiveCommentsItems: (callBack) => {
@@ -44,19 +44,20 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
 
   getItemById: (Id, callBack) => {
     pool.query(
-"SELECT * FROM gradschool_items WHERE id=? ORDER BY number",      [Id],
+      "SELECT * FROM gradschool_items WHERE id=? ORDER BY number",
+      [Id],
       (error, results) => {
         if (error) {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -74,24 +75,27 @@ module.exports = {
                 "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
                 [
                   data.user_id,
-                  "Added Grad School Item: " + data.number + ". " + data.question,
+                  "Added Grad School Item: " +
+                    data.number +
+                    ". " +
+                    data.question,
                 ],
                 (error, results) => {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
               if (error) {
                 callBack(error);
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(results);
         }
-      }
+      },
     );
   },
 
@@ -111,19 +115,19 @@ module.exports = {
               if (error) {
                 console.log(error);
               }
-            }
+            },
           );
         }
         if (error) {
           callBack(error);
         }
         return callBack(null, results);
-      }
+      },
     );
   },
-  
+
   submitComment: (data, callBack) => {
-    console.log(data)
+    console.log(data);
     pool.query(
       "SELECT * FROM gradschool_comments WHERE transaction_id = ? AND gradschool_item_id = ?",
       [data.transaction_id, data.gradschool_item_id],
@@ -137,13 +141,12 @@ module.exports = {
                 callBack(error);
               }
               return callBack(null, results);
-            }
+            },
           );
         } else {
           return callBack(results);
         }
-      }
+      },
     );
   },
-
 };

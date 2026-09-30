@@ -1,5 +1,6 @@
 function asyncHandler(handler) {
-  return (req, res, next) => Promise.resolve(handler(req, res, next)).catch(next);
+  return (req, res, next) =>
+    Promise.resolve(handler(req, res, next)).catch(next);
 }
 
 function invoke(method, ...args) {
@@ -35,7 +36,9 @@ function createMaintenanceController(model, definitions) {
     controller[name] = asyncHandler(async (req, res) => {
       const method = model[definition.method];
       if (typeof method !== "function") {
-        const error = new Error(`Maintenance service ${definition.method} is unavailable.`);
+        const error = new Error(
+          `Maintenance service ${definition.method} is unavailable.`,
+        );
         error.statusCode = 500;
         throw error;
       }

@@ -106,7 +106,7 @@ document
     await savePermission(
       "/api/permission/add",
       "POST",
-        permissionPayload(form),
+      permissionPayload(form),
       "addNewModal",
     );
   });

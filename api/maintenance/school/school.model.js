@@ -28,27 +28,34 @@ module.exports = {
   },
 
   addSchool: (data, callBack) => {
-    const code = String(data.code || "").trim().toUpperCase();
+    const code = String(data.code || "")
+      .trim()
+      .toUpperCase();
     const name = String(data.name || "").trim();
     if (!code || !name) {
       return callBack(new Error("Code and name are required."));
     }
-    pool.query("SELECT id FROM schools WHERE code = ?", [code], (error, rows) => {
-      if (error) return callBack(error);
-      if (rows.length) return callBack(new Error("School code already exists."));
-      pool.query(
-        "INSERT INTO schools (code, name, is_active) VALUES (?,?,?)",
-        [code, name, Number(data.is_active) === 1 ? 1 : 0],
-        (insertError, result) => {
-          if (insertError) return callBack(insertError);
-          pool.query(
-            "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
-            [data.user_id, `Added School: ${code}`],
-            () => callBack(null, result),
-          );
-        },
-      );
-    });
+    pool.query(
+      "SELECT id FROM schools WHERE code = ?",
+      [code],
+      (error, rows) => {
+        if (error) return callBack(error);
+        if (rows.length)
+          return callBack(new Error("School code already exists."));
+        pool.query(
+          "INSERT INTO schools (code, name, is_active) VALUES (?,?,?)",
+          [code, name, Number(data.is_active) === 1 ? 1 : 0],
+          (insertError, result) => {
+            if (insertError) return callBack(insertError);
+            pool.query(
+              "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
+              [data.user_id, `Added School: ${code}`],
+              () => callBack(null, result),
+            );
+          },
+        );
+      },
+    );
   },
 
   updateSchool: async (data, callBack) => {

@@ -11,12 +11,15 @@ module.exports = {
   },
 
   getActiveSemesters: (callBack) => {
-    pool.query("SELECT * FROM semesters WHERE is_active = 1", (error, results) => {
-      if (error) {
-        callBack(error);
-      }
-      return callBack(null, results);
-    });
+    pool.query(
+      "SELECT * FROM semesters WHERE is_active = 1",
+      (error, results) => {
+        if (error) {
+          callBack(error);
+        }
+        return callBack(null, results);
+      },
+    );
   },
 
   getInUseSemester: (callBack) => {
@@ -80,7 +83,7 @@ module.exports = {
           callBack(error);
         }
         return callBack(null, results[0]);
-      }
+      },
     );
   },
 
@@ -89,7 +92,10 @@ module.exports = {
     try {
       connection = await pool.promise().getConnection();
       await connection.beginTransaction();
-      const [existing] = await connection.query("SELECT id FROM semesters WHERE name = ?", [data.name]);
+      const [existing] = await connection.query(
+        "SELECT id FROM semesters WHERE name = ?",
+        [data.name],
+      );
       if (existing.length) {
         const duplicateError = new Error("Semester already exists.");
         duplicateError.code = "ER_DUP_ENTRY";
@@ -103,7 +109,13 @@ module.exports = {
       }
       const [results] = await connection.query(
         "INSERT INTO semesters (name, in_use, is_current_college, is_current_shs, is_active) VALUES (?,?,?,?,?)",
-        [data.name, data.in_use, data.is_current_college, data.is_current_shs, data.is_active],
+        [
+          data.name,
+          data.in_use,
+          data.is_current_college,
+          data.is_current_shs,
+          data.is_active,
+        ],
       );
       await connection.query(
         "INSERT INTO activity_log (user_id, date_time, action) VALUES (?,CURRENT_TIMESTAMP,?)",
@@ -125,14 +137,27 @@ module.exports = {
       connection = await pool.promise().getConnection();
       await connection.beginTransaction();
       if (Number(data.is_current_college) === 1) {
-        await connection.query("UPDATE semesters SET is_current_college = 0 WHERE id <> ?", [data.id]);
+        await connection.query(
+          "UPDATE semesters SET is_current_college = 0 WHERE id <> ?",
+          [data.id],
+        );
       }
       if (Number(data.is_current_shs) === 1) {
-        await connection.query("UPDATE semesters SET is_current_shs = 0 WHERE id <> ?", [data.id]);
+        await connection.query(
+          "UPDATE semesters SET is_current_shs = 0 WHERE id <> ?",
+          [data.id],
+        );
       }
       const [results] = await connection.query(
         "UPDATE semesters SET name = ?, in_use = ?, is_current_college = ?, is_current_shs = ?, is_active = ? WHERE id = ?",
-        [data.name, data.in_use, data.is_current_college, data.is_current_shs, data.is_active, data.id],
+        [
+          data.name,
+          data.in_use,
+          data.is_current_college,
+          data.is_current_shs,
+          data.is_active,
+          data.id,
+        ],
       );
       if (results.changedRows === 1) {
         await connection.query(
@@ -167,19 +192,19 @@ module.exports = {
                   if (error) {
                     console.log(error);
                   }
-                }
+                },
               );
             }
             if (error) {
               callBack(error);
             }
             return callBack(null, results);
-          }
+          },
         );
         if (error) {
           return callBack(error);
         }
-      }
+      },
     );
   },
 };

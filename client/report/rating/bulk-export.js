@@ -124,12 +124,7 @@ function appendPdfComments(pdf, comments) {
   });
 }
 
-function buildRatingPdf(
-  report,
-  teacherMean,
-  logos,
-  ratingType = "individual",
-) {
+function buildRatingPdf(report, teacherMean, logos, ratingType = "individual") {
   const reportLabel =
     ratingType === "institutional" ? "Institutional" : "Individual";
   const { jsPDF } = window.jspdf;
@@ -339,14 +334,28 @@ function buildBulkRatingReportElement(report, teacherMean, reportLabel) {
   });
   const rows = [];
   categories.forEach((items, category) => {
-    rows.push(`<tr class="category-row"><th colspan="2">${bulkEscapeHtml(category)}</th></tr>`);
-    items.forEach((item) => rows.push(`<tr><td>${bulkEscapeHtml(item.number)}. ${bulkEscapeHtml(item.question)}</td><td>${formatMean(item.mean)}</td></tr>`));
-    rows.push(`<tr class="average-row"><td>Category Average: </td><td>${formatMean(numericAverage(items.map((item) => item.mean)))}</td></tr>`);
+    rows.push(
+      `<tr class="category-row"><th colspan="2">${bulkEscapeHtml(category)}</th></tr>`,
+    );
+    items.forEach((item) =>
+      rows.push(
+        `<tr><td>${bulkEscapeHtml(item.number)}. ${bulkEscapeHtml(item.question)}</td><td>${formatMean(item.mean)}</td></tr>`,
+      ),
+    );
+    rows.push(
+      `<tr class="average-row"><td>Category Average: </td><td>${formatMean(numericAverage(items.map((item) => item.mean)))}</td></tr>`,
+    );
   });
   const subjectMean = numericAverage(report.items.map((item) => item.mean));
-  rows.push(`<tr class="average-row"><td>Course Average: </td><td>${formatMean(subjectMean)}</td></tr>`);
-  rows.push(`<tr class="average-row"><td>Your Mean: </td><td>${formatMean(teacherMean)}</td></tr>`);
-  rows.push(`<tr class="average-row"><td>Qualitative Equivalent: </td><td>${bulkEscapeHtml(qualitativeEquivalent(teacherMean))}</td></tr>`);
+  rows.push(
+    `<tr class="average-row"><td>Course Average: </td><td>${formatMean(subjectMean)}</td></tr>`,
+  );
+  rows.push(
+    `<tr class="average-row"><td>Your Mean: </td><td>${formatMean(teacherMean)}</td></tr>`,
+  );
+  rows.push(
+    `<tr class="average-row"><td>Qualitative Equivalent: </td><td>${bulkEscapeHtml(qualitativeEquivalent(teacherMean))}</td></tr>`,
+  );
   const comments = report.comments.length
     ? `<section class="comments-section"><h4>Comments:</h4><div>${report.comments.map((comment) => `<p class="comment-entry">${bulkEscapeHtml(comment)}</p>`).join("")}</div></section>`
     : "";

@@ -39,7 +39,9 @@ function localReferences(html) {
     );
 }
 
-for (const page of walk(clientRoot, ".html").filter((file) => !isDeferredGradSchool(file))) {
+for (const page of walk(clientRoot, ".html").filter(
+  (file) => !isDeferredGradSchool(file),
+)) {
   test(`page smoke: ${relativeName(page)}`, () => {
     const html = fs.readFileSync(page, "utf8");
     assert.ok(html.trim(), "page must not be empty");
@@ -53,8 +55,14 @@ for (const page of walk(clientRoot, ".html").filter((file) => !isDeferredGradSch
     const ids = [...markup.matchAll(/\bid\s*=\s*["']([^"']+)["']/gi)].map(
       (match) => match[1],
     );
-    const duplicateIds = [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
-    assert.deepEqual(duplicateIds, [], `duplicate element IDs: ${duplicateIds.join(", ")}`);
+    const duplicateIds = [
+      ...new Set(ids.filter((id, index) => ids.indexOf(id) !== index)),
+    ];
+    assert.deepEqual(
+      duplicateIds,
+      [],
+      `duplicate element IDs: ${duplicateIds.join(", ")}`,
+    );
 
     const missing = [];
     for (const reference of localReferences(html)) {
@@ -64,16 +72,26 @@ for (const page of walk(clientRoot, ".html").filter((file) => !isDeferredGradSch
         : path.resolve(path.dirname(page), cleanReference);
       if (!fs.existsSync(target)) missing.push(reference);
     }
-    assert.deepEqual(missing, [], `missing local assets or links: ${missing.join(", ")}`);
+    assert.deepEqual(
+      missing,
+      [],
+      `missing local assets or links: ${missing.join(", ")}`,
+    );
 
     if (path.basename(page) === "index.html") {
       assert.match(html, /<title>[^<]+<\/title>/i, "page must have a title");
-      assert.match(html, /name=["']viewport["']/i, "page must define a viewport");
+      assert.match(
+        html,
+        /name=["']viewport["']/i,
+        "page must define a viewport",
+      );
     }
   });
 }
 
-for (const script of walk(clientRoot, ".js").filter((file) => !isDeferredGradSchool(file))) {
+for (const script of walk(clientRoot, ".js").filter(
+  (file) => !isDeferredGradSchool(file),
+)) {
   test(`browser script syntax: ${relativeName(script)}`, () => {
     const source = fs.readFileSync(script, "utf8");
     assert.doesNotThrow(

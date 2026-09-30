@@ -26,14 +26,20 @@ if (!state.userId) {
 } else if (state.reportsAccess == 0) {
   alert("You don't have permission to access this page.");
   history.back();
-} else if (!state.schoolYearId || !state.semesterId || !state.teacherId || !state.subjectId) {
+} else if (
+  !state.schoolYearId ||
+  !state.semesterId ||
+  !state.teacherId ||
+  !state.subjectId
+) {
   alert("Select the report filters before opening this report.");
   location.href = "../index.html";
 }
 
 async function requestJson(url, options = {}) {
   const response = await fetch(url, options);
-  if (!response.ok) throw new Error(`Request failed with status ${response.status}.`);
+  if (!response.ok)
+    throw new Error(`Request failed with status ${response.status}.`);
   return response.json();
 }
 
@@ -53,7 +59,9 @@ function escapeHtml(value) {
 
 function average(values) {
   const numbers = values.map(Number).filter(Number.isFinite);
-  return numbers.length ? numbers.reduce((sum, value) => sum + value, 0) / numbers.length : 0;
+  return numbers.length
+    ? numbers.reduce((sum, value) => sum + value, 0) / numbers.length
+    : 0;
 }
 
 function formatMean(value) {
@@ -89,17 +97,21 @@ async function loadReport() {
   };
   const reportQuery = { ...periodQuery, subject_id: state.subjectId };
   try {
-    const [ratingResponse, teacherResponse, commentResponse] = await Promise.all([
-      postJson("/api/report/rating/individual", reportQuery),
-      postJson("/api/report/rating/teacher/information", periodQuery),
-      postJson("/api/report/rating/comment", reportQuery),
-    ]);
+    const [ratingResponse, teacherResponse, commentResponse] =
+      await Promise.all([
+        postJson("/api/report/rating/individual", reportQuery),
+        postJson("/api/report/rating/teacher/information", periodQuery),
+        postJson("/api/report/rating/comment", reportQuery),
+      ]);
     state.rows = ratingResponse.data || [];
     state.teacher = teacherResponse.data || null;
     state.comments = commentResponse.data || [];
     renderReport();
   } catch (error) {
-    showToast(error.message || `Unable to prepare the ${reportConfig.title.toLowerCase()}.`);
+    showToast(
+      error.message ||
+        `Unable to prepare the ${reportConfig.title.toLowerCase()}.`,
+    );
     showEmptyState();
   } finally {
     toggleModal("loadingModal", false);
@@ -107,39 +119,61 @@ async function loadReport() {
 }
 
 function renderReport() {
-  document.getElementById("dateGenerated").textContent = new Intl.DateTimeFormat("en-PH", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }).format(new Date());
+  document.getElementById("dateGenerated").textContent =
+    new Intl.DateTimeFormat("en-PH", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(new Date());
   if (!state.rows.length) return showEmptyState();
 
   const first = state.rows[0];
   const teacherInfo = state.teacher || first;
   const subjectMean = average(state.rows.map((row) => row.mean));
   const teacherMean = Number(teacherInfo.mean);
-  const displayedTeacherMean = Number.isFinite(teacherMean) ? teacherMean : subjectMean;
+  const displayedTeacherMean = Number.isFinite(teacherMean)
+    ? teacherMean
+    : subjectMean;
 
-  document.getElementById("teacher").textContent = teacherInfo.teacher_name || first.teacher_name || "—";
-  document.getElementById("schoolYear").textContent = teacherInfo.school_year || first.school_year || "—";
-  document.getElementById("semester").textContent = teacherInfo.semester || first.semester || "—";
-  document.getElementById("college").textContent = teacherInfo.college || first.college || "—";
-  document.getElementById("department").textContent = teacherInfo.department || first.department || "—";
+  document.getElementById("teacher").textContent =
+    teacherInfo.teacher_name || first.teacher_name || "—";
+  document.getElementById("schoolYear").textContent =
+    teacherInfo.school_year || first.school_year || "—";
+  document.getElementById("semester").textContent =
+    teacherInfo.semester || first.semester || "—";
+  document.getElementById("college").textContent =
+    teacherInfo.college || first.college || "—";
+  document.getElementById("department").textContent =
+    teacherInfo.department || first.department || "—";
   document.getElementById("subject").textContent = first.subject || "—";
-  document.getElementById("respondents").textContent = Number(first.respondents) || 0;
-  document.getElementById("subjectAverage").textContent = formatMean(subjectMean);
+  document.getElementById("respondents").textContent =
+    Number(first.respondents) || 0;
+  document.getElementById("subjectAverage").textContent =
+    formatMean(subjectMean);
 
   const html = [];
   groupedRows().forEach((items, category) => {
-    html.push(`<tr class="category-row"><th colspan="2">${escapeHtml(category)}</th></tr>`);
+    html.push(
+      `<tr class="category-row"><th colspan="2">${escapeHtml(category)}</th></tr>`,
+    );
     items.forEach((item) => {
-      html.push(`<tr><td>${escapeHtml(item.number)}. ${escapeHtml(item.question)}</td><td>${formatMean(item.mean)}</td></tr>`);
+      html.push(
+        `<tr><td>${escapeHtml(item.number)}. ${escapeHtml(item.question)}</td><td>${formatMean(item.mean)}</td></tr>`,
+      );
     });
-    html.push(`<tr class="average-row"><td>Category Average: </td><td>${formatMean(average(items.map((item) => item.mean)))}</td></tr>`);
+    html.push(
+      `<tr class="average-row"><td>Category Average: </td><td>${formatMean(average(items.map((item) => item.mean)))}</td></tr>`,
+    );
   });
-  html.push(`<tr class="average-row"><td>Course Average: </td><td>${formatMean(subjectMean)}</td></tr>`);
-  html.push(`<tr class="average-row"><td>Your Mean: </td><td>${formatMean(displayedTeacherMean)}</td></tr>`);
-  html.push(`<tr class="average-row"><td>Qualitative Equivalent: </td><td>${escapeHtml(getQualitativeEquivalent(displayedTeacherMean))}</td></tr>`);
+  html.push(
+    `<tr class="average-row"><td>Course Average: </td><td>${formatMean(subjectMean)}</td></tr>`,
+  );
+  html.push(
+    `<tr class="average-row"><td>Your Mean: </td><td>${formatMean(displayedTeacherMean)}</td></tr>`,
+  );
+  html.push(
+    `<tr class="average-row"><td>Qualitative Equivalent: </td><td>${escapeHtml(getQualitativeEquivalent(displayedTeacherMean))}</td></tr>`,
+  );
   document.getElementById("tbData").innerHTML = html.join("");
 
   if (state.comments.length) {
@@ -156,9 +190,6 @@ function showEmptyState() {
   document.getElementById("table").classList.add("hidden");
   document.getElementById("emptyState").classList.remove("hidden");
 }
-
-
-
 
 async function downloadPdf() {
   if (!state.rows.length) return;
@@ -228,9 +259,7 @@ async function downloadPdf() {
     }
 
     await new Promise((resolve) =>
-      requestAnimationFrame(() =>
-        requestAnimationFrame(resolve),
-      ),
+      requestAnimationFrame(() => requestAnimationFrame(resolve)),
     );
 
     const options = {
@@ -282,16 +311,11 @@ async function downloadPdf() {
       },
     };
 
-    await html2pdf()
-      .set(options)
-      .from(reportClone)
-      .save();
+    await html2pdf().set(options).from(reportClone).save();
   } catch (error) {
     console.error("PDF generation error:", error);
 
-    showToast(
-      error.message || "Unable to generate the PDF report.",
-    );
+    showToast(error.message || "Unable to generate the PDF report.");
   } finally {
     exportContainer?.remove();
 
@@ -321,7 +345,8 @@ function toggleModal(id, show = true) {
 function showToast(message) {
   const toast = document.createElement("div");
   toast.className = "category-toast";
-  toast.innerHTML = '<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span><span></span>';
+  toast.innerHTML =
+    '<span class="toast-symbol"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span><span></span>';
   toast.lastElementChild.textContent = message;
   document.getElementById("toast-container").replaceChildren(toast);
   setTimeout(() => toast.remove(), 4000);
@@ -332,7 +357,8 @@ function toggleNav() {
   if (!side) return;
   const open = side.style.width === "280px";
   side.style.width = open ? "0" : "280px";
-  document.getElementById("main").style.marginLeft = innerWidth <= 760 || open ? "0" : "280px";
+  document.getElementById("main").style.marginLeft =
+    innerWidth <= 760 || open ? "0" : "280px";
 }
 
 async function loadSidebar() {
@@ -341,15 +367,20 @@ async function loadSidebar() {
     container.innerHTML = await (await fetch("/sidebar.html")).text();
     const name = document.getElementById("sidebar-fullname");
     if (name) name.textContent = state.fullname || state.username || "User";
-    document.querySelectorAll(".menu-toggle").forEach((toggle) => toggle.addEventListener("click", function () {
-      const menu = document.getElementById(this.dataset.target);
-      menu?.classList.toggle("hidden");
-      const hidden = menu?.classList.contains("hidden");
-      this.setAttribute("aria-expanded", String(!hidden));
-      const arrow = this.querySelector(".chevron");
-      if (arrow) arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
-    }));
-    document.querySelector('#mySidenav a[href="/report/rating/index.html"]')?.classList.add("sub-active");
+    document.querySelectorAll(".menu-toggle").forEach((toggle) =>
+      toggle.addEventListener("click", function () {
+        const menu = document.getElementById(this.dataset.target);
+        menu?.classList.toggle("hidden");
+        const hidden = menu?.classList.contains("hidden");
+        this.setAttribute("aria-expanded", String(!hidden));
+        const arrow = this.querySelector(".chevron");
+        if (arrow)
+          arrow.style.transform = hidden ? "rotate(0deg)" : "rotate(180deg)";
+      }),
+    );
+    document
+      .querySelector('#mySidenav a[href="/report/rating/index.html"]')
+      ?.classList.add("sub-active");
     const menu = document.getElementById("dropdown-rating");
     menu?.classList.remove("hidden");
     const toggle = document.querySelector('[data-target="dropdown-rating"]');
@@ -365,37 +396,38 @@ async function loadSidebar() {
   }
 }
 
-document.getElementById("downloadButton").addEventListener("click", async () => {
-  if (!state.rows.length) return;
-  const button = document.getElementById("downloadButton");
-  const label = button.querySelector("span");
-  const teacherName = document
-    .getElementById("teacher")
-    .textContent.trim()
-    .replace(/[\\/:*?"<>|]/g, "-");
-  const subjectName = document
-    .getElementById("subject")
-    .textContent.trim()
-    .replace(/[\\/:*?"<>|]/g, "-");
-  button.disabled = true;
-  label.textContent = "Preparing PDF...";
-  try {
-    await renderReportPdf({
-      filename: `SATP ${reportConfig.title} - ${teacherName} - ${subjectName} - ${new Date().toISOString().slice(0, 10)}.pdf`,
-      pagebreakAvoid: [
-        ".individual-rating-details",
-        ".mean-summary",
-      ],
-    });
-  } catch (error) {
-    console.error("PDF generation error:", error);
-    showToast(error.message || "Unable to generate the PDF report.");
-  } finally {
-    button.disabled = false;
-    label.textContent = "Download PDF";
-  }
-});
-document.getElementById("printButton").addEventListener("click", () => window.print());
+document
+  .getElementById("downloadButton")
+  .addEventListener("click", async () => {
+    if (!state.rows.length) return;
+    const button = document.getElementById("downloadButton");
+    const label = button.querySelector("span");
+    const teacherName = document
+      .getElementById("teacher")
+      .textContent.trim()
+      .replace(/[\\/:*?"<>|]/g, "-");
+    const subjectName = document
+      .getElementById("subject")
+      .textContent.trim()
+      .replace(/[\\/:*?"<>|]/g, "-");
+    button.disabled = true;
+    label.textContent = "Preparing PDF...";
+    try {
+      await renderReportPdf({
+        filename: `SATP ${reportConfig.title} - ${teacherName} - ${subjectName} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+        pagebreakAvoid: [".individual-rating-details", ".mean-summary"],
+      });
+    } catch (error) {
+      console.error("PDF generation error:", error);
+      showToast(error.message || "Unable to generate the PDF report.");
+    } finally {
+      button.disabled = false;
+      label.textContent = "Download PDF";
+    }
+  });
+document
+  .getElementById("printButton")
+  .addEventListener("click", () => window.print());
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("year").textContent = new Date().getFullYear();
   loadSidebar();

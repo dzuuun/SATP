@@ -31,9 +31,7 @@ let data = $("#table").DataTable({
       data: "null",
       render: function (data, type, row) {
         return `<td class="text-center fw-medium">${
-          row.star_rating
-            ? "<span>Star</span>"
-            : '<span>Essay</span>'
+          row.star_rating ? "<span>Star</span>" : "<span>Essay</span>"
         }
                 </td>`;
       },
@@ -63,7 +61,6 @@ let data = $("#table").DataTable({
     },
   ],
 });
-
 
 // post item to API
 const formAddItem = document.querySelector("#newItemForm");
@@ -114,9 +111,8 @@ $(".modal").on("hidden.bs.modal", function () {
 });
 
 function setSuccessMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
+  document.getElementById("toast-container").innerHTML =
+    `<div id="toastContainer" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
                   <div id="toast-header" class="toast-header border-0 bg-success text-white">
                     <i class="bi bi-check-circle me-2"></i>
                     <strong id="toastLabel" class="me-auto">Success</strong>
@@ -137,9 +133,8 @@ function setSuccessMessage(message) {
 }
 
 function setErrorMessage(message) {
-  document.getElementById(
-    "toast-container"
-  ).innerHTML = `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
+  document.getElementById("toast-container").innerHTML =
+    `<div id="toastContainer" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
                   <div id="toast-header" class="toast-header border-0 bg-danger text-white">
                     <i class="bi bi-check-circle me-2"></i>
                     <strong id="toastLabel" class="me-auto">Error</strong>
@@ -158,7 +153,6 @@ function setErrorMessage(message) {
     $(".alert").alert("close");
   }, 2000);
 }
-
 
 // update data on the API
 var rowIdToUpdate;
@@ -192,7 +186,9 @@ formEditItem.addEventListener("submit", async (event) => {
 
   const formData = new FormData(formEditItem);
 
-  const isStarRating = document.getElementById("isQuestionStarRatingEdit").checked;
+  const isStarRating = document.getElementById(
+    "isQuestionStarRatingEdit",
+  ).checked;
   if (isStarRating == false) {
     formData.append("star_rating", "0");
   } else {
@@ -209,7 +205,7 @@ formEditItem.addEventListener("submit", async (event) => {
   formData.append("id", rowIdToUpdate);
   formData.append("user_id", user);
   const data = Object.fromEntries(formData);
-  console.log(data)
+  console.log(data);
   if (confirm("This action cannot be undone.") == true) {
     await fetch(`/api/gradschool/item/update`, {
       method: "PUT",
@@ -311,7 +307,7 @@ uploadFileForm.addEventListener("submit", (event) => {
               });
             $("#importFileModal").modal("hide");
             setSuccessMessage(
-              `${data.length} entries were imported successfully.`
+              `${data.length} entries were imported successfully.`,
             );
           }
         }

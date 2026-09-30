@@ -93,7 +93,9 @@ test("reassignment returns a model failure without exposing a success", () => {
 test("active assignment list returns records from the model", () => {
   const original = model.getActiveScheduleAssignments;
   model.getActiveScheduleAssignments = (_data, callback) =>
-    callback(null, [{ schedule_code: "AH 112-COMM1", teacher_name: "Dr. Test, PhD" }]);
+    callback(null, [
+      { schedule_code: "AH 112-COMM1", teacher_name: "Dr. Test, PhD" },
+    ]);
   try {
     const res = responseDouble();
     controller.getActiveScheduleAssignments(

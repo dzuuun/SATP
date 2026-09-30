@@ -116,13 +116,19 @@ module.exports = {
   setScheduleDissolved: (req, res) => {
     const data = { ...req.body, user_id: req.user.id };
     if (
-      !hasValidIds(data, ["school_year_id", "semester_id", "subject_id", "teacher_id"]) ||
+      !hasValidIds(data, [
+        "school_year_id",
+        "semester_id",
+        "subject_id",
+        "teacher_id",
+      ]) ||
       !String(data.schedule_code || "").trim() ||
       typeof data.dissolved !== "boolean"
     ) {
       return res.status(400).json({
         success: 0,
-        message: "A valid teacher assignment and dissolved status are required.",
+        message:
+          "A valid teacher assignment and dissolved status are required.",
       });
     }
     return model.setScheduleDissolved(data, (error, results) => {
@@ -319,16 +325,21 @@ module.exports = {
     }
 
     const enrollmentKeys = new Set(
-      subjects.map((subject) => [
-        Number(subject.subject_id),
-        String(subject.schedule_code || "").trim().toLowerCase(),
-        Number(subject.teacher_id),
-      ].join("|")),
+      subjects.map((subject) =>
+        [
+          Number(subject.subject_id),
+          String(subject.schedule_code || "")
+            .trim()
+            .toLowerCase(),
+          Number(subject.teacher_id),
+        ].join("|"),
+      ),
     );
     if (enrollmentKeys.size !== subjects.length) {
       return res.status(400).json({
         success: 0,
-        message: "The submitted course, schedule, and teacher list contains duplicates.",
+        message:
+          "The submitted course, schedule, and teacher list contains duplicates.",
       });
     }
 
@@ -374,7 +385,11 @@ module.exports = {
         return res.status(409).json({ success: 0, message: error.message });
       }
       if (error) {
-        return databaseError(res, error, "Unable to update the student course.");
+        return databaseError(
+          res,
+          error,
+          "Unable to update the student course.",
+        );
       }
       if (!results.affectedRows) {
         return res.status(404).json({
@@ -432,7 +447,11 @@ module.exports = {
     }
     return model.restoreStudentSubject(data, (error, results) => {
       if (error) {
-        return databaseError(res, error, "Unable to restore the student course.");
+        return databaseError(
+          res,
+          error,
+          "Unable to restore the student course.",
+        );
       }
       if (!results.changedRows) {
         return res.status(404).json({

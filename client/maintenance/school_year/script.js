@@ -29,9 +29,7 @@ $(document).ready(() => {
         width: "14%",
         className: "dt-center",
         render: (value) =>
-          value
-            ? '<span class="status-badge active">Current</span>'
-            : "—",
+          value ? '<span class="status-badge active">Current</span>' : "—",
       },
       {
         data: "is_active",
@@ -68,11 +66,7 @@ document
     await saveSchoolYear(
       "/api/schoolyear/add",
       "POST",
-      formPayload(
-        form,
-        "isSchoolYearInUse",
-        "isSchoolYearActive",
-      ),
+      formPayload(form, "isSchoolYearInUse", "isSchoolYearActive"),
       "addNewModal",
     );
   });

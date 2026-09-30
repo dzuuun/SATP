@@ -37,13 +37,15 @@ const pages = [
   ["20-category-maintenance.png", "/maintenance/category/", 5000],
   ["21-item-maintenance.png", "/maintenance/items/", 5000],
 ];
-const selectedPages = process.env.SATP_STUDENT_CAPTURE === "1"
-  ? [["22-student-courses-to-rate.png", "/rating/", 6000]]
-  : process.env.SATP_CAPTURE_ONLY
-  ? pages.filter(([file]) => file === process.env.SATP_CAPTURE_ONLY)
-  : pages;
+const selectedPages =
+  process.env.SATP_STUDENT_CAPTURE === "1"
+    ? [["22-student-courses-to-rate.png", "/rating/", 6000]]
+    : process.env.SATP_CAPTURE_ONLY
+      ? pages.filter(([file]) => file === process.env.SATP_CAPTURE_ONLY)
+      : pages;
 
-const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+const delay = (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 async function waitForDebugger(port) {
   for (let attempt = 0; attempt < 40; attempt += 1) {
@@ -60,17 +62,21 @@ async function main() {
   fs.mkdirSync(outputDir, { recursive: true });
   const port = 9333;
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), "satp-manual-"));
-  const browser = spawn(chrome, [
-    "--headless=new",
-    "--no-sandbox",
-    "--disable-gpu",
-    "--hide-scrollbars",
-    "--lang=en-US",
-    `--window-size=${process.env.SATP_CAPTURE_WINDOW || "1440,1000"}`,
-    `--remote-debugging-port=${port}`,
-    `--user-data-dir=${profile}`,
-    "http://localhost:3000/login/",
-  ], { stdio: "ignore" });
+  const browser = spawn(
+    chrome,
+    [
+      "--headless=new",
+      "--no-sandbox",
+      "--disable-gpu",
+      "--hide-scrollbars",
+      "--lang=en-US",
+      `--window-size=${process.env.SATP_CAPTURE_WINDOW || "1440,1000"}`,
+      `--remote-debugging-port=${port}`,
+      `--user-data-dir=${profile}`,
+      "http://localhost:3000/login/",
+    ],
+    { stdio: "ignore" },
+  );
 
   try {
     const targets = await waitForDebugger(port);
@@ -90,11 +96,12 @@ async function main() {
       if (message.error) reject(new Error(message.error.message));
       else resolve(message.result);
     });
-    const command = (method, params = {}) => new Promise((resolve, reject) => {
-      const commandId = ++id;
-      pending.set(commandId, { resolve, reject });
-      socket.send(JSON.stringify({ id: commandId, method, params }));
-    });
+    const command = (method, params = {}) =>
+      new Promise((resolve, reject) => {
+        const commandId = ++id;
+        pending.set(commandId, { resolve, reject });
+        socket.send(JSON.stringify({ id: commandId, method, params }));
+      });
     await command("Page.enable");
     await command("Runtime.enable");
     await delay(captureLogin ? 2500 : 1000);
@@ -125,7 +132,8 @@ async function main() {
         return result.message;
       })()`,
     });
-    if (login.exceptionDetails) throw new Error("Login failed in browser session.");
+    if (login.exceptionDetails)
+      throw new Error("Login failed in browser session.");
 
     for (const [file, route, wait = 2500] of selectedPages) {
       await command("Page.navigate", { url: `http://localhost:3000${route}` });
@@ -156,8 +164,14 @@ async function main() {
         });
         await delay(400);
       }
-      const screenshot = await command("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-      fs.writeFileSync(path.join(outputDir, file), Buffer.from(screenshot.data, "base64"));
+      const screenshot = await command("Page.captureScreenshot", {
+        format: "png",
+        captureBeyondViewport: false,
+      });
+      fs.writeFileSync(
+        path.join(outputDir, file),
+        Buffer.from(screenshot.data, "base64"),
+      );
       console.log(file);
       if (captureTransactionDetail && route === "/transaction/") {
         await command("Runtime.evaluate", {
@@ -229,7 +243,9 @@ async function main() {
           awaitPromise: true,
         });
         if (!opened.result?.value) {
-          throw new Error("No student transaction row was available to capture.");
+          throw new Error(
+            "No student transaction row was available to capture.",
+          );
         }
         await delay(2500);
         await command("Runtime.evaluate", {
@@ -264,11 +280,19 @@ async function main() {
       });
       if (opened.result?.value) {
         await delay(6000);
-        const assessment = await command("Page.captureScreenshot", { format: "png", captureBeyondViewport: false });
-        fs.writeFileSync(path.join(outputDir, "23-student-assessment.png"), Buffer.from(assessment.data, "base64"));
+        const assessment = await command("Page.captureScreenshot", {
+          format: "png",
+          captureBeyondViewport: false,
+        });
+        fs.writeFileSync(
+          path.join(outputDir, "23-student-assessment.png"),
+          Buffer.from(assessment.data, "base64"),
+        );
         console.log("23-student-assessment.png");
       } else {
-        console.warn("No pending course was available for the assessment-form screenshot.");
+        console.warn(
+          "No pending course was available for the assessment-form screenshot.",
+        );
       }
     }
     socket.close();

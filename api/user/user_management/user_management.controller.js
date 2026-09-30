@@ -59,7 +59,10 @@ module.exports = {
 
   updateUser: (req, res) => {
     const body = { ...req.body };
-    body.google_email = String(body.google_email || "").trim().toLowerCase() || null;
+    body.google_email =
+      String(body.google_email || "")
+        .trim()
+        .toLowerCase() || null;
     if (
       !body.id ||
       !body.username ||
@@ -109,7 +112,10 @@ module.exports = {
 
   addUser: (req, res) => {
     const body = req.body;
-    body.google_email = String(body.google_email || "").trim().toLowerCase() || null;
+    body.google_email =
+      String(body.google_email || "")
+        .trim()
+        .toLowerCase() || null;
     const plainPassword = String(body.password || "").trim();
     if (!plainPassword && !body.google_email) {
       return res.status(400).json({
@@ -267,11 +273,13 @@ module.exports = {
   },
 
   bulkDeactivateUsers: (req, res) => {
-    const usernames = [...new Set(
-      (Array.isArray(req.body.usernames) ? req.body.usernames : [])
-        .map((username) => String(username || "").trim())
-        .filter(Boolean),
-    )];
+    const usernames = [
+      ...new Set(
+        (Array.isArray(req.body.usernames) ? req.body.usernames : [])
+          .map((username) => String(username || "").trim())
+          .filter(Boolean),
+      ),
+    ];
     const userId = Number(req.body.user_id);
     if (!userId || !usernames.length) {
       return res.status(400).json({

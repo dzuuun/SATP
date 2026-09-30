@@ -26,13 +26,14 @@ const yesNo = (value) =>
 const loginMethod = (_, __, row) => {
   const hasEmail = Boolean(String(row.google_email || "").trim());
   const hasPassword = Number(row.has_password) === 1;
-  const label = hasEmail && hasPassword
-    ? "Both"
-    : hasEmail
-      ? "Email"
-      : hasPassword
-        ? "Password"
-        : "None";
+  const label =
+    hasEmail && hasPassword
+      ? "Both"
+      : hasEmail
+        ? "Email"
+        : hasPassword
+          ? "Password"
+          : "None";
   return `<span class="login-method login-method-${label.toLowerCase()}">${label}</span>`;
 };
 const table = $("#table").DataTable({
@@ -153,7 +154,10 @@ function configurePermissionSelect(selectId, role, selectedId = "") {
     select.appendChild(option);
   });
   if (role === "student" && permissions[0]) select.value = permissions[0].id;
-  else if (selectedId && permissions.some((item) => String(item.id) === String(selectedId)))
+  else if (
+    selectedId &&
+    permissions.some((item) => String(item.id) === String(selectedId))
+  )
     select.value = selectedId;
   select.disabled = !role || role === "student";
 }
@@ -191,7 +195,10 @@ document
     const form = event.currentTarget;
     if (!(await satpConfirm("Create this user?"))) return;
     const payload = Object.fromEntries(new FormData(form));
-    if (!String(payload.password || "").trim() && !String(payload.google_email || "").trim()) {
+    if (
+      !String(payload.password || "").trim() &&
+      !String(payload.google_email || "").trim()
+    ) {
       return showToast("Enter a temporary password or an institutional email.");
     }
     const student = document.getElementById("addRole").value === "student";
@@ -261,7 +268,9 @@ document
     const payload = Object.fromEntries(new FormData(event.currentTarget));
     const student = payload.role === "student";
     const hasNewPassword = Boolean(String(payload.password || "").trim());
-    payload.permission_id = document.getElementById("editPermissionSelect").value;
+    payload.permission_id = document.getElementById(
+      "editPermissionSelect",
+    ).value;
     Object.assign(payload, {
       id: state.editId,
       user_id: state.userId,
@@ -307,7 +316,8 @@ function updateTemporaryPasswordStatus() {
   const hasNewPassword = Boolean(
     String(document.getElementById("editPassword").value || "").trim(),
   );
-  const isTemporary = !isStudent && (hasNewPassword || state.editTemporaryPassword);
+  const isTemporary =
+    !isStudent && (hasNewPassword || state.editTemporaryPassword);
   document.getElementById("editTemporaryPassword").checked = isTemporary;
   document.getElementById("editTemporaryPasswordHint").textContent = isTemporary
     ? hasNewPassword
@@ -446,7 +456,9 @@ async function prepareImport(event, mode) {
       if (permissionResponse) state.permissions = permissionResponse.data || [];
       usersByUsername = new Map(
         (response.data || []).map((user) => [
-          String(user.username || "").trim().toLowerCase(),
+          String(user.username || "")
+            .trim()
+            .toLowerCase(),
           user,
         ]),
       );
@@ -461,7 +473,9 @@ async function prepareImport(event, mode) {
         .trim()
         .toLowerCase();
       const missing = required.filter((key) => !String(row[key] ?? "").trim());
-      const usernameKey = String(row.username || "").trim().toLowerCase();
+      const usernameKey = String(row.username || "")
+        .trim()
+        .toLowerCase();
       const role = String(row.role || "").toLowerCase();
       const requestedAdminScope = String(
         row.admin_academic_scope || row.academic_scope || "",
@@ -509,25 +523,30 @@ async function prepareImport(event, mode) {
         ? `Missing: ${[...new Set(missing)].join(", ")}`
         : missingNewPassword
           ? "Password or institutional email is required for a new user"
-        : invalidRole
-          ? "Role must be Student or Admin"
-        : invalidAdminScope
-          ? "Admin academic scope must be COLLEGE, SHS, or ALL"
-        : invalidPermission
-          ? role === "student"
-            ? "Student accounts must use the Rater permission"
-            : "Admin accounts cannot use the Rater permission"
-          : invalidEmail
-            ? "School Google email is invalid"
-          : mode === "deactivate" && seenUsernames.has(usernameKey)
-            ? "Duplicate username in file"
-            : mode === "deactivate" && !uploadedUser
-              ? "Username not found"
-              : mode === "deactivate" && usernameKey === String(state.username || "").trim().toLowerCase()
-                ? "You cannot deactivate your current account"
-                : mode === "deactivate" && Number(uploadedUser.is_active) !== 1
-                  ? "User is already inactive"
-          : "";
+          : invalidRole
+            ? "Role must be Student or Admin"
+            : invalidAdminScope
+              ? "Admin academic scope must be COLLEGE, SHS, or ALL"
+              : invalidPermission
+                ? role === "student"
+                  ? "Student accounts must use the Rater permission"
+                  : "Admin accounts cannot use the Rater permission"
+                : invalidEmail
+                  ? "School Google email is invalid"
+                  : mode === "deactivate" && seenUsernames.has(usernameKey)
+                    ? "Duplicate username in file"
+                    : mode === "deactivate" && !uploadedUser
+                      ? "Username not found"
+                      : mode === "deactivate" &&
+                          usernameKey ===
+                            String(state.username || "")
+                              .trim()
+                              .toLowerCase()
+                        ? "You cannot deactivate your current account"
+                        : mode === "deactivate" &&
+                            Number(uploadedUser.is_active) !== 1
+                          ? "User is already inactive"
+                          : "";
       if (mode === "deactivate" && usernameKey) seenUsernames.add(usernameKey);
       if (error)
         state.errorRows.push({ ...original, Error: error, __row: index + 2 });
@@ -574,11 +593,15 @@ document
   .addEventListener("click", async () => {
     if (
       state.importMode === "deactivate" &&
-      !(await satpConfirm(`Deactivate ${state.validRows.length} uploaded user account${state.validRows.length === 1 ? "" : "s"}?`, {
-        title: "Deactivate accounts",
-        confirmText: "Deactivate",
-      }))
-    ) return;
+      !(await satpConfirm(
+        `Deactivate ${state.validRows.length} uploaded user account${state.validRows.length === 1 ? "" : "s"}?`,
+        {
+          title: "Deactivate accounts",
+          confirmText: "Deactivate",
+        },
+      ))
+    )
+      return;
     toggleModal("importPreviewModal", false);
     await delay(260);
     toggleModal("loadingModal", true);
@@ -603,70 +626,71 @@ document
           state.errorRows.push({ ...clean, Error: error.message });
         });
       }
-    } else for (const row of state.validRows) {
-      try {
-        let response;
-        if (state.importMode === "users") {
-          const student = String(row.role).toLowerCase() === "student";
-          const existing = Boolean(row.__existingId);
-          const payload = {
-            ...row,
-            id: row.__existingId,
-            password: existing ? "" : row.password,
-            is_student_rater: student ? 1 : 0,
-            is_admin_rater: student ? 0 : 1,
-            admin_academic_scope: student
-              ? null
-              : row.admin_academic_scope || "ALL",
-            is_active: row.is_active ?? 1,
-            is_temp_pass: student
-              ? 0
-              : existing
-                ? Number(row.is_temp_pass ?? 0)
-                : 1,
-            course_id: student ? row.course_id : null,
-            year_level: student ? row.year_level : null,
-            user_id: state.userId,
-          };
-          delete payload.__row;
-          delete payload.__existingId;
-          response = await requestJson(
-            existing ? "/api/user/update" : "/api/user/add",
-            {
-            method: existing ? "PUT" : "POST",
-            body: JSON.stringify({
-              ...payload,
-            }),
-            },
-          );
-        } else {
-          const found = await requestJson("/api/user/get", {
-            method: "POST",
-            body: JSON.stringify({ username: row.username }),
-          });
-          if (!found.success)
-            throw new Error(found.message || "User not found");
-          response = await requestJson("/api/user/update/password", {
-            method: "PUT",
-            body: JSON.stringify({
-              username: row.username,
-              password: row.password,
-              id: found.data.id,
+    } else
+      for (const row of state.validRows) {
+        try {
+          let response;
+          if (state.importMode === "users") {
+            const student = String(row.role).toLowerCase() === "student";
+            const existing = Boolean(row.__existingId);
+            const payload = {
+              ...row,
+              id: row.__existingId,
+              password: existing ? "" : row.password,
+              is_student_rater: student ? 1 : 0,
+              is_admin_rater: student ? 0 : 1,
+              admin_academic_scope: student
+                ? null
+                : row.admin_academic_scope || "ALL",
+              is_active: row.is_active ?? 1,
+              is_temp_pass: student
+                ? 0
+                : existing
+                  ? Number(row.is_temp_pass ?? 0)
+                  : 1,
+              course_id: student ? row.course_id : null,
+              year_level: student ? row.year_level : null,
               user_id: state.userId,
-            }),
-          });
+            };
+            delete payload.__row;
+            delete payload.__existingId;
+            response = await requestJson(
+              existing ? "/api/user/update" : "/api/user/add",
+              {
+                method: existing ? "PUT" : "POST",
+                body: JSON.stringify({
+                  ...payload,
+                }),
+              },
+            );
+          } else {
+            const found = await requestJson("/api/user/get", {
+              method: "POST",
+              body: JSON.stringify({ username: row.username }),
+            });
+            if (!found.success)
+              throw new Error(found.message || "User not found");
+            response = await requestJson("/api/user/update/password", {
+              method: "PUT",
+              body: JSON.stringify({
+                username: row.username,
+                password: row.password,
+                id: found.data.id,
+                user_id: state.userId,
+              }),
+            });
+          }
+          if (!response.success)
+            throw new Error(response.message || "Import failed");
+          completed++;
+        } catch (error) {
+          const clean = { ...row };
+          delete clean.__row;
+          state.errorRows.push({ ...clean, Error: error.message });
         }
-        if (!response.success)
-          throw new Error(response.message || "Import failed");
-        completed++;
-      } catch (error) {
-        const clean = { ...row };
-        delete clean.__row;
-        state.errorRows.push({ ...clean, Error: error.message });
+        document.getElementById("loadingMessage").textContent =
+          `Processing ${completed + state.errorRows.length} of ${state.validRows.length + state.errorRows.length}...`;
       }
-      document.getElementById("loadingMessage").textContent =
-        `Processing ${completed + state.errorRows.length} of ${state.validRows.length + state.errorRows.length}...`;
-    }
     toggleModal("loadingModal", false);
     if (state.errorRows.length) downloadFailedRows(state.errorRows);
     table.ajax.reload(null, false);

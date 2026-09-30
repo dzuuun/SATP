@@ -282,10 +282,7 @@ async function downloadPdf() {
         },
       ]);
       items.forEach((item) =>
-        body.push([
-          `${item.number}. ${item.question}`,
-          formatMean(item.mean),
-        ]),
+        body.push([`${item.number}. ${item.question}`, formatMean(item.mean)]),
       );
       body.push([
         {

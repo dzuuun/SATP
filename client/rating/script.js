@@ -18,11 +18,12 @@ let table;
 
 async function initializeSubjects() {
   try {
-    const [schoolYearResponse, semesterResponse, ratingAccessResponse] = await Promise.all([
-      requestJson("/api/schoolyear/current"),
-      requestJson("/api/semester/current/student"),
-      requestJson("/api/transaction/rating-access/status"),
-    ]);
+    const [schoolYearResponse, semesterResponse, ratingAccessResponse] =
+      await Promise.all([
+        requestJson("/api/schoolyear/current"),
+        requestJson("/api/semester/current/student"),
+        requestJson("/api/transaction/rating-access/status"),
+      ]);
     state.ratingEnabled = ratingAccessResponse.data?.enabled !== false;
     const availability = document.getElementById("ratingAvailability");
     availability.textContent = state.ratingEnabled
@@ -119,7 +120,9 @@ async function requestJson(url) {
   const response = await fetch(url);
   const result = await response.json();
   if (!response.ok)
-    throw new Error(result.message || `Request failed with status ${response.status}.`);
+    throw new Error(
+      result.message || `Request failed with status ${response.status}.`,
+    );
   return result;
 }
 

@@ -182,9 +182,7 @@ async function renderReportPdf({
         pagebreak: {
           mode:
             pagebreakMode ||
-            (avoidAll
-              ? ["avoid-all", "css", "legacy"]
-              : ["css", "legacy"]),
+            (avoidAll ? ["avoid-all", "css", "legacy"] : ["css", "legacy"]),
           avoid: [
             ...(includeDefaultAvoid
               ? [

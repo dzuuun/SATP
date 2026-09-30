@@ -17,8 +17,16 @@ const controller = createStandardController(model, {
 
 controller.getCurrentSemesterForStudent = (req, res) => {
   model.getCurrentSemesterForStudent(req.user.id, (error, semester) => {
-    if (error) return res.status(500).json({ success: 0, message: "Unable to load the current academic term." });
-    if (!semester) return res.status(404).json({ success: 0, message: "No current term is configured for your academic group." });
+    if (error)
+      return res.status(500).json({
+        success: 0,
+        message: "Unable to load the current academic term.",
+      });
+    if (!semester)
+      return res.status(404).json({
+        success: 0,
+        message: "No current term is configured for your academic group.",
+      });
     return res.json({ success: 1, data: semester });
   });
 };

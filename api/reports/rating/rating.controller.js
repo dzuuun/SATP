@@ -222,23 +222,20 @@ module.exports = {
         message: "School year and semester are required.",
       });
     }
-    getTeachersByPeriod(
-      { school_year_id, semester_id },
-      (error, results) => {
-        if (error) {
-          console.error("Period teacher lookup failed:", error);
-          return res.status(500).json({
-            success: 0,
-            message: "Unable to load teachers for the selected period.",
-          });
-        }
-        return res.json({
-          success: 1,
-          message: "Period teachers retrieved successfully.",
-          count: results.length,
-          data: results,
+    getTeachersByPeriod({ school_year_id, semester_id }, (error, results) => {
+      if (error) {
+        console.error("Period teacher lookup failed:", error);
+        return res.status(500).json({
+          success: 0,
+          message: "Unable to load teachers for the selected period.",
         });
-      },
-    );
+      }
+      return res.json({
+        success: 1,
+        message: "Period teachers retrieved successfully.",
+        count: results.length,
+        data: results,
+      });
+    });
   },
 };
