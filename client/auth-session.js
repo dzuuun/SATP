@@ -155,6 +155,30 @@
     return response;
   };
 
+  // Keep presence current while an authenticated SATP page remains open.
+  // The server throttles database writes, so page API traffic and this
+  // heartbeat cannot update the presence timestamp more than once a minute.
+  const presenceHeartbeat = () => {
+    if (document.visibilityState === "hidden") return;
+    window
+      .fetch("/api/login/session", {
+        credentials: "same-origin",
+        cache: "no-store",
+      })
+      .catch(() => {});
+  };
+  const presenceTimer = window.setInterval(presenceHeartbeat, 60 * 1000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") presenceHeartbeat();
+  });
+  window.addEventListener(
+    "pagehide",
+    () => window.clearInterval(presenceTimer),
+    {
+      once: true,
+    },
+  );
+
   const originalOpen = XMLHttpRequest.prototype.open;
   const originalSend = XMLHttpRequest.prototype.send;
 

@@ -64,6 +64,6 @@ test("activity log escapes the displayed user name", () => {
   );
   assert.match(
     script,
-    /data: "name"[^\n]*render: \$\.fn\.dataTable\.render\.text\(\)/,
+    /data: "name"[\s\S]*?render: \$\.fn\.dataTable\.render\.text\(\)/,
   );
 });

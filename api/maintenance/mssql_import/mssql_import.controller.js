@@ -18,13 +18,11 @@ function validateRequest(req, res, next) {
       .json({ success: 0, message: "Choose at least one MSSQL import." });
   }
   if (importSubjects && !validPeriod(req.body)) {
-    return res
-      .status(400)
-      .json({
-        success: 0,
-        message:
-          "A school year and semester are required when importing student courses.",
-      });
+    return res.status(400).json({
+      success: 0,
+      message:
+        "A school year and semester are required when importing student courses.",
+    });
   }
   req.mssqlImport = { ...req.body, importStudents, importSubjects };
   return next();
@@ -42,12 +40,10 @@ exports.preview = [
       });
     } catch (error) {
       console.error("Unable to preview MSSQL import:", error);
-      res
-        .status(400)
-        .json({
-          success: 0,
-          message: error.message || "Unable to read the MSSQL views.",
-        });
+      res.status(400).json({
+        success: 0,
+        message: error.message || "Unable to read the MSSQL views.",
+      });
     }
   },
 ];
@@ -67,12 +63,10 @@ exports.run = [
       });
     } catch (error) {
       console.error("Unable to run MSSQL import:", error);
-      res
-        .status(400)
-        .json({
-          success: 0,
-          message: error.message || "Unable to run the MSSQL import.",
-        });
+      res.status(400).json({
+        success: 0,
+        message: error.message || "Unable to run the MSSQL import.",
+      });
     }
   },
 ];

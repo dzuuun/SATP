@@ -145,6 +145,14 @@ module.exports = {
     );
   },
 
+  setUserOffline: (userId, callBack = () => {}) => {
+    pool.query(
+      "UPDATE users SET last_seen_at = NULL WHERE id = ?",
+      [userId],
+      callBack,
+    );
+  },
+
   updateUser: (data, callBack) => {
     pool.query(
       "UPDATE users SET username=?, full_name=?, position=?, auth_level=? WHERE user_id = ?",

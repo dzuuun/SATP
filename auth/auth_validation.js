@@ -4,6 +4,32 @@ const pool = require("../db/db");
 
 const COOKIE_NAME = "satp_session";
 const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
+const PRESENCE_UPDATE_INTERVAL_MS = 60 * 1000;
+const presenceUpdates = new Map();
+
+function markUserOnline(userId, next) {
+  const id = Number(userId);
+  const now = Date.now();
+  if (!id || now - (presenceUpdates.get(id) || 0) < PRESENCE_UPDATE_INTERVAL_MS)
+    return next();
+
+  presenceUpdates.set(id, now);
+  pool.query(
+    "UPDATE users SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?",
+    [id],
+    (error) => {
+      if (error) {
+        presenceUpdates.delete(id);
+        console.error("Unable to update user presence:", error.message);
+      }
+      return next();
+    },
+  );
+}
+
+function clearUserPresenceThrottle(userId) {
+  presenceUpdates.delete(Number(userId));
+}
 
 function parseCookies(header = "") {
   return header.split(";").reduce((cookies, part) => {
@@ -153,7 +179,7 @@ function checkToken(req, res, next) {
           }
           const { password: _password, ...authenticatedUser } = users[0];
           req.user = authenticatedUser;
-          return next();
+          return markUserOnline(authenticatedUser.id, next);
         },
       );
     },
@@ -239,4 +265,5 @@ module.exports = {
   createSessionToken,
   setSessionCookie,
   clearSessionCookie,
+  clearUserPresenceThrottle,
 };

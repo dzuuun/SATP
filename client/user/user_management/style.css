@@ -80,6 +80,30 @@
   align-items: center;
   gap: 9px;
 }
+.online-count {
+  min-height: 40px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  background: #f3f8f5;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+.online-count strong {
+  color: var(--green-900);
+  font-size: 0.78rem;
+}
+.online-count-dot {
+  width: 8px;
+  height: 8px;
+  background: #2da56d;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(45, 165, 109, 0.13);
+}
 .split-footer {
   justify-content: space-between;
 }

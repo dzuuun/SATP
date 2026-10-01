@@ -1,4 +1,5 @@
 const {
+  getOnlineCount,
   getUsers,
   getUserById,
   updateUser,
@@ -15,6 +16,19 @@ const {
 const { genSaltSync, hashSync, compareSync } = require("bcrypt");
 
 module.exports = {
+  getOnlineCount: (_req, res) => {
+    getOnlineCount((err, count) => {
+      if (err) {
+        console.error("Unable to retrieve online-user count:", err);
+        return res.status(500).json({
+          success: 0,
+          message: "Unable to retrieve the online-user count.",
+        });
+      }
+      return res.json({ success: 1, data: { online_count: count } });
+    });
+  },
+
   getUsers: (req, res) => {
     getUsers((err, results) => {
       if (err) {

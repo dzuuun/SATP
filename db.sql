@@ -374,10 +374,12 @@ CREATE TABLE `users` (
   `is_student_rater` tinyint(3) unsigned NOT NULL,
   `is_admin_rater` tinyint(3) unsigned NOT NULL,
   `is_active` tinyint(3) unsigned NOT NULL,
+  `last_seen_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`,`username`),
   UNIQUE KEY `uq_users_google_email` (`google_email`),
   KEY `fk_users_permission_id` (`permission_id`),
   KEY `idx_users_username` (`username`),
+  KEY `idx_users_active_last_seen` (`is_active`,`last_seen_at`),
   CONSTRAINT `fk_users_permission_id` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10612 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;

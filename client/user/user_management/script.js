@@ -54,6 +54,22 @@ const loginMethod = (_, __, row) => {
           : "None";
   return `<span class="login-method login-method-${label.toLowerCase()}">${label}</span>`;
 };
+
+async function loadOnlineUserCount() {
+  try {
+    const response = await requestJson("/api/user/online/count");
+    if (!response.success) throw new Error(response.message);
+    document.getElementById("onlineUserCount").textContent = Number(
+      response.data?.online_count || 0,
+    ).toLocaleString();
+  } catch {
+    document.getElementById("onlineUserCount").textContent = "—";
+  }
+}
+
+loadOnlineUserCount();
+setInterval(loadOnlineUserCount, 30 * 1000);
+
 const table = $("#table").DataTable({
   ajax: { url: "/api/user", dataSrc: "data", cache: false },
   columns: [

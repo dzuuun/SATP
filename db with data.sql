@@ -374,10 +374,12 @@ CREATE TABLE `users` (
   `is_student_rater` tinyint(3) unsigned NOT NULL,
   `is_admin_rater` tinyint(3) unsigned NOT NULL,
   `is_active` tinyint(3) unsigned NOT NULL,
+  `last_seen_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`,`username`),
   UNIQUE KEY `uq_users_google_email` (`google_email`),
   KEY `fk_users_permission_id` (`permission_id`),
   KEY `idx_users_username` (`username`),
+  KEY `idx_users_active_last_seen` (`is_active`,`last_seen_at`),
   CONSTRAINT `fk_users_permission_id` FOREIGN KEY (`permission_id`) REFERENCES `permissions` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=10612 DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -498,7 +500,7 @@ UNLOCK TABLES;
 
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'superadmin','mis@ndmu.edu.ph','$2b$10$.4kmAN9sylWpMevPDxs6aOqftVCFEfPnZUqIXps72efkMcc3JDXhK',4,'ALL',0,0,1,1);
+INSERT INTO `users` (`id`,`username`,`google_email`,`password`,`permission_id`,`admin_academic_scope`,`is_temp_pass`,`is_student_rater`,`is_admin_rater`,`is_active`) VALUES (1,'superadmin','mis@ndmu.edu.ph','$2b$10$.4kmAN9sylWpMevPDxs6aOqftVCFEfPnZUqIXps72efkMcc3JDXhK',4,'ALL',0,0,1,1);
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

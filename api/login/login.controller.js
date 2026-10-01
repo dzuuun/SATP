@@ -5,6 +5,7 @@ const {
   getUserByUserName,
   getUserByGoogleEmail,
   logActivity,
+  setUserOffline,
   updatePassword,
 } = require("./login.model");
 const { OAuth2Client } = require("google-auth-library");
@@ -13,6 +14,7 @@ const {
   createSessionToken,
   setSessionCookie,
   clearSessionCookie,
+  clearUserPresenceThrottle,
 } = require("../../auth/auth_validation");
 
 const failedLogins = new Map();
@@ -268,10 +270,15 @@ module.exports = {
 
   logout: (req, res) => {
     clearSessionCookie(req, res);
-    logActivity(req.user.id, "Logged out", (logError) => {
-      if (logError) console.error("Unable to log sign out:", logError);
+    clearUserPresenceThrottle(req.user.id);
+    setUserOffline(req.user.id, (presenceError) => {
+      if (presenceError)
+        console.error("Unable to clear user presence:", presenceError.message);
+      logActivity(req.user.id, "Logged out", (logError) => {
+        if (logError) console.error("Unable to log sign out:", logError);
+      });
+      return res.json({ success: 1, message: "Signed out successfully." });
     });
-    return res.json({ success: 1, message: "Signed out successfully." });
   },
 
   updatePassword: (req, res) => {

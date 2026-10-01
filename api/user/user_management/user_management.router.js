@@ -1,4 +1,5 @@
 const {
+  getOnlineCount,
   getUsers,
   getUserById,
   updateUser,
@@ -18,6 +19,7 @@ const {
 } = require("../../../auth/auth_validation");
 
 router.post("/add", addUser);
+router.get("/online/count", getOnlineCount);
 router.get("/:id", getUserById);
 router.get("/", getUsers);
 router.put("/update", updateUser);

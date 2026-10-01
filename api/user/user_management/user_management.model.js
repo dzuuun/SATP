@@ -9,6 +9,17 @@ const adminScope = (data) =>
       : null;
 
 module.exports = {
+  getOnlineCount: (callBack) => {
+    pool.query(
+      `SELECT COUNT(*) AS online_count
+       FROM users
+       WHERE is_active = 1
+         AND last_seen_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 5 MINUTE)`,
+      (error, results) =>
+        callBack(error, Number(results?.[0]?.online_count || 0)),
+    );
+  },
+
   bulkDeactivateUsers: (data, callBack) => {
     pool.getConnection((connectionError, connection) => {
       if (connectionError) return callBack(connectionError);
