@@ -12,6 +12,10 @@ const {
   bulkDeactivateUsers,
 } = require("./user_management.controller");
 const router = require("express").Router();
+const {
+  requireSuperAdmin,
+  requireSameOrigin,
+} = require("../../../auth/auth_validation");
 
 router.post("/add", addUser);
 router.get("/:id", getUserById);
@@ -21,7 +25,17 @@ router.put("/update/info", updateUserInfo);
 router.put("/update/control", updateUserControl);
 router.put("/update/status", updateStatus);
 router.put("/update/credentials", updateUserCredentials);
-router.put("/update/password", updatePassword);
+router.put(
+  "/update/password",
+  requireSameOrigin,
+  requireSuperAdmin,
+  updatePassword,
+);
 router.post("/get", getUserByUserName);
-router.put("/bulk/deactivate", bulkDeactivateUsers);
+router.put(
+  "/bulk/deactivate",
+  requireSameOrigin,
+  requireSuperAdmin,
+  bulkDeactivateUsers,
+);
 module.exports = router;

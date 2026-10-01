@@ -104,6 +104,7 @@ module.exports = {
       const dataQuery = `
         SELECT
           a.id,
+          a.user_id,
           DATE_FORMAT(a.date_time, '%M %d, %Y %r') AS date_time,
           CONCAT_WS(' ', u.givenname, u.surname) AS name,
           a.action
@@ -129,7 +130,32 @@ module.exports = {
         dataPromise,
       ]);
 
-      return callBack(null, { totalRecords, totalFiltered, results });
+      // Resolve usernames only for the current page. Joining users before the
+      // ordered LIMIT makes the large activity-log query substantially slower.
+      const userIds = [
+        ...new Set(results.map((row) => row.user_id).filter(Boolean)),
+      ];
+      const raters = userIds.length
+        ? await query(
+            `SELECT id, username FROM users WHERE is_student_rater = 1 AND id IN (${userIds.map(() => "?").join(",")})`,
+            userIds,
+          )
+        : [];
+      const usernames = new Map(
+        raters.map((row) => [Number(row.id), row.username]),
+      );
+      const displayResults = results.map(({ user_id, ...row }) => ({
+        ...row,
+        name: usernames.has(Number(user_id))
+          ? `${row.name} (${usernames.get(Number(user_id))})`
+          : row.name,
+      }));
+
+      return callBack(null, {
+        totalRecords,
+        totalFiltered,
+        results: displayResults,
+      });
     } catch (error) {
       return callBack(error);
     }

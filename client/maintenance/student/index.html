@@ -205,18 +205,34 @@
             ></label>
           </div>
           <footer class="modal-footer split">
-            <button
-              type="button"
-              class="text-button"
-              onclick="
-                toggleModal('addNewModal', false);
-                setTimeout(() => toggleModal('importFileModal', true), 250);
-              "
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
-              >Import multiple
-            </button>
+            <div class="import-source-actions">
+              <button
+                type="button"
+                class="text-button"
+                onclick="
+                  toggleModal('addNewModal', false);
+                  setTimeout(() => toggleModal('importFileModal', true), 250);
+                "
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
+                >Import multiple
+              </button>
+              <button
+                id="mssqlStudentImportButton"
+                type="button"
+                class="secondary-button mssql-import-trigger hidden"
+                onclick="openMssqlImport()"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <ellipse cx="12" cy="5" rx="8" ry="3" />
+                  <path
+                    d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"
+                  />
+                </svg>
+                Import students from MSSQL
+              </button>
+            </div>
             <div>
               <button
                 type="button"
@@ -377,6 +393,52 @@
       </div>
     </div>
 
+    <div id="mssqlImportModal" class="room-modal invisible">
+      <div
+        id="mssqlImportModalCard"
+        class="modal-card student-card mssql-import-card scale-95"
+      >
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">Database import</p>
+            <h2>Import from MSSQL views</h2>
+          </div>
+          <button
+            class="modal-close"
+            onclick="toggleModal('mssqlImportModal', false)"
+            aria-label="Close MSSQL import"
+          >
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </header>
+        <form id="mssqlImportForm">
+          <div class="modal-body student-grid">
+            <p class="template-copy wide">
+              Review students from the configured MSSQL view before importing.
+              New legacy accounts are created without an email or password; add
+              institutional emails afterward before students sign in.
+            </p>
+          </div>
+          <footer class="modal-footer">
+            <button
+              type="button"
+              class="secondary-button"
+              onclick="toggleModal('mssqlImportModal', false)"
+            >
+              Cancel
+            </button>
+            <button
+              id="previewMssqlImportButton"
+              type="button"
+              class="primary-button"
+            >
+              Preview students
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
     <div id="importPreviewModal" class="room-modal invisible">
       <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
         <header class="modal-header">
@@ -395,8 +457,12 @@
         </header>
         <div class="preview-intro">
           New ID numbers create accounts. Existing students only have their
-          profile information updated; their username and password stay the
-          same.
+          profile information updated; their username, institutional email, and
+          password stay the same.
+          <span id="mssqlDeactivationNotice" class="hidden"
+            >Active College students absent from the MSSQL student list will be
+            deactivated. SHS students are unaffected.</span
+          >
         </div>
         <div class="preview-body">
           <section class="preview-group created">
@@ -412,6 +478,17 @@
               ><span id="updatedCount" class="count-badge">0</span>
             </header>
             <div id="updatedPreview" class="preview-list"></div>
+          </section>
+          <section
+            id="deactivatedGroup"
+            class="preview-group deactivated hidden"
+          >
+            <header>
+              <span class="preview-dot"></span
+              ><strong>Deactivated students</strong
+              ><span id="deactivatedCount" class="count-badge">0</span>
+            </header>
+            <div id="deactivatedPreview" class="preview-list"></div>
           </section>
           <section class="preview-group errors">
             <header>
@@ -440,7 +517,6 @@
       >
         <span class="progress-spinner"></span>
         <p class="eyebrow">Import in progress</p>
-        <h2 id="statusMessage">0%</h2>
         <p>Please keep this page open while student records are processed.</p>
       </div>
     </div>

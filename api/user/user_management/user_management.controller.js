@@ -280,7 +280,7 @@ module.exports = {
           .filter(Boolean),
       ),
     ];
-    const userId = Number(req.body.user_id);
+    const userId = Number(req.user?.id);
     if (!userId || !usernames.length) {
       return res.status(400).json({
         success: 0,

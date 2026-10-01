@@ -1,5 +1,46 @@
 @import url("../category/style.css");
 
+.teacher-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.roster-upload-card {
+  width: min(590px, calc(100vw - 32px));
+}
+.roster-preview-card {
+  width: min(700px, calc(100vw - 32px));
+  height: min(740px, calc(var(--satp-viewport-height, 100vh) - 36px));
+}
+.preview-group.roster-deactivation .preview-dot {
+  background: #b63b32;
+}
+.roster-select-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.roster-select-all input,
+.roster-teacher-checkbox {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--green-800);
+}
+.roster-select-row {
+  grid-template-columns: 24px minmax(0, 1fr) minmax(112px, auto);
+}
+.roster-select-row .roster-teacher-checkbox {
+  justify-self: center;
+}
+.roster-deactivation .preview-page-controls:empty {
+  display: none;
+}
+
 .field-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

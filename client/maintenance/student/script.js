@@ -15,7 +15,23 @@ if (!state.userId) {
 let table,
   rowIdToUpdate,
   coursesByCode = new Map(),
-  pendingImport = { created: [], updated: [], errors: [] };
+  pendingImport = { created: [], updated: [], errors: [] },
+  pendingMssqlImport = null;
+let mssqlImportAllowed = false;
+
+fetch("/api/login/session", { credentials: "same-origin" })
+  .then((response) => (response.ok ? response.json() : null))
+  .then((session) => {
+    mssqlImportAllowed =
+      String(session?.data?.permission_name || "")
+        .trim()
+        .toLowerCase() === "super admin";
+    if (mssqlImportAllowed)
+      document
+        .getElementById("mssqlStudentImportButton")
+        .classList.remove("hidden");
+  })
+  .catch(() => {});
 const normalize = (v) =>
   String(v || "")
     .trim()
@@ -32,6 +48,10 @@ const formatYearLevel = (value) => {
     6: "6th Year",
   };
   return ordinalYears[normalized] || normalized;
+};
+const setImportStatusMessage = (message) => {
+  const statusMessage = document.getElementById("statusMessage");
+  if (statusMessage) statusMessage.textContent = message;
 };
 $(document).ready(() => {
   table = $("#table").DataTable({
@@ -97,6 +117,98 @@ document
     );
     setSuccessMessage(`${exportRows.length} students exported successfully.`);
   });
+
+async function openMssqlImport() {
+  if (!mssqlImportAllowed)
+    return setErrorMessage("Only Super Admin accounts can import from MSSQL.");
+  pendingMssqlImport = null;
+  toggleModal("addNewModal", false);
+  setTimeout(() => toggleModal("mssqlImportModal", true), 250);
+}
+
+function mssqlImportPayload() {
+  return { import_students: true, import_student_subjects: false };
+}
+
+document
+  .getElementById("previewMssqlImportButton")
+  .addEventListener("click", async () => {
+    const payload = mssqlImportPayload();
+    document.querySelector("#spinnerStatusModal .eyebrow").textContent =
+      "Loading data";
+    setImportStatusMessage("Reading MSSQL student data");
+    toggleModal("mssqlImportModal", false);
+    toggleModal("spinnerStatusModal", true);
+    try {
+      const response = await requestJson("/api/mssql-import/preview", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      if (!response.success)
+        throw new Error(
+          response.message || "Unable to preview the MSSQL import.",
+        );
+      pendingMssqlImport = {
+        ...payload,
+        roster_token: response.data.roster_token,
+      };
+      pendingImport = response.data.preview || {
+        created: [],
+        updated: [],
+        errors: [],
+      };
+      renderPreview();
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    } catch (error) {
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("mssqlImportModal", true), 250);
+      setErrorMessage(error.message || "Unable to preview the MSSQL import.");
+    }
+  });
+
+async function runMssqlImportFromPreview() {
+  const actions =
+    pendingImport.created.length +
+    pendingImport.updated.length +
+    (pendingImport.deactivated?.length || 0);
+  if (!actions) {
+    pendingMssqlImport = null;
+    toggleModal("importPreviewModal", false);
+    return setErrorMessage(
+      "No valid MSSQL student rows are available to import.",
+    );
+  }
+  const deactivationCount = pendingImport.deactivated?.length || 0;
+  const confirmation = deactivationCount
+    ? `Run the MSSQL import and deactivate ${deactivationCount} College students absent from the MSSQL list?`
+    : "Run the MSSQL import?";
+  if (!(await satpConfirm(confirmation))) return;
+  toggleModal("importPreviewModal", false);
+  document.querySelector("#spinnerStatusModal .eyebrow").textContent =
+    "Import in progress";
+  setImportStatusMessage("Importing students");
+  toggleModal("spinnerStatusModal", true);
+  try {
+    const response = await requestJson("/api/mssql-import/run", {
+      method: "POST",
+      body: JSON.stringify(pendingMssqlImport),
+    });
+    if (!response.success)
+      throw new Error(response.message || "MSSQL import failed.");
+    toggleModal("spinnerStatusModal", false);
+    table?.ajax.reload(null, false);
+    const students = response.data.students || {};
+    pendingMssqlImport = null;
+    setSuccessMessage(
+      `${students.created || 0} students imported; ${students.updated || 0} updated; ${students.reactivated || 0} reactivated; ${students.deactivated || 0} deactivated.`,
+    );
+  } catch (error) {
+    toggleModal("spinnerStatusModal", false);
+    setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    setErrorMessage(error.message || "MSSQL import failed.");
+  }
+}
 
 async function loadCourses() {
   try {
@@ -295,9 +407,10 @@ document
   .addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!xlsxInput.files[0]) return;
+    pendingMssqlImport = null;
     document.querySelector("#spinnerStatusModal .eyebrow").textContent =
       "Validating file";
-    document.getElementById("statusMessage").textContent = "Please wait";
+    setImportStatusMessage("Please wait");
     toggleModal("importFileModal", false);
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
     try {
@@ -414,13 +527,31 @@ function classifyRows(rows, existing) {
   return result;
 }
 function renderPreview() {
-  [
+  const pageSize = 250;
+  const isMssqlImport = Boolean(pendingMssqlImport);
+  document
+    .getElementById("deactivatedGroup")
+    .classList.toggle("hidden", !isMssqlImport);
+  document
+    .getElementById("mssqlDeactivationNotice")
+    .classList.toggle("hidden", !isMssqlImport);
+  const categories = [
     ["created", "createdPreview", "createdCount", "Will be created"],
     ["updated", "updatedPreview", "updatedCount", "Ready to update"],
     ["errors", "errorPreview", "errorCount", ""],
-  ].forEach(([key, listId, countId, detail]) => {
-    const items = pendingImport[key],
+  ];
+  if (isMssqlImport)
+    categories.splice(2, 0, [
+      "deactivated",
+      "deactivatedPreview",
+      "deactivatedCount",
+      "Will be deactivated",
+    ]);
+  categories.forEach(([key, listId, countId, detail]) => {
+    const items = pendingImport[key] || [],
       list = document.getElementById(listId);
+    const group = list.closest(".preview-group");
+    group?.querySelector(".preview-page-controls")?.remove();
     document.getElementById(countId).textContent = items.length;
     list.replaceChildren();
     if (!items.length) {
@@ -429,25 +560,63 @@ function renderPreview() {
       p.textContent = `No ${key} found`;
       return list.appendChild(p);
     }
-    items.forEach((item) => {
-      const row = document.createElement("div");
-      row.className = "preview-row";
-      row.innerHTML =
-        '<span class="row-number"></span><span class="room-name"></span><span class="row-detail"></span>';
-      row.children[0].textContent = `Row ${item.rowNumber}`;
-      row.children[1].textContent = `${item.idNumber} — ${item.givenname} ${item.surname}`;
-      row.children[2].textContent = item.reason || detail;
-      list.appendChild(row);
-    });
+    let pageStart = 0;
+    const renderPage = () => {
+      group?.querySelector(".preview-page-controls")?.remove();
+      list.replaceChildren();
+      list.scrollTop = 0;
+      const rows = document.createDocumentFragment();
+      items.slice(pageStart, pageStart + pageSize).forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "preview-row";
+        row.innerHTML =
+          '<span class="row-number"></span><span class="room-name"></span><span class="row-detail"></span>';
+        row.children[0].textContent = item.rowNumber
+          ? `Row ${item.rowNumber}`
+          : "Local";
+        row.children[1].textContent = `${item.idNumber} \u2014 ${item.givenname} ${item.surname}`;
+        row.children[2].textContent =
+          item.reason ||
+          (item.reactivating ? "Will reactivate and update profile" : detail);
+        rows.appendChild(row);
+      });
+      list.appendChild(rows);
+      if (items.length <= pageSize) return;
+      const controls = document.createElement("div");
+      controls.className = "preview-page-controls";
+      const previous = document.createElement("button");
+      previous.type = "button";
+      previous.textContent = "Previous 250";
+      previous.disabled = pageStart === 0;
+      previous.addEventListener("click", () => {
+        pageStart = Math.max(0, pageStart - pageSize);
+        renderPage();
+      });
+      const label = document.createElement("span");
+      label.textContent = `${pageStart + 1}-${Math.min(pageStart + pageSize, items.length)} of ${items.length}`;
+      const next = document.createElement("button");
+      next.type = "button";
+      next.textContent = "Next 250";
+      next.disabled = pageStart + pageSize >= items.length;
+      next.addEventListener("click", () => {
+        pageStart += pageSize;
+        renderPage();
+      });
+      controls.append(previous, label, next);
+      group?.appendChild(controls);
+    };
+    renderPage();
   });
   document.getElementById("runImportButton").disabled =
     !pendingImport.created.length &&
     !pendingImport.updated.length &&
+    !(isMssqlImport && pendingImport.deactivated?.length) &&
     !pendingImport.errors.length;
 }
 document
   .getElementById("runImportButton")
   .addEventListener("click", async () => {
+    if (pendingMssqlImport) return runMssqlImportFromPreview();
     const actions = [
         ...pendingImport.created.map((item) => ({ type: "created", item })),
         ...pendingImport.updated.map((item) => ({ type: "updated", item })),
@@ -464,7 +633,7 @@ document
     toggleModal("importPreviewModal", false);
     document.querySelector("#spinnerStatusModal .eyebrow").textContent =
       "Import in progress";
-    document.getElementById("statusMessage").textContent = "0%";
+    setImportStatusMessage("0%");
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
     const totals = { created: 0, updated: 0, skipped: 0 };
     for (let i = 0; i < actions.length; i++) {
@@ -514,8 +683,9 @@ document
       } catch (e) {
         errors.push({ ...item.originalRow, Error: "Request failed" });
       }
-      document.getElementById("statusMessage").textContent =
-        `${Math.round(((i + 1) / actions.length) * 100)}%`;
+      setImportStatusMessage(
+        `${Math.round(((i + 1) / actions.length) * 100)}%`,
+      );
     }
     toggleModal("spinnerStatusModal", false);
     if (errors.length) downloadErrors(errors);

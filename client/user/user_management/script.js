@@ -11,6 +11,7 @@ const state = {
   errorRows: [],
   permissions: [],
   editTemporaryPassword: false,
+  superAdmin: false,
 };
 
 if (!state.userId) {
@@ -20,6 +21,23 @@ if (!state.userId) {
   alert("You don't have permission to access this page.");
   history.back();
 }
+
+fetch("/api/login/session", { credentials: "same-origin" })
+  .then((response) => (response.ok ? response.json() : null))
+  .then((session) => {
+    state.superAdmin =
+      String(session?.data?.permission_name || "")
+        .trim()
+        .toLowerCase() === "super admin";
+    if (!state.superAdmin) return;
+    document
+      .getElementById("deactivateUsersButton")
+      ?.classList.remove("hidden");
+    document
+      .getElementById("updatePasswordsButton")
+      ?.classList.remove("hidden");
+  })
+  .catch(() => {});
 
 const yesNo = (value) =>
   `<span class="boolean-badge ${Number(value) ? "" : "off"}">${Number(value) ? "Yes" : "No"}</span>`;
@@ -419,6 +437,9 @@ document
 
 async function prepareImport(event, mode) {
   event.preventDefault();
+  if ((mode === "passwords" || mode === "deactivate") && !state.superAdmin) {
+    return showToast("Only Super Admin accounts can use this feature.");
+  }
   const inputIds = {
     users: "userXlsxInput",
     passwords: "passwordXlsxInput",
@@ -549,12 +570,28 @@ async function prepareImport(event, mode) {
                           : "";
       if (mode === "deactivate" && usernameKey) seenUsernames.add(usernameKey);
       if (error)
-        state.errorRows.push({ ...original, Error: error, __row: index + 2 });
+        state.errorRows.push({
+          ...original,
+          Error: error,
+          __row: index + 2,
+          ...(mode === "deactivate"
+            ? {
+                __previewName: uploadedUser?.Name || "",
+                __previewPermission: uploadedUser?.permission || "",
+              }
+            : {}),
+        });
       else
         state.validRows.push({
           ...row,
           __row: index + 2,
           __existingId: uploadedUser?.id || null,
+          ...(mode === "deactivate"
+            ? {
+                __previewName: uploadedUser?.Name || "",
+                __previewPermission: uploadedUser?.permission || "",
+              }
+            : {}),
         });
     });
     renderPreview();
@@ -575,13 +612,11 @@ function renderPreview() {
   document.getElementById("successPreviewTitle").textContent =
     action[0].toUpperCase() + action.slice(1);
   document.getElementById("previewSummary").textContent =
-    `${state.validRows.length + state.errorRows.length} rows checked: ${state.validRows.length} ready and ${state.errorRows.length} with errors.`;
-  document.getElementById("successPreview").innerHTML = previewTable(
-    state.validRows,
-  );
-  document.getElementById("errorPreview").innerHTML = previewTable(
-    state.errorRows,
-  );
+    state.importMode === "deactivate"
+      ? `${state.validRows.length} accounts ready to deactivate; ${state.errorRows.length} errors.`
+      : `${state.validRows.length + state.errorRows.length} rows checked: ${state.validRows.length} ready and ${state.errorRows.length} with errors.`;
+  renderPreviewTable("successPreview", state.validRows, false);
+  renderPreviewTable("errorPreview", state.errorRows, true);
   document.getElementById("runImportButton").disabled =
     state.validRows.length === 0;
   document.getElementById("runImportButton").textContent =
@@ -591,6 +626,12 @@ function renderPreview() {
 document
   .getElementById("runImportButton")
   .addEventListener("click", async () => {
+    if (
+      (state.importMode === "passwords" || state.importMode === "deactivate") &&
+      !state.superAdmin
+    ) {
+      return showToast("Only Super Admin accounts can use this feature.");
+    }
     if (
       state.importMode === "deactivate" &&
       !(await satpConfirm(
@@ -613,7 +654,6 @@ document
           method: "PUT",
           body: JSON.stringify({
             usernames: state.validRows.map((row) => row.username),
-            user_id: state.userId,
           }),
         });
         if (!response.success)
@@ -716,23 +756,75 @@ function normalizeRow(row) {
     ]),
   );
 }
-function previewTable(rows) {
-  if (!rows.length)
-    return '<p class="preview-empty">No rows in this section.</p>';
-  const keys = Object.keys(rows[0])
-    .filter((key) => !key.startsWith("__"))
-    .slice(0, 8);
-  return `<table class="preview-table"><thead><tr>${keys.map((key) => `<th>${escapeHtml(key)}</th>`).join("")}</tr></thead><tbody>${rows
-    .slice(0, 100)
-    .map(
-      (row) =>
-        `<tr>${keys.map((key) => `<td>${escapeHtml(row[key])}</td>`).join("")}</tr>`,
-    )
-    .join("")}</tbody></table>`;
+function renderPreviewTable(containerId, rows, isError) {
+  const container = document.getElementById(containerId);
+  container.replaceChildren();
+  if (!rows.length) {
+    const empty = document.createElement("p");
+    empty.className = "preview-empty";
+    empty.textContent = "No rows in this section.";
+    container.appendChild(empty);
+    return;
+  }
+  const deactivation = state.importMode === "deactivate";
+  const columns = deactivation
+    ? [
+        ["Username", (row) => row.username],
+        ["Name", (row) => row.__previewName || "—"],
+        [
+          isError ? "Error" : "Permission",
+          (row) => (isError ? row.Error : row.__previewPermission || "—"),
+        ],
+      ]
+    : Object.keys(rows[0])
+        .filter((key) => !key.startsWith("__"))
+        .slice(0, 8)
+        .map((key) => [key, (row) => row[key]]);
+  const scroll = document.createElement("div");
+  scroll.className = "preview-table-scroll";
+  const controls = document.createElement("div");
+  controls.className = "preview-page-controls";
+  container.append(scroll, controls);
+  let pageStart = 0;
+  const pageSize = 250;
+  const renderPage = () => {
+    scroll.scrollTop = 0;
+    scroll.innerHTML = `<table class="preview-table"><thead><tr>${columns.map(([heading]) => `<th>${escapeHtml(heading)}</th>`).join("")}</tr></thead><tbody>${rows
+      .slice(pageStart, pageStart + pageSize)
+      .map(
+        (row) =>
+          `<tr>${columns.map(([, getValue]) => `<td>${escapeHtml(getValue(row))}</td>`).join("")}</tr>`,
+      )
+      .join("")}</tbody></table>`;
+    controls.replaceChildren();
+    if (rows.length <= pageSize) return;
+    const previous = document.createElement("button");
+    previous.type = "button";
+    previous.textContent = "Previous 250";
+    previous.disabled = pageStart === 0;
+    previous.addEventListener("click", () => {
+      pageStart = Math.max(0, pageStart - pageSize);
+      renderPage();
+    });
+    const count = document.createElement("span");
+    count.textContent = `${pageStart + 1}-${Math.min(pageStart + pageSize, rows.length)} of ${rows.length}`;
+    const next = document.createElement("button");
+    next.type = "button";
+    next.textContent = "Next 250";
+    next.disabled = pageStart + pageSize >= rows.length;
+    next.addEventListener("click", () => {
+      pageStart += pageSize;
+      renderPage();
+    });
+    controls.append(previous, count, next);
+  };
+  renderPage();
 }
 function downloadFailedRows(rows) {
   const clean = rows.map((row) =>
-    Object.fromEntries(Object.entries(row).filter(([key]) => key !== "__row")),
+    Object.fromEntries(
+      Object.entries(row).filter(([key]) => !key.startsWith("__")),
+    ),
   );
   const sheet = XLSX.utils.json_to_sheet(clean);
   const book = XLSX.utils.book_new();

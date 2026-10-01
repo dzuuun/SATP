@@ -170,6 +170,47 @@ function requirePermission(permission) {
   };
 }
 
+function requireSuperAdmin(req, res, next) {
+  if (
+    String(req.user?.permission_name || "")
+      .trim()
+      .toLowerCase() === "super admin"
+  )
+    return next();
+  return res.status(403).json({
+    success: 0,
+    message: "Only Super Admin accounts can use this feature.",
+  });
+}
+
+// Cookie-authenticated writes must originate from this exact origin. Bearer-only
+// API clients do not automatically send credentials and are not CSRF targets.
+function requireSameOrigin(req, res, next) {
+  if (!parseCookies(req.headers?.cookie || "")[COOKIE_NAME]) return next();
+  const origin = req.get("origin");
+  const referer = req.get("referer");
+  const fetchSite = req.get("sec-fetch-site");
+  let expectedOrigin;
+  let suppliedOrigin;
+  try {
+    expectedOrigin = new URL(`${req.protocol}://${req.get("host")}`).origin;
+    suppliedOrigin = new URL(origin || referer).origin;
+  } catch (_error) {
+    suppliedOrigin = null;
+  }
+  if (
+    fetchSite === "cross-site" ||
+    !suppliedOrigin ||
+    suppliedOrigin !== expectedOrigin
+  ) {
+    return res.status(403).json({
+      success: 0,
+      message: "This request must come from the SATP site.",
+    });
+  }
+  return next();
+}
+
 function requireNonRater(req, res, next) {
   if (
     String(req.user?.permission_name || "")
@@ -191,6 +232,8 @@ function protectMaintenanceChanges(req, res, next) {
 module.exports = {
   checkToken,
   requirePermission,
+  requireSuperAdmin,
+  requireSameOrigin,
   requireNonRater,
   protectMaintenanceChanges,
   createSessionToken,

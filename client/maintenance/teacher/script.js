@@ -19,10 +19,27 @@ let table;
 let rowIdToUpdate;
 let duplicateTeacherId;
 let pendingImport = { created: [], updated: [], errors: [] };
+let pendingTeacherRoster = null;
+let teacherRosterAllowed = false;
+fetch("/api/login/session", { credentials: "same-origin" })
+  .then((response) => (response.ok ? response.json() : null))
+  .then((session) => {
+    teacherRosterAllowed =
+      String(session?.data?.permission_name || "")
+        .trim()
+        .toLowerCase() === "super admin";
+    if (teacherRosterAllowed)
+      document.getElementById("collegeRosterButton").classList.remove("hidden");
+  })
+  .catch(() => {});
 const departmentsByCode = new Map();
 const departmentAssignmentState = {
   additionalDepartments: new Map(),
   editAdditionalDepartments: new Map(),
+};
+const primaryDepartmentState = {
+  additionalDepartments: null,
+  editAdditionalDepartments: null,
 };
 let availableDepartments = [];
 let departmentsLoadPromise;
@@ -148,6 +165,14 @@ function renderDepartmentChecklist(containerId, selectedAssignments) {
         assignments.set(departmentId, Number(assignment.teaching_status ?? 0));
       }
     });
+    primaryDepartmentState[containerId] =
+      Number(
+        document.getElementById(
+          containerId === "editAdditionalDepartments"
+            ? "editDepartmentSelect"
+            : "departmentSelect",
+        )?.value,
+      ) || null;
   }
 
   const isEdit = containerId === "editAdditionalDepartments";
@@ -245,6 +270,11 @@ function syncPrimaryDepartmentCheckboxes() {
     ],
   ].forEach(([selectId, statusId, containerId]) => {
     const primaryId = Number(document.getElementById(selectId)?.value);
+    const previousPrimaryId = primaryDepartmentState[containerId];
+    if (previousPrimaryId && previousPrimaryId !== primaryId) {
+      departmentAssignmentState[containerId].delete(previousPrimaryId);
+    }
+    primaryDepartmentState[containerId] = primaryId || null;
     if (primaryId) {
       departmentAssignmentState[containerId].set(
         primaryId,
@@ -415,6 +445,7 @@ document
   });
 
 function formPayload(form, checkboxId) {
+  syncPrimaryDepartmentCheckboxes();
   const checklistId =
     form.id === "editTeacherForm"
       ? "editAdditionalDepartments"
@@ -532,6 +563,204 @@ function parseWorkbook(file) {
     reader.readAsArrayBuffer(file);
   });
 }
+
+document
+  .getElementById("rosterXlsxInput")
+  .addEventListener("change", (event) => {
+    document.getElementById("rosterFileLabel").textContent =
+      event.target.files[0]?.name || "No file selected";
+  });
+
+document
+  .getElementById("rosterUploadForm")
+  .addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (!teacherRosterAllowed)
+      return setErrorMessage(
+        "Only Super Admin accounts can upload the College instructor list.",
+      );
+    const file = document.getElementById("rosterXlsxInput").files[0];
+    if (!file) return setErrorMessage("Choose an XLSX file first.");
+    toggleModal("rosterUploadModal", false);
+    document.getElementById("statusMessage").textContent = "";
+    toggleModal("spinnerStatusModal", true);
+    try {
+      const rows = await parseWorkbook(file);
+      const response = await requestJson("/api/teacher/roster/preview", {
+        method: "POST",
+        body: JSON.stringify({ rows }),
+      });
+      if (!response.success)
+        throw new Error(
+          response.message || "Unable to preview the instructor list.",
+        );
+      pendingTeacherRoster = {
+        rows,
+        preview_token: response.data.token,
+        preview: response.data,
+        selected_ids: new Set(
+          (response.data.deactivated || []).map((teacher) =>
+            Number(teacher.id),
+          ),
+        ),
+      };
+      renderTeacherRosterPreview();
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("rosterPreviewModal", true), 250);
+    } catch (error) {
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("rosterUploadModal", true), 250);
+      setErrorMessage(error.message || "Unable to read the instructor list.");
+    }
+  });
+
+function renderTeacherRosterPreview() {
+  const preview = pendingTeacherRoster.preview;
+  const items = preview.deactivated || [];
+  const selectedIds = pendingTeacherRoster.selected_ids;
+  const list = document.getElementById("rosterPreviewList");
+  const controls = document.getElementById("rosterPreviewPages");
+  const selectAll = document.getElementById("rosterSelectAll");
+  const runButton = document.getElementById("runRosterButton");
+  const updateSelectionUi = () => {
+    const selectedCount = selectedIds.size;
+    selectAll.checked = items.length > 0 && selectedCount === items.length;
+    selectAll.indeterminate = selectedCount > 0 && selectedCount < items.length;
+    document.getElementById("rosterDeactivatedCount").textContent =
+      `${selectedCount}/${items.length}`;
+    runButton.disabled = selectedCount === 0;
+    document.getElementById("rosterPreviewSummary").textContent =
+      `${preview.instructor_count} unique names in the uploaded list; ${preview.matched_count} active College-only teachers matched. ${items.length} are absent, and ${selectedCount} are selected for deactivation. ${preview.current_course_protected_count || 0} absent teachers were kept active because they have a course in the current College semester. Teachers with SHS or other non-College assignments are also excluded. Only first and last names are checked.`;
+  };
+  let pageStart = 0;
+  const pageSize = 250;
+  const renderPage = () => {
+    list.replaceChildren();
+    list.scrollTop = 0;
+    controls.replaceChildren();
+    if (!items.length) {
+      const empty = document.createElement("p");
+      empty.className = "preview-empty";
+      empty.textContent = "No College teachers need deactivation.";
+      list.appendChild(empty);
+      return;
+    }
+    const fragment = document.createDocumentFragment();
+    items.slice(pageStart, pageStart + pageSize).forEach((item) => {
+      const row = document.createElement("div");
+      row.className = "preview-row roster-select-row";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "roster-teacher-checkbox";
+      checkbox.checked = selectedIds.has(Number(item.id));
+      checkbox.setAttribute("aria-label", `Deactivate ${item.name}`);
+      checkbox.addEventListener("change", () => {
+        if (checkbox.checked) selectedIds.add(Number(item.id));
+        else selectedIds.delete(Number(item.id));
+        updateSelectionUi();
+      });
+      const name = document.createElement("span");
+      name.className = "room-name";
+      name.textContent = `${item.name}${item.middlename ? ` (${item.middlename})` : ""}`;
+      const detail = document.createElement("span");
+      detail.className = "row-detail";
+      detail.textContent = checkbox.checked
+        ? "Will be deactivated"
+        : "Will remain active";
+      checkbox.addEventListener("change", () => {
+        detail.textContent = checkbox.checked
+          ? "Will be deactivated"
+          : "Will remain active";
+      });
+      row.append(checkbox, name, detail);
+      fragment.appendChild(row);
+    });
+    list.appendChild(fragment);
+    if (items.length <= pageSize) return;
+    const previous = document.createElement("button");
+    previous.type = "button";
+    previous.textContent = "Previous 250";
+    previous.disabled = pageStart === 0;
+    previous.addEventListener("click", () => {
+      pageStart = Math.max(0, pageStart - pageSize);
+      renderPage();
+    });
+    const count = document.createElement("span");
+    count.textContent = `${pageStart + 1}-${Math.min(pageStart + pageSize, items.length)} of ${items.length}`;
+    const next = document.createElement("button");
+    next.type = "button";
+    next.textContent = "Next 250";
+    next.disabled = pageStart + pageSize >= items.length;
+    next.addEventListener("click", () => {
+      pageStart += pageSize;
+      renderPage();
+    });
+    controls.append(previous, count, next);
+  };
+  selectAll.onchange = () => {
+    selectedIds.clear();
+    if (selectAll.checked)
+      items.forEach((item) => selectedIds.add(Number(item.id)));
+    renderPage();
+    updateSelectionUi();
+  };
+  renderPage();
+  updateSelectionUi();
+}
+
+document
+  .getElementById("runRosterButton")
+  .addEventListener("click", async () => {
+    if (!pendingTeacherRoster || !teacherRosterAllowed) return;
+    const selectedTeacherIds = [...pendingTeacherRoster.selected_ids];
+    const count = selectedTeacherIds.length;
+    if (!count)
+      return setErrorMessage("Select at least one teacher to deactivate.");
+    if (
+      !(await satpConfirm(
+        `Deactivate ${count} College-only teachers absent from the uploaded instructor list?`,
+        {
+          title: "Deactivate absent College teachers",
+          confirmText: "Deactivate teachers",
+        },
+      ))
+    )
+      return;
+    toggleModal("rosterPreviewModal", false);
+    document.getElementById("statusMessage").textContent = "";
+    toggleModal("spinnerStatusModal", true);
+    try {
+      const response = await requestJson("/api/teacher/roster/run", {
+        method: "POST",
+        body: JSON.stringify({
+          rows: pendingTeacherRoster.rows,
+          preview_token: pendingTeacherRoster.preview_token,
+          selected_teacher_ids: selectedTeacherIds,
+        }),
+      });
+      if (!response.success)
+        throw new Error(response.message || "Unable to deactivate teachers.");
+      toggleModal("spinnerStatusModal", false);
+      pendingTeacherRoster = null;
+      table.ajax.reload(null, false);
+      setSuccessMessage(
+        `${response.data.deactivated} College teachers deactivated.`,
+      );
+    } catch (error) {
+      toggleModal("spinnerStatusModal", false);
+      const changed = /changed.*preview/i.test(error.message || "");
+      if (changed) pendingTeacherRoster = null;
+      setTimeout(
+        () =>
+          toggleModal(
+            changed ? "rosterUploadModal" : "rosterPreviewModal",
+            true,
+          ),
+        250,
+      );
+      setErrorMessage(error.message || "Unable to deactivate teachers.");
+    }
+  });
 
 const normalize = (value) =>
   String(value || "")
@@ -792,12 +1021,17 @@ function toggleModal(id, show = true) {
     setTimeout(() => {
       modal.classList.add("invisible");
       modal.querySelectorAll("form").forEach((form) => form.reset());
+      if (id === "rosterUploadModal")
+        document.getElementById("rosterFileLabel").textContent =
+          "No file selected";
       if (id === "addNewModal") {
         departmentAssignmentState.additionalDepartments.clear();
+        primaryDepartmentState.additionalDepartments = null;
         renderDepartmentChecklist("additionalDepartments");
       }
       if (id === "editModal") {
         departmentAssignmentState.editAdditionalDepartments.clear();
+        primaryDepartmentState.editAdditionalDepartments = null;
         renderDepartmentChecklist("editAdditionalDepartments");
       }
       if (dropZoneText?.dataset.defaultText)
@@ -884,6 +1118,8 @@ document.addEventListener("keydown", (event) => {
       "mergeModal",
       "importFileModal",
       "importPreviewModal",
+      "rosterUploadModal",
+      "rosterPreviewModal",
     ].forEach((id) => {
       const modal = document.getElementById(id);
       if (modal && !modal.classList.contains("invisible"))

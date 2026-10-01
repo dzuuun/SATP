@@ -7,6 +7,7 @@ const morgan = require("morgan");
 const {
   checkToken,
   requirePermission,
+  requireSuperAdmin,
   protectMaintenanceChanges,
 } = require("./auth/auth_validation");
 const {
@@ -88,6 +89,7 @@ const studentSubjectRouter = require("./api/maintenance/studentsubject/studentsu
 const studentRouter = require("./api/maintenance/student/student.router");
 const adminRouter = require("./api/maintenance/admin/admin.router");
 const gradSchoolItemRouter = require("./api/maintenance/gradschool_items/gsitem.router");
+const mssqlImportRouter = require("./api/maintenance/mssql_import/mssql_import.router");
 
 // User
 const logRouter = require("./api/user/activity_log/log.router");
@@ -122,6 +124,7 @@ app.use(
     "/api/student",
     "/api/admin",
     "/api/gradschool/item",
+    "/api/mssql-import",
   ],
   maintenanceApiStandards,
 );
@@ -144,6 +147,12 @@ app.use(
 app.use("/api/student", requirePermission("maintenance_access"), studentRouter);
 app.use("/api/admin", requirePermission("maintenance_access"), adminRouter);
 app.use("/api/gradschool/item", gradSchoolItemRouter);
+app.use(
+  "/api/mssql-import",
+  requirePermission("maintenance_access"),
+  requireSuperAdmin,
+  mssqlImportRouter,
+);
 
 app.use("/api/activitylog", requirePermission("users_access"), logRouter);
 app.use("/api/permission", requirePermission("users_access"), permissionRouter);

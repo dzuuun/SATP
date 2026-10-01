@@ -19,6 +19,22 @@ let importSchoolsById = new Map();
 let activeStudentsById = new Map();
 let activeTeachers = [];
 let pendingRestore = null;
+let pendingMssqlStudentCourseImport = null;
+let mssqlImportAllowed = false;
+
+fetch("/api/login/session", { credentials: "same-origin" })
+  .then((response) => (response.ok ? response.json() : null))
+  .then((session) => {
+    mssqlImportAllowed =
+      String(session?.data?.permission_name || "")
+        .trim()
+        .toLowerCase() === "super admin";
+    if (mssqlImportAllowed)
+      document
+        .getElementById("mssqlStudentCourseImportButton")
+        .classList.remove("hidden");
+  })
+  .catch(() => {});
 
 const teacherImportKey = (firstName, lastName) =>
   normalizeImportValue(`${firstName || ""} ${lastName || ""}`);
@@ -938,8 +954,9 @@ function setImportProgress(eyebrow, status, detail) {
     Math.min(100, Number.parseFloat(String(status).replace("%", "")) || 0),
   );
   const track = document.getElementById("validationProgressTrack");
-  document.getElementById("validationProgressBar").style.width = `${progress}%`;
-  track.setAttribute("aria-valuenow", String(progress));
+  const bar = document.getElementById("validationProgressBar");
+  if (bar) bar.style.width = `${progress}%`;
+  if (track) track.setAttribute("aria-valuenow", String(progress));
 }
 
 function waitForPaint() {
@@ -1118,6 +1135,7 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
 
 uploadFileForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  pendingMssqlStudentCourseImport = null;
   const schoolId = Number(new FormData(uploadFileForm).get("import_school_id"));
   const selectedFile = xlsxInput.files[0];
   if (!schoolId || !selectedFile) {
@@ -1294,15 +1312,22 @@ async function classifySubjectRows(rows, schoolId) {
     );
     const subject = importSubjectsByCode.get(normalizeImportValue(subjectCode));
     const teacherFirstName = readImportColumn(raw, "TeacherFirstName");
+    const teacherMiddleName = readImportColumn(raw, "TeacherMiddleName");
     const teacherLastName = readImportColumn(raw, "TeacherLastName");
     const teacher = importTeachersByName.get(
       teacherImportKey(teacherFirstName, teacherLastName),
     );
-    const teachingDepartment = resolveTeachingDepartment(
-      teacher,
-      raw,
-      schoolId,
-    );
+    const fallbackTeacherDepartment = importDepartmentsByCode.get("-");
+    const teacherNeedsCreation =
+      !teacher &&
+      Boolean(
+        normalizeImportValue(teacherFirstName) &&
+        normalizeImportValue(teacherLastName),
+      ) &&
+      Boolean(fallbackTeacherDepartment);
+    const teachingDepartment = teacher
+      ? resolveTeachingDepartment(teacher, raw, schoolId)
+      : fallbackTeacherDepartment;
     const roomCode = readImportColumn(raw, "RoomCode");
     const room = importRoomsByCode.get(normalizeImportValue(roomCode));
     if (isTbaTeacherRow(raw)) {
@@ -1332,6 +1357,11 @@ async function classifySubjectRows(rows, schoolId) {
       subject_needs_activation:
         subject != null && Number(subject.is_active) !== 1,
       teacher_id: teacher?.id,
+      teacher_first_name: String(teacherFirstName || "").trim(),
+      teacher_middle_name: String(teacherMiddleName || "").trim(),
+      teacher_last_name: String(teacherLastName || "").trim(),
+      teacher_creation_key: teacherImportKey(teacherFirstName, teacherLastName),
+      teacher_needs_creation: teacherNeedsCreation,
       teaching_department_id: teachingDepartment?.id || null,
       teacher_needs_activation:
         teacher != null && Number(teacher.is_active) !== 1,
@@ -1357,7 +1387,8 @@ async function classifySubjectRows(rows, schoolId) {
     if (!resolved.semester_id) missing.push("semester");
     if (!resolved.subject_id && !resolved.subject_needs_creation)
       missing.push("course code and description");
-    if (!resolved.teacher_id) missing.push("teacher");
+    if (!resolved.teacher_id && !resolved.teacher_needs_creation)
+      missing.push("teacher");
     if (student && Number(student.school_id) !== Number(schoolId))
       missing.push(
         `${importSchoolsById.get(Number(schoolId))?.name || "selected school"} student`,
@@ -1372,7 +1403,11 @@ async function classifySubjectRows(rows, schoolId) {
       resolved.semester_id,
       resolved.subject_id || normalizeImportValue(resolved.subject_code),
       ...(isChsStudent
-        ? [normalizeImportValue(resolved.schedule_code), resolved.teacher_id]
+        ? [
+            normalizeImportValue(resolved.schedule_code),
+            resolved.teacher_id ||
+              teacherImportKey(teacherFirstName, teacherLastName),
+          ]
         : []),
     ].join("|");
     const item = { rowNumber: index + 2, originalRow: raw, ...resolved };
@@ -1398,6 +1433,11 @@ async function classifySubjectRows(rows, schoolId) {
         dependencyActions.push("room will be created");
       else if (item.room_needs_activation)
         dependencyActions.push("room will be reactivated");
+      if (item.teacher_needs_creation) {
+        dependencyActions.push(
+          `teacher ${item.teacher_first_name} ${item.teacher_last_name} will be created in - as Full Time`,
+        );
+      }
       if (dependencyActions.length) item.reason = dependencyActions.join("; ");
       result.created.push(item);
     }
@@ -1478,13 +1518,16 @@ async function classifySubjectRows(rows, schoolId) {
         Number(current.is_excluded || 0) === Number(item.is_excluded || 0);
       const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${enrollmentKey(item)}`;
       existingKeys.add(key);
+      const preparationNote = item.teacher_needs_creation
+        ? `Teacher ${item.teacher_first_name} ${item.teacher_last_name} will be created in -; `
+        : "";
       result.updated.push({
         ...item,
         id: current.id,
         unchanged,
         reason: unchanged
-          ? "Enrollment already exists; no changes needed"
-          : "Enrollment already exists; changes will be updated",
+          ? `${preparationNote}Enrollment already exists; no changes needed`
+          : `${preparationNote}Enrollment already exists; changes will be updated`,
       });
     });
     checkedBatches++;
@@ -1536,6 +1579,8 @@ function renderSubjectImportPreview() {
   ].forEach(([key, listId, countId, detail]) => {
     const items = pendingSubjectImport[key];
     const list = document.getElementById(listId);
+    const group = list.closest(".preview-group");
+    group?.querySelector(".preview-page-controls")?.remove();
     document.getElementById(countId).textContent = items.length;
     list.replaceChildren();
     if (!items.length) {
@@ -1545,6 +1590,61 @@ function renderSubjectImportPreview() {
       list.appendChild(empty);
       return;
     }
+    // Keep each preview list bounded. Appending every batch made the nested
+    // scrollbar unreliable once a large import had been browsed for a while.
+    let pageStart = 0;
+    const renderPage = () => {
+      group?.querySelector(".preview-page-controls")?.remove();
+      list.replaceChildren();
+      list.scrollTop = 0;
+      const fragment = document.createDocumentFragment();
+      items.slice(pageStart, pageStart + PREVIEW_BATCH_SIZE).forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "preview-row";
+        row.innerHTML =
+          '<span class="row-number"></span><span class="item-question"></span><span class="row-detail"></span>';
+        row.children[0].textContent = `Row ${item.rowNumber}`;
+        row.children[1].textContent = `${readImportColumn(
+          item.originalRow,
+          "StudentID",
+          "IDNumber",
+        )} \u2014 ${readImportColumn(item.originalRow, "SubjectCode")}`;
+        row.children[2].textContent = item.reason || detail;
+        fragment.appendChild(row);
+      });
+      list.appendChild(fragment);
+      if (items.length <= PREVIEW_BATCH_SIZE) return;
+      const controls = document.createElement("div");
+      controls.className = "preview-page-controls";
+      const previous = document.createElement("button");
+      previous.type = "button";
+      previous.textContent = "Previous 250";
+      previous.disabled = pageStart === 0;
+      previous.addEventListener("click", () => {
+        pageStart = Math.max(0, pageStart - PREVIEW_BATCH_SIZE);
+        renderPage();
+      });
+      const label = document.createElement("span");
+      label.textContent = `${pageStart + 1}-${Math.min(
+        pageStart + PREVIEW_BATCH_SIZE,
+        items.length,
+      )} of ${items.length}`;
+      const next = document.createElement("button");
+      next.type = "button";
+      next.textContent = "Next 250";
+      next.disabled = pageStart + PREVIEW_BATCH_SIZE >= items.length;
+      next.addEventListener("click", () => {
+        pageStart += PREVIEW_BATCH_SIZE;
+        renderPage();
+      });
+      controls.append(previous, label, next);
+      // Keep pager controls outside the scrolling table. They must never be
+      // pushed below hundreds of row entries inside the list.
+      group?.appendChild(controls);
+    };
+    renderPage();
+    return;
+
     let visibleCount = 0;
     const appendBatch = () => {
       list.querySelector(".preview-load-more")?.remove();
@@ -1590,6 +1690,8 @@ function renderSubjectImportPreview() {
 document
   .getElementById("runImportButton")
   .addEventListener("click", async () => {
+    if (pendingMssqlStudentCourseImport)
+      return runMssqlStudentCourseImportFromPreview();
     const errors = pendingSubjectImport.errors.map((item) => ({
       ...item.originalRow,
       Error: item.reason,
@@ -1613,14 +1715,19 @@ document
 
     const failedSubjectCodes = new Set();
     const failedRoomCodes = new Set();
+    const failedTeacherKeys = new Set();
     const subjectDependencies = new Map();
     const roomDependencies = new Map();
+    const teacherDependencies = new Map();
     actionableItems.forEach((item) => {
       if (item.subject_needs_creation || item.subject_needs_activation) {
         subjectDependencies.set(normalizeImportValue(item.subject_code), item);
       }
       if (item.room_needs_creation || item.room_needs_activation) {
         roomDependencies.set(normalizeImportValue(item.room_code), item);
+      }
+      if (item.teacher_needs_creation) {
+        teacherDependencies.set(item.teacher_creation_key, item);
       }
     });
 
@@ -1683,16 +1790,69 @@ document
       }
     }
 
-    if (subjectDependencies.size || roomDependencies.size) {
+    const fallbackTeacherDepartment = importDepartmentsByCode.get("-");
+    for (const [teacherKey, item] of teacherDependencies) {
+      try {
+        if (!fallbackTeacherDepartment?.id)
+          throw new Error("The - department was not found");
+        const teacherName =
+          `${item.teacher_first_name} ${item.teacher_last_name}`.trim();
+        setImportProgress(
+          "Preparing teachers",
+          "Please wait",
+          `Creating ${teacherName} in the - department.`,
+        );
+        const response = await fetch("/api/teacher/add", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prefix: "",
+            surname: item.teacher_last_name,
+            givenname: item.teacher_first_name,
+            middlename: item.teacher_middle_name,
+            suffix: "",
+            department_id: fallbackTeacherDepartment.id,
+            department_ids: [fallbackTeacherDepartment.id],
+            is_part_time: 0,
+            is_active: 1,
+            user_id: user,
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.success)
+          throw new Error(payload.message || "Teacher could not be created");
+      } catch (error) {
+        failedTeacherKeys.add(teacherKey);
+      }
+    }
+
+    if (
+      subjectDependencies.size ||
+      roomDependencies.size ||
+      teacherDependencies.size
+    ) {
       await refreshWorkbookReferences();
       actionableItems.forEach((item) => {
         const subject = importSubjectsByCode.get(
           normalizeImportValue(item.subject_code),
         );
+        const teacher = importTeachersByName.get(item.teacher_creation_key);
         const room = importRoomsByCode.get(
           normalizeImportValue(item.room_code),
         );
         if (subject) item.subject_id = subject.id;
+        if (teacher) {
+          item.teacher_id = teacher.id;
+          item.teacher_needs_creation = false;
+          item.teaching_department_id =
+            resolveTeachingDepartment(
+              teacher,
+              item.originalRow,
+              pendingSubjectImport.schoolId,
+            )?.id ||
+            fallbackTeacherDepartment?.id ||
+            null;
+        }
         if (room) item.room_id = room.id;
       });
     }
@@ -1781,6 +1941,17 @@ document
         errors.push({
           ...item.originalRow,
           Error: "Matched student could not be activated",
+        });
+        return false;
+      }
+      if (
+        failedTeacherKeys.has(item.teacher_creation_key) ||
+        !item.teacher_id ||
+        !item.teaching_department_id
+      ) {
+        errors.push({
+          ...item.originalRow,
+          Error: "Teacher could not be created in the - department",
         });
         return false;
       }
@@ -1896,6 +2067,116 @@ function downloadSubjectImportErrors(rows) {
       new Date().toISOString().split("T")[0]
     }.xlsx`,
   );
+}
+
+function openMssqlStudentCourseImport() {
+  if (!mssqlImportAllowed)
+    return setErrorMessage("Only Super Admin accounts can import from MSSQL.");
+  const selectedSchoolYear = document.getElementById("loadSchoolYear").value;
+  const selectedSemester = document.getElementById("loadSemester").value;
+  if (!selectedSchoolYear || !selectedSemester) {
+    return setErrorMessage(
+      "Select a school year and semester before importing student courses.",
+    );
+  }
+  pendingMssqlStudentCourseImport = null;
+  toggleModal("addNewModal", false);
+  setTimeout(() => toggleModal("mssqlStudentCourseImportModal", true), 250);
+}
+
+document
+  .getElementById("previewMssqlStudentCourseImportButton")
+  .addEventListener("click", async () => {
+    setImportProgress(
+      "Loading data",
+      "",
+      "Reading MSSQL student-course data and applying the workbook import rules.",
+    );
+    toggleModal("mssqlStudentCourseImportModal", false);
+    toggleModal("spinnerStatusModal", true);
+    try {
+      const response = await fetch("/api/mssql-import/student-courses");
+      const data = await response.json();
+      if (!data.success)
+        throw new Error(
+          data.message || "Unable to preview the MSSQL course import.",
+        );
+      await refreshWorkbookReferences();
+      const sample = (data.data || []).find((row) =>
+        importStudentsByNumber.has(
+          normalizeImportValue(row.StudentID || row.student_id),
+        ),
+      );
+      const schoolId = Number(
+        importStudentsByNumber.get(
+          normalizeImportValue(sample?.StudentID || sample?.student_id),
+        )?.school_id,
+      );
+      if (!schoolId)
+        throw new Error(
+          "No College student from the MSSQL view was found in SATP.",
+        );
+      // The MSSQL endpoint deliberately returns workbook-shaped rows. From
+      // here onward this is the exact XLSX validation and import workflow.
+      pendingSubjectImport = await classifySubjectRows(
+        data.data || [],
+        schoolId,
+      );
+      pendingSubjectImport.schoolId = schoolId;
+      pendingMssqlStudentCourseImport = null;
+      renderSubjectImportPreview();
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    } catch (error) {
+      toggleModal("spinnerStatusModal", false);
+      setTimeout(() => toggleModal("mssqlStudentCourseImportModal", true), 250);
+      setErrorMessage(
+        error.message || "Unable to preview the MSSQL course import.",
+      );
+    }
+  });
+
+async function runMssqlStudentCourseImportFromPreview() {
+  const actionable =
+    pendingSubjectImport.created.length + pendingSubjectImport.updated.length;
+  if (!actionable) {
+    pendingMssqlStudentCourseImport = null;
+    toggleModal("importPreviewModal", false);
+    return setErrorMessage(
+      "No valid MSSQL student-course rows are available to import.",
+    );
+  }
+  if (!(await satpConfirm("Run the MSSQL student-course import?"))) return;
+  toggleModal("importPreviewModal", false);
+  setImportProgress(
+    "Import in progress",
+    "",
+    "Importing student courses and preparing teachers and rooms.",
+  );
+  toggleModal("spinnerStatusModal", true);
+  try {
+    const response = await fetch("/api/mssql-import/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pendingMssqlStudentCourseImport),
+    });
+    const data = await response.json();
+    if (!data.success)
+      throw new Error(data.message || "MSSQL course import failed.");
+    const subjects = data.data.student_subjects || {};
+    const teachers = data.data.teachers || {};
+    const rooms = data.data.rooms || {};
+    toggleModal("spinnerStatusModal", false);
+    pendingMssqlStudentCourseImport = null;
+    await loadCurrentPeriodData();
+    setSuccessMessage(
+      `${subjects.created || 0} student courses imported; ${subjects.updated || 0} updated; ${teachers.created || 0} teachers and ${rooms.created || 0} rooms created; ${teachers.reactivated || 0} teachers and ${rooms.reactivated || 0} rooms reactivated.`,
+    );
+  } catch (error) {
+    toggleModal("spinnerStatusModal", false);
+    setTimeout(() => toggleModal("importPreviewModal", true), 250);
+    setErrorMessage(error.message || "MSSQL course import failed.");
+  }
 }
 
 function openNav() {

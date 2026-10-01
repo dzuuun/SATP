@@ -30,7 +30,12 @@ const table = $("#table").DataTable({
   },
   columns: [
     { data: "date_time", title: "Date and time", width: "20%" },
-    { data: "name", title: "Transacted by", width: "24%" },
+    {
+      data: "name",
+      title: "Transacted by",
+      width: "24%",
+      render: $.fn.dataTable.render.text(),
+    },
     { data: "action", title: "Action performed" },
   ],
   ordering: false,

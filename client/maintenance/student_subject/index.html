@@ -237,18 +237,34 @@
             <div id="subjectRows" class="subject-rows"></div>
           </div>
           <footer class="modal-footer split">
-            <button
-              type="button"
-              class="text-button"
-              onclick="
-                toggleModal('addNewModal', false);
-                setTimeout(() => toggleModal('importFileModal', true), 250);
-              "
-            >
-              <svg viewBox="0 0 24 24">
-                <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
-              >Import multiple
-            </button>
+            <div class="import-source-actions">
+              <button
+                type="button"
+                class="text-button"
+                onclick="
+                  toggleModal('addNewModal', false);
+                  setTimeout(() => toggleModal('importFileModal', true), 250);
+                "
+              >
+                <svg viewBox="0 0 24 24">
+                  <path d="M12 3v12m0-12L7 8m5-5 5 5M5 13v7h14v-7" /></svg
+                >Import multiple
+              </button>
+              <button
+                id="mssqlStudentCourseImportButton"
+                type="button"
+                class="secondary-button mssql-import-trigger hidden"
+                onclick="openMssqlStudentCourseImport()"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <ellipse cx="12" cy="5" rx="8" ry="3" />
+                  <path
+                    d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"
+                  />
+                </svg>
+                Import courses from MSSQL
+              </button>
+            </div>
             <div>
               <button
                 type="button"
@@ -574,6 +590,51 @@
       </div>
     </div>
 
+    <div id="mssqlStudentCourseImportModal" class="room-modal invisible">
+      <div
+        id="mssqlStudentCourseImportModalCard"
+        class="modal-card mssql-course-import-card scale-95"
+      >
+        <header class="modal-header">
+          <div>
+            <p class="eyebrow">MSSQL import</p>
+            <h2>Import student courses</h2>
+          </div>
+          <button
+            class="modal-close"
+            onclick="toggleModal('mssqlStudentCourseImportModal', false)"
+            aria-label="Close MSSQL course import"
+          >
+            <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </header>
+        <form id="mssqlStudentCourseImportForm">
+          <div class="modal-body">
+            <p class="mssql-course-import-copy">
+              Import courses for the selected school year and semester. Students
+              must already exist in Student Maintenance.
+            </p>
+          </div>
+          <footer class="modal-footer">
+            <button
+              type="button"
+              class="secondary-button"
+              onclick="toggleModal('mssqlStudentCourseImportModal', false)"
+            >
+              Cancel
+            </button>
+            <button
+              id="previewMssqlStudentCourseImportButton"
+              type="button"
+              class="primary-button"
+            >
+              Preview courses
+            </button>
+          </footer>
+        </form>
+      </div>
+    </div>
+
     <div id="importPreviewModal" class="room-modal invisible">
       <div id="importPreviewModalCard" class="modal-card preview-card scale-95">
         <header class="modal-header">
@@ -638,17 +699,6 @@
         <span class="progress-spinner"></span>
         <p id="progressEyebrow" class="eyebrow">Import in progress</p>
         <h2 id="statusMessage">0%</h2>
-        <div
-          id="validationProgressTrack"
-          class="validation-progress-track"
-          role="progressbar"
-          aria-label="Workbook validation progress"
-          aria-valuemin="0"
-          aria-valuemax="100"
-          aria-valuenow="0"
-        >
-          <span id="validationProgressBar"></span>
-        </div>
         <p id="progressDetail">Please keep this page open.</p>
       </div>
     </div>
