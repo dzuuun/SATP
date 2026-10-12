@@ -643,10 +643,144 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (!response.data || response.data.length === 0)
             return alert("No data found.");
 
-          const ws = XLSX.utils.json_to_sheet(response.data);
           const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, "Unrated");
-          XLSX.writeFile(wb, `Unrated_List_${new Date().getTime()}.xlsx`);
+          const createWorksheet = (rows, sheetName, includeRoom = false) => {
+            const columns = [
+              ["School Year", "SchoolYear", 16],
+              ["Semester", "Semester", 14],
+              ["ID Number", "IDNumber", 16],
+              ["First Name", "FirstName", 18],
+              ["Last Name", "LastName", 18],
+              ["Grade Level", "YearLevel", 14],
+              ["Program", "Program", 26],
+              ["Department", "Department", 24],
+              ["College", "College", 24],
+              ["Subject Code", "SubjectCode", 16],
+              ["Teacher", "Teacher", 28],
+            ];
+            if (includeRoom) {
+              columns.splice(7, 2);
+              columns.splice(6, 0, ["Room", "Room", 16]);
+              columns.splice(7, 0, ["Gender", "Gender", 12]);
+            }
+
+            const worksheet = XLSX.utils.aoa_to_sheet([
+              [`Unrated Transactions — ${sheetName}`],
+              [
+                `${rows[0].SchoolYear || ""} • ${rows[0].Semester || ""} • ${rows.length} student subject${rows.length === 1 ? "" : "s"}`,
+              ],
+              [],
+              columns.map(([label]) => label),
+              ...rows.map((row) => columns.map(([, key]) => row[key] ?? "")),
+            ]);
+            const lastColumn = XLSX.utils.encode_col(columns.length - 1);
+
+            worksheet["!merges"] = [
+              { s: { r: 0, c: 0 }, e: { r: 0, c: columns.length - 1 } },
+              { s: { r: 1, c: 0 }, e: { r: 1, c: columns.length - 1 } },
+            ];
+            worksheet["!cols"] = columns.map(([, , width]) => ({ wch: width }));
+            worksheet["!rows"] = [{ hpt: 26 }, { hpt: 19 }, {}, { hpt: 22 }];
+            worksheet["!autofilter"] = { ref: `A4:${lastColumn}${rows.length + 4}` };
+            worksheet["!freeze"] = { xSplit: 0, ySplit: 4 };
+
+            // SheetJS preserves these styles when the loaded XLSX build supports styling.
+            const titleCell = worksheet.A1;
+            const detailCell = worksheet.A2;
+            if (titleCell) {
+              titleCell.s = {
+                font: { bold: true, color: { rgb: "FFFFFF" }, sz: 15 },
+                fill: { fgColor: { rgb: "1F4E78" } },
+                alignment: { horizontal: "center", vertical: "center" },
+              };
+            }
+            if (detailCell) {
+              detailCell.s = {
+                font: { italic: true, color: { rgb: "404040" } },
+                alignment: { horizontal: "center" },
+              };
+            }
+            for (let column = 0; column < columns.length; column++) {
+              const header = worksheet[`${XLSX.utils.encode_col(column)}4`];
+              if (header) {
+                header.s = {
+                  font: { bold: true, color: { rgb: "FFFFFF" } },
+                  fill: { fgColor: { rgb: "2F75B5" } },
+                  alignment: { horizontal: "center", vertical: "center", wrapText: true },
+                };
+              }
+            }
+            return worksheet;
+          };
+          const collegeRows = response.data
+            .filter((row) => row.AcademicGroup === "College")
+            .map(({ AcademicGroup, Room, Gender, ...row }) => row);
+          const naturalSort = new Intl.Collator(undefined, {
+            numeric: true,
+            sensitivity: "base",
+          });
+          const compareRooms = (leftRoom, rightRoom) => {
+            const left = String(leftRoom ?? "").trim();
+            const right = String(rightRoom ?? "").trim();
+            if (!left && right) return 1;
+            if (left && !right) return -1;
+            return naturalSort.compare(left, right);
+          };
+          const shsRows = response.data
+            .filter((row) => row.AcademicGroup === "SHS")
+            .map(({ AcademicGroup, ...row }) => row)
+            .sort((left, right) => {
+              const grade = (value) => {
+                const match = String(value ?? "").match(/\d+/);
+                return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
+              };
+              return (
+                grade(left.YearLevel) - grade(right.YearLevel) ||
+                naturalSort.compare(left.YearLevel ?? "", right.YearLevel ?? "") ||
+                compareRooms(left.Room, right.Room) ||
+                naturalSort.compare(left.Gender ?? "", right.Gender ?? "") ||
+                naturalSort.compare(left.LastName ?? "", right.LastName ?? "")
+              );
+            });
+
+          if (collegeRows.length) {
+            XLSX.utils.book_append_sheet(
+              wb,
+              createWorksheet(collegeRows, "College"),
+              "College",
+            );
+          }
+          if (shsRows.length) {
+            XLSX.utils.book_append_sheet(
+              wb,
+              createWorksheet(shsRows, "Senior High School", true),
+              "SHS",
+            );
+          }
+          const safeFilePart = (value) =>
+            String(value || "")
+              .trim()
+              .replace(/[\\/:*?"<>|]/g, "-")
+              .replace(/\s+/g, " ");
+          const schoolYear = safeFilePart(response.data[0].SchoolYear);
+          const semester = safeFilePart(response.data[0].Semester);
+          const academicGroup = safeFilePart(
+            collegeRows.length && shsRows.length
+              ? "College and SHS"
+              : shsRows.length
+                ? "SHS"
+                : "College",
+          );
+          const exportedAt = new Date();
+          const exportTime = [
+            exportedAt.getFullYear(),
+            String(exportedAt.getMonth() + 1).padStart(2, "0"),
+            String(exportedAt.getDate()).padStart(2, "0"),
+          ].join("-") + ` ${String(exportedAt.getHours()).padStart(2, "0")}-${String(exportedAt.getMinutes()).padStart(2, "0")}`;
+          XLSX.writeFile(
+            wb,
+            `Unrated Transactions - ${academicGroup} - ${schoolYear} - ${semester} - As of ${exportTime}.xlsx`,
+          );
         } catch (err) {
           alert("Export failed.");
         } finally {
