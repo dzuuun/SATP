@@ -17,9 +17,6 @@ const {
   clearUserPresenceThrottle,
 } = require("../../auth/auth_validation");
 
-const failedLogins = new Map();
-const LOGIN_WINDOW_MS = 15 * 60 * 1000;
-const MAX_LOGIN_ATTEMPTS = 5;
 const NDMU_EMAIL_DOMAIN = "ndmu.edu.ph";
 
 function sendAuthenticatedUser(req, res, user, action) {
@@ -39,31 +36,6 @@ function sendAuthenticatedUser(req, res, user, action) {
     user_id: user.user_id,
     data: safeUser,
   });
-}
-
-function loginKey(req, username) {
-  return `${req.ip}:${String(username || "")
-    .trim()
-    .toLowerCase()}`;
-}
-
-function isLoginBlocked(key) {
-  const attempt = failedLogins.get(key);
-  if (!attempt) return false;
-  if (Date.now() - attempt.startedAt >= LOGIN_WINDOW_MS) {
-    failedLogins.delete(key);
-    return false;
-  }
-  return attempt.count >= MAX_LOGIN_ATTEMPTS;
-}
-
-function recordFailedLogin(key) {
-  const current = failedLogins.get(key);
-  if (!current || Date.now() - current.startedAt >= LOGIN_WINDOW_MS) {
-    failedLogins.set(key, { count: 1, startedAt: Date.now() });
-    return;
-  }
-  current.count += 1;
 }
 
 module.exports = {
@@ -224,14 +196,6 @@ module.exports = {
       });
     }
 
-    const key = loginKey(req, username);
-    if (isLoginBlocked(key)) {
-      return res.status(429).json({
-        success: 0,
-        message: "Too many failed attempts. Try again in 15 minutes.",
-      });
-    }
-
     getUserByUserName(username, (err, results) => {
       if (err) {
         console.error(err);
@@ -250,14 +214,12 @@ module.exports = {
         compareSync(password, results.password);
 
       if (!passwordMatches) {
-        recordFailedLogin(key);
         return res.status(401).json({
           success: 0,
           message: "Invalid username or password.",
         });
       }
 
-      failedLogins.delete(key);
       return sendAuthenticatedUser(req, res, results, "Logged in");
     });
   },
@@ -284,13 +246,6 @@ module.exports = {
   updatePassword: (req, res) => {
     const password = String(req.body?.password || "");
     const currentPassword = String(req.body?.current_password || "");
-    const passwordAttemptKey = `password:${req.user.id}`;
-    if (isLoginBlocked(passwordAttemptKey)) {
-      return res.status(429).json({
-        success: 0,
-        message: "Too many failed attempts. Try again in 15 minutes.",
-      });
-    }
     if (password.length < 8 || Buffer.byteLength(password, "utf8") > 72) {
       return res.status(400).json({
         success: 0,
@@ -316,7 +271,6 @@ module.exports = {
         !account?.password ||
         !compareSync(currentPassword, account.password)
       ) {
-        recordFailedLogin(passwordAttemptKey);
         return res.status(400).json({
           success: 0,
           message: "The current password is incorrect.",
@@ -329,7 +283,6 @@ module.exports = {
         });
       }
 
-      failedLogins.delete(passwordAttemptKey);
       const body = {
         id: req.user.id,
         user_id: req.user.id,
