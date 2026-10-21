@@ -182,6 +182,21 @@
   color: #8b9690;
   background: #eef2f0;
 }
+.user-presence {
+  display: inline-block;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+.user-presence.online {
+  padding: 4px 9px;
+  color: var(--green-800);
+  background: var(--green-100);
+  border-radius: 12px;
+  font-weight: 800;
+}
+.user-presence.offline {
+  color: var(--muted);
+}
 .login-method {
   min-width: 58px;
   padding: 4px 7px;

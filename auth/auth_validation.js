@@ -15,7 +15,7 @@ function markUserOnline(userId, next) {
 
   presenceUpdates.set(id, now);
   pool.query(
-    "UPDATE users SET last_seen_at = CURRENT_TIMESTAMP WHERE id = ?",
+    "UPDATE users SET last_seen_at = CURRENT_TIMESTAMP, last_logout_at = NULL WHERE id = ?",
     [id],
     (error) => {
       if (error) {

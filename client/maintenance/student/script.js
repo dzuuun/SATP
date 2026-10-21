@@ -292,11 +292,17 @@ async function editFormCall(id) {
     document.getElementById("editGenderSelect").value = String(s.gender || "")
       .trim()
       .toUpperCase();
+    document.getElementById("editGenderSelect").dispatchEvent(
+      new Event("change", { bubbles: true }),
+    );
     document.getElementById("editCourseSelect").value = s.course_id;
     document
       .getElementById("editCourseSelect")
       .dispatchEvent(new Event("change", { bubbles: true }));
     document.getElementById("editYearLevel").value = s.year_level;
+    document.getElementById("editYearLevel").dispatchEvent(
+      new Event("change", { bubbles: true }),
+    );
     document.getElementById("editGoogleEmail").value = s.google_email || "";
     document.getElementById("editIsStudentStatusActive").checked =
       s.is_active == 1;

@@ -522,7 +522,12 @@ async function edit(id) {
       document.getElementById("editGivenName").value = adminData.givenname;
       document.getElementById("editMiddleName").value = adminData.middlename;
       document.getElementById("editLastName").value = adminData.surname;
-      document.getElementById("editGenderSelect").value = adminData.gender;
+      document.getElementById("editGenderSelect").value = String(
+        adminData.gender || "",
+      ).trim().toUpperCase();
+      document.getElementById("editGenderSelect").dispatchEvent(
+        new Event("change", { bubbles: true }),
+      );
       document.getElementById("editPermissionSelect").value = String(
         adminData.permission_id,
       );

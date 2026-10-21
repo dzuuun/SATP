@@ -39,8 +39,6 @@ fetch("/api/login/session", { credentials: "same-origin" })
   })
   .catch(() => {});
 
-const yesNo = (value) =>
-  `<span class="boolean-badge ${Number(value) ? "" : "off"}">${Number(value) ? "Yes" : "No"}</span>`;
 const loginMethod = (_, __, row) => {
   const hasEmail = Boolean(String(row.google_email || "").trim());
   const hasPassword = Number(row.has_password) === 1;
@@ -54,6 +52,36 @@ const loginMethod = (_, __, row) => {
           : "None";
   return `<span class="login-method login-method-${label.toLowerCase()}">${label}</span>`;
 };
+
+function userPresence(value, type, row) {
+  const online = Number(value) === 1 && Number(row.is_active) === 1;
+  const elapsed = row.last_seen_seconds;
+  const known = elapsed !== null && elapsed !== undefined &&
+    elapsed !== "" && Number.isFinite(Number(elapsed));
+  const seconds = known ? Math.max(0, Number(elapsed)) : null;
+  if (type === "sort" || type === "type") {
+    return online ? -1 : seconds ?? Number.MAX_SAFE_INTEGER;
+  }
+
+  let label = "Last seen unavailable";
+  if (online) label = "Online";
+  else if (known) {
+    const units = [
+      [365 * 24 * 60 * 60, "year"],
+      [30 * 24 * 60 * 60, "month"],
+      [24 * 60 * 60, "day"],
+      [60 * 60, "hour"],
+      [60, "minute"],
+      [1, "second"],
+    ];
+    const [duration, unit] = units.find(([duration]) => seconds >= duration) || units.at(-1);
+    const count = Math.floor(seconds / duration);
+    label = `Last seen ${count} ${unit}${count === 1 ? "" : "s"} ago`;
+  }
+  return type === "display"
+    ? `<span class="user-presence ${online ? "online" : "offline"}">${label}</span>`
+    : label;
+}
 
 async function loadOnlineUserCount() {
   try {
@@ -84,15 +112,16 @@ const table = $("#table").DataTable({
     },
     {
       data: "is_student_rater",
-      title: "Student",
+      title: "Account type",
       className: "dt-center",
-      render: yesNo,
+      render: (value) =>
+        `<span class="boolean-badge">${Number(value) ? "Student" : "Admin"}</span>`,
     },
     {
-      data: "is_admin_rater",
-      title: "Admin",
+      data: "is_online",
+      title: "Online",
       className: "dt-center",
-      render: yesNo,
+      render: userPresence,
     },
     {
       data: "is_active",
@@ -120,6 +149,8 @@ const table = $("#table").DataTable({
     paginate: { previous: "Previous", next: "Next" },
   },
 });
+
+setInterval(() => table.ajax.reload(null, false), 30 * 1000);
 
 function generatePassword() {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
@@ -263,7 +294,7 @@ async function editUser(id) {
     setValue("editGivenName", row.givenname);
     setValue("editMiddleName", row.middlename);
     setValue("editLastName", row.surname);
-    setValue("editGender", String(row.gender || "").toUpperCase());
+    setValue("editGender", String(row.gender || "").trim().toUpperCase());
     setValue("editCourse", row.course_id ?? "");
     setValue("editYearLevel", row.year_level ?? "");
     setValue("editUsername", row.username);
@@ -867,7 +898,7 @@ async function requestJson(url, options = {}) {
 function setValue(id, value) {
   const field = document.getElementById(id);
   field.value = value ?? "";
-  if (field.matches("select[data-searchable-select]")) {
+  if (field.matches("select")) {
     field.dispatchEvent(new Event("change", { bubbles: true }));
   }
 }

@@ -375,6 +375,7 @@ CREATE TABLE `users` (
   `is_admin_rater` tinyint(3) unsigned NOT NULL,
   `is_active` tinyint(3) unsigned NOT NULL,
   `last_seen_at` datetime DEFAULT NULL,
+  `last_logout_at` datetime DEFAULT NULL,
   PRIMARY KEY (`id`,`username`),
   UNIQUE KEY `uq_users_google_email` (`google_email`),
   KEY `fk_users_permission_id` (`permission_id`),

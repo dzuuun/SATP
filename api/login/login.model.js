@@ -147,7 +147,7 @@ module.exports = {
 
   setUserOffline: (userId, callBack = () => {}) => {
     pool.query(
-      "UPDATE users SET last_seen_at = NULL WHERE id = ?",
+      "UPDATE users SET last_seen_at = CURRENT_TIMESTAMP, last_logout_at = CURRENT_TIMESTAMP WHERE id = ?",
       [userId],
       callBack,
     );

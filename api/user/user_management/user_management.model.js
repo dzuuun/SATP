@@ -14,6 +14,7 @@ module.exports = {
       `SELECT COUNT(*) AS online_count
        FROM users
        WHERE is_active = 1
+         AND last_logout_at IS NULL
          AND last_seen_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 5 MINUTE)`,
       (error, results) =>
         callBack(error, Number(results?.[0]?.online_count || 0)),
@@ -83,10 +84,22 @@ module.exports = {
 
   getUsers: (callBack) => {
     pool.query(
-      "SELECT users.id, users.username, users.google_email, CASE WHEN users.password IS NULL OR users.password = '' THEN 0 ELSE 1 END AS has_password, users.admin_academic_scope, CONCAT( user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname ) AS Name, permissions.name AS permission, users.is_student_rater, users.is_admin_rater, users.is_active FROM users INNER JOIN user_info ON users.id = user_info.user_id INNER JOIN permissions ON users.permission_id=permissions.id",
+      `SELECT users.id, users.username, users.google_email,
+         CASE WHEN users.password IS NULL OR users.password = '' THEN 0 ELSE 1 END AS has_password,
+         users.admin_academic_scope,
+         CONCAT(user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname) AS Name,
+         permissions.name AS permission, users.is_student_rater, users.is_admin_rater, users.is_active,
+         CASE WHEN users.is_active = 1
+           AND users.last_logout_at IS NULL
+           AND users.last_seen_at >= DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 5 MINUTE)
+           THEN 1 ELSE 0 END AS is_online,
+         TIMESTAMPDIFF(SECOND, users.last_seen_at, CURRENT_TIMESTAMP) AS last_seen_seconds
+       FROM users
+       INNER JOIN user_info ON users.id = user_info.user_id
+       INNER JOIN permissions ON users.permission_id = permissions.id`,
       (error, results) => {
         if (error) {
-          callBack(error);
+          return callBack(error);
         }
         return callBack(null, results);
       },
