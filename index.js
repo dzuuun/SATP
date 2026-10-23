@@ -1,3 +1,4 @@
+require("./scripts/node-runtime").assertCurrent();
 require("dotenv").config();
 const express = require("express");
 const multer = require("multer");

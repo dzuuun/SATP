@@ -1,8 +1,11 @@
+const nodeRuntime = require("./scripts/node-runtime");
+
 module.exports = {
   apps: [
     {
       name: "satp",
       script: "./index.js",
+      interpreter: nodeRuntime(),
       cwd: __dirname,
       instances: 1,
       exec_mode: "fork",
