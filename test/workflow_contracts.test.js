@@ -612,7 +612,10 @@ test("Google Workspace SSO verifies domain and links existing SATP users", () =>
   assert.match(router, /router\.post\("\/google", googleLogin\)/);
   assert.match(loginPage, /accounts\.google\.com\/gsi\/client/);
   assert.match(loginPage, /Sign in using your institutional email\./);
-  assert.match(loginPage, /<strong>Use your @ndmu\.edu\.ph Google account only\.<\/strong>/);
+  assert.match(
+    loginPage,
+    /<strong>Use your @ndmu\.edu\.ph Google account only\.<\/strong>/,
+  );
   assert.match(usersPage, /name="google_email"/);
   assert.doesNotMatch(usersPage, /name="google_email"[^>]*required/);
   assert.match(

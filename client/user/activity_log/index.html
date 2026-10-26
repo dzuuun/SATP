@@ -82,6 +82,20 @@
               <select id="activityYear" aria-label="Activity log year"></select>
             </div>
           </div>
+          <div
+            id="activityUpdates"
+            class="activity-updates"
+            aria-live="polite"
+            hidden
+          >
+            <button id="showNewActivity" type="button" aria-controls="table">
+              <span id="newActivityCount"></span>
+              <span class="activity-updates-hint">Show latest activity</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m6 10 6-6 6 6M12 4v16" />
+              </svg>
+            </button>
+          </div>
           <div class="table-shell">
             <table
               id="table"

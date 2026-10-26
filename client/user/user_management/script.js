@@ -11,6 +11,7 @@ const state = {
   errorRows: [],
   permissions: [],
   editTemporaryPassword: false,
+  editHasPassword: false,
   superAdmin: false,
 };
 
@@ -56,11 +57,14 @@ const loginMethod = (_, __, row) => {
 function userPresence(value, type, row) {
   const online = Number(value) === 1 && Number(row.is_active) === 1;
   const elapsed = row.last_seen_seconds;
-  const known = elapsed !== null && elapsed !== undefined &&
-    elapsed !== "" && Number.isFinite(Number(elapsed));
+  const known =
+    elapsed !== null &&
+    elapsed !== undefined &&
+    elapsed !== "" &&
+    Number.isFinite(Number(elapsed));
   const seconds = known ? Math.max(0, Number(elapsed)) : null;
   if (type === "sort" || type === "type") {
-    return online ? -1 : seconds ?? Number.MAX_SAFE_INTEGER;
+    return online ? -1 : (seconds ?? Number.MAX_SAFE_INTEGER);
   }
 
   let label = "Last seen unavailable";
@@ -74,7 +78,8 @@ function userPresence(value, type, row) {
       [60, "minute"],
       [1, "second"],
     ];
-    const [duration, unit] = units.find(([duration]) => seconds >= duration) || units.at(-1);
+    const [duration, unit] =
+      units.find(([duration]) => seconds >= duration) || units.at(-1);
     const count = Math.floor(seconds / duration);
     label = `Last seen ${count} ${unit}${count === 1 ? "" : "s"} ago`;
   }
@@ -294,13 +299,23 @@ async function editUser(id) {
     setValue("editGivenName", row.givenname);
     setValue("editMiddleName", row.middlename);
     setValue("editLastName", row.surname);
-    setValue("editGender", String(row.gender || "").trim().toUpperCase());
+    setValue(
+      "editGender",
+      String(row.gender || "")
+        .trim()
+        .toUpperCase(),
+    );
     setValue("editCourse", row.course_id ?? "");
     setValue("editYearLevel", row.year_level ?? "");
     setValue("editUsername", row.username);
     setValue("editGoogleEmail", row.google_email);
     setValue("editPassword", "");
     const hasPassword = Number(row.has_password) === 1;
+    state.editHasPassword = hasPassword;
+    document.getElementById("editClearPassword").checked = false;
+    document.getElementById("editClearPassword").disabled = !hasPassword;
+    document.getElementById("editPassword").disabled = false;
+    document.getElementById("showEditPassword").disabled = false;
     const passwordStatus = document.getElementById("editPasswordStatus");
     passwordStatus.textContent = hasPassword
       ? "Password sign-in is configured. Leave the field blank to keep it."
@@ -332,6 +347,7 @@ document
     event.preventDefault();
     const payload = Object.fromEntries(new FormData(event.currentTarget));
     const student = payload.role === "student";
+    const clearPassword = document.getElementById("editClearPassword").checked;
     const hasNewPassword = Boolean(String(payload.password || "").trim());
     payload.permission_id = document.getElementById(
       "editPermissionSelect",
@@ -339,6 +355,7 @@ document
     Object.assign(payload, {
       id: state.editId,
       user_id: state.userId,
+      clear_password: clearPassword,
       course_id: payload.course_id || null,
       year_level: payload.year_level || null,
       is_student_rater: student ? 1 : 0,
@@ -346,11 +363,12 @@ document
       admin_academic_scope: student
         ? null
         : document.getElementById("editAdminAcademicScope").value || "ALL",
-      is_temp_pass: student
-        ? 0
-        : hasNewPassword || state.editTemporaryPassword
-          ? 1
-          : 0,
+      is_temp_pass:
+        student || clearPassword
+          ? 0
+          : hasNewPassword || state.editTemporaryPassword
+            ? 1
+            : 0,
       is_active: document.getElementById("editIsUserActive").checked ? 1 : 0,
     });
     if (!student) {
@@ -376,19 +394,39 @@ document
   .getElementById("editPassword")
   .addEventListener("input", updateTemporaryPasswordStatus);
 
+document
+  .getElementById("editClearPassword")
+  .addEventListener("change", (event) => {
+    const clearPassword = event.target.checked;
+    const passwordField = document.getElementById("editPassword");
+    if (clearPassword) passwordField.value = "";
+    passwordField.disabled = clearPassword;
+    document.getElementById("showEditPassword").disabled = clearPassword;
+    document.getElementById("editPasswordStatus").textContent = clearPassword
+      ? "Password sign-in will be removed when you save."
+      : state.editHasPassword
+        ? "Password sign-in is configured. Leave the field blank to keep it."
+        : "No password is set.";
+    updateTemporaryPasswordStatus();
+  });
+
 function updateTemporaryPasswordStatus() {
   const isStudent = document.getElementById("editRole").value === "student";
   const hasNewPassword = Boolean(
     String(document.getElementById("editPassword").value || "").trim(),
   );
   const isTemporary =
-    !isStudent && (hasNewPassword || state.editTemporaryPassword);
+    !isStudent &&
+    !document.getElementById("editClearPassword").checked &&
+    (hasNewPassword || state.editTemporaryPassword);
   document.getElementById("editTemporaryPassword").checked = isTemporary;
   document.getElementById("editTemporaryPasswordHint").textContent = isTemporary
     ? hasNewPassword
       ? "Enabled automatically because a new password is being set."
       : "Currently enabled."
-    : "Currently disabled. A new password will enable it automatically.";
+    : document.getElementById("editClearPassword").checked
+      ? "Disabled because the password will be cleared."
+      : "Currently disabled. A new password will enable it automatically.";
 }
 
 async function save(url, method, payload, modalId) {

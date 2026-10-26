@@ -15,6 +15,25 @@ if (!state.userId) {
   history.back();
 }
 
+const activityUpdates = {
+  cursor: null,
+  year: null,
+  search: "",
+  draw: 0,
+  version: 0,
+  loading: false,
+  polling: false,
+};
+const updatesNotice = document.getElementById("activityUpdates");
+const updatesButton = document.getElementById("showNewActivity");
+const updatesCount = document.getElementById("newActivityCount");
+
+$("#table").on("xhr.dt", (_event, _settings, json) => {
+  if (json) return;
+  activityUpdates.loading = false;
+  updatesButton.disabled = false;
+});
+
 const table = $("#table").DataTable({
   serverSide: true,
   processing: true,
@@ -22,11 +41,34 @@ const table = $("#table").DataTable({
     url: "/api/activitylog",
     type: "POST",
     contentType: "application/json",
-    data: (request) =>
-      JSON.stringify({
+    data: (request) => {
+      activityUpdates.draw = request.draw;
+      activityUpdates.version += 1;
+      activityUpdates.loading = true;
+      activityUpdates.cursor = null;
+      activityUpdates.year =
+        document.getElementById("activityYear").value ||
+        new Date().getFullYear();
+      activityUpdates.search = String(request.search?.value || "")
+        .trim()
+        .slice(0, 100);
+      updatesButton.disabled = true;
+      return JSON.stringify({
         ...request,
-        year: document.getElementById("activityYear").value,
-      }),
+        year: activityUpdates.year,
+      });
+    },
+    dataSrc: (response) => {
+      // DataTables can finish an older search after a newer one has started.
+      if (Number(response.draw) === activityUpdates.draw) {
+        const cursor = String(response.latest_id ?? "");
+        activityUpdates.cursor = /^\d+$/.test(cursor) ? cursor : null;
+        activityUpdates.loading = false;
+        updatesButton.disabled = false;
+        updatesNotice.hidden = true;
+      }
+      return response.data;
+    },
   },
   columns: [
     { data: "date_time", title: "Date and time", width: "20%" },
@@ -49,6 +91,49 @@ const table = $("#table").DataTable({
     processing: "Loading activity...",
     paginate: { previous: "Previous", next: "Next" },
   },
+});
+
+async function checkNewActivity() {
+  if (
+    document.visibilityState === "hidden" ||
+    activityUpdates.polling ||
+    activityUpdates.loading ||
+    activityUpdates.cursor === null
+  )
+    return;
+  const version = activityUpdates.version;
+  const query = new URLSearchParams({
+    after_id: activityUpdates.cursor,
+    year: activityUpdates.year,
+    search: activityUpdates.search,
+  });
+  activityUpdates.polling = true;
+  try {
+    const response = await fetch(`/api/activitylog/updates?${query}`, {
+      cache: "no-store",
+    });
+    if (!response.ok) return;
+    const payload = await response.json();
+    if (!payload.success || version !== activityUpdates.version) return;
+    const count = Number(payload.data?.new_entries);
+    if (!Number.isSafeInteger(count) || count < 0) return;
+    updatesCount.textContent = `${count.toLocaleString()} new ${count === 1 ? "entry" : "entries"}`;
+    updatesNotice.hidden = count === 0;
+  } catch (_error) {
+    // Keep the current log and notice available when a background check fails.
+  } finally {
+    activityUpdates.polling = false;
+  }
+}
+
+updatesButton.addEventListener("click", () => {
+  if (activityUpdates.loading) return;
+  updatesButton.disabled = true;
+  table.page("first").ajax.reload(null, true);
+});
+setInterval(checkNewActivity, 15 * 1000);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") checkNewActivity();
 });
 
 async function loadActivityYears() {

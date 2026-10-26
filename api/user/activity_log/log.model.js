@@ -57,7 +57,55 @@ async function getFilteredCount(filter, params, cacheKey) {
   return value;
 }
 
+async function logFilter(search, year) {
+  const normalizedSearch = String(search || "").trim();
+  const params = yearRange(year);
+  let filter = "WHERE a.date_time >= ? AND a.date_time < ?";
+  if (normalizedSearch) {
+    const accounts = await query(
+      "SELECT id FROM users WHERE username = ? LIMIT 1",
+      [normalizedSearch],
+    );
+    if (accounts.length) {
+      filter += " AND a.user_id = ?";
+      params.push(accounts[0].id);
+    } else {
+      filter += `
+        AND (
+          CONCAT_WS(' ', u.givenname, u.surname) LIKE ?
+          OR a.action LIKE ?
+        )
+      `;
+      const pattern = `%${normalizedSearch}%`;
+      params.push(pattern, pattern);
+    }
+  }
+  return { normalizedSearch, filter, params };
+}
+
 module.exports = {
+  getNewEntries: async (afterId, search, year, callBack) => {
+    try {
+      const { filter, params } = await logFilter(search, year);
+      const rows = await query(
+        `SELECT COUNT(*) AS new_entries
+         FROM activity_log AS a
+         INNER JOIN user_info AS u ON u.user_id = a.user_id
+         ${filter} AND a.id > ?`,
+        [...params, afterId],
+      );
+      const count = Number(rows[0].new_entries);
+      if (count > 0) {
+        countCache.delete(year);
+        filteredCountCache.clear();
+        yearsCache.expiresAt = 0;
+      }
+      return callBack(null, { new_entries: count });
+    } catch (error) {
+      return callBack(error);
+    }
+  },
+
   getYears: async (callBack) => {
     try {
       const now = Date.now();
@@ -77,29 +125,16 @@ module.exports = {
 
   getLog: async (start, length, search, year, callBack) => {
     try {
-      const normalizedSearch = String(search || "").trim();
-      const params = yearRange(year);
-      let filter = "WHERE a.date_time >= ? AND a.date_time < ?";
-
-      if (normalizedSearch) {
-        const accounts = await query(
-          "SELECT id FROM users WHERE username = ? LIMIT 1",
-          [normalizedSearch],
-        );
-        if (accounts.length) {
-          filter += " AND a.user_id = ?";
-          params.push(accounts[0].id);
-        } else {
-          filter += `
-            AND (
-              CONCAT_WS(' ', u.givenname, u.surname) LIKE ?
-              OR a.action LIKE ?
-            )
-          `;
-          const pattern = `%${normalizedSearch}%`;
-          params.push(pattern, pattern);
-        }
-      }
+      // Capture the cursor before reading rows. Inserts during this request
+      // stay outside the loaded snapshot and are counted by the next poll.
+      const snapshot = await query(
+        "SELECT CAST(COALESCE(MAX(id), 0) AS CHAR) AS latest_id FROM activity_log",
+      );
+      const latestId = String(snapshot[0].latest_id);
+      const { normalizedSearch, filter, params } = await logFilter(
+        search,
+        year,
+      );
 
       const dataQuery = `
         SELECT
@@ -110,7 +145,7 @@ module.exports = {
           a.action
         FROM activity_log AS a
         STRAIGHT_JOIN user_info AS u ON u.user_id = a.user_id
-        ${filter}
+        ${filter} AND a.id <= ?
         ORDER BY a.id DESC
         LIMIT ?, ?
       `;
@@ -123,7 +158,12 @@ module.exports = {
             `${year}:${normalizedSearch.toLowerCase()}`,
           )
         : totalPromise;
-      const dataPromise = query(dataQuery, [...params, start, length]);
+      const dataPromise = query(dataQuery, [
+        ...params,
+        latestId,
+        start,
+        length,
+      ]);
       const [totalRecords, totalFiltered, results] = await Promise.all([
         totalPromise,
         filteredPromise,
@@ -155,6 +195,7 @@ module.exports = {
         totalRecords,
         totalFiltered,
         results: displayResults,
+        latestId,
       });
     } catch (error) {
       return callBack(error);

@@ -73,6 +73,8 @@ module.exports = {
 
   updateUser: (req, res) => {
     const body = { ...req.body };
+    body.user_id = req.user.id;
+    body.clear_password = [true, 1, "1"].includes(body.clear_password);
     body.google_email =
       String(body.google_email || "")
         .trim()
@@ -92,7 +94,16 @@ module.exports = {
     }
 
     body.password = String(body.password || "").trim();
-    if (body.password) {
+    if (body.clear_password && body.password) {
+      return res.status(400).json({
+        success: 0,
+        message: "Choose either a new password or clear the current password.",
+      });
+    }
+    if (body.clear_password) {
+      body.password = null;
+      body.is_temp_pass = 0;
+    } else if (body.password) {
       body.password = hashSync(body.password, genSaltSync(10));
       if (Number(body.is_student_rater) !== 1) body.is_temp_pass = 1;
     } else {

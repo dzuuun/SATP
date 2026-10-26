@@ -681,7 +681,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             ];
             worksheet["!cols"] = columns.map(([, , width]) => ({ wch: width }));
             worksheet["!rows"] = [{ hpt: 26 }, { hpt: 19 }, {}, { hpt: 22 }];
-            worksheet["!autofilter"] = { ref: `A4:${lastColumn}${rows.length + 4}` };
+            worksheet["!autofilter"] = {
+              ref: `A4:${lastColumn}${rows.length + 4}`,
+            };
             worksheet["!freeze"] = { xSplit: 0, ySplit: 4 };
 
             // SheetJS preserves these styles when the loaded XLSX build supports styling.
@@ -706,7 +708,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 header.s = {
                   font: { bold: true, color: { rgb: "FFFFFF" } },
                   fill: { fgColor: { rgb: "2F75B5" } },
-                  alignment: { horizontal: "center", vertical: "center", wrapText: true },
+                  alignment: {
+                    horizontal: "center",
+                    vertical: "center",
+                    wrapText: true,
+                  },
                 };
               }
             }
@@ -736,7 +742,10 @@ document.addEventListener("DOMContentLoaded", async () => {
               };
               return (
                 grade(left.YearLevel) - grade(right.YearLevel) ||
-                naturalSort.compare(left.YearLevel ?? "", right.YearLevel ?? "") ||
+                naturalSort.compare(
+                  left.YearLevel ?? "",
+                  right.YearLevel ?? "",
+                ) ||
                 compareRooms(left.Room, right.Room) ||
                 naturalSort.compare(left.Gender ?? "", right.Gender ?? "") ||
                 naturalSort.compare(left.LastName ?? "", right.LastName ?? "")
@@ -772,11 +781,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 : "College",
           );
           const exportedAt = new Date();
-          const exportTime = [
-            exportedAt.getFullYear(),
-            String(exportedAt.getMonth() + 1).padStart(2, "0"),
-            String(exportedAt.getDate()).padStart(2, "0"),
-          ].join("-") + ` ${String(exportedAt.getHours()).padStart(2, "0")}-${String(exportedAt.getMinutes()).padStart(2, "0")}`;
+          const exportTime =
+            [
+              exportedAt.getFullYear(),
+              String(exportedAt.getMonth() + 1).padStart(2, "0"),
+              String(exportedAt.getDate()).padStart(2, "0"),
+            ].join("-") +
+            ` ${String(exportedAt.getHours()).padStart(2, "0")}-${String(exportedAt.getMinutes()).padStart(2, "0")}`;
           XLSX.writeFile(
             wb,
             `Unrated Transactions - ${academicGroup} - ${schoolYear} - ${semester} - As of ${exportTime}.xlsx`,

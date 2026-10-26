@@ -17,7 +17,10 @@ const child = spawnSync(executable, process.argv.slice(2), {
   cwd: projectRoot,
   stdio: "inherit",
   windowsHide: true,
-  env: { ...process.env, PATH: `${path.dirname(executable)}${path.delimiter}${process.env.PATH || ""}` },
+  env: {
+    ...process.env,
+    PATH: `${path.dirname(executable)}${path.delimiter}${process.env.PATH || ""}`,
+  },
 });
 if (child.error) console.error(child.error.message);
 process.exitCode = child.status ?? 1;

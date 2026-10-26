@@ -1,6 +1,7 @@
 const router = require("express").Router();
-const { getLog, getYears } = require("./log.controller");
+const { getLog, getYears, getNewEntries } = require("./log.controller");
 
+router.get("/updates", getNewEntries);
 router.get("/years", getYears);
 router.post("/", getLog);
 

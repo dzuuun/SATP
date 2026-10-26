@@ -140,7 +140,7 @@ module.exports = {
           data.username,
           data.google_email || null,
           data.permission_id,
-          Number(data.is_student_rater) === 1
+          data.clear_password || Number(data.is_student_rater) === 1
             ? 0
             : Number(data.is_temp_pass) === 1
               ? 1
@@ -150,8 +150,13 @@ module.exports = {
           adminScope(data),
           data.is_active,
         ];
-        const passwordClause = data.password ? ", password=?" : "";
-        if (data.password) userFields.push(data.password);
+        const passwordClause = data.clear_password
+          ? ", password=NULL"
+          : data.password
+            ? ", password=?"
+            : "";
+        if (data.password && !data.clear_password)
+          userFields.push(data.password);
         userFields.push(data.id);
 
         connection.query(
@@ -185,7 +190,10 @@ module.exports = {
 
                 connection.query(
                   "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
-                  [data.user_id, `Updated User: ${data.username}`],
+                  [
+                    data.user_id,
+                    `Updated User: ${data.username}${data.clear_password ? " (cleared password)" : ""}`,
+                  ],
                   (logError) => {
                     if (logError) return fail(logError);
                     connection.commit((commitError) => {

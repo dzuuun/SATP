@@ -11,20 +11,20 @@ Official advisories:
 
 ## Applied updates
 
-| Component | Previous version | Updated version |
-| --- | --- | --- |
-| SATP Node.js runtime | 24.14.0 (system) | 24.22.1 (project-local) |
-| Express | 4.22.2 | 4.22.3 |
-| body-parser | 1.20.6 | 1.20.9 |
-| Multer | 1.4.5-lts.2 | 2.5.0 |
-| Morgan | 1.11.0 | 1.12.1 |
-| mysql2 | 3.20.0 | 3.24.6 |
-| DOMPurify | 3.4.13 | 3.4.17 |
-| Browser jsPDF | 2.5.2 | 4.2.1 |
-| Browser jsPDF AutoTable | 3.8.4 | 5.0.8 |
-| Browser SheetJS | 0.18.5 / 0.20.1 | 0.20.3 |
-| Autoprefixer | 10.4.27 | 10.6.1 |
-| PostCSS | 8.5.26 | 8.5.31 |
+| Component               | Previous version | Updated version         |
+| ----------------------- | ---------------- | ----------------------- |
+| SATP Node.js runtime    | 24.14.0 (system) | 24.22.1 (project-local) |
+| Express                 | 4.22.2           | 4.22.3                  |
+| body-parser             | 1.20.6           | 1.20.9                  |
+| Multer                  | 1.4.5-lts.2      | 2.5.0                   |
+| Morgan                  | 1.11.0           | 1.12.1                  |
+| mysql2                  | 3.20.0           | 3.24.6                  |
+| DOMPurify               | 3.4.13           | 3.4.17                  |
+| Browser jsPDF           | 2.5.2            | 4.2.1                   |
+| Browser jsPDF AutoTable | 3.8.4            | 5.0.8                   |
+| Browser SheetJS         | 0.18.5 / 0.20.1  | 0.20.3                  |
+| Autoprefixer            | 10.4.27          | 10.6.1                  |
+| PostCSS                 | 8.5.26           | 8.5.31                  |
 
 Compatible transitive packages were updated too. The initial npm audit reported 14 affected dependency entries (2 critical, 7 high, 5 moderate); the final audit reported zero. This result covers npm's advisory database, not every possible application vulnerability.
 

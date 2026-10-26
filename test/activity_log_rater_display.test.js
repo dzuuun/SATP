@@ -13,7 +13,9 @@ test("activity log resolves student-rater usernames only after paging", async ()
   try {
     pool.query = (sql, params, callback) => {
       queries.push({ sql, params });
-      if (sql.includes("SELECT COUNT(*) AS total")) {
+      if (sql.includes("AS latest_id FROM activity_log")) {
+        callback(null, [{ latest_id: "2" }]);
+      } else if (sql.includes("SELECT COUNT(*) AS total")) {
         callback(null, [{ total: 2 }]);
       } else if (
         sql.includes("SELECT id, username FROM users WHERE is_student_rater")

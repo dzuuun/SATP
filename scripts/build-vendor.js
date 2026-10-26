@@ -30,9 +30,10 @@ async function main() {
     ["jszip/dist/jszip.min.js", "jszip.min.js"],
   ];
   for (const [source, filename] of assets) {
-    const sourcePath = source === "jspdf.plugin.autotable.min.js"
-      ? path.join(path.dirname(require.resolve("jspdf-autotable")), source)
-      : require.resolve(source);
+    const sourcePath =
+      source === "jspdf.plugin.autotable.min.js"
+        ? path.join(path.dirname(require.resolve("jspdf-autotable")), source)
+        : require.resolve(source);
     fs.copyFileSync(sourcePath, path.join(vendorRoot, filename));
   }
   console.log("Rebuilt PDF assets using the installed, audited dependencies.");

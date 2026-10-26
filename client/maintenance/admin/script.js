@@ -524,10 +524,12 @@ async function edit(id) {
       document.getElementById("editLastName").value = adminData.surname;
       document.getElementById("editGenderSelect").value = String(
         adminData.gender || "",
-      ).trim().toUpperCase();
-      document.getElementById("editGenderSelect").dispatchEvent(
-        new Event("change", { bubbles: true }),
-      );
+      )
+        .trim()
+        .toUpperCase();
+      document
+        .getElementById("editGenderSelect")
+        .dispatchEvent(new Event("change", { bubbles: true }));
       document.getElementById("editPermissionSelect").value = String(
         adminData.permission_id,
       );
