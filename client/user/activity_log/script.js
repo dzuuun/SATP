@@ -27,6 +27,30 @@ const activityUpdates = {
 const updatesNotice = document.getElementById("activityUpdates");
 const updatesButton = document.getElementById("showNewActivity");
 const updatesCount = document.getElementById("newActivityCount");
+const activityPageTitle = document.title;
+let activityTitleTimer = null;
+let pendingActivityTitle = "";
+
+function flashActivityTitle(count) {
+  if (!count) {
+    if (activityTitleTimer !== null) clearInterval(activityTitleTimer);
+    activityTitleTimer = null;
+    pendingActivityTitle = "";
+    document.title = activityPageTitle;
+    return;
+  }
+  const title = `${count.toLocaleString()} new ${count === 1 ? "entry" : "entries"} | ${activityPageTitle}`;
+  if (title === pendingActivityTitle && activityTitleTimer !== null) return;
+  pendingActivityTitle = title;
+  document.title = title;
+  if (activityTitleTimer === null) {
+    activityTitleTimer = setInterval(() => {
+      document.title = document.title === activityPageTitle
+        ? pendingActivityTitle
+        : activityPageTitle;
+    }, 1000);
+  }
+}
 
 $("#table").on("xhr.dt", (_event, _settings, json) => {
   if (json) return;
@@ -66,6 +90,7 @@ const table = $("#table").DataTable({
         activityUpdates.loading = false;
         updatesButton.disabled = false;
         updatesNotice.hidden = true;
+        flashActivityTitle(0);
       }
       return response.data;
     },
@@ -95,7 +120,6 @@ const table = $("#table").DataTable({
 
 async function checkNewActivity() {
   if (
-    document.visibilityState === "hidden" ||
     activityUpdates.polling ||
     activityUpdates.loading ||
     activityUpdates.cursor === null
@@ -119,6 +143,7 @@ async function checkNewActivity() {
     if (!Number.isSafeInteger(count) || count < 0) return;
     updatesCount.textContent = `${count.toLocaleString()} new ${count === 1 ? "entry" : "entries"}`;
     updatesNotice.hidden = count === 0;
+    flashActivityTitle(count);
   } catch (_error) {
     // Keep the current log and notice available when a background check fails.
   } finally {

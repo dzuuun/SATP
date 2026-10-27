@@ -24,6 +24,15 @@ function showTransactionStatus(message, error = false) {
   status.classList.toggle("error", error);
 }
 
+function updateLoadRecordsButton(loaded = false) {
+  const button = document.getElementById("btnSearch");
+  if (!button) return;
+  button.querySelector("span").textContent = loaded ? "Refresh" : "Load records";
+  const icon = button.querySelector("i");
+  icon?.classList.toggle("bi-search", !loaded);
+  icon?.classList.toggle("bi-arrow-clockwise", loaded);
+}
+
 // Security Gate
 if (!state.user_id) {
   alert("Log in to continue.");
@@ -110,7 +119,6 @@ const API = {
       state.school_year_id = selected.school_year_id;
       state.semester_id = selected.semester_id;
       document.getElementById("generateList")?.classList.remove("hidden");
-      document.getElementById("refresh")?.classList.remove("hidden");
 
       // Update DataTable
       if (mainTable) {
@@ -118,6 +126,7 @@ const API = {
       }
 
       API.renderDashboardStats(stats);
+      updateLoadRecordsButton(true);
       if (!rows.length) {
         const year =
           document.querySelector(
@@ -588,6 +597,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const invalidatePendingLoad = () => {
       state.loadSequence++;
+      updateLoadRecordsButton(false);
       hideSpinner();
     };
     loadSchoolYear.addEventListener("change", invalidatePendingLoad);
@@ -611,13 +621,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
         setTimeout(() => icon?.classList.remove("animate-spin"), 600);
       });
-
-    document.getElementById("refresh")?.addEventListener("click", function () {
-      const icon = this.querySelector("i");
-      icon?.classList.add("animate-spin");
-      API.loadData();
-      setTimeout(() => icon?.classList.remove("animate-spin"), 800);
-    });
 
     document
       .getElementById("gridLimit")

@@ -205,17 +205,24 @@ function activityPage() {
   const jquery = () => wrapper;
   jquery.fn = { dataTable: { render: { text: () => (value) => value } } };
   const document = {
+    title: "SATP | Activity Log",
     visibilityState: "visible",
     getElementById: field,
     addEventListener() {},
   };
   const requests = [];
+  const timers = new Map();
+  let timerId = 0;
   const context = vm.createContext({
     document,
     $: jquery,
     URLSearchParams,
     localStorage: { getItem: () => "1" },
-    setInterval() {},
+    setInterval(callback, interval) {
+      timers.set(++timerId, { callback, interval });
+      return timerId;
+    },
+    clearInterval(id) { timers.delete(id); },
     fetch: async (url) => {
       requests.push(url);
       return {
@@ -242,6 +249,7 @@ function activityPage() {
     request,
     receive,
     handlers,
+    timers,
   };
 }
 
@@ -307,7 +315,7 @@ test("stale polls and out-of-order table responses cannot overwrite a changed ye
   assert.equal(page.field("newActivityCount").textContent, "1 new entry");
 });
 
-test("checks wait for an initial snapshot, pause in hidden tabs, and retain notices on network failures", async () => {
+test("checks wait for an initial snapshot, run in hidden tabs, and retain notices on network failures", async () => {
   const page = activityPage();
   await page.context.checkNewActivity();
   assert.equal(page.requests.length, 0);
@@ -315,7 +323,8 @@ test("checks wait for an initial snapshot, pause in hidden tabs, and retain noti
   page.receive(1, "0");
   page.document.visibilityState = "hidden";
   await page.context.checkNewActivity();
-  assert.equal(page.requests.length, 0);
+  assert.equal(page.requests.length, 1);
+  assert.equal(page.document.title, "3 new entries | SATP | Activity Log");
   page.document.visibilityState = "visible";
   await page.context.checkNewActivity();
   page.context.fetch = async () => {
@@ -324,4 +333,44 @@ test("checks wait for an initial snapshot, pause in hidden tabs, and retain noti
   await page.context.checkNewActivity();
   assert.equal(page.field("activityUpdates").hidden, false);
   assert.equal(page.field("newActivityCount").textContent, "3 new entries");
+});
+
+test("tab title flashes the current count without duplicate timers and restores after records load", async () => {
+  const page = activityPage();
+  page.request(1);
+  page.receive(1, "10");
+  await page.context.checkNewActivity();
+  const flashTimers = () => [...page.timers.values()].filter((timer) => timer.interval === 1000);
+  assert.equal(flashTimers().length, 1);
+  assert.equal(page.document.title, "3 new entries | SATP | Activity Log");
+  flashTimers()[0].callback();
+  assert.equal(page.document.title, "SATP | Activity Log");
+  flashTimers()[0].callback();
+  assert.equal(page.document.title, "3 new entries | SATP | Activity Log");
+  await page.context.checkNewActivity();
+  assert.equal(flashTimers().length, 1);
+  page.context.fetch = async () => ({ ok: true, json: async () => ({ success: 1, data: { new_entries: 5 } }) });
+  await page.context.checkNewActivity();
+  assert.equal(page.document.title, "5 new entries | SATP | Activity Log");
+  assert.equal(flashTimers().length, 1);
+  page.request(2);
+  page.handlers["xhr.dt"]({}, null, null);
+  assert.equal(flashTimers().length, 1);
+  page.receive(2, "15");
+  assert.equal(flashTimers().length, 0);
+  assert.equal(page.document.title, "SATP | Activity Log");
+});
+
+test("one new entry uses singular wording and a zero count stops title flashing", async () => {
+  const page = activityPage();
+  page.request(1);
+  page.receive(1, "10");
+  let count = 1;
+  page.context.fetch = async () => ({ ok: true, json: async () => ({ success: 1, data: { new_entries: count } }) });
+  await page.context.checkNewActivity();
+  assert.equal(page.document.title, "1 new entry | SATP | Activity Log");
+  count = 0;
+  await page.context.checkNewActivity();
+  assert.equal(page.document.title, "SATP | Activity Log");
+  assert.equal([...page.timers.values()].filter((timer) => timer.interval === 1000).length, 0);
 });
