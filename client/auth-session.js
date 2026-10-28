@@ -155,6 +155,42 @@
     return response;
   };
 
+  const ACTIVITY_REFRESH_INTERVAL_MS = 60 * 1000;
+  let lastActivityRefreshAt = -Infinity;
+  let activityRefreshPending = false;
+
+  function refreshSessionForActivity(event) {
+    if (
+      promptVisible ||
+      !localStorage.getItem("user_id") ||
+      document.visibilityState === "hidden" ||
+      (event && !event.isTrusted) ||
+      activityRefreshPending
+    ) return;
+    const now = Date.now();
+    if (now - lastActivityRefreshAt < ACTIVITY_REFRESH_INTERVAL_MS) return;
+    lastActivityRefreshAt = now;
+    activityRefreshPending = true;
+    window.fetch("/api/login/activity", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      keepalive: true,
+    }).catch(() => {}).finally(() => {
+      activityRefreshPending = false;
+    });
+  }
+
+  ["pointerdown", "pointermove", "keydown", "input", "scroll", "touchstart"].forEach((name) => {
+    document.addEventListener(name, refreshSessionForActivity, {
+      capture: true,
+      passive: true,
+    });
+  });
+  // Loading an authenticated page is activity; recurring background requests
+  // use /session and cannot extend the inactivity deadline.
+  refreshSessionForActivity();
+
   // Keep presence current while an authenticated SATP page remains open.
   // The server throttles database writes, so page API traffic and this
   // heartbeat cannot update the presence timestamp more than once a minute.
@@ -168,8 +204,11 @@
       .catch(() => {});
   };
   const presenceTimer = window.setInterval(presenceHeartbeat, 60 * 1000);
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") presenceHeartbeat();
+  document.addEventListener("visibilitychange", (event) => {
+    if (document.visibilityState === "visible") {
+      refreshSessionForActivity(event);
+      presenceHeartbeat();
+    }
   });
   window.addEventListener(
     "pagehide",

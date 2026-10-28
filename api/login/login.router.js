@@ -7,12 +7,18 @@ const {
   googleLogin,
 } = require("./login.controller");
 const router = require("express").Router();
-const { checkToken, requireNonRater } = require("../../auth/auth_validation");
+const {
+  checkToken,
+  renewSession,
+  requireSameOrigin,
+  requireNonRater,
+} = require("../../auth/auth_validation");
 
 router.post("/", login);
 router.get("/google/config", googleConfig);
 router.post("/google", googleLogin);
 router.get("/session", checkToken, session);
+router.post("/activity", requireSameOrigin, renewSession, session);
 router.post("/logout", checkToken, logout);
 router.put("/update/password", checkToken, requireNonRater, updatePassword);
 router.all("/register", (_req, res) =>

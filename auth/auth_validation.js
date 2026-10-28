@@ -85,7 +85,7 @@ function createSessionToken(userId, passwordHash) {
     },
     process.env.SECRET_KEY,
     {
-      expiresIn: "8h",
+      expiresIn: SESSION_DURATION_MS / 1000,
       issuer: "satp",
       audience: "satp-web",
     },
@@ -103,6 +103,14 @@ function clearSessionCookie(req, res) {
 }
 
 function checkToken(req, res, next) {
+  return validateSession(req, res, next, false);
+}
+
+function renewSession(req, res, next) {
+  return validateSession(req, res, next, true);
+}
+
+function validateSession(req, res, next, renew) {
   const token = getToken(req);
   if (!token) {
     return res.status(401).json({
@@ -179,6 +187,14 @@ function checkToken(req, res, next) {
           }
           const { password: _password, ...authenticatedUser } = users[0];
           req.user = authenticatedUser;
+          if (renew) {
+            setSessionCookie(
+              req,
+              res,
+              createSessionToken(authenticatedUser.id, users[0].password),
+            );
+            res.setHeader("Cache-Control", "no-store");
+          }
           return markUserOnline(authenticatedUser.id, next);
         },
       );
@@ -257,6 +273,7 @@ function protectMaintenanceChanges(req, res, next) {
 
 module.exports = {
   checkToken,
+  renewSession,
   requirePermission,
   requireSuperAdmin,
   requireSameOrigin,
