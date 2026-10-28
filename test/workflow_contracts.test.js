@@ -1201,7 +1201,7 @@ test("Transaction table and dashboard totals render in one loading cycle", () =>
   );
   assert.match(
     transactions,
-    /mainTable[\s\S]*?\.draw\(\);[\s\S]*?API\.renderDashboardStats\(stats\);/,
+    /mainTable[\s\S]*?\.draw\(!background\);[\s\S]*?API\.renderDashboardStats\(stats\);/,
   );
   assert.match(
     transactions,

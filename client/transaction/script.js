@@ -11,6 +11,9 @@ const state = {
   currentSchoolYearId: "",
   currentSchoolYearName: "",
   loadSequence: 0,
+  recordsLoaded: false,
+  loadingRecords: false,
+  transactionSnapshot: null,
   semester_id: "",
   school_year_id: "",
   rating_access: { shs: false, non_shs: false },
@@ -91,7 +94,7 @@ const API = {
     }
   },
 
-  async loadData(filters = state) {
+  async loadData(filters = state, { background = false } = {}) {
     if (!filters.semester_id || !filters.school_year_id) {
       alert("Please select both School Year and Semester.");
       return;
@@ -102,12 +105,16 @@ const API = {
       semester_id: filters.semester_id,
     };
     const sequence = ++state.loadSequence;
-    showTransactionStatus("");
-    showSpinner();
+    state.loadingRecords = true;
+    if (!background) {
+      showTransactionStatus("");
+      showSpinner();
+    }
     try {
       const [res, stats] = await Promise.all([
         fetch(
           `/api/transaction/all/school_year_id=${selected.school_year_id}&semester_id=${selected.semester_id}`,
+          { cache: "no-store" },
         ),
         API.loadDashboardStats({ render: false, filters: selected }),
       ]);
@@ -116,17 +123,27 @@ const API = {
         throw new Error(response.message || "Unable to load transactions.");
       if (sequence !== state.loadSequence) return;
       const rows = response.data || [];
+      const snapshot = JSON.stringify({ rows, stats });
+      if (background && snapshot === state.transactionSnapshot) return;
       state.school_year_id = selected.school_year_id;
       state.semester_id = selected.semester_id;
       document.getElementById("generateList")?.classList.remove("hidden");
 
       // Update DataTable
       if (mainTable) {
-        mainTable.clear().rows.add(rows).draw();
+        const previousPage = mainTable.page();
+        mainTable.clear().rows.add(rows).draw(!background);
+        if (background) {
+          const lastPage = Math.max(0, mainTable.page.info().pages - 1);
+          if (previousPage > lastPage) mainTable.page(lastPage).draw("page");
+        }
       }
 
       API.renderDashboardStats(stats);
+      state.transactionSnapshot = snapshot;
+      state.recordsLoaded = true;
       updateLoadRecordsButton(true);
+      showTransactionStatus("");
       if (!rows.length) {
         const year =
           document.querySelector(
@@ -141,7 +158,7 @@ const API = {
         );
       }
     } catch (err) {
-      if (sequence === state.loadSequence) {
+      if (!background && sequence === state.loadSequence) {
         showTransactionStatus(
           err.message || "Unable to load transactions.",
           true,
@@ -149,7 +166,10 @@ const API = {
         showToast(err.message || "Unable to load transactions.", true);
       }
     } finally {
-      if (sequence === state.loadSequence) hideSpinner();
+      if (sequence === state.loadSequence) {
+        state.loadingRecords = false;
+        if (!background) hideSpinner();
+      }
     }
   },
 
@@ -158,6 +178,7 @@ const API = {
 
     const res = await fetch(
       `/api/transaction/stats/school_year_id=${filters.school_year_id}&semester_id=${filters.semester_id}`,
+      { cache: "no-store" },
     );
     const response = await res.json();
     if (!res.ok || !response.success || !response.data?.length) {
@@ -179,6 +200,32 @@ const API = {
     if (toAccEl) toAccEl.textContent = stats.IncompleteCount || 0;
   },
 };
+
+function invalidateTransactionLoad() {
+  state.loadSequence++;
+  state.recordsLoaded = false;
+  state.loadingRecords = false;
+  updateLoadRecordsButton(false);
+  hideSpinner();
+}
+
+async function refreshTransactions() {
+  if (
+    document.visibilityState === "hidden" ||
+    !localStorage.getItem("user_id") ||
+    !state.recordsLoaded ||
+    state.loadingRecords ||
+    document.getElementById("loadSchoolYear").value !== String(state.school_year_id) ||
+    document.getElementById("loadSemester").value !== String(state.semester_id)
+  ) return;
+  await API.loadData(state, { background: true });
+}
+
+setInterval(refreshTransactions, 5000);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") refreshTransactions();
+});
+window.addEventListener("online", refreshTransactions);
 
 function renderRatingAccess(group, enabled) {
   state.rating_access[group] = Boolean(enabled);
@@ -595,13 +642,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         : "COLLEGE";
     selectAcademicGroup(initialGroup, currentSemester);
 
-    const invalidatePendingLoad = () => {
-      state.loadSequence++;
-      updateLoadRecordsButton(false);
-      hideSpinner();
-    };
-    loadSchoolYear.addEventListener("change", invalidatePendingLoad);
-    loadSemester.addEventListener("change", invalidatePendingLoad);
+    loadSchoolYear.addEventListener("change", invalidateTransactionLoad);
+    loadSemester.addEventListener("change", invalidateTransactionLoad);
 
     if (loadSchoolYear.value && loadSemester.value) {
       await API.loadData({
