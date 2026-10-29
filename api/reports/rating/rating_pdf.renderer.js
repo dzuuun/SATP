@@ -6,6 +6,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const { spawn } = require("node:child_process");
+const { waitForBrowserPort } = require("./browser_port");
 
 const templateUrl = pathToFileURL(path.resolve(__dirname, "../../../client/report/rating/pdf-template.html")).href;
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -71,12 +72,9 @@ async function renderRatingPdf(payload) {
       let launchError;
       browser.on("error", (error) => { launchError = error; });
       const activePort = path.join(profile, "DevToolsActivePort");
-      for (let i = 0; i < 300 && !fs.existsSync(activePort); i++) {
-        if (launchError || browser.exitCode !== null) throw new Error("The PDF browser could not be started.");
-        await pause(100);
-      }
-      if (!fs.existsSync(activePort)) throw new Error("The PDF browser did not start in time.");
-      const port = (await fsp.readFile(activePort, "utf8")).split("\n")[0].trim();
+      const port = await waitForBrowserPort(activePort, () =>
+        launchError || (browser.exitCode !== null || browser.signalCode !== null
+          ? new Error("The PDF browser could not be started.") : null));
       stage = "PDF_BROWSER_CONNECT";
       const targets = await fetch(`http://127.0.0.1:${port}/json/list`, { signal: AbortSignal.timeout(10000) }).then((res) => res.json());
       socket = new WebSocket(targets.find((target) => target.type === "page").webSocketDebuggerUrl);
