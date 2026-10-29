@@ -128,6 +128,7 @@ test("Native rating PDF endpoint reports unavailable browsers without exposing i
   for (const [error, expected, message] of [
     [Object.assign(new Error("The exporter is busy."), { status: 503 }), 503, "The exporter is busy."],
     [new Error("private process details"), 500, "Unable to generate the text PDF. Please try again."],
+    [Object.assign(new Error("private browser details"), { pdfCode: "PDF_CONTENT" }), 500, "The server could not render this report's content or images."],
   ]) {
     const { exportRatingPdf } = controller(async () => { throw error; });
     const res = response();

@@ -1,6 +1,13 @@
 "use strict";
 
 const { renderRatingPdf } = require("./rating_pdf.renderer");
+const pdfErrors = {
+  PDF_BROWSER_START: "The server could not start its PDF browser. Check the browser installation and the SATP service account's permissions.",
+  PDF_BROWSER_CONNECT: "The server could not connect to its PDF browser. Check the server's Node runtime and local browser connection.",
+  PDF_TEMPLATE: "The server could not load the PDF template. Check that all report files were deployed.",
+  PDF_CONTENT: "The server could not render this report's content or images.",
+  PDF_PRINT: "The server's PDF browser failed while printing this report. Check available server memory and retry.",
+};
 
 function validateReport(body) {
   const report = body?.report;
@@ -27,9 +34,10 @@ async function exportRatingPdf(req, res) {
     return res.type("application/pdf").set("Cache-Control", "no-store")
       .set("Content-Disposition", 'attachment; filename="SATP Rating Report.pdf"').send(pdf);
   } catch (error) {
-    console.error("Native rating PDF export failed:", error.message);
+    console.error("Native rating PDF export failed:", error.pdfCode || "PDF_UNKNOWN", error.message);
     return res.status(error.status || 500).json({ success: 0,
-      message: error.status === 503 ? error.message : "Unable to generate the text PDF. Please try again." });
+      code: pdfErrors[error.pdfCode] ? error.pdfCode : "PDF_UNKNOWN",
+      message: error.status === 503 ? error.message : pdfErrors[error.pdfCode] || "Unable to generate the text PDF. Please try again." });
   }
 }
 

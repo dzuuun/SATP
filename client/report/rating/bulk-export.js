@@ -455,7 +455,7 @@ async function exportIndividualRatings({
       });
       if (!pdfResponse.ok) {
         const error = await pdfResponse.json().catch(() => ({}));
-        throw new Error(error.message || "Unable to generate the text PDF.");
+        throw new Error(`${report.teacherName} / ${report.subjectCode}: ${error.message || "Unable to generate the text PDF."}${error.code ? ` (${error.code})` : ""}`);
       }
       const pdfBlob = await pdfResponse.blob();
       teacherFolder.file(fileName, pdfBlob);
