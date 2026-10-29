@@ -22,5 +22,6 @@ router.post("/teacher/subjects", getTeacherSubject);
 router.post("/teacher/information", getTeacherInformation);
 router.post("/teacher/period", getTeachersByPeriod);
 router.post("/individual/bulk-export", getBulkIndividualRating);
+router.post("/individual/export-pdf", require("./rating_pdf.controller").exportRatingPdf);
 
 module.exports = router;

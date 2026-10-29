@@ -429,20 +429,26 @@ async function loadSidebar() {
   }
 }
 
+function getReportFilename() {
+  const collegeName = document
+    .getElementById("college")
+    .textContent.replace(/[\\/:*?"<>|]/g, "-");
+  return `SATP College Rating Report - ${collegeName} - ${new Date().toISOString().slice(0, 10)}.pdf`;
+}
+
+configureReportPrintFilename(getReportFilename);
+
 document
   .getElementById("downloadButton")
   .addEventListener("click", async () => {
     if (!state.rows.length) return;
     const button = document.getElementById("downloadButton");
     const label = button.querySelector("span");
-    const collegeName = document
-      .getElementById("college")
-      .textContent.replace(/[\\/:*?"<>|]/g, "-");
     button.disabled = true;
     label.textContent = "Preparing PDF...";
     try {
       await renderReportPdf({
-        filename: `SATP College Rating Report - ${collegeName} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+        filename: getReportFilename(),
         pagebreakMode: ["legacy"],
         includeDefaultAvoid: false,
         canvasScale: 1,

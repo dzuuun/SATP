@@ -227,21 +227,54 @@
     <div
       id="loadingModal"
       class="room-modal invisible"
-      role="status"
-      aria-live="polite"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+      aria-labelledby="loadingTitle"
+      aria-describedby="loadingMessage"
     >
-      <div id="loadingModalCard" class="loading-card scale-95">
-        <span class="loader-spinner" aria-hidden="true"></span>
-        <div>
-          <strong>Preparing reports</strong>
+      <div id="loadingModalCard" class="rating-loading-card" tabindex="-1">
+        <div class="rating-loading-heading">
+          <span class="rating-loading-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Zm0 0v6h6M8 13h8M8 17h5" /></svg>
+          </span>
+          <div>
+            <span class="rating-loading-eyebrow">Rating reports</span>
+            <h2 id="loadingTitle">Loading report options</h2>
+          </div>
+          <span class="loader-spinner" aria-hidden="true"></span>
+        </div>
+        <div class="rating-loading-status" role="status" aria-live="polite" aria-atomic="true">
           <p id="loadingMessage">Loading report options...</p>
+        </div>
+        <div class="rating-export-details">
+          <div class="rating-export-context">
+            <strong id="exportScope">All teachers</strong>
+            <span id="exportPeriod"></span>
+          </div>
+          <ol class="rating-export-steps" aria-label="Export stages">
+            <li data-export-stage="loading"><span>1</span>Load ratings</li>
+            <li data-export-stage="rendering"><span>2</span>Create PDFs</li>
+            <li data-export-stage="packaging"><span>3</span>Package ZIP</li>
+          </ol>
+          <div class="rating-export-progress-heading">
+            <span id="exportProgressLabel">Loading ratings</span>
+            <strong id="exportProgressValue">Please wait</strong>
+          </div>
+          <div id="exportProgress" class="rating-export-progress" role="progressbar" aria-label="Export progress" aria-valuemin="0" aria-valuemax="100">
+            <div id="exportProgressFill"></div>
+          </div>
+          <p id="exportCurrentReport" class="rating-export-current"></p>
+          <div class="rating-export-footer">
+            <span>Keep this page open. Your download will start automatically.</span>
+            <span id="exportElapsed">0:00 elapsed</span>
+          </div>
         </div>
       </div>
     </div>
     <div id="toast-container" class="toast-container" aria-live="polite"></div>
-    <script src="../../vendor/html2pdf.bundle.min.js"></script>
     <script src="../../vendor/jszip.min.js"></script>
-    <script src="../html2pdf-export.js"></script>
+    <script src="./export-progress.js"></script>
     <script src="./bulk-export.js"></script>
     <script src="./script.js"></script>
     <script src="/shared-ui.js?v=20260925"></script>

@@ -459,30 +459,11 @@ document
   });
 
 function showLoading(message) {
-  document.getElementById("loadingMessage").textContent = message;
-  toggleModal("loadingModal", true);
+  window.ratingExportProgress.open({ message });
 }
 
 function hideLoading() {
-  toggleModal("loadingModal", false);
-}
-
-function toggleModal(id, show = true) {
-  const modal = document.getElementById(id);
-  const card = document.getElementById(`${id}Card`);
-  if (show) {
-    modal.classList.remove("invisible");
-    document.body.classList.add("overflow-hidden");
-    requestAnimationFrame(() => {
-      modal.classList.add("opacity-100");
-      card?.classList.replace("scale-95", "scale-100");
-    });
-  } else {
-    modal.classList.remove("opacity-100");
-    card?.classList.replace("scale-100", "scale-95");
-    setTimeout(() => modal.classList.add("invisible"), 250);
-    document.body.classList.remove("overflow-hidden");
-  }
+  window.ratingExportProgress.close();
 }
 
 function showToast(message, type = "success") {

@@ -370,6 +370,13 @@ async function loadSidebar() {
   }
 }
 
+function getReportFilename() {
+
+  return `SATP ${reportConfig.fileLabel} Ranking Report - ${new Date().toISOString().slice(0, 10)}.pdf`;
+}
+
+configureReportPrintFilename(getReportFilename);
+
 document
   .getElementById("downloadButton")
   .addEventListener("click", async () => {
@@ -380,7 +387,7 @@ document
     label.textContent = "Preparing PDF...";
     try {
       await renderReportPdf({
-        filename: `SATP ${reportConfig.fileLabel} Ranking Report - ${new Date().toISOString().slice(0, 10)}.pdf`,
+        filename: getReportFilename(),
         avoidAll: true,
       });
     } catch (error) {

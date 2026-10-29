@@ -1,19 +1,39 @@
 "use strict";
 
-async function renderReportPdf({
-  element = document.getElementById("reportSheet"),
-  filename,
-  pagebreakAvoid = [],
-  avoidAll = false,
-  pagebreakMode = null,
-  includeDefaultAvoid = true,
-  canvasScale = 2,
-  maxCanvasHeight = 0,
-  save = true,
-}) {
-  if (typeof html2pdf === "undefined") {
-    throw new Error("html2pdf could not be loaded.");
+function configureReportPrintFilename(getFilename) {
+  let originalTitle;
+  window.addEventListener("beforeprint", () => {
+    if (originalTitle === undefined) originalTitle = document.title;
+    // Browsers use the document title as the suggested Save as PDF filename.
+    document.title = getFilename().replace(/\.pdf$/i, "");
+  });
+  window.addEventListener("afterprint", () => {
+    if (originalTitle !== undefined) document.title = originalTitle;
+    originalTitle = undefined;
+  });
+}
+
+async function downloadRatingTextPdf(payload, filename) {
+  const response = await fetch("/api/report/rating/individual/export-pdf", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || "Unable to generate the text PDF.");
   }
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+function createReportPdfElement(element) {
   if (!element) throw new Error("The report content could not be found.");
 
   const clone = element.cloneNode(true);
@@ -107,8 +127,32 @@ async function renderReportPdf({
       white-space: normal !important;
       overflow-wrap: anywhere !important;
     }
+    .html2pdf-report .document-footer {
+      /* Leave room for glyphs that html2canvas paints below the text box. */
+      padding-bottom: 12px !important;
+      line-height: 1.5 !important;
+    }
   `;
   clone.prepend(exportStyles);
+  return clone;
+}
+
+async function renderReportPdf({
+  element = document.getElementById("reportSheet"),
+  filename,
+  pagebreakAvoid = [],
+  avoidAll = false,
+  pagebreakMode = null,
+  includeDefaultAvoid = true,
+  canvasScale = 2,
+  maxCanvasHeight = 0,
+  imageType = "jpeg",
+  save = true,
+}) {
+  if (typeof html2pdf === "undefined") {
+    throw new Error("html2pdf could not be loaded.");
+  }
+  const clone = createReportPdfElement(element);
 
   const container = document.createElement("div");
   Object.assign(container.style, {
@@ -167,7 +211,7 @@ async function renderReportPdf({
       .set({
         margin: [10, 10, 10, 10],
         filename,
-        image: { type: "jpeg", quality: 0.98 },
+        image: { type: imageType, quality: 0.98 },
         html2canvas: {
           scale: effectiveCanvasScale,
           useCORS: true,
@@ -178,7 +222,12 @@ async function renderReportPdf({
           scrollX: 0,
           scrollY: 0,
         },
-        jsPDF: { unit: "mm", format: "letter", orientation: "portrait" },
+        jsPDF: {
+          unit: "mm",
+          format: "letter",
+          orientation: "portrait",
+          compress: imageType === "png",
+        },
         pagebreak: {
           mode:
             pagebreakMode ||
@@ -213,3 +262,4 @@ async function renderReportPdf({
 }
 
 window.renderReportPdf = renderReportPdf;
+window.createReportPdfElement = createReportPdfElement;

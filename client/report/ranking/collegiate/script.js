@@ -387,18 +387,24 @@ async function loadSidebar() {
   }
 }
 
+function getReportFilename() {
+  const safeCollegeCode = state.collegeCode.replace(/[\\/:*?"<>|]/g, "-");
+  return `SATP College Ranking Report - ${safeCollegeCode} - ${new Date().toISOString().slice(0, 10)}.pdf`;
+}
+
+configureReportPrintFilename(getReportFilename);
+
 document
   .getElementById("downloadButton")
   .addEventListener("click", async () => {
     if (!state.rows.length) return;
     const button = document.getElementById("downloadButton");
     const label = button.querySelector("span");
-    const safeCollegeCode = state.collegeCode.replace(/[\\/:*?"<>|]/g, "-");
     button.disabled = true;
     label.textContent = "Preparing PDF...";
     try {
       await renderReportPdf({
-        filename: `SATP College Ranking Report - ${safeCollegeCode} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+        filename: getReportFilename(),
         avoidAll: true,
       });
     } catch (error) {

@@ -396,27 +396,53 @@ async function loadSidebar() {
   }
 }
 
+function getReportFilename() {
+  const teacherName = document
+    .getElementById("teacher")
+    .textContent.trim()
+    .replace(/[\\/:*?"<>|]/g, "-");
+  const subjectName = document
+    .getElementById("subject")
+    .textContent.trim()
+    .replace(/[\\/:*?"<>|]/g, "-");
+  return `SATP ${reportConfig.title} - ${teacherName} - ${subjectName} - ${new Date().toISOString().slice(0, 10)}.pdf`;
+}
+
+configureReportPrintFilename(getReportFilename);
+
 document
   .getElementById("downloadButton")
   .addEventListener("click", async () => {
     if (!state.rows.length) return;
     const button = document.getElementById("downloadButton");
     const label = button.querySelector("span");
-    const teacherName = document
-      .getElementById("teacher")
-      .textContent.trim()
-      .replace(/[\\/:*?"<>|]/g, "-");
-    const subjectName = document
-      .getElementById("subject")
-      .textContent.trim()
-      .replace(/[\\/:*?"<>|]/g, "-");
     button.disabled = true;
     label.textContent = "Preparing PDF...";
     try {
-      await renderReportPdf({
-        filename: `SATP ${reportConfig.title} - ${teacherName} - ${subjectName} - ${new Date().toISOString().slice(0, 10)}.pdf`,
-        pagebreakAvoid: [".individual-rating-details", ".mean-summary"],
-      });
+      const first = state.rows[0];
+      const teacherInfo = state.teacher || first;
+      const mean = Number(teacherInfo.mean);
+      const teacherMean = Number.isFinite(mean) ? mean : average(state.rows.map((row) => row.mean));
+      const displayed = (id) => document.getElementById(id).textContent.trim();
+      await downloadRatingTextPdf({
+        ratingType: reportConfig.title === "Institutional Rating Report" ? "institutional" : "individual",
+        teacherMean,
+        report: {
+          teacherName: displayed("teacher"),
+          schoolYear: displayed("schoolYear"),
+          semester: displayed("semester"),
+          college: displayed("college"),
+          department: displayed("department"),
+          subjectCode: "",
+          subjectName: displayed("subject"),
+          subjectLabel: displayed("subject"),
+          dateGenerated: displayed("dateGenerated"),
+          qualitativeLabel: getQualitativeEquivalent(teacherMean),
+          respondents: Number(first.respondents) || 0,
+          items: state.rows,
+          comments: state.comments.map((row) => String(row.comment ?? "")),
+        },
+      }, getReportFilename());
     } catch (error) {
       console.error("PDF generation error:", error);
       showToast(error.message || "Unable to generate the PDF report.");

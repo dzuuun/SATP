@@ -354,7 +354,7 @@ function buildBulkRatingReportElement(report, teacherMean, reportLabel) {
     `<tr class="average-row"><td>Your Mean: </td><td>${formatMean(teacherMean)}</td></tr>`,
   );
   rows.push(
-    `<tr class="average-row"><td>Qualitative Equivalent: </td><td>${bulkEscapeHtml(qualitativeEquivalent(teacherMean))}</td></tr>`,
+    `<tr class="average-row"><td>Qualitative Equivalent: </td><td>${bulkEscapeHtml(report.qualitativeLabel ?? qualitativeEquivalent(teacherMean))}</td></tr>`,
   );
   const comments = report.comments.length
     ? `<section class="comments-section"><h4>Comments:</h4><div>${report.comments.map((comment) => `<p class="comment-entry">${bulkEscapeHtml(comment)}</p>`).join("")}</div></section>`
@@ -374,9 +374,9 @@ function buildBulkRatingReportElement(report, teacherMean, reportLabel) {
       <div><span>Semester</span><strong>${bulkEscapeHtml(report.semester)}</strong></div>
       <div><span>College</span><strong>${bulkEscapeHtml(report.college)}</strong></div>
       <div><span>Department</span><strong>${bulkEscapeHtml(report.department)}</strong></div>
-      <div><span>Course</span><strong>${bulkEscapeHtml(report.subjectCode)} - ${bulkEscapeHtml(report.subjectName)}</strong></div>
+      <div><span>Course</span><strong>${bulkEscapeHtml(report.subjectLabel ?? `${report.subjectCode} - ${report.subjectName}`)}</strong></div>
       <div><span>Respondents</span><strong>${report.respondents}</strong></div>
-      <div><span>Date Generated</span><strong>${new Intl.DateTimeFormat("en-PH", { year: "numeric", month: "long", day: "numeric" }).format(new Date())}</strong></div>
+      <div><span>Date Generated</span><strong>${bulkEscapeHtml(report.dateGenerated ?? new Intl.DateTimeFormat("en-PH", { year: "numeric", month: "long", day: "numeric" }).format(new Date()))}</strong></div>
     </section>
     <div class="mean-summary"><span>Course Average:</span><strong>${formatMean(subjectMean)}</strong></div>
     <div class="report-table-wrap"><table class="rating-table" aria-label="${reportLabel} rating results"><thead><tr><th>Criteria</th><th>Item Average</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>
@@ -400,18 +400,17 @@ async function exportIndividualRatings({
   const teacherExportButton = document.getElementById("teacherExportButton");
   const exportMenuButton = document.getElementById("exportMenuButton");
   const generateButton = document.getElementById("generateButton");
+  window.ratingExportProgress.open({
+    exporting: true,
+    scope: teacherId ? teacherName : "All teachers",
+    period: [schoolYearName, semesterName].filter(Boolean).join(" / "),
+  });
   bulkExportButton.disabled = true;
   teacherExportButton.disabled = true;
   exportMenuButton.disabled = true;
   generateButton.disabled = true;
-  showLoading(
-    teacherId
-      ? `Loading all course ratings for ${teacherName}...`
-      : "Loading all teacher and course ratings for the selected period...",
-  );
   try {
-    if (typeof html2pdf === "undefined" || !window.JSZip)
-      throw new Error("The ZIP or PDF generator could not be loaded.");
+    if (!window.JSZip) throw new Error("The ZIP generator could not be loaded.");
     const response = await requestJson(
       "/api/report/rating/individual/bulk-export",
       {
@@ -437,30 +436,35 @@ async function exportIndividualRatings({
     const zip = new JSZip();
     for (let index = 0; index < reports.length; index += 1) {
       const report = reports[index];
-      document.getElementById("loadingMessage").textContent =
-        `Preparing ${index + 1} of ${reports.length} course reports...`;
+      const progress = {
+        stage: "rendering",
+        total: reports.length,
+        teacher: report.teacherName,
+        course: `${report.subjectCode} - ${report.subjectName}`,
+      };
+      window.ratingExportProgress.update({ ...progress, completed: index });
       const teacherFolder = teacherId
         ? zip
         : zip.folder(safeFileName(report.teacherName, "Teacher"));
       const fileName = `SATP ${reportLabel} Rating Report - ${safeFileName(report.subjectCode, "Course")} - ${safeFileName(report.subjectName, "Rating")}.pdf`;
       const teacherMean = means.get(String(report.teacherId)) || 0;
-      const reportElement = buildBulkRatingReportElement(
-        report,
-        teacherMean,
-        reportLabel,
-      );
-      const pdfBlob = await renderReportPdf({
-        element: reportElement,
-        filename: fileName,
-        save: false,
+      const pdfResponse = await fetch("/api/report/rating/individual/export-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ report, teacherMean, ratingType }),
       });
+      if (!pdfResponse.ok) {
+        const error = await pdfResponse.json().catch(() => ({}));
+        throw new Error(error.message || "Unable to generate the text PDF.");
+      }
+      const pdfBlob = await pdfResponse.blob();
       teacherFolder.file(fileName, pdfBlob);
+      window.ratingExportProgress.update({ ...progress, completed: index + 1 });
       if ((index + 1) % 5 === 0)
         await new Promise((resolve) => requestAnimationFrame(resolve));
     }
 
-    document.getElementById("loadingMessage").textContent =
-      "Compressing the PDF reports...";
+    window.ratingExportProgress.update({ stage: "packaging", total: reports.length });
     const zipBlob = await zip.generateAsync(
       {
         type: "blob",
@@ -468,10 +472,10 @@ async function exportIndividualRatings({
         compressionOptions: { level: 6 },
       },
       ({ percent }) => {
-        document.getElementById("loadingMessage").textContent =
-          `Compressing reports... ${Math.round(percent)}%`;
+        window.ratingExportProgress.update({ stage: "packaging", total: reports.length, percent });
       },
     );
+    window.ratingExportProgress.update({ stage: "ready", total: reports.length });
     saveZipBlob(
       zipBlob,
       `SATP ${reportLabel} Rating Reports - ${teacherId ? safeFileName(teacherName, "Teacher") : "All Teachers"} - ${safeFileName(schoolYearName)} - ${safeFileName(semesterName)}.zip`,
@@ -493,13 +497,14 @@ async function exportIndividualRatings({
     showToast(
       error.message ||
         `Unable to export the ${reportLabel.toLowerCase()} rating reports.`,
+      "error",
     );
   } finally {
-    hideLoading();
     bulkExportButton.disabled = false;
     updateTeacherExportState();
     exportMenuButton.disabled = false;
     generateButton.disabled = false;
+    hideLoading();
   }
 }
 

@@ -355,18 +355,24 @@ async function loadSidebar() {
   }
 }
 
+function getReportFilename() {
+  const safeCode = state.departmentCode.replace(/[\\/:*?"<>|]/g, "-");
+  return `SATP Department Ranking Report - ${safeCode} - ${new Date().toISOString().slice(0, 10)}.pdf`;
+}
+
+configureReportPrintFilename(getReportFilename);
+
 document
   .getElementById("downloadButton")
   .addEventListener("click", async () => {
     if (!state.rows.length) return;
     const button = document.getElementById("downloadButton");
     const label = button.querySelector("span");
-    const safeCode = state.departmentCode.replace(/[\\/:*?"<>|]/g, "-");
     button.disabled = true;
     label.textContent = "Preparing PDF...";
     try {
       await renderReportPdf({
-        filename: `SATP Department Ranking Report - ${safeCode} - ${new Date().toISOString().slice(0, 10)}.pdf`,
+        filename: getReportFilename(),
         avoidAll: true,
       });
     } catch (error) {
