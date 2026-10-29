@@ -97,7 +97,7 @@ document
     if (!table) return setErrorMessage("The student list is still loading.");
     const students = table.rows({ search: "applied" }).data().toArray();
     if (!students.length) return setErrorMessage("No students to export.");
-    const exportRows = students.map((student) => ({
+    const exportRow = (student) => ({
       username: student.username || "",
       password: "",
       surname: student.surname || "",
@@ -107,15 +107,27 @@ document
       year_level: formatYearLevel(student.year_level),
       gender: student.gender || "",
       course_code: student.course || "",
-    }));
-    const sheet = XLSX.utils.json_to_sheet(exportRows);
+    });
+    const collegeRows = [];
+    const shsRows = [];
+    for (const student of students) {
+      if (String(student.academic_scope).trim().toUpperCase() === "SHS") {
+        shsRows.push({ ...exportRow(student), section: student.section || "" });
+      } else {
+        collegeRows.push(exportRow(student));
+      }
+    }
+    const headers = Object.keys(exportRow({}));
     const book = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book, sheet, "Students");
+    XLSX.utils.book_append_sheet(book,
+      XLSX.utils.json_to_sheet(collegeRows, { header: headers }), "College");
+    XLSX.utils.book_append_sheet(book,
+      XLSX.utils.json_to_sheet(shsRows, { header: [...headers, "section"] }), "SHS");
     XLSX.writeFile(
       book,
       `Students_${new Date().toISOString().slice(0, 10)}.xlsx`,
     );
-    setSuccessMessage(`${exportRows.length} students exported successfully.`);
+    setSuccessMessage(`${collegeRows.length} college and ${shsRows.length} SHS students exported successfully.`);
   });
 
 async function openMssqlImport() {
