@@ -1557,6 +1557,33 @@ async function classifySubjectRows(rows, schoolId) {
 const PREVIEW_BATCH_SIZE = 250;
 
 function renderSubjectImportPreview() {
+  const periodLabel = (selectId, id, fallback) => {
+    const option = [...document.querySelectorAll(`#${selectId} option`)]
+      .find((entry) => entry.value && Number(entry.value) === Number(id));
+    return option?.textContent.trim() || String(fallback || "Not specified");
+  };
+  const periods = new Map();
+  for (const item of [
+    ...pendingSubjectImport.created,
+    ...pendingSubjectImport.updated,
+    ...pendingSubjectImport.errors,
+  ]) {
+    const raw = item.originalRow || {};
+    const year = periodLabel("selectSchoolYear", item.school_year_id,
+      readImportColumn(raw, "SchoolYear"));
+    const semesterValue = readImportColumn(raw, "semester_id", "Semester");
+    const semester = periodLabel("selectSemester", item.semester_id || semesterValue,
+      semesterValue);
+    const label = `${year} / ${semester}`;
+    periods.set(label, (periods.get(label) || 0) + 1);
+  }
+  const summary = document.getElementById("importPeriodSummary");
+  summary.replaceChildren();
+  for (const [period, count] of periods) {
+    const line = document.createElement("div");
+    line.textContent = `${period} — ${count.toLocaleString()} row${count === 1 ? "" : "s"}`;
+    summary.appendChild(line);
+  }
   [
     ["created", "createdPreview", "createdCount", "Will be created"],
     ["updated", "updatedPreview", "updatedCount", "Already exists"],

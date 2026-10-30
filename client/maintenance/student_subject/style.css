@@ -619,3 +619,13 @@
     grid-template-columns: 1fr;
   }
 }
+#importPeriodSummary {
+  display: grid;
+  gap: 4px;
+  margin-top: 10px;
+  color: #075c40;
+  font-weight: 700;
+  max-height: 100px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
