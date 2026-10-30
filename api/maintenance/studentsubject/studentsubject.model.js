@@ -737,14 +737,23 @@ module.exports = {
             (row) => `${Number(row.teacher_id)}|${Number(row.department_id)}`,
           ),
       );
-      if (
-        teacherDepartmentPairs.some(
+      const invalidPair = teacherDepartmentPairs.find(
           ([teacherId, departmentId]) =>
             !validTeacherDepartments.has(`${teacherId}|${departmentId}`),
-        )
-      ) {
+      );
+      if (invalidPair) {
+        const [details] = await connection.query(
+          `SELECT CONCAT_WS(' ', teachers.givenname, teachers.surname) AS teacher_name,
+                  departments.code AS department_code
+           FROM teachers
+           LEFT JOIN departments ON departments.id = ?
+           WHERE teachers.id = ?`,
+          [invalidPair[1], invalidPair[0]],
+        );
+        const teacherName = details[0]?.teacher_name || `Teacher ID ${invalidPair[0]}`;
+        const departmentCode = details[0]?.department_code || `ID ${invalidPair[1]}`;
         throw new Error(
-          "A teacher is not linked to the selected teaching department and school.",
+          `Student ${studentUsername}: ${teacherName} is not linked to department ${departmentCode} in ${selectedSchool.name}. No courses in this student's import group were saved.`,
         );
       }
       const subjectIds = data.subjects.map((subject) =>
