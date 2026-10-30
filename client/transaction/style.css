@@ -1286,3 +1286,8 @@ footer > span {
     transition-duration: 0.01ms !important;
   }
 }
+.rating-access-group .rating-access-period {
+  font-weight: 700;
+  color: var(--green-800);
+  overflow-wrap: anywhere;
+}

@@ -410,7 +410,8 @@ async function exportIndividualRatings({
   exportMenuButton.disabled = true;
   generateButton.disabled = true;
   try {
-    if (!window.JSZip) throw new Error("The ZIP generator could not be loaded.");
+    if (!window.JSZip)
+      throw new Error("The ZIP generator could not be loaded.");
     const response = await requestJson(
       "/api/report/rating/individual/bulk-export",
       {
@@ -448,14 +449,19 @@ async function exportIndividualRatings({
         : zip.folder(safeFileName(report.teacherName, "Teacher"));
       const fileName = `SATP ${reportLabel} Rating Report - ${safeFileName(report.subjectCode, "Course")} - ${safeFileName(report.subjectName, "Rating")}.pdf`;
       const teacherMean = means.get(String(report.teacherId)) || 0;
-      const pdfResponse = await fetch("/api/report/rating/individual/export-pdf", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ report, teacherMean, ratingType }),
-      });
+      const pdfResponse = await fetch(
+        "/api/report/rating/individual/export-pdf",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ report, teacherMean, ratingType }),
+        },
+      );
       if (!pdfResponse.ok) {
         const error = await pdfResponse.json().catch(() => ({}));
-        throw new Error(`${report.teacherName} / ${report.subjectCode}: ${error.message || "Unable to generate the text PDF."}${error.code ? ` (${error.code})` : ""}`);
+        throw new Error(
+          `${report.teacherName} / ${report.subjectCode}: ${error.message || "Unable to generate the text PDF."}${error.code ? ` (${error.code})` : ""}`,
+        );
       }
       const pdfBlob = await pdfResponse.blob();
       teacherFolder.file(fileName, pdfBlob);
@@ -464,7 +470,10 @@ async function exportIndividualRatings({
         await new Promise((resolve) => requestAnimationFrame(resolve));
     }
 
-    window.ratingExportProgress.update({ stage: "packaging", total: reports.length });
+    window.ratingExportProgress.update({
+      stage: "packaging",
+      total: reports.length,
+    });
     const zipBlob = await zip.generateAsync(
       {
         type: "blob",
@@ -472,10 +481,17 @@ async function exportIndividualRatings({
         compressionOptions: { level: 6 },
       },
       ({ percent }) => {
-        window.ratingExportProgress.update({ stage: "packaging", total: reports.length, percent });
+        window.ratingExportProgress.update({
+          stage: "packaging",
+          total: reports.length,
+          percent,
+        });
       },
     );
-    window.ratingExportProgress.update({ stage: "ready", total: reports.length });
+    window.ratingExportProgress.update({
+      stage: "ready",
+      total: reports.length,
+    });
     saveZipBlob(
       zipBlob,
       `SATP ${reportLabel} Rating Reports - ${teacherId ? safeFileName(teacherName, "Teacher") : "All Teachers"} - ${safeFileName(schoolYearName)} - ${safeFileName(semesterName)}.zip`,

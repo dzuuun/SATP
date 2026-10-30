@@ -738,8 +738,8 @@ module.exports = {
           ),
       );
       const invalidPair = teacherDepartmentPairs.find(
-          ([teacherId, departmentId]) =>
-            !validTeacherDepartments.has(`${teacherId}|${departmentId}`),
+        ([teacherId, departmentId]) =>
+          !validTeacherDepartments.has(`${teacherId}|${departmentId}`),
       );
       if (invalidPair) {
         const [details] = await connection.query(
@@ -750,8 +750,10 @@ module.exports = {
            WHERE teachers.id = ?`,
           [invalidPair[1], invalidPair[0]],
         );
-        const teacherName = details[0]?.teacher_name || `Teacher ID ${invalidPair[0]}`;
-        const departmentCode = details[0]?.department_code || `ID ${invalidPair[1]}`;
+        const teacherName =
+          details[0]?.teacher_name || `Teacher ID ${invalidPair[0]}`;
+        const departmentCode =
+          details[0]?.department_code || `ID ${invalidPair[1]}`;
         throw new Error(
           `Student ${studentUsername}: ${teacherName} is not linked to department ${departmentCode} in ${selectedSchool.name}. No courses in this student's import group were saved.`,
         );

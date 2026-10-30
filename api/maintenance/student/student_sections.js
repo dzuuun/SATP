@@ -10,7 +10,8 @@ function selectStudentSections(rows) {
       students.set(student.id, entry);
     }
     const count = Number(section_subject_count);
-    if (student.academic_scope !== "SHS" || !section_room || count <= 1) continue;
+    if (student.academic_scope !== "SHS" || !section_room || count <= 1)
+      continue;
     if (count > entry.count) {
       entry.count = count;
       entry.student.section = section_room;
@@ -20,7 +21,8 @@ function selectStudentSections(rows) {
     }
   }
   return [...students.values()].map(({ student, tied }) => ({
-    ...student, section: tied ? "" : student.section,
+    ...student,
+    section: tied ? "" : student.section,
   }));
 }
 

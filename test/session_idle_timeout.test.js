@@ -8,50 +8,113 @@ const vm = require("node:vm");
 const jwt = require("jsonwebtoken");
 
 const HOUR = 60 * 60;
-const read = (file) => fs.readFileSync(path.join(__dirname, "..", file), "utf8");
+const read = (file) =>
+  fs.readFileSync(path.join(__dirname, "..", file), "utf8");
 
 function serverSession() {
   let now = 1_800_000_000;
-  const account = { id: 42, username: "test-user", password: "test-password-hash" };
+  const account = {
+    id: 42,
+    username: "test-user",
+    password: "test-password-hash",
+  };
   let active = true;
   const module = { exports: {} };
   const clockJwt = {
-    sign: (payload, secret, options) => jwt.sign({ ...payload, iat: now }, secret, options),
-    verify: (token, secret, options, done) => jwt.verify(token, secret, { ...options, clockTimestamp: now }, done),
+    sign: (payload, secret, options) =>
+      jwt.sign({ ...payload, iat: now }, secret, options),
+    verify: (token, secret, options, done) =>
+      jwt.verify(token, secret, { ...options, clockTimestamp: now }, done),
   };
   const pool = {
     query(sql, _params, done) {
-      done(null, sql.trim().startsWith("SELECT") ? (active ? [account] : []) : { changedRows: 1 });
+      done(
+        null,
+        sql.trim().startsWith("SELECT")
+          ? active
+            ? [account]
+            : []
+          : { changedRows: 1 },
+      );
     },
   };
   vm.runInNewContext(read("auth/auth_validation.js"), {
-    module, Buffer, URL, console,
-    process: { env: { SECRET_KEY: "idle-timeout-test-secret", NODE_ENV: "production" } },
-    Date: class extends Date { static now() { return now * 1000; } },
-    require: (name) => name === "jsonwebtoken" ? clockJwt : name === "../db/db" ? pool : require(name),
+    module,
+    Buffer,
+    URL,
+    console,
+    process: {
+      env: { SECRET_KEY: "idle-timeout-test-secret", NODE_ENV: "production" },
+    },
+    Date: class extends Date {
+      static now() {
+        return now * 1000;
+      }
+    },
+    require: (name) =>
+      name === "jsonwebtoken"
+        ? clockJwt
+        : name === "../db/db"
+          ? pool
+          : require(name),
   });
   const auth = module.exports;
   function validate(handler, token) {
     return new Promise((resolve) => {
-      const headers = { cookie: `satp_session=${token}`, host: "satp.example.edu", origin: "https://satp.example.edu" };
-      const req = { secure: true, protocol: "https", headers, get: (name) => headers[name.toLowerCase()] };
+      const headers = {
+        cookie: `satp_session=${token}`,
+        host: "satp.example.edu",
+        origin: "https://satp.example.edu",
+      };
+      const req = {
+        secure: true,
+        protocol: "https",
+        headers,
+        get: (name) => headers[name.toLowerCase()],
+      };
       const res = {
-        statusCode: 200, cookies: [], headers: {},
-        cookie(name, value, options) { this.cookies.push({ name, value, options }); },
+        statusCode: 200,
+        cookies: [],
+        headers: {},
+        cookie(name, value, options) {
+          this.cookies.push({ name, value, options });
+        },
         clearCookie() {},
-        setHeader(name, value) { this.headers[name] = value; },
-        status(code) { this.statusCode = code; return this; },
-        json(body) { this.body = body; resolve({ req, res, allowed: false }); return this; },
+        setHeader(name, value) {
+          this.headers[name] = value;
+        },
+        status(code) {
+          this.statusCode = code;
+          return this;
+        },
+        json(body) {
+          this.body = body;
+          resolve({ req, res, allowed: false });
+          return this;
+        },
       };
       handler(req, res, () => resolve({ req, res, allowed: true }));
     });
   }
-  return { auth, account, validate, advance: (seconds) => { now += seconds; }, deactivate: () => { active = false; } };
+  return {
+    auth,
+    account,
+    validate,
+    advance: (seconds) => {
+      now += seconds;
+    },
+    deactivate: () => {
+      active = false;
+    },
+  };
 }
 
 test("user activity renews both the token and cookie beyond the original eight-hour sign-in limit", async () => {
   const session = serverSession();
-  const original = session.auth.createSessionToken(42, session.account.password);
+  const original = session.auth.createSessionToken(
+    42,
+    session.account.password,
+  );
   session.advance(7 * HOUR);
   const renewed = await session.validate(session.auth.renewSession, original);
   assert.equal(renewed.allowed, true);
@@ -63,11 +126,20 @@ test("user activity renews both the token and cookie beyond the original eight-h
   assert.equal(cookie.options.secure, true);
   assert.equal(renewed.res.headers["Cache-Control"], "no-store");
   assert.equal("password" in renewed.req.user, false);
-  assert.equal(jwt.decode(cookie.value).exp - jwt.decode(original).exp, 7 * HOUR);
+  assert.equal(
+    jwt.decode(cookie.value).exp - jwt.decode(original).exp,
+    7 * HOUR,
+  );
   session.advance(2 * HOUR);
-  assert.equal((await session.validate(session.auth.checkToken, cookie.value)).allowed, true);
+  assert.equal(
+    (await session.validate(session.auth.checkToken, cookie.value)).allowed,
+    true,
+  );
   session.advance(6 * HOUR);
-  const expired = await session.validate(session.auth.renewSession, cookie.value);
+  const expired = await session.validate(
+    session.auth.renewSession,
+    cookie.value,
+  );
   assert.equal(expired.res.statusCode, 401);
   assert.equal(expired.res.cookies.length, 0);
 });
@@ -82,7 +154,10 @@ test("background session checks do not extend the inactivity deadline", async ()
     assert.equal(checked.res.cookies.length, 0);
   }
   session.advance(HOUR);
-  assert.equal((await session.validate(session.auth.checkToken, token)).res.statusCode, 401);
+  assert.equal(
+    (await session.validate(session.auth.checkToken, token)).res.statusCode,
+    401,
+  );
 });
 
 test("renewal still rejects changed credentials, disabled accounts and invalid tokens", async () => {
@@ -92,31 +167,64 @@ test("renewal still rejects changed credentials, disabled accounts and invalid t
   const changed = await session.validate(session.auth.renewSession, token);
   assert.equal(changed.res.statusCode, 401);
   assert.equal(changed.res.cookies.length, 0);
-  const replacement = session.auth.createSessionToken(42, session.account.password);
+  const replacement = session.auth.createSessionToken(
+    42,
+    session.account.password,
+  );
   session.deactivate();
-  assert.equal((await session.validate(session.auth.renewSession, replacement)).res.statusCode, 401);
-  assert.equal((await session.validate(session.auth.renewSession, "invalid-token")).res.statusCode, 401);
+  assert.equal(
+    (await session.validate(session.auth.renewSession, replacement)).res
+      .statusCode,
+    401,
+  );
+  assert.equal(
+    (await session.validate(session.auth.renewSession, "invalid-token")).res
+      .statusCode,
+    401,
+  );
 });
 
 test("the renewal endpoint uses the same-origin guard before authenticated renewal", () => {
   const routes = [];
   const router = {};
-  for (const method of ["get", "post", "put", "all"]) router[method] = (path, ...handlers) => routes.push({ method, path, handlers });
+  for (const method of ["get", "post", "put", "all"])
+    router[method] = (path, ...handlers) =>
+      routes.push({ method, path, handlers });
   const session = serverSession();
   const module = { exports: {} };
   vm.runInNewContext(read("api/login/login.router.js"), {
     module,
-    require: (name) => name === "express" ? { Router: () => router } : name.includes("auth_validation") ? session.auth : {},
+    require: (name) =>
+      name === "express"
+        ? { Router: () => router }
+        : name.includes("auth_validation")
+          ? session.auth
+          : {},
   });
-  const route = routes.find((route) => route.method === "post" && route.path === "/activity");
+  const route = routes.find(
+    (route) => route.method === "post" && route.path === "/activity",
+  );
   assert.equal(route.handlers[0], session.auth.requireSameOrigin);
   assert.equal(route.handlers[1], session.auth.renewSession);
-  const headers = { cookie: "satp_session=token", host: "satp.example.edu", origin: "https://other.example.edu" };
+  const headers = {
+    cookie: "satp_session=token",
+    host: "satp.example.edu",
+    origin: "https://other.example.edu",
+  };
   let rejected = false;
-  session.auth.requireSameOrigin({ protocol: "https", headers, get: (name) => headers[name] }, {
-    status(code) { assert.equal(code, 403); return this; },
-    json() { rejected = true; },
-  }, () => assert.fail("Cross-origin renewal must be rejected"));
+  session.auth.requireSameOrigin(
+    { protocol: "https", headers, get: (name) => headers[name] },
+    {
+      status(code) {
+        assert.equal(code, 403);
+        return this;
+      },
+      json() {
+        rejected = true;
+      },
+    },
+    () => assert.fail("Cross-origin renewal must be rejected"),
+  );
   assert.equal(rejected, true);
 });
 
@@ -128,7 +236,9 @@ function clientActivity({ visible = true, signedIn = true } = {}) {
   const timers = [];
   const document = {
     visibilityState: visible ? "visible" : "hidden",
-    addEventListener(name, handler) { events[name] = handler; },
+    addEventListener(name, handler) {
+      events[name] = handler;
+    },
   };
   const window = {
     fetch: async (url, options) => {
@@ -136,22 +246,47 @@ function clientActivity({ visible = true, signedIn = true } = {}) {
       if (fail) throw new Error("offline");
       return { ok: true };
     },
-    setInterval(callback, interval) { timers.push({ callback, interval }); return timers.length; },
-    clearInterval() {}, addEventListener() {},
+    setInterval(callback, interval) {
+      timers.push({ callback, interval });
+      return timers.length;
+    },
+    clearInterval() {},
+    addEventListener() {},
   };
   const context = vm.createContext({
-    window, document,
-    localStorage: { getItem: () => signedIn ? "42" : null },
-    Date: class extends Date { static now() { return now; } },
+    window,
+    document,
+    localStorage: { getItem: () => (signedIn ? "42" : null) },
+    Date: class extends Date {
+      static now() {
+        return now;
+      }
+    },
   });
   const source = read("client/auth-session.js");
-  vm.runInContext("let promptVisible = false;\n" + source.slice(source.indexOf("  const ACTIVITY_REFRESH_INTERVAL_MS"), source.indexOf("  const originalOpen")), context);
+  vm.runInContext(
+    "let promptVisible = false;\n" +
+      source.slice(
+        source.indexOf("  const ACTIVITY_REFRESH_INTERVAL_MS"),
+        source.indexOf("  const originalOpen"),
+      ),
+    context,
+  );
   return {
-    requests, events, timers, document, context,
-    advance: (ms) => { now += ms; },
-    offline: (value) => { fail = value; },
+    requests,
+    events,
+    timers,
+    document,
+    context,
+    advance: (ms) => {
+      now += ms;
+    },
+    offline: (value) => {
+      fail = value;
+    },
     settle: () => new Promise((resolve) => setImmediate(resolve)),
-    renewals: () => requests.filter((request) => request.url === "/api/login/activity"),
+    renewals: () =>
+      requests.filter((request) => request.url === "/api/login/activity"),
   };
 }
 
@@ -174,7 +309,11 @@ test("trusted interaction renews sessions with a throttle; synthetic events and 
     await page.settle();
   }
   assert.equal(page.renewals().length, 2);
-  assert.equal(page.requests.filter((request) => request.url === "/api/login/session").length, 8);
+  assert.equal(
+    page.requests.filter((request) => request.url === "/api/login/session")
+      .length,
+    8,
+  );
 });
 
 test("hidden or signed-out pages do not renew and returning to the visible tab counts as activity", async () => {

@@ -222,7 +222,9 @@ function activityPage() {
       timers.set(++timerId, { callback, interval });
       return timerId;
     },
-    clearInterval(id) { timers.delete(id); },
+    clearInterval(id) {
+      timers.delete(id);
+    },
     fetch: async (url) => {
       requests.push(url);
       return {
@@ -340,7 +342,8 @@ test("tab title flashes the current count without duplicate timers and restores 
   page.request(1);
   page.receive(1, "10");
   await page.context.checkNewActivity();
-  const flashTimers = () => [...page.timers.values()].filter((timer) => timer.interval === 1000);
+  const flashTimers = () =>
+    [...page.timers.values()].filter((timer) => timer.interval === 1000);
   assert.equal(flashTimers().length, 1);
   assert.equal(page.document.title, "3 new entries | SATP | Activity Log");
   flashTimers()[0].callback();
@@ -349,7 +352,10 @@ test("tab title flashes the current count without duplicate timers and restores 
   assert.equal(page.document.title, "3 new entries | SATP | Activity Log");
   await page.context.checkNewActivity();
   assert.equal(flashTimers().length, 1);
-  page.context.fetch = async () => ({ ok: true, json: async () => ({ success: 1, data: { new_entries: 5 } }) });
+  page.context.fetch = async () => ({
+    ok: true,
+    json: async () => ({ success: 1, data: { new_entries: 5 } }),
+  });
   await page.context.checkNewActivity();
   assert.equal(page.document.title, "5 new entries | SATP | Activity Log");
   assert.equal(flashTimers().length, 1);
@@ -366,11 +372,17 @@ test("one new entry uses singular wording and a zero count stops title flashing"
   page.request(1);
   page.receive(1, "10");
   let count = 1;
-  page.context.fetch = async () => ({ ok: true, json: async () => ({ success: 1, data: { new_entries: count } }) });
+  page.context.fetch = async () => ({
+    ok: true,
+    json: async () => ({ success: 1, data: { new_entries: count } }),
+  });
   await page.context.checkNewActivity();
   assert.equal(page.document.title, "1 new entry | SATP | Activity Log");
   count = 0;
   await page.context.checkNewActivity();
   assert.equal(page.document.title, "SATP | Activity Log");
-  assert.equal([...page.timers.values()].filter((timer) => timer.interval === 1000).length, 0);
+  assert.equal(
+    [...page.timers.values()].filter((timer) => timer.interval === 1000).length,
+    0,
+  );
 });

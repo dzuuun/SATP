@@ -119,15 +119,23 @@ document
     }
     const headers = Object.keys(exportRow({}));
     const book = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(book,
-      XLSX.utils.json_to_sheet(collegeRows, { header: headers }), "College");
-    XLSX.utils.book_append_sheet(book,
-      XLSX.utils.json_to_sheet(shsRows, { header: [...headers, "section"] }), "SHS");
+    XLSX.utils.book_append_sheet(
+      book,
+      XLSX.utils.json_to_sheet(collegeRows, { header: headers }),
+      "College",
+    );
+    XLSX.utils.book_append_sheet(
+      book,
+      XLSX.utils.json_to_sheet(shsRows, { header: [...headers, "section"] }),
+      "SHS",
+    );
     XLSX.writeFile(
       book,
       `Students_${new Date().toISOString().slice(0, 10)}.xlsx`,
     );
-    setSuccessMessage(`${collegeRows.length} college and ${shsRows.length} SHS students exported successfully.`);
+    setSuccessMessage(
+      `${collegeRows.length} college and ${shsRows.length} SHS students exported successfully.`,
+    );
   });
 
 async function openMssqlImport() {

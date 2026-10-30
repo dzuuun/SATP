@@ -943,6 +943,7 @@ const xlsxInput = document.getElementById("xlsxInput");
 const uploadFileForm = document.querySelector("#uploadFileForm");
 const validateFileButton = document.getElementById("validateFileButton");
 
+let importElapsedTimer = null;
 function setImportProgress(eyebrow, status, detail) {
   document.getElementById("progressEyebrow").textContent = eyebrow;
   const statusMessage = document.getElementById("statusMessage");
@@ -957,6 +958,14 @@ function setImportProgress(eyebrow, status, detail) {
   const bar = document.getElementById("validationProgressBar");
   if (bar) bar.style.width = `${progress}%`;
   if (track) track.setAttribute("aria-valuenow", String(progress));
+  const importTrack = document.getElementById("importProgressTrack");
+  const determinate = /^\d+(\.\d+)?%$/.test(String(status).trim());
+  importTrack.classList.toggle("indeterminate", !determinate);
+  if (determinate) importTrack.setAttribute("aria-valuenow", String(progress));
+  else importTrack.removeAttribute("aria-valuenow");
+  document.getElementById("importProgressBar").style.width = determinate
+    ? `${progress}%`
+    : "35%";
 }
 
 function waitForPaint() {
@@ -1068,6 +1077,17 @@ function teacherDepartments(teacher) {
   }));
 }
 
+function importTeacherDefaultDepartment(schoolId) {
+  const school = importSchoolsById.get(Number(schoolId));
+  const code = normalizeImportValue(school?.code) === "shs" ? "shs" : "-";
+  return [...importDepartmentsById.values()].find(
+    (department) =>
+      normalizeImportValue(department.department_code || department.code) ===
+        code &&
+      (code !== "shs" || Number(department.school_id) === Number(schoolId)),
+  );
+}
+
 function resolveTeachingDepartment(teacher, raw, schoolId) {
   const linked = teacherDepartments(teacher);
   const scopedDepartments = linked.filter(
@@ -1098,7 +1118,7 @@ document.getElementById("downloadLink").addEventListener("click", (event) => {
   const sheet = XLSX.utils.json_to_sheet([
     {
       SchoolYear: "2025-2026",
-      semester_id: 3,
+      Semester: "First Semester",
       StudentID: "2024-00001",
       DeptCode: "CCS",
       SubjectCode: "ENG 101",
@@ -1288,7 +1308,7 @@ async function classifySubjectRows(rows, schoolId) {
     );
     const isChsStudent = normalizeImportValue(student?.college) === "chs";
     const schoolYear = readImportColumn(raw, "SchoolYear");
-    const semesterValue = readImportColumn(raw, "semester_id", "Semester");
+    const semesterValue = readImportColumn(raw, "Semester", "semester_id");
     const subjectCode = readImportColumn(raw, "SubjectCode");
     const subjectName = readImportColumn(
       raw,
@@ -1302,7 +1322,7 @@ async function classifySubjectRows(rows, schoolId) {
     const teacher = importTeachersByName.get(
       teacherImportKey(teacherFirstName, teacherLastName),
     );
-    const fallbackTeacherDepartment = importDepartmentsByCode.get("-");
+    const fallbackTeacherDepartment = importTeacherDefaultDepartment(schoolId);
     const teacherNeedsCreation =
       !teacher &&
       Boolean(
@@ -1420,7 +1440,7 @@ async function classifySubjectRows(rows, schoolId) {
         dependencyActions.push("room will be reactivated");
       if (item.teacher_needs_creation) {
         dependencyActions.push(
-          `teacher ${item.teacher_first_name} ${item.teacher_last_name} will be created in - as Full Time`,
+          `teacher ${item.teacher_first_name} ${item.teacher_last_name} will be created in ${importTeacherDefaultDepartment(schoolId)?.department_code || importTeacherDefaultDepartment(schoolId)?.code || "the default department"} as Full Time`,
         );
       }
       if (dependencyActions.length) item.reason = dependencyActions.join("; ");
@@ -1504,7 +1524,7 @@ async function classifySubjectRows(rows, schoolId) {
       const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${enrollmentKey(item)}`;
       existingKeys.add(key);
       const preparationNote = item.teacher_needs_creation
-        ? `Teacher ${item.teacher_first_name} ${item.teacher_last_name} will be created in -; `
+        ? `Teacher ${item.teacher_first_name} ${item.teacher_last_name} will be created in ${importTeacherDefaultDepartment(schoolId)?.department_code || importTeacherDefaultDepartment(schoolId)?.code || "the default department"}; `
         : "";
       result.updated.push({
         ...item,
@@ -1558,8 +1578,9 @@ const PREVIEW_BATCH_SIZE = 250;
 
 function renderSubjectImportPreview() {
   const periodLabel = (selectId, id, fallback) => {
-    const option = [...document.querySelectorAll(`#${selectId} option`)]
-      .find((entry) => entry.value && Number(entry.value) === Number(id));
+    const option = [...document.querySelectorAll(`#${selectId} option`)].find(
+      (entry) => entry.value && Number(entry.value) === Number(id),
+    );
     return option?.textContent.trim() || String(fallback || "Not specified");
   };
   const periods = new Map();
@@ -1569,11 +1590,17 @@ function renderSubjectImportPreview() {
     ...pendingSubjectImport.errors,
   ]) {
     const raw = item.originalRow || {};
-    const year = periodLabel("selectSchoolYear", item.school_year_id,
-      readImportColumn(raw, "SchoolYear"));
-    const semesterValue = readImportColumn(raw, "semester_id", "Semester");
-    const semester = periodLabel("selectSemester", item.semester_id || semesterValue,
-      semesterValue);
+    const year = periodLabel(
+      "selectSchoolYear",
+      item.school_year_id,
+      readImportColumn(raw, "SchoolYear"),
+    );
+    const semesterValue = readImportColumn(raw, "Semester", "semester_id");
+    const semester = periodLabel(
+      "selectSemester",
+      item.semester_id || semesterValue,
+      semesterValue,
+    );
     const label = `${year} / ${semester}`;
     periods.set(label, (periods.get(label) || 0) + 1);
   }
@@ -1802,17 +1829,21 @@ document
       }
     }
 
-    const fallbackTeacherDepartment = importDepartmentsByCode.get("-");
+    const fallbackTeacherDepartment = importTeacherDefaultDepartment(
+      pendingSubjectImport.schoolId,
+    );
     for (const [teacherKey, item] of teacherDependencies) {
       try {
         if (!fallbackTeacherDepartment?.id)
-          throw new Error("The - department was not found");
+          throw new Error(
+            "The import school's default teacher department was not found",
+          );
         const teacherName =
           `${item.teacher_first_name} ${item.teacher_last_name}`.trim();
         setImportProgress(
           "Preparing teachers",
           "Please wait",
-          `Creating ${teacherName} in the - department.`,
+          `Creating ${teacherName} in the ${fallbackTeacherDepartment.department_code || fallbackTeacherDepartment.code} department.`,
         );
         const response = await fetch("/api/teacher/add", {
           method: "POST",
@@ -1963,7 +1994,8 @@ document
       ) {
         errors.push({
           ...item.originalRow,
-          Error: "Teacher could not be created in the - department",
+          Error:
+            "Teacher could not be created or linked to the import school department",
         });
         return false;
       }
@@ -2219,6 +2251,21 @@ function toggleModal(id, show = true) {
   const modal = document.getElementById(id);
   const card = document.getElementById(`${id}Card`);
   if (!modal) return;
+  if (id === "spinnerStatusModal") {
+    if (show && importElapsedTimer === null) {
+      const started = performance.now();
+      const tick = () => {
+        const seconds = Math.floor((performance.now() - started) / 1000);
+        document.getElementById("importElapsed").textContent =
+          `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} elapsed`;
+      };
+      tick();
+      importElapsedTimer = setInterval(tick, 1000);
+    } else if (!show) {
+      clearInterval(importElapsedTimer);
+      importElapsedTimer = null;
+    }
+  }
   if (show) {
     if (id === "importFileModal") {
       syncSearchableSelect(document.getElementById("importSchoolSelect"));

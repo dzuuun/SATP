@@ -422,27 +422,35 @@ document
       const first = state.rows[0];
       const teacherInfo = state.teacher || first;
       const mean = Number(teacherInfo.mean);
-      const teacherMean = Number.isFinite(mean) ? mean : average(state.rows.map((row) => row.mean));
+      const teacherMean = Number.isFinite(mean)
+        ? mean
+        : average(state.rows.map((row) => row.mean));
       const displayed = (id) => document.getElementById(id).textContent.trim();
-      await downloadRatingTextPdf({
-        ratingType: reportConfig.title === "Institutional Rating Report" ? "institutional" : "individual",
-        teacherMean,
-        report: {
-          teacherName: displayed("teacher"),
-          schoolYear: displayed("schoolYear"),
-          semester: displayed("semester"),
-          college: displayed("college"),
-          department: displayed("department"),
-          subjectCode: "",
-          subjectName: displayed("subject"),
-          subjectLabel: displayed("subject"),
-          dateGenerated: displayed("dateGenerated"),
-          qualitativeLabel: getQualitativeEquivalent(teacherMean),
-          respondents: Number(first.respondents) || 0,
-          items: state.rows,
-          comments: state.comments.map((row) => String(row.comment ?? "")),
+      await downloadRatingTextPdf(
+        {
+          ratingType:
+            reportConfig.title === "Institutional Rating Report"
+              ? "institutional"
+              : "individual",
+          teacherMean,
+          report: {
+            teacherName: displayed("teacher"),
+            schoolYear: displayed("schoolYear"),
+            semester: displayed("semester"),
+            college: displayed("college"),
+            department: displayed("department"),
+            subjectCode: "",
+            subjectName: displayed("subject"),
+            subjectLabel: displayed("subject"),
+            dateGenerated: displayed("dateGenerated"),
+            qualitativeLabel: getQualitativeEquivalent(teacherMean),
+            respondents: Number(first.respondents) || 0,
+            items: state.rows,
+            comments: state.comments.map((row) => String(row.comment ?? "")),
+          },
         },
-      }, getReportFilename());
+        getReportFilename(),
+      );
     } catch (error) {
       console.error("PDF generation error:", error);
       showToast(error.message || "Unable to generate the PDF report.");

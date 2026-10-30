@@ -30,7 +30,9 @@ function showTransactionStatus(message, error = false) {
 function updateLoadRecordsButton(loaded = false) {
   const button = document.getElementById("btnSearch");
   if (!button) return;
-  button.querySelector("span").textContent = loaded ? "Refresh" : "Load records";
+  button.querySelector("span").textContent = loaded
+    ? "Refresh"
+    : "Load records";
   const icon = button.querySelector("i");
   icon?.classList.toggle("bi-search", !loaded);
   icon?.classList.toggle("bi-arrow-clockwise", loaded);
@@ -215,9 +217,11 @@ async function refreshTransactions() {
     !localStorage.getItem("user_id") ||
     !state.recordsLoaded ||
     state.loadingRecords ||
-    document.getElementById("loadSchoolYear").value !== String(state.school_year_id) ||
+    document.getElementById("loadSchoolYear").value !==
+      String(state.school_year_id) ||
     document.getElementById("loadSemester").value !== String(state.semester_id)
-  ) return;
+  )
+    return;
   await API.loadData(state, { background: true });
 }
 
@@ -622,6 +626,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       ? String(currentSchoolYear.id)
       : "";
     state.currentSchoolYearName = currentSchoolYear?.name || "";
+    for (const [id, flag] of [
+      ["shsRatingAccessPeriod", "is_current_shs"],
+      ["collegeRatingAccessPeriod", "is_current_college"],
+    ]) {
+      const semester = state.availableSemesters.find(
+        (row) => Number(row[flag]) === 1 && Number(row.is_active) === 1,
+      );
+      document.getElementById(id).textContent =
+        `${state.currentSchoolYearName || "No active school year"} / ${semester?.name || "No active semester"}`;
+    }
 
     if (canManageRatingAccess) {
       [

@@ -8,13 +8,16 @@ const { pathToFileURL } = require("node:url");
 const { spawn } = require("node:child_process");
 const assert = require("node:assert/strict");
 const { inflateSync } = require("node:zlib");
-const { exportRatingPdf } = require("../api/reports/rating/rating_pdf.controller");
+const {
+  exportRatingPdf,
+} = require("../api/reports/rating/rating_pdf.controller");
 const root = path.resolve(__dirname, "..");
 const chrome =
   process.env.CHROME_PATH ||
   "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-const ratingModal = fs.readFileSync(path.join(root, "client/report/rating/index.html"), "utf8")
+const ratingModal = fs
+  .readFileSync(path.join(root, "client/report/rating/index.html"), "utf8")
   .match(/<div\s+id="loadingModal"[\s\S]*?(?=<div id="toast-container")/)[0];
 const fixture =
   '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><base href="/report/rating/"><link rel="stylesheet" href="/tailwind.css"><link rel="stylesheet" href="/report/rating/style.css"><link rel="stylesheet" href="/report/rating/individual/style.css"></head><body><div id="fixture"><h1>SATP export verification</h1><p>Patched PDF dependencies.</p></div>' +
@@ -34,19 +37,46 @@ const server = http.createServer(async (req, res) => {
     const chunks = [];
     for await (const chunk of req) chunks.push(chunk);
     req.body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
-    res.status = (code) => { res.statusCode = code; return res; };
-    res.type = (type) => { res.setHeader("Content-Type", type); return res; };
-    res.set = (key, value) => { res.setHeader(key, value); return res; };
-    res.json = (data) => { res.setHeader("Content-Type", "application/json"); res.end(JSON.stringify(data)); return res; };
+    res.status = (code) => {
+      res.statusCode = code;
+      return res;
+    };
+    res.type = (type) => {
+      res.setHeader("Content-Type", type);
+      return res;
+    };
+    res.set = (key, value) => {
+      res.setHeader(key, value);
+      return res;
+    };
+    res.json = (data) => {
+      res.setHeader("Content-Type", "application/json");
+      res.end(JSON.stringify(data));
+      return res;
+    };
     res.send = (data) => {
       const source = data.toString("latin1");
       assert.match(source, /\/ToUnicode/);
       assert.match(source, /\/Font/);
-      const textStreams = [...source.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)].flatMap((match) => {
-        try { return [inflateSync(Buffer.from(match[1], "latin1")).toString("latin1")]; } catch { return []; }
+      const textStreams = [
+        ...source.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g),
+      ].flatMap((match) => {
+        try {
+          return [
+            inflateSync(Buffer.from(match[1], "latin1")).toString("latin1"),
+          ];
+        } catch {
+          return [];
+        }
       });
-      assert.ok(textStreams.some((stream) => /\bBT\b/.test(stream) && /\bTj\b/.test(stream)), "PDF contains real text drawing commands");
-      if (process.env.SATP_EXPORT_PREVIEW) fs.writeFileSync(`${process.env.SATP_EXPORT_PREVIEW}-text.pdf`, data);
+      assert.ok(
+        textStreams.some(
+          (stream) => /\bBT\b/.test(stream) && /\bTj\b/.test(stream),
+        ),
+        "PDF contains real text drawing commands",
+      );
+      if (process.env.SATP_EXPORT_PREVIEW)
+        fs.writeFileSync(`${process.env.SATP_EXPORT_PREVIEW}-text.pdf`, data);
       res.end(data);
       return res;
     };
@@ -59,17 +89,27 @@ const server = http.createServer(async (req, res) => {
     return res.end(fixture);
   }
   const clientRoot = path.join(root, "client");
-  const file = path.resolve(clientRoot, "." + new URL(req.url, "http://localhost").pathname);
-  if (!file.startsWith(clientRoot + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {
+  const file = path.resolve(
+    clientRoot,
+    "." + new URL(req.url, "http://localhost").pathname,
+  );
+  if (
+    !file.startsWith(clientRoot + path.sep) ||
+    !fs.existsSync(file) ||
+    !fs.statSync(file).isFile()
+  ) {
     res.writeHead(404);
     return res.end();
   }
-  res.setHeader("Content-Type", {
-    ".js": "application/javascript",
-    ".css": "text/css",
-    ".png": "image/png",
-    ".jpg": "image/jpeg",
-  }[path.extname(file)] || "application/octet-stream");
+  res.setHeader(
+    "Content-Type",
+    {
+      ".js": "application/javascript",
+      ".css": "text/css",
+      ".png": "image/png",
+      ".jpg": "image/jpeg",
+    }[path.extname(file)] || "application/octet-stream",
+  );
   fs.createReadStream(file).pipe(res);
 });
 let browser, socket;
@@ -77,14 +117,25 @@ let browser, socket;
 async function verifyBulkExport() {
   const elapsedSamples = [];
   const elapsedObserver = new MutationObserver(() => {
-    elapsedSamples.push({ time: document.getElementById("exportElapsed").textContent,
+    elapsedSamples.push({
+      time: document.getElementById("exportElapsed").textContent,
       reports: document.getElementById("exportProgressLabel").textContent,
-      stage: document.getElementById("loadingModal").dataset.stage });
+      stage: document.getElementById("loadingModal").dataset.stage,
+    });
   });
-  elapsedObserver.observe(document.getElementById("exportElapsed"), { childList: true });
+  elapsedObserver.observe(document.getElementById("exportElapsed"), {
+    childList: true,
+  });
   const originalHtml2pdf = window.html2pdf;
-  window.html2pdf = () => { throw new Error("ZIP exports must use native text PDFs."); };
-  for (const id of ["bulkExportButton", "teacherExportButton", "exportMenuButton", "generateButton"]) {
+  window.html2pdf = () => {
+    throw new Error("ZIP exports must use native text PDFs.");
+  };
+  for (const id of [
+    "bulkExportButton",
+    "teacherExportButton",
+    "exportMenuButton",
+    "generateButton",
+  ]) {
     const element = document.createElement("button");
     element.id = id;
     document.body.appendChild(element);
@@ -93,76 +144,161 @@ async function verifyBulkExport() {
   let exportMessage;
   window.showLoading = (message) => ratingExportProgress.open({ message });
   window.hideLoading = () => ratingExportProgress.close();
-  window.updateTeacherExportState = () => { document.getElementById("teacherExportButton").disabled = false; };
+  window.updateTeacherExportState = () => {
+    document.getElementById("teacherExportButton").disabled = false;
+  };
   const updates = [];
   const updateProgress = ratingExportProgress.update;
   ratingExportProgress.update = (progress) => {
     updateProgress(progress);
-    updates.push({ ...progress, value: document.getElementById("exportProgress").getAttribute("aria-valuenow") });
+    updates.push({
+      ...progress,
+      value: document
+        .getElementById("exportProgress")
+        .getAttribute("aria-valuenow"),
+    });
   };
-  window.showToast = (message) => { exportMessage = message; };
-  window.saveZipBlob = (blob) => { exportedZip = blob; };
+  window.showToast = (message) => {
+    exportMessage = message;
+  };
+  window.saveZipBlob = (blob) => {
+    exportedZip = blob;
+  };
   window.requestJson = async () => ({
     data: {
       ratings: Array.from({ length: 25 }, (_, index) => ({
-        teacher_id: 1, subject_id: 1, teacher_name: "Quality Check Teacher",
-        subject_code: "QA101", subject_name: "Export Quality", school_year: "2026-2027",
-        semester: "First Semester", college: "Sample College", department: "Sample Department",
-        respondents: 10, category: index < 12 ? "Instruction" : "Assessment",
-        number: index + 1, question: "Explains course material clearly and gives useful feedback.",
-        mean: 4.5, rating_count: 10,
+        teacher_id: 1,
+        subject_id: 1,
+        teacher_name: "Quality Check Teacher",
+        subject_code: "QA101",
+        subject_name: "Export Quality",
+        school_year: "2026-2027",
+        semester: "First Semester",
+        college: "Sample College",
+        department: "Sample Department",
+        respondents: 10,
+        category: index < 12 ? "Instruction" : "Assessment",
+        number: index + 1,
+        question: "Explains course material clearly and gives useful feedback.",
+        mean: 4.5,
+        rating_count: 10,
       })),
       comments: Array.from({ length: 20 }, (_, index) => ({
-        teacher_id: 1, subject_id: 1,
+        teacher_id: 1,
+        subject_id: 1,
         comment: `Comment ${index + 1}: Clear explanations and helpful feedback throughout the course.`,
       })),
     },
   });
   document.getElementById("bulkExportButton").focus();
   await exportIndividualRatings({
-    schoolYearId: 1, semesterId: 1, schoolYearName: "2026-2027", semesterName: "First Semester",
+    schoolYearId: 1,
+    semesterId: 1,
+    schoolYearName: "2026-2027",
+    semesterName: "First Semester",
   });
-  if (!exportedZip) throw new Error(exportMessage || "Bulk export produced no ZIP.");
+  if (!exportedZip)
+    throw new Error(exportMessage || "Bulk export produced no ZIP.");
   elapsedObserver.disconnect();
-  if (!elapsedSamples.some((sample) => sample.stage === "rendering" && sample.reports === "0 of 1 reports ready" && sample.time !== "0:00 elapsed")) {
-    throw new Error("Elapsed time did not advance while the first report was being prepared.");
+  if (
+    !elapsedSamples.some(
+      (sample) =>
+        sample.stage === "rendering" &&
+        sample.reports === "0 of 1 reports ready" &&
+        sample.time !== "0:00 elapsed",
+    )
+  ) {
+    throw new Error(
+      "Elapsed time did not advance while the first report was being prepared.",
+    );
   }
   window.html2pdf = originalHtml2pdf;
-  if (!updates.some((update) => update.stage === "rendering" && update.completed === 0 && update.value === "0") ||
-      !updates.some((update) => update.stage === "rendering" && update.completed === 1 && update.value === "100") ||
-      !updates.some((update) => update.stage === "packaging") || updates.at(-1).stage !== "ready") {
+  if (
+    !updates.some(
+      (update) =>
+        update.stage === "rendering" &&
+        update.completed === 0 &&
+        update.value === "0",
+    ) ||
+    !updates.some(
+      (update) =>
+        update.stage === "rendering" &&
+        update.completed === 1 &&
+        update.value === "100",
+    ) ||
+    !updates.some((update) => update.stage === "packaging") ||
+    updates.at(-1).stage !== "ready"
+  ) {
     throw new Error("Export modal did not follow actual PDF and ZIP progress.");
   }
   const modal = document.getElementById("loadingModal");
-  if (modal.getAttribute("aria-hidden") !== "true" || document.activeElement.id !== "bulkExportButton") {
+  if (
+    modal.getAttribute("aria-hidden") !== "true" ||
+    document.activeElement.id !== "bulkExportButton"
+  ) {
     throw new Error("Export modal did not close and restore keyboard focus.");
   }
   const zip = await JSZip.loadAsync(await exportedZip.arrayBuffer());
   const files = Object.values(zip.files).filter((file) => !file.dir);
-  if (files.length !== 1 || !files[0].name.endsWith(".pdf")) throw new Error("Bulk ZIP report missing.");
+  if (files.length !== 1 || !files[0].name.endsWith(".pdf"))
+    throw new Error("Bulk ZIP report missing.");
   const bytes = await files[0].async("uint8array");
   const pdf = new TextDecoder("latin1").decode(bytes);
-  const widths = [...pdf.matchAll(/\/Subtype\s*\/Image[\s\S]*?\/Width\s+(\d+)/g)].map((match) => Number(match[1]));
+  const widths = [
+    ...pdf.matchAll(/\/Subtype\s*\/Image[\s\S]*?\/Width\s+(\d+)/g),
+  ].map((match) => Number(match[1]));
   const pages = (pdf.match(/\/Type\s*\/Page\b/g) || []).length;
-  if (!pdf.startsWith("%PDF-") || !pdf.includes("/ToUnicode") || widths.some((width) => width > 2000)) {
-    throw new Error("Bulk PDF must contain native text and only small logo images.");
+  if (
+    !pdf.startsWith("%PDF-") ||
+    !pdf.includes("/ToUnicode") ||
+    widths.some((width) => width > 2000)
+  ) {
+    throw new Error(
+      "Bulk PDF must contain native text and only small logo images.",
+    );
   }
   if (pages < 2) throw new Error("Multi-page bulk report was truncated.");
-  if (document.querySelector(".html2pdf-report")) throw new Error("Bulk export did not remove its rendered clone.");
+  if (document.querySelector(".html2pdf-report"))
+    throw new Error("Bulk export did not remove its rendered clone.");
   exportedZip = null;
-  window.requestJson = async () => { throw new Error("Test request failed"); };
-  await exportIndividualRatings({ teacherId: 1, teacherName: "Quality Check Teacher" });
-  if (exportedZip || exportMessage !== "Test request failed" || modal.getAttribute("aria-hidden") !== "true" ||
-      document.body.classList.contains("overflow-hidden") || document.getElementById("exportMenuButton").disabled) {
+  window.requestJson = async () => {
+    throw new Error("Test request failed");
+  };
+  await exportIndividualRatings({
+    teacherId: 1,
+    teacherName: "Quality Check Teacher",
+  });
+  if (
+    exportedZip ||
+    exportMessage !== "Test request failed" ||
+    modal.getAttribute("aria-hidden") !== "true" ||
+    document.body.classList.contains("overflow-hidden") ||
+    document.getElementById("exportMenuButton").disabled
+  ) {
     throw new Error("Failed export did not release the modal and controls.");
   }
   ratingExportProgress.open({ message: "Loading report options..." });
-  if (modal.dataset.mode !== "loading" || getComputedStyle(document.querySelector(".rating-export-details")).display !== "none") {
+  if (
+    modal.dataset.mode !== "loading" ||
+    getComputedStyle(document.querySelector(".rating-export-details"))
+      .display !== "none"
+  ) {
     throw new Error("Export details leaked into normal options loading.");
   }
   ratingExportProgress.close();
-  return { pdfBytes: bytes.byteLength, pages, imageWidths: widths, nativeText: true,
-    elapsedDuringFirstReport: elapsedSamples.filter((sample) => sample.stage === "rendering" && sample.reports === "0 of 1 reports ready").map((sample) => sample.time) };
+  return {
+    pdfBytes: bytes.byteLength,
+    pages,
+    imageWidths: widths,
+    nativeText: true,
+    elapsedDuringFirstReport: elapsedSamples
+      .filter(
+        (sample) =>
+          sample.stage === "rendering" &&
+          sample.reports === "0 of 1 reports ready",
+      )
+      .map((sample) => sample.time),
+  };
 }
 
 async function main() {
@@ -215,7 +351,8 @@ async function main() {
   const pending = new Map();
   socket.addEventListener("message", (event) => {
     const message = JSON.parse(event.data);
-    if (message.method === "Runtime.exceptionThrown") browserErrors.push(message.params.exceptionDetails);
+    if (message.method === "Runtime.exceptionThrown")
+      browserErrors.push(message.params.exceptionDetails);
     if (!pending.has(message.id)) return;
     const { resolve, reject } = pending.get(message.id);
     pending.delete(message.id);
@@ -283,7 +420,9 @@ async function main() {
     timeout: 30000,
   });
   if (result.exceptionDetails)
-    throw new Error(JSON.stringify({ evaluation: result.exceptionDetails, browserErrors }));
+    throw new Error(
+      JSON.stringify({ evaluation: result.exceptionDetails, browserErrors }),
+    );
   assert.ok(result.result.value.tableBytes > 1000);
   assert.ok(result.result.value.htmlPdfBytes > 1000);
   const bulkResult = await command("Runtime.evaluate", {
@@ -296,7 +435,10 @@ async function main() {
     throw new Error(JSON.stringify(bulkResult.exceptionDetails));
   for (const width of [1024, 360]) {
     await command("Emulation.setDeviceMetricsOverride", {
-      width, height: 800, deviceScaleFactor: 1, mobile: false,
+      width,
+      height: 800,
+      deviceScaleFactor: 1,
+      mobile: false,
     });
     const dialogResult = await command("Runtime.evaluate", {
       expression: `(() => {
@@ -316,24 +458,45 @@ async function main() {
       })()`,
       returnByValue: true,
     });
-    if (dialogResult.exceptionDetails) throw new Error(JSON.stringify(dialogResult.exceptionDetails));
+    if (dialogResult.exceptionDetails)
+      throw new Error(JSON.stringify(dialogResult.exceptionDetails));
     if (process.env.SATP_EXPORT_PREVIEW) {
       // Allow the modal's opacity transition to finish before the screenshot.
       await pause(300);
-      const screenshot = await command("Page.captureScreenshot", { format: "png" });
-      fs.writeFileSync(`${process.env.SATP_EXPORT_PREVIEW}-${width}.png`, Buffer.from(screenshot.data, "base64"));
+      const screenshot = await command("Page.captureScreenshot", {
+        format: "png",
+      });
+      fs.writeFileSync(
+        `${process.env.SATP_EXPORT_PREVIEW}-${width}.png`,
+        Buffer.from(screenshot.data, "base64"),
+      );
     }
-    await command("Runtime.evaluate", { expression: "ratingExportProgress.close()" });
+    await command("Runtime.evaluate", {
+      expression: "ratingExportProgress.close()",
+    });
   }
   if (process.env.SATP_EXPORT_PREVIEW) {
-    await command("Emulation.setDeviceMetricsOverride", { width: 1024, height: 1100, deviceScaleFactor: 1, mobile: false });
-    await command("Page.navigate", { url: pathToFileURL(`${process.env.SATP_EXPORT_PREVIEW}-text.pdf`).href });
+    await command("Emulation.setDeviceMetricsOverride", {
+      width: 1024,
+      height: 1100,
+      deviceScaleFactor: 1,
+      mobile: false,
+    });
+    await command("Page.navigate", {
+      url: pathToFileURL(`${process.env.SATP_EXPORT_PREVIEW}-text.pdf`).href,
+    });
     await pause(1500);
-    const screenshot = await command("Page.captureScreenshot", { format: "png" });
-    fs.writeFileSync(`${process.env.SATP_EXPORT_PREVIEW}-pdf.png`, Buffer.from(screenshot.data, "base64"));
+    const screenshot = await command("Page.captureScreenshot", {
+      format: "png",
+    });
+    fs.writeFileSync(
+      `${process.env.SATP_EXPORT_PREVIEW}-pdf.png`,
+      Buffer.from(screenshot.data, "base64"),
+    );
   }
   console.log(
-    "Chrome export checks passed: " + JSON.stringify({ ...result.result.value, bulk: bulkResult.result.value }),
+    "Chrome export checks passed: " +
+      JSON.stringify({ ...result.result.value, bulk: bulkResult.result.value }),
   );
 }
 

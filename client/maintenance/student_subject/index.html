@@ -697,10 +697,34 @@
         id="spinnerStatusModalCard"
         class="modal-card progress-card scale-95"
       >
-        <span class="progress-spinner"></span>
-        <p id="progressEyebrow" class="eyebrow">Import in progress</p>
-        <h2 id="statusMessage">0%</h2>
-        <p id="progressDetail">Please keep this page open.</p>
+        <div class="import-progress-heading">
+          <div>
+            <p class="eyebrow">Student courses</p>
+            <h2>Importing enrollment records</h2>
+          </div>
+          <span class="progress-spinner" aria-hidden="true"></span>
+        </div>
+        <div class="import-progress-summary" role="status" aria-live="polite">
+          <p id="progressEyebrow">Import in progress</p>
+          <p id="progressDetail">Please keep this page open.</p>
+        </div>
+        <div class="import-progress-label">
+          <span>Progress</span><strong id="statusMessage">0%</strong>
+        </div>
+        <div
+          id="importProgressTrack"
+          role="progressbar"
+          aria-label="Current import stage"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        >
+          <div id="importProgressBar"></div>
+        </div>
+        <footer class="import-progress-footer">
+          <span>Keep this page open while we process your records.</span
+          ><span id="importElapsed">0:00 elapsed</span>
+        </footer>
       </div>
     </div>
     <div

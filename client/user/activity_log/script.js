@@ -45,9 +45,10 @@ function flashActivityTitle(count) {
   document.title = title;
   if (activityTitleTimer === null) {
     activityTitleTimer = setInterval(() => {
-      document.title = document.title === activityPageTitle
-        ? pendingActivityTitle
-        : activityPageTitle;
+      document.title =
+        document.title === activityPageTitle
+          ? pendingActivityTitle
+          : activityPageTitle;
     }, 1000);
   }
 }

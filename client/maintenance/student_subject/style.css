@@ -629,3 +629,125 @@
   overflow-y: auto;
   overflow-wrap: anywhere;
 }
+#spinnerStatusModalCard {
+  display: block;
+  width: min(520px, calc(100vw - 32px));
+  max-width: 520px;
+  min-height: 0;
+  padding: 30px;
+  text-align: left;
+  border-radius: 24px;
+}
+.import-progress-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+#spinnerStatusModalCard .import-progress-heading h2 {
+  font-size: 24px;
+  line-height: 1.3;
+  margin: 8px 0 0;
+}
+#spinnerStatusModalCard .progress-spinner {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  margin: 0;
+}
+.import-progress-summary {
+  margin: 26px 0;
+  padding: 16px;
+  background: #f5f9f7;
+  border: 1px solid #dce8e1;
+  border-radius: 14px;
+}
+#progressEyebrow {
+  font-weight: 700;
+  color: #075c40;
+  margin: 0 0 8px;
+}
+#spinnerStatusModalCard #progressDetail {
+  min-height: 0;
+  margin: 0;
+  justify-content: flex-start;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.import-progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+#spinnerStatusModalCard #statusMessage {
+  margin: 0;
+  font-size: 15px;
+  color: #075c40;
+}
+#importProgressTrack {
+  width: 100%;
+  height: 8px;
+  background: #e8efeb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+#importProgressBar {
+  height: 100%;
+  width: 0;
+  background: #008052;
+  border-radius: inherit;
+  transition: width 0.25s ease;
+}
+#importProgressTrack.indeterminate #importProgressBar {
+  animation: import-progress-slide 1.5s ease-in-out infinite alternate;
+}
+.import-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid #dce8e1;
+  padding-top: 18px;
+  margin-top: 30px;
+  font-size: 11px;
+  color: #687c71;
+}
+#importElapsed {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+@keyframes import-progress-slide {
+  to {
+    transform: translateX(185%);
+  }
+}
+@media (max-width: 480px) {
+  #spinnerStatusModalCard {
+    padding: 22px;
+  }
+  .import-progress-footer {
+    flex-wrap: wrap;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #importProgressBar {
+    transition: none;
+  }
+  #importProgressTrack.indeterminate #importProgressBar {
+    animation: none;
+  }
+}
+#spinnerStatusModalCard {
+  justify-items: stretch;
+  align-items: stretch;
+}
+#spinnerStatusModalCard > .import-progress-heading,
+#spinnerStatusModalCard > .import-progress-summary,
+#spinnerStatusModalCard > .import-progress-label,
+#spinnerStatusModalCard > .import-progress-footer {
+  width: 100%;
+  box-sizing: border-box;
+}

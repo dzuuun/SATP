@@ -166,22 +166,33 @@
       document.visibilityState === "hidden" ||
       (event && !event.isTrusted) ||
       activityRefreshPending
-    ) return;
+    )
+      return;
     const now = Date.now();
     if (now - lastActivityRefreshAt < ACTIVITY_REFRESH_INTERVAL_MS) return;
     lastActivityRefreshAt = now;
     activityRefreshPending = true;
-    window.fetch("/api/login/activity", {
-      method: "POST",
-      credentials: "same-origin",
-      cache: "no-store",
-      keepalive: true,
-    }).catch(() => {}).finally(() => {
-      activityRefreshPending = false;
-    });
+    window
+      .fetch("/api/login/activity", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        keepalive: true,
+      })
+      .catch(() => {})
+      .finally(() => {
+        activityRefreshPending = false;
+      });
   }
 
-  ["pointerdown", "pointermove", "keydown", "input", "scroll", "touchstart"].forEach((name) => {
+  [
+    "pointerdown",
+    "pointermove",
+    "keydown",
+    "input",
+    "scroll",
+    "touchstart",
+  ].forEach((name) => {
     document.addEventListener(name, refreshSessionForActivity, {
       capture: true,
       passive: true,

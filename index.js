@@ -40,14 +40,21 @@ if (enforceHttps && !trustProxy) {
 // reach this Express process.
 const requestLogTime = new Intl.DateTimeFormat("sv-SE", {
   timeZone: "Asia/Shanghai",
-  year: "numeric", month: "2-digit", day: "2-digit",
-  hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23",
 });
-app.use(morgan((tokens, req, res) => {
-  const ip = tokens["remote-addr"](req, res) || "-";
-  const time = requestLogTime.format(new Date());
-  return `[${time} +08:00] ${ip} ${morgan.dev(tokens, req, res)}`;
-}));
+app.use(
+  morgan((tokens, req, res) => {
+    const ip = tokens["remote-addr"](req, res) || "-";
+    const time = requestLogTime.format(new Date());
+    return `[${time} +08:00] ${ip} ${morgan.dev(tokens, req, res)}`;
+  }),
+);
 
 app.use((req, res, next) => {
   const cameThroughProxy = Boolean(req.get("x-forwarded-proto"));

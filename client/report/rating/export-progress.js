@@ -18,12 +18,25 @@
       `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} elapsed`;
   }
 
-  function update({ stage = "loading", completed = 0, total = 0, percent = 0, teacher = "", course = "" } = {}) {
+  function update({
+    stage = "loading",
+    completed = 0,
+    total = 0,
+    percent = 0,
+    teacher = "",
+    course = "",
+  } = {}) {
     const modal = get("loadingModal");
     modal.dataset.stage = stage;
-    const stageIndex = stage === "ready" ? stages.length : stages.indexOf(stage);
+    const stageIndex =
+      stage === "ready" ? stages.length : stages.indexOf(stage);
     modal.querySelectorAll("[data-export-stage]").forEach((step, index) => {
-      step.dataset.state = index < stageIndex ? "complete" : index === stageIndex ? "active" : "pending";
+      step.dataset.state =
+        index < stageIndex
+          ? "complete"
+          : index === stageIndex
+            ? "active"
+            : "pending";
       if (index === stageIndex) step.setAttribute("aria-current", "step");
       else step.removeAttribute("aria-current");
     });
@@ -31,17 +44,33 @@
     const rendering = stage === "rendering";
     const packaging = stage === "packaging";
     const ready = stage === "ready";
-    const progress = ready ? 100 : rendering && total ? completed / total * 100 : packaging ? percent : 0;
+    const progress = ready
+      ? 100
+      : rendering && total
+        ? (completed / total) * 100
+        : packaging
+          ? percent
+          : 0;
     const value = Math.max(0, Math.min(100, progress));
-    setText("loadingMessage", ready
-      ? "Your reports are ready. Starting your download..."
-      : rendering ? "Creating a PDF for each course rating."
-      : packaging ? "All reports are prepared. Packaging your ZIP file..."
-      : "Finding completed ratings for the selected period...");
-    get("exportProgressLabel").textContent = ready ? "Ready to download"
-      : rendering ? `${completed} of ${total} reports ready`
-      : packaging ? "Packaging ZIP" : "Loading ratings";
-    get("exportProgressValue").textContent = stage === "loading" ? "Please wait" : `${Math.floor(value)}%`;
+    setText(
+      "loadingMessage",
+      ready
+        ? "Your reports are ready. Starting your download..."
+        : rendering
+          ? "Creating a PDF for each course rating."
+          : packaging
+            ? "All reports are prepared. Packaging your ZIP file..."
+            : "Finding completed ratings for the selected period...",
+    );
+    get("exportProgressLabel").textContent = ready
+      ? "Ready to download"
+      : rendering
+        ? `${completed} of ${total} reports ready`
+        : packaging
+          ? "Packaging ZIP"
+          : "Loading ratings";
+    get("exportProgressValue").textContent =
+      stage === "loading" ? "Please wait" : `${Math.floor(value)}%`;
     get("exportProgressFill").style.width = `${value}%`;
     const bar = get("exportProgress");
     if (stage === "loading") bar.removeAttribute("aria-valuenow");
@@ -49,11 +78,19 @@
     bar.setAttribute("aria-valuetext", get("exportProgressLabel").textContent);
     get("exportCurrentReport").textContent = rendering
       ? [teacher, course].filter(Boolean).join(" / ")
-      : ready ? "Check your browser's downloads for the ZIP file."
-      : packaging ? `${total} course report${total === 1 ? "" : "s"} included` : "";
+      : ready
+        ? "Check your browser's downloads for the ZIP file."
+        : packaging
+          ? `${total} course report${total === 1 ? "" : "s"} included`
+          : "";
   }
 
-  function open({ message = "Loading report options...", exporting = false, scope = "All teachers", period = "" } = {}) {
+  function open({
+    message = "Loading report options...",
+    exporting = false,
+    scope = "All teachers",
+    period = "",
+  } = {}) {
     clearInterval(clock);
     clock = null;
     if (!active) {
@@ -63,7 +100,9 @@
     active = true;
     const modal = get("loadingModal");
     modal.dataset.mode = exporting ? "export" : "loading";
-    get("loadingTitle").textContent = exporting ? "Exporting rating reports" : "Loading report options";
+    get("loadingTitle").textContent = exporting
+      ? "Exporting rating reports"
+      : "Loading report options";
     get("exportScope").textContent = scope;
     get("exportPeriod").textContent = period;
     update();
@@ -88,7 +127,8 @@
     modal.classList.add("invisible");
     modal.setAttribute("aria-hidden", "true");
     if (!previouslyLocked) document.body.classList.remove("overflow-hidden");
-    if (previousFocus?.isConnected && !previousFocus.disabled) previousFocus.focus({ preventScroll: true });
+    if (previousFocus?.isConnected && !previousFocus.disabled)
+      previousFocus.focus({ preventScroll: true });
   }
 
   document.addEventListener("keydown", (event) => {
@@ -97,7 +137,8 @@
     get("loadingModalCard").focus({ preventScroll: true });
   });
   document.addEventListener("focusin", (event) => {
-    if (active && !get("loadingModal").contains(event.target)) get("loadingModalCard").focus({ preventScroll: true });
+    if (active && !get("loadingModal").contains(event.target))
+      get("loadingModalCard").focus({ preventScroll: true });
   });
   window.ratingExportProgress = { open, update, close };
 })();

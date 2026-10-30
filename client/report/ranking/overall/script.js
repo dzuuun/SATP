@@ -371,7 +371,6 @@ async function loadSidebar() {
 }
 
 function getReportFilename() {
-
   return `SATP ${reportConfig.fileLabel} Ranking Report - ${new Date().toISOString().slice(0, 10)}.pdf`;
 }
 
