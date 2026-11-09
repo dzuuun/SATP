@@ -332,7 +332,7 @@ dropZone.addEventListener("drop", (e) => {
 // --- XLSX IMPORT PREVIEW & EXECUTION ---
 const uploadFileForm = document.querySelector("#uploadFileForm");
 const runImportButton = document.getElementById("runImportButton");
-let pendingImport = { created: [], updated: [], errors: [] };
+let pendingImport = { created: [], updated: [], unchanged: [], errors: [] };
 
 uploadFileForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -395,7 +395,7 @@ function classifyRoomRows(rows, existingRooms) {
     existingRooms.map((room) => [normalizeRoomName(room.name), room]),
   );
   const seenFileNames = new Set();
-  const result = { created: [], updated: [], errors: [] };
+  const result = { created: [], updated: [], unchanged: [], errors: [] };
 
   rows.slice(0, 500).forEach((row, index) => {
     const rowNumber = index + 2;
@@ -431,7 +431,10 @@ function classifyRoomRows(rows, existingRooms) {
     const existing = existingByName.get(normalizedName);
 
     if (existing) {
-      result.updated.push({
+      (Number(existing.is_active) === 1
+        ? result.unchanged
+        : result.updated
+      ).push({
         rowNumber,
         id: existing.id,
         name,
@@ -469,6 +472,7 @@ function renderImportPreview(result) {
   const groups = [
     ["created", "createdPreview", "createdCount", "Will be created"],
     ["updated", "updatedPreview", "updatedCount", "Existing room"],
+    ["unchanged", "unchangedPreview", "unchangedCount", "No changes"],
     ["errors", "errorPreview", "errorCount", ""],
   ];
 
@@ -535,7 +539,12 @@ runImportButton.addEventListener("click", async () => {
   toggleModal("importPreviewModal", false);
   setTimeout(() => toggleModal("spinnerStatusModal", true), 300);
 
-  const completed = { created: 0, updated: 0, skipped: 0, errors: 0 };
+  const completed = {
+    created: 0,
+    updated: 0,
+    skipped: pendingImport.unchanged.length,
+    errors: 0,
+  };
 
   for (let index = 0; index < actions.length; index++) {
     const { type, room } = actions[index];
@@ -573,7 +582,7 @@ runImportButton.addEventListener("click", async () => {
 
   toggleModal("spinnerStatusModal", false);
   uploadFileForm.reset();
-  pendingImport = { created: [], updated: [], errors: [] };
+  pendingImport = { created: [], updated: [], unchanged: [], errors: [] };
   refreshGrid();
 
   if (errorRows.length > 0) {

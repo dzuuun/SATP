@@ -87,17 +87,15 @@ async function exportRatingPdf(req, res) {
       error.pdfCode || "PDF_UNKNOWN",
       error.message,
     );
-    return res
-      .status(error.status || 500)
-      .json({
-        success: 0,
-        code: pdfErrors[error.pdfCode] ? error.pdfCode : "PDF_UNKNOWN",
-        message:
-          error.status === 503
-            ? error.message
-            : pdfErrors[error.pdfCode] ||
-              "Unable to generate the text PDF. Please try again.",
-      });
+    return res.status(error.status || 500).json({
+      success: 0,
+      code: pdfErrors[error.pdfCode] ? error.pdfCode : "PDF_UNKNOWN",
+      message:
+        error.status === 503
+          ? error.message
+          : pdfErrors[error.pdfCode] ||
+            "Unable to generate the text PDF. Please try again.",
+    });
   }
 }
 

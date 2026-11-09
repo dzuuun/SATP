@@ -60,6 +60,33 @@ const teacherKey = (givenname, surname) =>
     .replace(/[^a-z0-9]+/g, " ")
     .trim()
     .replace(/\s+/g, " ");
+const studentProfileChanged = (record, existing) =>
+  normalize(record.surname) !== normalize(existing.surname) ||
+  normalize(record.givenname) !== normalize(existing.givenname) ||
+  normalize(record.middlename) !== normalize(existing.middlename) ||
+  Number(record.course_id) !== Number(existing.course_id) ||
+  normalize(record.year_level) !== normalize(existing.year_level) ||
+  normalize(record.gender) !== normalize(existing.gender);
+const displayValue = (input) => String(input ?? "").trim() || "—";
+const studentProfileChanges = (record, existing, coursesById) => {
+  const changes = [];
+  const compare = (label, before, after) => {
+    if (normalize(before) !== normalize(after))
+      changes.push(
+        `${label}: ${displayValue(before)} → ${displayValue(after)}`,
+      );
+  };
+  compare("Surname", existing.surname, record.surname);
+  compare("Given name", existing.givenname, record.givenname);
+  compare("Middle name", existing.middlename, record.middlename);
+  if (Number(existing.course_id) !== Number(record.course_id))
+    changes.push(
+      `Program: ${displayValue(coursesById.get(Number(existing.course_id))?.code)} → ${displayValue(coursesById.get(Number(record.course_id))?.code)}`,
+    );
+  compare("Year level", existing.year_level, record.year_level);
+  compare("Gender", existing.gender, record.gender);
+  return changes;
+};
 
 function settings() {
   const server = String(process.env.MSSQL_HOST || "").trim();
@@ -185,6 +212,7 @@ function maps(data) {
   return {
     users: new Map(data.users.map((row) => [normalize(row.username), row])),
     courses: new Map(data.courses.map((row) => [normalize(row.code), row])),
+    coursesById: new Map(data.courses.map((row) => [Number(row.id), row])),
     subjects: new Map(data.subjects.map((row) => [normalize(row.code), row])),
     teachersById: new Map(data.teachers.map((row) => [String(row.id), row])),
     teachersByName: data.teachers.reduce((map, row) => {
@@ -381,6 +409,7 @@ async function buildPlan(options, connection, rows) {
   const studentSummary = {
     created: 0,
     updated: 0,
+    unchanged: 0,
     reactivated: 0,
     deactivated: deactivationCandidates.length,
     errors: [],
@@ -409,7 +438,17 @@ async function buildPlan(options, connection, rows) {
       if (existing) {
         record.id = existing.id;
         record.reactivating = Number(existing.is_active) !== 1;
-        studentSummary.updated++;
+        record.profile_changed = studentProfileChanged(record, existing);
+        record.change_summary = studentProfileChanges(
+          record,
+          existing,
+          local.coursesById,
+        );
+        if (record.reactivating)
+          record.change_summary.push("Status: Inactive → Active");
+        if (record.profile_changed || record.reactivating)
+          studentSummary.updated++;
+        else studentSummary.unchanged++;
         if (record.reactivating) studentSummary.reactivated++;
       } else studentSummary.created++;
     }
@@ -471,7 +510,7 @@ async function buildPlan(options, connection, rows) {
     username: record.username,
     givenname: record.givenname,
     surname: record.surname,
-    reason: record.error,
+    reason: record.error || record.change_summary?.join(" • "),
     reactivating: Boolean(record.reactivating),
   });
   const previewSubject = (record) => ({
@@ -493,8 +532,25 @@ async function buildPlan(options, connection, rows) {
         .filter((record) => !record.error && !record.id)
         .map(previewStudent),
       updated: studentRows
-        .filter((record) => !record.error && record.id)
+        .filter(
+          (record) =>
+            !record.error &&
+            record.id &&
+            (record.profile_changed || record.reactivating),
+        )
         .map(previewStudent),
+      unchanged: studentRows
+        .filter(
+          (record) =>
+            !record.error &&
+            record.id &&
+            !record.profile_changed &&
+            !record.reactivating,
+        )
+        .map((record) => ({
+          ...previewStudent(record),
+          reason: "No changes. Student will be kept.",
+        })),
       deactivated: deactivationCandidates.map((student) => ({
         rowNumber: null,
         idNumber: student.username,
@@ -562,6 +618,7 @@ async function run(options) {
       students: {
         created: 0,
         updated: 0,
+        unchanged: 0,
         reactivated: 0,
         deactivated: 0,
         errors: built.summary.students.errors,
@@ -584,21 +641,22 @@ async function run(options) {
       );
       let id = existing[0][0]?.id;
       if (id) {
-        await connection.query(
-          "UPDATE users INNER JOIN user_info ON user_info.user_id = users.id SET users.is_active = 1, user_info.surname = ?, user_info.givenname = ?, user_info.middlename = ?, user_info.course_id = ?, user_info.year_level = ?, user_info.gender = ? WHERE users.id = ?",
-          [
-            record.surname,
-            record.givenname,
-            record.middlename || null,
-            record.course_id,
-            record.year_level,
-            record.gender,
-            id,
-          ],
-        );
-        result.students.updated++;
-        if (Number(existing[0][0].is_active) !== 1)
-          result.students.reactivated++;
+        if (record.profile_changed || record.reactivating) {
+          await connection.query(
+            "UPDATE users INNER JOIN user_info ON user_info.user_id = users.id SET users.is_active = 1, user_info.surname = ?, user_info.givenname = ?, user_info.middlename = ?, user_info.course_id = ?, user_info.year_level = ?, user_info.gender = ? WHERE users.id = ?",
+            [
+              record.surname,
+              record.givenname,
+              record.middlename || null,
+              record.course_id,
+              record.year_level,
+              record.gender,
+              id,
+            ],
+          );
+          result.students.updated++;
+        } else result.students.unchanged++;
+        if (record.reactivating) result.students.reactivated++;
       } else {
         const [insert] = await connection.query(
           "INSERT INTO users (username, password, google_email, permission_id, is_temp_pass, is_student_rater, is_admin_rater, admin_academic_scope, is_active) VALUES (?, NULL, ?, 5, 1, 1, 0, NULL, 1)",
@@ -796,7 +854,7 @@ async function run(options) {
       "INSERT INTO activity_log (user_id, date_time, action) VALUES (?, CURRENT_TIMESTAMP, ?)",
       [
         options.user_id,
-        `MSSQL import: ${result.students.created} students created, ${result.students.updated} students updated, ${result.students.deactivated} students deactivated, ${result.student_subjects.created} student courses created, ${result.student_subjects.updated} student courses updated.`,
+        `MSSQL import: ${result.students.created} students created, ${result.students.updated} students updated, ${result.students.unchanged} students unchanged, ${result.students.deactivated} students deactivated, ${result.student_subjects.created} student courses created, ${result.student_subjects.updated} student courses updated.`,
       ],
     );
     await connection.commit();

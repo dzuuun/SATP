@@ -309,6 +309,9 @@
 .preview-dot.error {
   background: #d64a4a;
 }
+.preview-dot.unchanged {
+  background: #82958c;
+}
 .preview-table {
   width: 100%;
   border-collapse: collapse;

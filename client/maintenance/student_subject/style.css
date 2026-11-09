@@ -1,5 +1,9 @@
 @import url("../course/style.css");
 
+.preview-group.unchanged .preview-dot {
+  background: #82958c;
+}
+
 .import-school-field {
   margin-bottom: 16px;
 }

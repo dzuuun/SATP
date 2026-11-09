@@ -23,6 +23,27 @@
 .preview-group.deactivated .preview-dot {
   background: #bb7120;
 }
+.preview-group.unchanged .preview-dot {
+  background: #82958c;
+}
+/* Keep each category visible and scroll the dialog body when needed. */
+#importPreviewModal .preview-body {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+#importPreviewModal .preview-group {
+  flex: 0 0 auto;
+}
+#importPreviewModal .preview-list {
+  flex: 0 1 auto;
+  min-height: 54px;
+  max-height: 190px;
+  overflow-y: auto;
+}
+#importPreviewModal .preview-row .row-detail {
+  white-space: normal;
+}
 .import-source-actions {
   display: flex;
   align-items: center;

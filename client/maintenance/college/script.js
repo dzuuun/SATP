@@ -17,7 +17,7 @@ if (!state.userId) {
 
 let table;
 let rowIdToUpdate;
-let pendingImport = { created: [], updated: [], errors: [] };
+let pendingImport = { created: [], updated: [], unchanged: [], errors: [] };
 let schoolsLoadPromise;
 const schoolsByCode = new Map();
 
@@ -217,7 +217,7 @@ const normalize = (value) =>
 function classifyRows(rows, existing, schools) {
   const byCode = new Map(existing.map((item) => [normalize(item.code), item]));
   const seen = new Set();
-  const result = { created: [], updated: [], errors: [] };
+  const result = { created: [], updated: [], unchanged: [], errors: [] };
 
   rows.forEach((raw, index) => {
     const rowNumber = index + 2;
@@ -253,9 +253,14 @@ function classifyRows(rows, existing, schools) {
     } else {
       seen.add(key);
       const current = byCode.get(key);
-      current
-        ? result.updated.push({ ...base, id: current.id })
-        : result.created.push(base);
+      if (!current) result.created.push(base);
+      else
+        (normalize(name) === normalize(current.name) &&
+        Number(school?.id) === Number(current.school_id) &&
+        Number(current.is_active) === 1
+          ? result.unchanged
+          : result.updated
+        ).push({ ...base, id: current.id });
     }
   });
   return result;
@@ -265,6 +270,7 @@ function renderPreview() {
   const groups = [
     ["created", "createdPreview", "createdCount", "Will be created"],
     ["updated", "updatedPreview", "updatedCount", "Existing code"],
+    ["unchanged", "unchangedPreview", "unchangedCount", "No changes"],
     ["errors", "errorPreview", "errorCount", ""],
   ];
   groups.forEach(([key, listId, countId, detail]) => {
@@ -313,7 +319,11 @@ document
 
     toggleModal("importPreviewModal", false);
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-    const totals = { created: 0, updated: 0, skipped: 0 };
+    const totals = {
+      created: 0,
+      updated: 0,
+      skipped: pendingImport.unchanged.length,
+    };
     for (let index = 0; index < actions.length; index++) {
       const { type, item } = actions[index];
       const payload = {

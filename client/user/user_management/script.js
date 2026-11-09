@@ -8,12 +8,18 @@ const state = {
   editId: null,
   importMode: null,
   validRows: [],
+  unchangedRows: [],
   errorRows: [],
   permissions: [],
   editTemporaryPassword: false,
   editHasPassword: false,
   superAdmin: false,
 };
+const normalizeImportValue = (value) =>
+  String(value ?? "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase();
 
 if (!state.userId) {
   alert("Log in to continue.");
@@ -571,6 +577,7 @@ async function prepareImport(event, mode) {
     }
     state.importMode = mode;
     state.validRows = [];
+    state.unchangedRows = [];
     state.errorRows = [];
     const seenUsernames = new Set();
     rows.forEach((original, index) => {
@@ -666,8 +673,32 @@ async function prepareImport(event, mode) {
               }
             : {}),
         });
-      else
-        state.validRows.push({
+      else {
+        const unchanged =
+          mode === "users" &&
+          uploadedUser &&
+          normalizeImportValue(row.google_email) ===
+            normalizeImportValue(uploadedUser.google_email) &&
+          normalizeImportValue(row.givenname) ===
+            normalizeImportValue(uploadedUser.givenname) &&
+          normalizeImportValue(row.middlename) ===
+            normalizeImportValue(uploadedUser.middlename) &&
+          normalizeImportValue(row.surname) ===
+            normalizeImportValue(uploadedUser.surname) &&
+          normalizeImportValue(row.gender) ===
+            normalizeImportValue(uploadedUser.gender) &&
+          String(role) ===
+            (Number(uploadedUser.is_student_rater) === 1
+              ? "student"
+              : "admin") &&
+          Number(row.permission_id) === Number(uploadedUser.permission_id) &&
+          normalizeImportValue(row.admin_academic_scope || "") ===
+            normalizeImportValue(uploadedUser.admin_academic_scope || "") &&
+          Number(row.course_id || 0) === Number(uploadedUser.course_id || 0) &&
+          normalizeImportValue(row.year_level || "") ===
+            normalizeImportValue(uploadedUser.year_level || "") &&
+          Number(row.is_active ?? 1) === Number(uploadedUser.is_active);
+        (unchanged ? state.unchangedRows : state.validRows).push({
           ...row,
           __row: index + 2,
           __existingId: uploadedUser?.id || null,
@@ -678,6 +709,7 @@ async function prepareImport(event, mode) {
               }
             : {}),
         });
+      }
     });
     renderPreview();
     toggleModal(modalIds[mode], false);
@@ -699,8 +731,9 @@ function renderPreview() {
   document.getElementById("previewSummary").textContent =
     state.importMode === "deactivate"
       ? `${state.validRows.length} accounts ready to deactivate; ${state.errorRows.length} errors.`
-      : `${state.validRows.length + state.errorRows.length} rows checked: ${state.validRows.length} ready and ${state.errorRows.length} with errors.`;
+      : `${state.validRows.length + state.unchangedRows.length + state.errorRows.length} rows checked: ${state.validRows.length} ready, ${state.unchangedRows.length} unchanged, and ${state.errorRows.length} with errors.`;
   renderPreviewTable("successPreview", state.validRows, false);
+  renderPreviewTable("unchangedPreview", state.unchangedRows, false);
   renderPreviewTable("errorPreview", state.errorRows, true);
   document.getElementById("runImportButton").disabled =
     state.validRows.length === 0;

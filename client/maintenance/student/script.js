@@ -15,7 +15,7 @@ if (!state.userId) {
 let table,
   rowIdToUpdate,
   coursesByCode = new Map(),
-  pendingImport = { created: [], updated: [], errors: [] },
+  pendingImport = { created: [], updated: [], unchanged: [], errors: [] },
   pendingMssqlImport = null;
 let mssqlImportAllowed = false;
 
@@ -175,6 +175,7 @@ document
       pendingImport = response.data.preview || {
         created: [],
         updated: [],
+        unchanged: [],
         errors: [],
       };
       renderPreview();
@@ -221,7 +222,7 @@ async function runMssqlImportFromPreview() {
     const students = response.data.students || {};
     pendingMssqlImport = null;
     setSuccessMessage(
-      `${students.created || 0} students imported; ${students.updated || 0} updated; ${students.reactivated || 0} reactivated; ${students.deactivated || 0} deactivated.`,
+      `${students.created || 0} students imported; ${students.updated || 0} updated; ${students.unchanged || 0} unchanged; ${students.reactivated || 0} reactivated; ${students.deactivated || 0} deactivated.`,
     );
   } catch (error) {
     toggleModal("spinnerStatusModal", false);
@@ -470,7 +471,7 @@ function classifyRows(rows, existing) {
   ]);
   const byUsername = new Map(existing.map((s) => [normalize(s.username), s])),
     seen = new Set(),
-    result = { created: [], updated: [], errors: [] },
+    result = { created: [], updated: [], unchanged: [], errors: [] },
     allowedYears = ["1", "2", "3", "4", "5", "6", "grade 11", "grade 12"];
   rows.forEach((raw, index) => {
     const idNumber = String(raw.id_number || raw.username || "").trim(),
@@ -540,8 +541,21 @@ function classifyRows(rows, existing) {
     else {
       seen.add(key);
       const current = byUsername.get(key);
-      if (current) result.updated.push({ ...base, id: current.id });
-      else if (!password && !google_email)
+      if (current) {
+        const changed =
+          normalize(surname) !== normalize(current.surname) ||
+          normalize(givenname) !== normalize(current.givenname) ||
+          normalize(middlename) !== normalize(current.middlename) ||
+          normalize(google_email) !== normalize(current.google_email) ||
+          normalize(courseCode) !== normalize(current.course) ||
+          normalize(year_level) !== normalize(current.year_level) ||
+          normalize(gender) !== normalize(current.gender);
+        (changed ? result.updated : result.unchanged).push({
+          ...base,
+          id: current.id,
+          ...(changed ? {} : { reason: "No changes. Student will be kept." }),
+        });
+      } else if (!password && !google_email)
         result.errors.push({
           ...base,
           reason:
@@ -564,6 +578,7 @@ function renderPreview() {
   const categories = [
     ["created", "createdPreview", "createdCount", "Will be created"],
     ["updated", "updatedPreview", "updatedCount", "Ready to update"],
+    ["unchanged", "unchangedPreview", "unchangedCount", "No changes"],
     ["errors", "errorPreview", "errorCount", ""],
   ];
   if (isMssqlImport)
@@ -661,7 +676,11 @@ document
       "Import in progress";
     setImportStatusMessage("0%");
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-    const totals = { created: 0, updated: 0, skipped: 0 };
+    const totals = {
+      created: 0,
+      updated: 0,
+      skipped: pendingImport.unchanged.length,
+    };
     for (let i = 0; i < actions.length; i++) {
       const { type, item } = actions[i];
       try {

@@ -84,9 +84,11 @@ module.exports = {
 
   getUsers: (callBack) => {
     pool.query(
-      `SELECT users.id, users.username, users.google_email,
+      `SELECT users.id, users.username, users.google_email, users.permission_id,
          CASE WHEN users.password IS NULL OR users.password = '' THEN 0 ELSE 1 END AS has_password,
          users.admin_academic_scope,
+         user_info.givenname, user_info.middlename, user_info.surname,
+         user_info.gender, user_info.course_id, user_info.year_level,
          CONCAT(user_info.givenname, ' ', user_info.middlename, ' ', user_info.surname) AS Name,
          permissions.name AS permission, users.is_student_rater, users.is_admin_rater, users.is_active,
          CASE WHEN users.is_active = 1

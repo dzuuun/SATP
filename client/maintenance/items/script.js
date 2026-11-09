@@ -18,7 +18,7 @@ if (!state.userId) {
 let table;
 let rowIdToUpdate;
 let categoriesByName = new Map();
-let pendingImport = { created: [], updated: [], errors: [] };
+let pendingImport = { created: [], updated: [], unchanged: [], errors: [] };
 const normalize = (value) =>
   String(value || "")
     .trim()
@@ -229,7 +229,7 @@ function classifyRows(rows, existing) {
     ]),
   );
   const seen = new Set();
-  const result = { created: [], updated: [], errors: [] };
+  const result = { created: [], updated: [], unchanged: [], errors: [] };
   rows.forEach((raw, index) => {
     const categoryName = String(raw.category || "")
       .trim()
@@ -272,9 +272,13 @@ function classifyRows(rows, existing) {
     } else {
       seen.add(key);
       const current = existingByKey.get(key);
-      current
-        ? result.updated.push({ ...base, id: current.id })
-        : result.created.push(base);
+      if (!current) result.created.push(base);
+      else
+        (normalize(question) === normalize(current.question) &&
+        Number(current.is_active) === 1
+          ? result.unchanged
+          : result.updated
+        ).push({ ...base, id: current.id });
     }
   });
   return result;
@@ -289,6 +293,7 @@ function renderPreview() {
       "updatedCount",
       "Existing category and number",
     ],
+    ["unchanged", "unchangedPreview", "unchangedCount", "No changes"],
     ["errors", "errorPreview", "errorCount", ""],
   ].forEach(([key, listId, countId, detail]) => {
     const items = pendingImport[key];
@@ -336,7 +341,11 @@ document
     }
     toggleModal("importPreviewModal", false);
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-    const totals = { created: 0, updated: 0, skipped: 0 };
+    const totals = {
+      created: 0,
+      updated: 0,
+      skipped: pendingImport.unchanged.length,
+    };
     for (let index = 0; index < actions.length; index++) {
       const { type, item } = actions[index];
       const payload = {

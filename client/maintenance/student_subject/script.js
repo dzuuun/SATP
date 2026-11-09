@@ -936,6 +936,7 @@ const getRoom = async () => {
 let pendingSubjectImport = {
   created: [],
   updated: [],
+  unchanged: [],
   errors: [],
   schoolId: null,
 };
@@ -1276,7 +1277,7 @@ function optionMap(selectId, valueReader = (option) => option.textContent) {
 
 async function classifySubjectRows(rows, schoolId) {
   const seen = new Set();
-  const result = { created: [], updated: [], errors: [] };
+  const result = { created: [], updated: [], unchanged: [], errors: [] };
   const rowProgressStep = Math.max(1, Math.ceil(rows.length / 40));
 
   for (let index = 0; index < rows.length; index++) {
@@ -1526,7 +1527,7 @@ async function classifySubjectRows(rows, schoolId) {
       const preparationNote = item.teacher_needs_creation
         ? `Teacher ${item.teacher_first_name} ${item.teacher_last_name} will be created in ${importTeacherDefaultDepartment(schoolId)?.department_code || importTeacherDefaultDepartment(schoolId)?.code || "the default department"}; `
         : "";
-      result.updated.push({
+      (unchanged ? result.unchanged : result.updated).push({
         ...item,
         id: current.id,
         unchanged,
@@ -1587,6 +1588,7 @@ function renderSubjectImportPreview() {
   for (const item of [
     ...pendingSubjectImport.created,
     ...pendingSubjectImport.updated,
+    ...pendingSubjectImport.unchanged,
     ...pendingSubjectImport.errors,
   ]) {
     const raw = item.originalRow || {};
@@ -1614,6 +1616,7 @@ function renderSubjectImportPreview() {
   [
     ["created", "createdPreview", "createdCount", "Will be created"],
     ["updated", "updatedPreview", "updatedCount", "Already exists"],
+    ["unchanged", "unchangedPreview", "unchangedCount", "No changes"],
     ["errors", "errorPreview", "errorCount", ""],
   ].forEach(([key, listId, countId, detail]) => {
     const items = pendingSubjectImport[key];

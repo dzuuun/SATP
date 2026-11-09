@@ -10,6 +10,9 @@
   --line: #e1e9e4;
   --danger: #c33b32;
 }
+.preview-group.unchanged .preview-dot {
+  background: #82958c;
+}
 
 * {
   box-sizing: border-box;

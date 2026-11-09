@@ -18,7 +18,7 @@ if (!state.userId) {
 let table;
 let rowIdToUpdate;
 let duplicateTeacherId;
-let pendingImport = { created: [], updated: [], errors: [] };
+let pendingImport = { created: [], updated: [], unchanged: [], errors: [] };
 let pendingTeacherRoster = null;
 let teacherRosterAllowed = false;
 fetch("/api/login/session", { credentials: "same-origin" })
@@ -784,7 +784,7 @@ function classifyRows(rows, existing) {
     ]),
   );
   const seen = new Set();
-  const result = { created: [], updated: [], errors: [] };
+  const result = { created: [], updated: [], unchanged: [], errors: [] };
 
   rows.forEach((raw, index) => {
     const rowNumber = index + 2;
@@ -873,9 +873,34 @@ function classifyRows(rows, existing) {
     } else {
       seen.add(key);
       const current = existingByName.get(key);
-      current
-        ? result.updated.push({ ...base, id: current.id })
-        : result.created.push(base);
+      if (!current) result.created.push(base);
+      else {
+        const requestedAssignments = base.department_assignments
+          .map((item) => `${item.department_id}:${item.teaching_status}`)
+          .sort()
+          .join("|");
+        const currentAssignments = String(current.department_ids || "")
+          .split(",")
+          .map(
+            (id, assignmentIndex) =>
+              `${Number(id)}:${String(current.department_teaching_statuses || "").split(",")[assignmentIndex] ?? current.is_part_time}`,
+          )
+          .sort()
+          .join("|");
+        const unchanged =
+          normalize(prefix) === normalize(current.prefix) &&
+          normalize(surname) === normalize(current.surname) &&
+          normalize(givenname) === normalize(current.givenname) &&
+          normalize(middlename) === normalize(current.middlename) &&
+          normalize(suffix) === normalize(current.suffix) &&
+          requestedAssignments === currentAssignments &&
+          Number(current.is_active) === 1;
+        (unchanged ? result.unchanged : result.updated).push({
+          ...base,
+          id: current.id,
+          ...(unchanged ? { reason: "No changes" } : {}),
+        });
+      }
     }
   });
   return result;
@@ -885,6 +910,7 @@ function renderPreview() {
   const groups = [
     ["created", "createdPreview", "createdCount", "Will be created"],
     ["updated", "updatedPreview", "updatedCount", "Existing teacher"],
+    ["unchanged", "unchangedPreview", "unchangedCount", "No changes"],
     ["errors", "errorPreview", "errorCount", ""],
   ];
   groups.forEach(([key, listId, countId, detail]) => {
@@ -933,7 +959,11 @@ document
 
     toggleModal("importPreviewModal", false);
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
-    const totals = { created: 0, updated: 0, skipped: 0 };
+    const totals = {
+      created: 0,
+      updated: 0,
+      skipped: pendingImport.unchanged.length,
+    };
     for (let index = 0; index < actions.length; index++) {
       const { type, item } = actions[index];
       const payload = {
