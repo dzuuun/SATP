@@ -1247,6 +1247,26 @@ function comparableImportTime(value) {
   return `${String(Number(twentyFourHour[1])).padStart(2, "0")}:${twentyFourHour[2]}`;
 }
 
+function enrollmentChangeSummary(current, item) {
+  const changes = [];
+  const display = (value) => String(value ?? "").trim() || "—";
+  const compare = (label, before, after, normalizer = normalizeImportValue) => {
+    if (normalizer(before) !== normalizer(after))
+      changes.push(`${label}: ${display(before)} → ${display(after)}`);
+  };
+  compare("Schedule", current.schedule_code, item.schedule_code);
+  compare("Start", current.time_start, item.time_start, comparableImportTime);
+  compare("End", current.time_end, item.time_end, comparableImportTime);
+  compare("Day", current.day, item.day);
+  if (Number(current.room_id || 0) !== Number(item.room_id || 0))
+    changes.push(`Room: ${display(current.room || current.room_id)} → ${display(item.room_code || item.room_id)}`);
+  if (Number(current.teacher_id || 0) !== Number(item.teacher_id || 0))
+    changes.push(`Teacher: ${display(current.teacher_name || current.teacher_id)} → ${display(item.teacher_id)}`);
+  if (Number(current.is_excluded || 0) !== Number(item.is_excluded || 0))
+    changes.push(`Status: ${Number(current.is_excluded) ? "Excluded" : "Included"} → ${Number(item.is_excluded) ? "Excluded" : "Included"}`);
+  return changes;
+}
+
 function isTbaTeacherRow(row) {
   const values = [
     readImportColumn(row, "InstructorID", "TeacherID"),
@@ -1514,6 +1534,8 @@ async function classifySubjectRows(rows, schoolId) {
       const current = existingByEnrollment.get(enrollmentKey(item));
       if (!current) return;
       const unchanged =
+        normalizeImportValue(current.schedule_code) ===
+          normalizeImportValue(item.schedule_code) &&
         comparableImportTime(current.time_start) ===
           comparableImportTime(item.time_start) &&
         comparableImportTime(current.time_end) ===
@@ -1522,6 +1544,7 @@ async function classifySubjectRows(rows, schoolId) {
         Number(current.room_id || 0) === Number(item.room_id || 0) &&
         Number(current.teacher_id || 0) === Number(item.teacher_id || 0) &&
         Number(current.is_excluded || 0) === Number(item.is_excluded || 0);
+      const changes = enrollmentChangeSummary(current, item);
       const key = `${item.student_id}|${item.school_year_id}|${item.semester_id}|${enrollmentKey(item)}`;
       existingKeys.add(key);
       const preparationNote = item.teacher_needs_creation
@@ -1533,7 +1556,7 @@ async function classifySubjectRows(rows, schoolId) {
         unchanged,
         reason: unchanged
           ? `${preparationNote}Enrollment already exists; no changes needed`
-          : `${preparationNote}Enrollment already exists; changes will be updated`,
+          : `${preparationNote}${changes.join(" • ") || "Enrollment details changed"}`,
       });
     });
     checkedBatches++;

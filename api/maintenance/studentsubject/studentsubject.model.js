@@ -813,6 +813,7 @@ module.exports = {
         const current = existingByEnrollment.get(enrollmentKey(subject));
         if (!current) continue;
         const changed =
+          comparable(current.schedule_code) !== comparable(subject.schedule_code) ||
           comparableTime(current.time_start) !==
             comparableTime(subject.time_start) ||
           comparableTime(current.time_end) !==
