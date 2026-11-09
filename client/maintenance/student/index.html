@@ -524,9 +524,32 @@
         id="spinnerStatusModalCard"
         class="modal-card progress-card scale-95"
       >
-        <span class="progress-spinner"></span>
-        <p class="eyebrow">Import in progress</p>
-        <p>Please keep this page open while student records are processed.</p>
+        <div class="import-progress-heading">
+          <div>
+            <p class="eyebrow">Students</p>
+            <h2>Importing student records</h2>
+          </div>
+          <span class="progress-spinner" aria-hidden="true"></span>
+        </div>
+        <div class="import-progress-summary" role="status" aria-live="polite">
+          <p id="progressEyebrow">Import in progress</p>
+          <p id="progressDetail">Please keep this page open.</p>
+        </div>
+        <div class="import-progress-label">
+          <span>Progress</span><strong id="statusMessage">0%</strong>
+        </div>
+        <div
+          id="importProgressTrack"
+          role="progressbar"
+          aria-label="Current import stage"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-valuenow="0"
+        ><div id="importProgressBar"></div></div>
+        <footer class="import-progress-footer">
+          <span>Keep this page open while we process your records.</span
+          ><span id="importElapsed">0:00 elapsed</span>
+        </footer>
       </div>
     </div>
     <div id="toast-container" class="toast-container" aria-live="polite"></div>

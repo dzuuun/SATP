@@ -18,6 +18,8 @@ let table,
   pendingImport = { created: [], updated: [], unchanged: [], errors: [] },
   pendingMssqlImport = null;
 let mssqlImportAllowed = false;
+let importProgressStartedAt = 0;
+let importElapsedTimer = null;
 
 fetch("/api/login/session", { credentials: "same-origin" })
   .then((response) => (response.ok ? response.json() : null))
@@ -51,7 +53,36 @@ const formatYearLevel = (value) => {
 };
 const setImportStatusMessage = (message) => {
   const statusMessage = document.getElementById("statusMessage");
-  if (statusMessage) statusMessage.textContent = message;
+  const detail = document.getElementById("progressDetail");
+  const track = document.getElementById("importProgressTrack");
+  const bar = document.getElementById("importProgressBar");
+  const percent = Number.parseInt(String(message), 10);
+  if (detail) detail.textContent = message;
+  if (statusMessage) statusMessage.textContent = Number.isFinite(percent) ? `${percent}%` : "…";
+  if (track && bar) {
+    const known = Number.isFinite(percent);
+    track.classList.toggle("indeterminate", !known);
+    track.setAttribute("aria-valuenow", known ? String(percent) : "0");
+    bar.style.width = known ? `${Math.max(0, Math.min(100, percent))}%` : "28%";
+  }
+};
+const startImportProgress = (stage = "Import in progress") => {
+  const eyebrow = document.getElementById("progressEyebrow");
+  if (eyebrow) eyebrow.textContent = stage;
+  importProgressStartedAt = Date.now();
+  clearInterval(importElapsedTimer);
+  const updateElapsed = () => {
+    const seconds = Math.floor((Date.now() - importProgressStartedAt) / 1000);
+    const elapsed = document.getElementById("importElapsed");
+    if (elapsed)
+      elapsed.textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} elapsed`;
+  };
+  updateElapsed();
+  importElapsedTimer = setInterval(updateElapsed, 1000);
+};
+const stopImportProgress = () => {
+  clearInterval(importElapsedTimer);
+  importElapsedTimer = null;
 };
 $(document).ready(() => {
   table = $("#table").DataTable({
@@ -154,9 +185,8 @@ document
   .getElementById("previewMssqlImportButton")
   .addEventListener("click", async () => {
     const payload = mssqlImportPayload();
-    document.querySelector("#spinnerStatusModal .eyebrow").textContent =
-      "Loading data";
     setImportStatusMessage("Reading MSSQL student data");
+    startImportProgress("Preparing import");
     toggleModal("mssqlImportModal", false);
     toggleModal("spinnerStatusModal", true);
     try {
@@ -180,9 +210,11 @@ document
       };
       renderPreview();
       toggleModal("spinnerStatusModal", false);
+      stopImportProgress();
       setTimeout(() => toggleModal("importPreviewModal", true), 250);
     } catch (error) {
       toggleModal("spinnerStatusModal", false);
+      stopImportProgress();
       setTimeout(() => toggleModal("mssqlImportModal", true), 250);
       setErrorMessage(error.message || "Unable to preview the MSSQL import.");
     }
@@ -206,9 +238,8 @@ async function runMssqlImportFromPreview() {
     : "Run the MSSQL import?";
   if (!(await satpConfirm(confirmation))) return;
   toggleModal("importPreviewModal", false);
-  document.querySelector("#spinnerStatusModal .eyebrow").textContent =
-    "Import in progress";
   setImportStatusMessage("Importing students");
+  startImportProgress("Import in progress");
   toggleModal("spinnerStatusModal", true);
   try {
     const response = await requestJson("/api/mssql-import/run", {
@@ -218,6 +249,7 @@ async function runMssqlImportFromPreview() {
     if (!response.success)
       throw new Error(response.message || "MSSQL import failed.");
     toggleModal("spinnerStatusModal", false);
+    stopImportProgress();
     table?.ajax.reload(null, false);
     const students = response.data.students || {};
     pendingMssqlImport = null;
@@ -226,6 +258,7 @@ async function runMssqlImportFromPreview() {
     );
   } catch (error) {
     toggleModal("spinnerStatusModal", false);
+    stopImportProgress();
     setTimeout(() => toggleModal("importPreviewModal", true), 250);
     setErrorMessage(error.message || "MSSQL import failed.");
   }
@@ -435,9 +468,8 @@ document
     e.preventDefault();
     if (!xlsxInput.files[0]) return;
     pendingMssqlImport = null;
-    document.querySelector("#spinnerStatusModal .eyebrow").textContent =
-      "Validating file";
     setImportStatusMessage("Please wait");
+    startImportProgress("Validating file");
     toggleModal("importFileModal", false);
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
     try {
@@ -449,9 +481,11 @@ document
       pendingImport = classifyRows(rows, current.data || []);
       renderPreview();
       toggleModal("spinnerStatusModal", false);
+      stopImportProgress();
       setTimeout(() => toggleModal("importPreviewModal", true), 250);
     } catch (error) {
       toggleModal("spinnerStatusModal", false);
+      stopImportProgress();
       setTimeout(() => toggleModal("importFileModal", true), 250);
       setErrorMessage("Unable to validate the Excel file.");
     }
@@ -672,9 +706,8 @@ document
       return setErrorMessage(`${errors.length} invalid rows exported.`);
     }
     toggleModal("importPreviewModal", false);
-    document.querySelector("#spinnerStatusModal .eyebrow").textContent =
-      "Import in progress";
     setImportStatusMessage("0%");
+    startImportProgress("Import in progress");
     setTimeout(() => toggleModal("spinnerStatusModal", true), 250);
     const totals = {
       created: 0,
@@ -733,6 +766,7 @@ document
       );
     }
     toggleModal("spinnerStatusModal", false);
+    stopImportProgress();
     if (errors.length) downloadErrors(errors);
     table.ajax.reload(null, false);
     setTimeout(
